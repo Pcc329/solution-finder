@@ -97,7 +97,7 @@ async function fetchAll() {
       // 2. Claude API 語意解析
       // ==========================================
       async function callClaude(userQuery) {
-        const CLAUDE_KEY = ""; // ⚠️ 換上新的安全 Key
+        const CLAUDE_KEY = "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"; // ⚠️ 換上新的安全 Key
         const systemPrompt = `你是一個資服方案資料庫的查詢助手。
 使用者會用自然語言描述想找的方案，你要把它轉成 JSON 篩選條件。
 
