@@ -42,7 +42,6 @@
       const [query, setQuery] = useState("");
       const [expandedId, setExpandedId] = useState(null);
       const [isSearching, setIsSearching] = useState(false);
-      const [isCopilotOpen, setIsCopilotOpen] = useState(false);
       
       const [filters, setFilters] = useState({
         region: null,
@@ -50,7 +49,8 @@
         isStartup: null,
         category: null,
         maxPrice: null,
-        domain: null
+        domain: null,
+        keyword: null // 🚀 新增：模糊搜尋關鍵字欄位
       });
 
       const REGIONS = ["北部", "中部", "南部", "東部", "其他"];
@@ -61,8 +61,7 @@
       // ==========================================
       useEffect(() => {
         async function fetchAll() {
-          const TOKEN = "patmts6f2hUZLLkOj.3583d8a1d487f9db997e6eac85ce468424697fe2f9577f96428216294d60693c
-"; // ⚠️ 請記得替換為您的 Token
+          const TOKEN = "patmts6f2hUZLLkOj.3583d8a1d487f9db997e6eac85ce468424697fe2f9577f96428216294d60693c"; // ⚠️ 請記得替換為您的 Token
           const BASE_ID = "appttP04OnzzC7qxG";
           const TABLE = "Solutions";
           let allRecords = [];
@@ -98,7 +97,6 @@
                   pt: fields["價格區間"] || "",
                   mo: fields["月費"] || null,
                   mt: fields["月費區間"] || "",
-                  // 🚀 修正：確保區域值有 trim
                   r: (typeof fields["區域"] === "string" ? fields["區域"].trim() : (fields["區域"] || [])[0] || "").trim(),
                   st: fields["是否新創"] === "True",
                   desc: fields["方案介紹"] || ""
@@ -136,7 +134,7 @@
 - domainKey: 服務領域關鍵字，例如 "ERP"/"POS"/"客服"/"資安"/"碳排"/"SEO" 等
 - program: 參與計畫，可選值："雲市集"/"新創嚴選"
 - maxPrice: 總費用上限（數字）
-- maxMonthly: 月費上限（數字）
+- keyword: 如果使用者的輸入包含特定的公司名稱、方案名稱或無法歸類的關鍵字，請將其提取到此欄位
 
 規則：
 1. 只回傳 JSON，不要有任何其他文字
@@ -175,36 +173,40 @@
       // 3. Fallback: 前端關鍵字比對
       // ==========================================
       const parseQueryFallback = (text) => {
-        let newFilters = { region: null, isAI: null, isStartup: null, category: null, maxPrice: null, domain: null };
+        let newFilters = { region: null, isAI: null, isStartup: null, category: null, maxPrice: null, domain: null, keyword: null };
         const q = text.toLowerCase();
+        let hasMatch = false; // 🚀 新增：用來記錄是否有配對到任何結構化條件
 
-        if (q.includes("北部")) newFilters.region = "北部";
-        else if (q.includes("中部")) newFilters.region = "中部";
-        else if (q.includes("南部")) newFilters.region = "南部";
-        else if (q.includes("東部")) newFilters.region = "東部";
+        // 區域解析
+        if (q.includes("北部")) { newFilters.region = "北部"; hasMatch = true; }
+        else if (q.includes("中部")) { newFilters.region = "中部"; hasMatch = true; }
+        else if (q.includes("南部")) { newFilters.region = "南部"; hasMatch = true; }
+        else if (q.includes("東部")) { newFilters.region = "東部"; hasMatch = true; }
         
-        if (q.includes("ai") || q.includes("智能") || q.includes("人工智慧")) newFilters.isAI = true;
-        if (q.includes("新創")) newFilters.isStartup = true;
+        // 🚀 修正：嚴格的 AI 邊界與詞彙比對
+        if (/\bai\b/i.test(text) || text.includes("人工智慧") || text.includes("智能") || text.includes("智慧")) {
+          newFilters.isAI = true;
+          hasMatch = true;
+        }
 
-        if (q.includes("管理") || q.includes("erp") || q.includes("人資")) newFilters.category = "企業管理";
-        else if (q.includes("客服") || q.includes("行銷")) newFilters.category = "行銷客服";
-        else if (q.includes("esg") || q.includes("減碳")) newFilters.category = "ESG永續";
-        else if (q.includes("資安") || q.includes("防毒")) newFilters.category = "技術基礎";
+        // 新創標籤
+        if (q.includes("新創")) { newFilters.isStartup = true; hasMatch = true; }
 
-        let numStr = q.replace(/一/g, '1')
-                      .replace(/二/g, '2')
-                      .replace(/兩/g, '2')
-                      .replace(/三/g, '3')
-                      .replace(/四/g, '4')
-                      .replace(/五/g, '5')
-                      .replace(/六/g, '6')
-                      .replace(/七/g, '7')
-                      .replace(/八/g, '8')
-                      .replace(/九/g, '9')
-                      .replace(/十/g, '10');
+        // 領域大分類
+        if (q.includes("管理") || q.includes("erp") || q.includes("人資")) { newFilters.category = "企業管理"; hasMatch = true; }
+        else if (q.includes("客服") || q.includes("行銷")) { newFilters.category = "行銷客服"; hasMatch = true; }
+        else if (q.includes("esg") || q.includes("減碳")) { newFilters.category = "ESG永續"; hasMatch = true; }
+        else if (q.includes("資安") || q.includes("防毒")) { newFilters.category = "技術基礎"; hasMatch = true; }
 
+        // 金額解析
+        let numStr = q.replace(/一/g, '1').replace(/二/g, '2').replace(/兩/g, '2').replace(/三/g, '3').replace(/四/g, '4').replace(/五/g, '5').replace(/六/g, '6').replace(/七/g, '7').replace(/八/g, '8').replace(/九/g, '9').replace(/十/g, '10');
         const priceMatch = numStr.match(/(\d+)\s*萬/);
-        if (priceMatch) newFilters.maxPrice = parseInt(priceMatch[1]) * 10000;
+        if (priceMatch) { newFilters.maxPrice = parseInt(priceMatch[1]) * 10000; hasMatch = true; }
+
+        // 🚀 修正：如果完全沒有命中任何結構化條件，將原文存入 keyword
+        if (!hasMatch) {
+          newFilters.keyword = text.trim();
+        }
 
         return newFilters;
       };
@@ -219,14 +221,24 @@
 
         try {
           const claudeResult = await callClaude(query);
-          setFilters({
+          
+          const parsedFilters = {
             region: claudeResult.region || null,
             isAI: claudeResult.ai || null,
             isStartup: claudeResult.startup || null,
             category: claudeResult.category || null,
             maxPrice: claudeResult.maxPrice || claudeResult.maxMonthly || null,
-            domain: claudeResult.domainKey || null
-          });
+            domain: claudeResult.domainKey || null,
+            keyword: claudeResult.keyword || null // 支援 Claude 抓出的 Keyword
+          };
+
+          // 🚀 修正：如果 Claude 回傳的條件全部是 null (空物件)，也強制將原文轉為 keyword
+          const hasAnyFilter = Object.values(parsedFilters).some(v => v !== null);
+          if (!hasAnyFilter) {
+            parsedFilters.keyword = query.trim();
+          }
+
+          setFilters(parsedFilters);
         } catch (err) {
           console.error("❌ Claude API 失敗，啟用備用解析器:", err);
           const fallbackFilters = parseQueryFallback(query);
@@ -249,22 +261,27 @@
       };
 
       // ==========================================
-      // 5. 資料篩選邏輯
+      // 5. 資料篩選邏輯 (加入 Keyword 模糊比對)
       // ==========================================
       const filteredResults = useMemo(() => {
         return allData.filter(item => {
-          // 🚀 修正：加上 trim() 進行嚴格的區域比對
           const matchRegion = !filters.region || (item.r && item.r.trim() === filters.region.trim());
-
           const matchCat = !filters.category || (item.cat && item.cat.includes(filters.category));
           const matchDomain = !filters.domain || (item.d && item.d.includes(filters.domain));
-          
           const matchAI = filters.isAI === null ? true : item.ai === filters.isAI;
           const matchStartup = filters.isStartup === null ? true : item.st === filters.isStartup;
-          
           const matchPrice = !filters.maxPrice || (item.pr != null && Number(item.pr) <= Number(filters.maxPrice));
 
-          return matchRegion && matchAI && matchStartup && matchCat && matchPrice && matchDomain;
+          // 🚀 修正：加入針對方案名稱 (s) 或公司名稱 (c) 的模糊比對
+          let matchKeyword = true;
+          if (filters.keyword) {
+            const kw = filters.keyword.toLowerCase();
+            const sMatch = item.s && item.s.toLowerCase().includes(kw);
+            const cMatch = item.c && item.c.toLowerCase().includes(kw);
+            matchKeyword = sMatch || cMatch;
+          }
+
+          return matchRegion && matchAI && matchStartup && matchCat && matchPrice && matchDomain && matchKeyword;
         });
       }, [filters, allData]);
 
@@ -273,7 +290,7 @@
       };
 
       const clearAllFilters = () => {
-        setFilters({ region: null, isAI: null, isStartup: null, category: null, maxPrice: null, domain: null });
+        setFilters({ region: null, isAI: null, isStartup: null, category: null, maxPrice: null, domain: null, keyword: null });
         setQuery("");
       };
 
@@ -322,7 +339,7 @@
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                placeholder="搜尋：我們預算三萬，想找北部的 AI 智能客服系統..."
+                placeholder="搜尋：我們預算三萬，想找台中的 AI 智能排班系統..."
                 className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-white placeholder:text-white/30 text-lg font-medium"
               />
               <button 
@@ -357,7 +374,7 @@
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-              placeholder="進一步描述您的需求..."
+              placeholder="進一步描述您的需求（例如輸入：叡揚資訊）..."
               className="flex-1 py-3 px-2 outline-none text-slate-700 bg-transparent"
             />
             <button 
@@ -372,7 +389,7 @@
 
           <div className="flex flex-wrap gap-2 mb-8 px-1">
             <span className="text-xs text-slate-400 font-bold py-1.5 mr-1">範例查詢：</span>
-            {["北部有哪些 AI 客服方案", "中部 5萬以下的資安防護", "南部新創的 ESG 方案", "企業管理的 ERP 系統"].map(text => (
+            {["北部有哪些 AI 客服方案", "叡揚資訊", "南部新創的 ESG 方案", "企業管理的 ERP 系統"].map(text => (
               <button 
                 key={text}
                 onClick={() => handleQuickSearch(text)}
@@ -388,7 +405,7 @@
               <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
                 <i className="fa-solid fa-sliders text-slate-400"></i> 解析與手動篩選條件
               </h3>
-              {(filters.region || filters.isAI || filters.isStartup || filters.category || filters.maxPrice || filters.domain) && (
+              {(filters.region || filters.isAI || filters.isStartup || filters.category || filters.maxPrice || filters.domain || filters.keyword) && (
                 <button onClick={clearAllFilters} className="text-xs text-red-500 hover:text-red-700 font-bold transition-colors">
                   清除全部
                 </button>
@@ -428,7 +445,13 @@
                 )}
                 {filters.domain && (
                   <span className="px-3 py-1 text-xs rounded-full border bg-purple-50 border-purple-200 text-purple-700 font-bold flex items-center gap-1">
-                    關鍵字: {filters.domain} <i className="fa-solid fa-xmark cursor-pointer ml-1 hover:text-purple-900" onClick={() => toggleFilter('domain', filters.domain)}></i>
+                    領域: {filters.domain} <i className="fa-solid fa-xmark cursor-pointer ml-1 hover:text-purple-900" onClick={() => toggleFilter('domain', filters.domain)}></i>
+                  </span>
+                )}
+                {/* 🚀 新增：當有 keyword 時，顯示在畫面上讓使用者知道 */}
+                {filters.keyword && (
+                  <span className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
+                    關鍵字: {filters.keyword} <i className="fa-solid fa-xmark cursor-pointer ml-1 hover:text-blue-900" onClick={() => toggleFilter('keyword', filters.keyword)}></i>
                   </span>
                 )}
               </div>
