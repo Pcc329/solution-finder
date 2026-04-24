@@ -44,7 +44,6 @@
       return "NT$ " + Number(num).toLocaleString();
     };
 
-    // 🚀 防呆輔助函式：確保陣列轉換不會報錯
     const parseArrayField = (val) => {
       if (Array.isArray(val)) return val.join(", ");
       if (typeof val === "string") return val;
@@ -75,73 +74,40 @@
       const CATEGORIES = ["企業管理", "商務交易", "行銷客服", "技術基礎", "ESG永續"];
 
       // ==========================================
-      // 1. Airtable API 抓取與防彈級資料清洗
+      // 1. Airtable API 抓取
       // ==========================================
       useEffect(() => {
-async function fetchAll() {
-    try {
-      const res = await fetch("/api/solutions");
-      if (!res.ok) throw new Error("API error: " + res.status);
-      const allRecords = await res.json();
-      setAllData(allRecords);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  }
+        async function fetchAll() {
+          try {
+            const res = await fetch("/api/solutions");
+            if (!res.ok) throw new Error("API error: " + res.status);
+            const allRecords = await res.json();
+            setAllData(allRecords);
+            setLoading(false);
+          } catch (err) {
+            setError(err.message);
+            setLoading(false);
+          }
+        }
         fetchAll();
       }, []);
 
       // ==========================================
-      // 2. Claude API 語意解析
+      // 2. Claude API 語意解析（透過後端 serverless function）
       // ==========================================
       async function callClaude(userQuery) {
-        const CLAUDE_KEY = "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"; // ⚠️ 換上新的安全 Key
-        const systemPrompt = `你是一個資服方案資料庫的查詢助手。
-使用者會用自然語言描述想找的方案，你要把它轉成 JSON 篩選條件。
-
-可用的篩選欄位：
-- region: 區域，可選值："北部"/"中部"/"南部"/"東部"/"其他"
-- ai: 是否為AI方案，true/false
-- startup: 是否為新創，true/false
-- category: 領域大分類，可選值："企業管理"/"商務交易"/"行銷客服"/"技術基礎"/"ESG永續"
-- domainKey: 服務領域關鍵字，例如 "ERP"/"POS"/"客服"/"資安"/"碳排"/"SEO" 等
-- program: 參與計畫，可選值："雲市集"/"新創嚴選"
-- maxPrice: 總費用上限（數字）
-- keyword: 如果使用者的輸入包含特定的公司名稱、方案名稱或無法歸類的關鍵字，請將其提取到此欄位
-
-規則：
-1. 只回傳 JSON，不要有任何其他文字
-2. 只包含使用者提到的條件，沒提到的不要加
-3. 金額要轉成數字，例如"5萬"=50000，"3千"=3000
-4. 如果使用者的輸入無法解析成任何條件，回傳空物件 {}`;
-
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
+        const res = await fetch("/api/claude", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": CLAUDE_KEY,
-            "anthropic-version": "2023-06-01",
-            "anthropic-dangerous-direct-browser-access": "true"
-          },
-          body: JSON.stringify({
-            model: "claude-haiku-4-5-20251001",
-            max_tokens: 200,
-            messages: [{ role: "user", content: userQuery }],
-            system: systemPrompt
-          })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: userQuery })
         });
 
         if (!res.ok) {
           const errorData = await res.json();
-          throw new Error(`Claude API 錯誤 ${res.status}: ${errorData.error?.message || '未知錯誤'}`);
+          throw new Error(`Claude API 錯誤 ${res.status}: ${errorData.error || '未知錯誤'}`);
         }
 
-        const data = await res.json();
-        const text = data.content[0].text;
-        const clean = text.replace(/```json\n?/g, "").replace(/```/g, "").trim();
-        return JSON.parse(clean);
+        return await res.json();
       }
 
       // ==========================================
@@ -229,7 +195,7 @@ async function fetchAll() {
       };
 
       // ==========================================
-      // 5. 資料篩選邏輯 (防彈修正)
+      // 5. 資料篩選邏輯
       // ==========================================
       const filteredResults = useMemo(() => {
         return allData.filter(item => {
@@ -242,7 +208,6 @@ async function fetchAll() {
 
           let matchKeyword = true;
           if (filters.keyword) {
-            // 🚀 防彈修正：確保轉為小寫前絕對是字串
             const kw = String(filters.keyword).toLowerCase();
             const sMatch = item.s && String(item.s).toLowerCase().includes(kw);
             const cMatch = item.c && String(item.c).toLowerCase().includes(kw);
