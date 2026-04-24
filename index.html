@@ -61,7 +61,8 @@
       // ==========================================
       useEffect(() => {
         async function fetchAll() {
-          const TOKEN = "patmts6f2hUZLLkOj.3583d8a1d487f9db997e6eac85ce468424697fe2f9577f96428216294d60693c"; // ⚠️ 請記得替換為您的 Token
+          const TOKEN = "patmts6f2hUZLLkOj.3583d8a1d487f9db997e6eac85ce468424697fe2f9577f96428216294d60693c
+"; // ⚠️ 請記得替換為您的 Token
           const BASE_ID = "appttP04OnzzC7qxG";
           const TABLE = "Solutions";
           let allRecords = [];
@@ -80,7 +81,6 @@
               const data = await res.json();
 
               const converted = data.records.map(rec => {
-                // 去除 BOM 字元
                 const fields = {};
                 Object.keys(rec.fields).forEach(k => {
                   fields[k.replace(/^\uFEFF/, '')] = rec.fields[k];
@@ -98,7 +98,8 @@
                   pt: fields["價格區間"] || "",
                   mo: fields["月費"] || null,
                   mt: fields["月費區間"] || "",
-                  r: fields["區域"] || "",
+                  // 🚀 修正：確保區域值有 trim
+                  r: (typeof fields["區域"] === "string" ? fields["區域"].trim() : (fields["區域"] || [])[0] || "").trim(),
                   st: fields["是否新創"] === "True",
                   desc: fields["方案介紹"] || ""
                 };
@@ -190,7 +191,6 @@
         else if (q.includes("esg") || q.includes("減碳")) newFilters.category = "ESG永續";
         else if (q.includes("資安") || q.includes("防毒")) newFilters.category = "技術基礎";
 
-        // 修正 1：全面支援中文數字與阿拉伯數字 +「萬」
         let numStr = q.replace(/一/g, '1')
                       .replace(/二/g, '2')
                       .replace(/兩/g, '2')
@@ -253,10 +253,8 @@
       // ==========================================
       const filteredResults = useMemo(() => {
         return allData.filter(item => {
-          const matchRegion = !filters.region || 
-                              item.r.includes(filters.region) || 
-                              item.r === "" || 
-                              item.r.includes("全");
+          // 🚀 修正：加上 trim() 進行嚴格的區域比對
+          const matchRegion = !filters.region || (item.r && item.r.trim() === filters.region.trim());
 
           const matchCat = !filters.category || (item.cat && item.cat.includes(filters.category));
           const matchDomain = !filters.domain || (item.d && item.d.includes(filters.domain));
@@ -264,7 +262,6 @@
           const matchAI = filters.isAI === null ? true : item.ai === filters.isAI;
           const matchStartup = filters.isStartup === null ? true : item.st === filters.isStartup;
           
-          // 修正 2：嚴格過濾價格，排除 null 並強制轉換為數字型別再比較
           const matchPrice = !filters.maxPrice || (item.pr != null && Number(item.pr) <= Number(filters.maxPrice));
 
           return matchRegion && matchAI && matchStartup && matchCat && matchPrice && matchDomain;
@@ -325,7 +322,7 @@
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                placeholder="搜尋：我們預算三萬，想找台中的 AI 智能排班系統..."
+                placeholder="搜尋：我們預算三萬，想找北部的 AI 智能客服系統..."
                 className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-white placeholder:text-white/30 text-lg font-medium"
               />
               <button 
