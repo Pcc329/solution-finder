@@ -57,11 +57,11 @@
       const CATEGORIES = ["企業管理", "商務交易", "行銷客服", "技術基礎", "ESG永續"];
 
       // ==========================================
-      // 1. Airtable API 抓取邏輯
+      // 1. Airtable API 抓取與資料清洗邏輯
       // ==========================================
       useEffect(() => {
         async function fetchAll() {
-          const TOKEN = "patmts6f2hUZLLkOj.3583d8a1d487f9db997e6eac85ce468424697fe2f9577f96428216294d60693c"; 
+          const TOKEN = "patmts6f2hUZLLkOj.3583d8a1d487f9db997e6eac85ce468424697fe2f9577f96428216294d60693c"; // ⚠️ 請記得替換為您的 Token
           const BASE_ID = "appttP04OnzzC7qxG";
           const TABLE = "Solutions";
           let allRecords = [];
@@ -80,22 +80,27 @@
               const data = await res.json();
 
               const converted = data.records.map(rec => {
-                const f = rec.fields;
+                // 去除 BOM 字元
+                const fields = {};
+                Object.keys(rec.fields).forEach(k => {
+                  fields[k.replace(/^\uFEFF/, '')] = rec.fields[k];
+                });
+
                 return {
                   id: rec.id,
-                  s: f["方案名稱"] || "",
-                  c: (f["公司名稱"] || [])[0] || "",
-                  p: f["參與計畫"] || "",
-                  ai: f["是否AI方案"], 
-                  d: (f["服務領域"] || []).join(", "),
-                  cat: (f["領域大分類"] || []).join(", "),
-                  pr: f["費用"] || null,
-                  pt: f["價格區間"] || "",
-                  mo: f["月費"] || null,
-                  mt: f["月費區間"] || "",
-                  r: (f["區域"] || [])[0] || "",
-                  st: (f["是否新創"] || [])[0],
-                  desc: f["方案介紹"] || ""
+                  s: fields["方案名稱"] || "",
+                  c: (fields["公司名稱"] || [])[0] || "",
+                  p: fields["參與計畫"] || "",
+                  ai: fields["是否AI方案"] === "True",
+                  d: (fields["服務領域"] || []).join(", "),
+                  cat: (fields["領域大分類"] || []).join(", "),
+                  pr: fields["費用"] || null,
+                  pt: fields["價格區間"] || "",
+                  mo: fields["月費"] || null,
+                  mt: fields["月費區間"] || "",
+                  r: fields["區域"] || "",
+                  st: fields["是否新創"] === "True",
+                  desc: fields["方案介紹"] || ""
                 };
               });
 
@@ -118,7 +123,7 @@
       // 2. Claude API 語意解析
       // ==========================================
       async function callClaude(userQuery) {
-        const CLAUDE_KEY = "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";
+        const CLAUDE_KEY = "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"; // ⚠️ 請記得替換為您的 Claude Key
         const systemPrompt = `你是一個資服方案資料庫的查詢助手。
 使用者會用自然語言描述想找的方案，你要把它轉成 JSON 篩選條件。
 
@@ -147,14 +152,17 @@
             "anthropic-dangerous-direct-browser-access": "true"
           },
           body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
+            model: "claude-3-5-sonnet-20241022",
             max_tokens: 200,
             messages: [{ role: "user", content: userQuery }],
             system: systemPrompt
           })
         });
 
-        if (!res.ok) throw new Error(`Claude API Error: ${res.status}`);
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(`Claude API 錯誤 ${res.status}: ${errorData.error?.message || '未知錯誤'}`);
+        }
 
         const data = await res.json();
         const text = data.content[0].text;
@@ -163,7 +171,7 @@
       }
 
       // ==========================================
-      // 3. Fallback: 前端關鍵字比對 (強化版)
+      // 3. Fallback: 前端關鍵字比對
       // ==========================================
       const parseQueryFallback = (text) => {
         let newFilters = { region: null, isAI: null, isStartup: null, category: null, maxPrice: null, domain: null };
@@ -182,10 +190,19 @@
         else if (q.includes("esg") || q.includes("減碳")) newFilters.category = "ESG永續";
         else if (q.includes("資安") || q.includes("防毒")) newFilters.category = "技術基礎";
 
-        // 強化：中文「三萬」與阿拉伯數字轉換
-        let numStr = q.replace(/三萬/g, '3萬').replace(/兩萬/g, '2萬');
-        
-        // 強化：只要抓到數字+萬，就當作預算上限
+        // 修正 1：全面支援中文數字與阿拉伯數字 +「萬」
+        let numStr = q.replace(/一/g, '1')
+                      .replace(/二/g, '2')
+                      .replace(/兩/g, '2')
+                      .replace(/三/g, '3')
+                      .replace(/四/g, '4')
+                      .replace(/五/g, '5')
+                      .replace(/六/g, '6')
+                      .replace(/七/g, '7')
+                      .replace(/八/g, '8')
+                      .replace(/九/g, '9')
+                      .replace(/十/g, '10');
+
         const priceMatch = numStr.match(/(\d+)\s*萬/);
         if (priceMatch) newFilters.maxPrice = parseInt(priceMatch[1]) * 10000;
 
@@ -193,7 +210,7 @@
       };
 
       // ==========================================
-      // 4. 搜尋行為處理 (加入除錯 Console.log)
+      // 4. 搜尋行為處理
       // ==========================================
       const handleSearchSubmit = async () => {
         if (!query.trim()) return;
@@ -201,26 +218,18 @@
         setExpandedId(null);
 
         try {
-          console.log("--- 開始呼叫 Claude API ---");
           const claudeResult = await callClaude(query);
-          console.log("✅ Claude 回傳的 JSON 原始資料:", claudeResult);
-          
-          const newFilters = {
+          setFilters({
             region: claudeResult.region || null,
             isAI: claudeResult.ai || null,
             isStartup: claudeResult.startup || null,
             category: claudeResult.category || null,
-            maxPrice: claudeResult.maxPrice || claudeResult.maxMonthly || null, // 容錯對應
+            maxPrice: claudeResult.maxPrice || claudeResult.maxMonthly || null,
             domain: claudeResult.domainKey || null
-          };
-
-          console.log("🎯 即將寫入的 filters state (來自 Claude):", JSON.stringify(newFilters));
-          setFilters(newFilters);
-
+          });
         } catch (err) {
           console.error("❌ Claude API 失敗，啟用備用解析器:", err);
           const fallbackFilters = parseQueryFallback(query);
-          console.log("🎯 即將寫入的 filters state (來自備用解析):", JSON.stringify(fallbackFilters));
           setFilters(fallbackFilters);
         }
 
@@ -233,7 +242,6 @@
         setIsSearching(true);
         setTimeout(() => {
           const fallbackFilters = parseQueryFallback(text);
-          console.log("🎯 即將寫入的 filters state (快速搜尋):", JSON.stringify(fallbackFilters));
           setFilters(fallbackFilters);
           setIsSearching(false);
           setActivePage("report");
@@ -241,27 +249,27 @@
       };
 
       // ==========================================
-      // 5. 資料篩選邏輯 (確認所有條件 AND)
+      // 5. 資料篩選邏輯
       // ==========================================
       const filteredResults = useMemo(() => {
-        console.log("⚙️ filteredResults 重新計算，當前套用的 Filters:", filters);
-        
         return allData.filter(item => {
-          const matchRegion = !filters.region || item.r === filters.region;
+          const matchRegion = !filters.region || 
+                              item.r.includes(filters.region) || 
+                              item.r === "" || 
+                              item.r.includes("全");
+
           const matchCat = !filters.category || (item.cat && item.cat.includes(filters.category));
           const matchDomain = !filters.domain || (item.d && item.d.includes(filters.domain));
-
-          // 處理 Boolean 轉字串的情形
-          const matchAI = filters.isAI === null ? true : (item.ai === true || item.ai === "True") === filters.isAI;
-          const matchStartup = filters.isStartup === null ? true : (item.st === true || item.st === "True") === filters.isStartup;
           
-          // 嚴格確保 null/undefined 不會干擾數字比較
-          const matchPrice = !filters.maxPrice || (item.pr != null && Number(item.pr) <= filters.maxPrice);
+          const matchAI = filters.isAI === null ? true : item.ai === filters.isAI;
+          const matchStartup = filters.isStartup === null ? true : item.st === filters.isStartup;
+          
+          // 修正 2：嚴格過濾價格，排除 null 並強制轉換為數字型別再比較
+          const matchPrice = !filters.maxPrice || (item.pr != null && Number(item.pr) <= Number(filters.maxPrice));
 
-          // 確認所有條件必須全部達成 (AND)
           return matchRegion && matchAI && matchStartup && matchCat && matchPrice && matchDomain;
         });
-      }, [filters, allData]); // 確保依賴了 filters 和 allData
+      }, [filters, allData]);
 
       const toggleFilter = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: prev[key] === value ? null : value }));
@@ -280,7 +288,7 @@
           <i className="fa-solid fa-cloud-arrow-down text-6xl text-emerald-500 mb-6 animate-bounce"></i>
           <div className="text-2xl font-bold text-slate-800 mb-2">資料庫連線中...</div>
           <div className="text-slate-400 text-sm flex items-center gap-2">
-            <i className="fa-solid fa-circle-notch fa-spin"></i> 正在從 Airtable 讀取 1,198 個方案
+            <i className="fa-solid fa-circle-notch fa-spin"></i> 正在讀取 1,198 個產業方案
           </div>
         </div>
       );
