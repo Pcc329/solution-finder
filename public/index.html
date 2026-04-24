@@ -78,63 +78,18 @@
       // 1. Airtable API 抓取與防彈級資料清洗
       // ==========================================
       useEffect(() => {
-        async function fetchAll() {
-          const TOKEN = "patyx5brD2TuRvjA8.3cdec9dfbe2e06cfdf19a97fed283e6dd102f9e5a242f776acdc901315ef00d7"; // ⚠️ 換上新的安全 Key
-          const BASE_ID = "appttP04OnzzC7qxG";
-          const TABLE = "Solutions";
-          let allRecords = [];
-          let offset = null;
-
-          try {
-            do {
-              let url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE}?pageSize=100`;
-              if (offset) url += `&offset=${offset}`;
-
-              const res = await fetch(url, {
-                headers: { "Authorization": `Bearer ${TOKEN}` }
-              });
-
-              if (!res.ok) throw new Error(`API 錯誤: 狀態碼 ${res.status}`);
-              const data = await res.json();
-
-              const converted = data.records.map(rec => {
-                const fields = {};
-                // 🚀 防彈修正：加上 rec.fields || {} 避免空資料列導致崩潰
-                Object.keys(rec.fields || {}).forEach(k => {
-                  fields[k.replace(/^\uFEFF/, '')] = rec.fields[k];
-                });
-
-                // 🚀 防彈修正：強制轉型，確保不會出現 undefined 呼叫 method 的錯誤
-                return {
-                  id: rec.id,
-                  s: String(fields["方案名稱"] || ""),
-                  c: String((Array.isArray(fields["公司名稱"]) ? fields["公司名稱"][0] : fields["公司名稱"]) || ""),
-                  p: String(fields["參與計畫"] || ""),
-                  ai: String(fields["是否AI方案"]) === "True",
-                  d: parseArrayField(fields["服務領域"]),
-                  cat: parseArrayField(fields["領域大分類"]),
-                  pr: fields["費用"] || null,
-                  pt: String(fields["價格區間"] || ""),
-                  mo: fields["月費"] || null,
-                  mt: String(fields["月費區間"] || ""),
-                  r: String(Array.isArray(fields["區域"]) ? fields["區域"][0] : fields["區域"] || "").trim(),
-                  st: String(Array.isArray(fields["是否新創"]) ? fields["是否新創"][0] : fields["是否新創"]) === "True",
-                  desc: String(fields["方案介紹"] || "")
-                };
-              });
-
-              allRecords = allRecords.concat(converted);
-              offset = data.offset || null;
-            } while (offset);
-
-            setAllData(allRecords);
-            setLoading(false);
-          } catch (err) {
-            console.error("Airtable Error:", err);
-            setError(err.message);
-            setLoading(false);
-          }
-        }
+async function fetchAll() {
+    try {
+      const res = await fetch("/api/solutions");
+      if (!res.ok) throw new Error("API error: " + res.status);
+      const allRecords = await res.json();
+      setAllData(allRecords);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }
         fetchAll();
       }, []);
 
@@ -142,7 +97,7 @@
       // 2. Claude API 語意解析
       // ==========================================
       async function callClaude(userQuery) {
-        const CLAUDE_KEY = "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"; // ⚠️ 換上新的安全 Key
+        const CLAUDE_KEY = ""; // ⚠️ 換上新的安全 Key
         const systemPrompt = `你是一個資服方案資料庫的查詢助手。
 使用者會用自然語言描述想找的方案，你要把它轉成 JSON 篩選條件。
 
