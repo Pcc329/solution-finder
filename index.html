@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台灣資服業者方案資料庫</title>
   
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      document.body.innerHTML = 
+        '<div style="padding: 2rem; color: #dc2626; font-family: sans-serif; text-align: center;">' +
+          '<i class="fa-solid fa-triangle-exclamation" style="font-size: 4rem; margin-bottom: 1rem;"></i>' +
+          '<h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">發生致命錯誤</h2>' +
+          '<p style="background: #fee2e2; padding: 1rem; border-radius: 0.5rem; display: inline-block;">' + message + '</p>' +
+        '</div>';
+    };
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
@@ -33,6 +44,13 @@
       return "NT$ " + Number(num).toLocaleString();
     };
 
+    // 🚀 防呆輔助函式：確保陣列轉換不會報錯
+    const parseArrayField = (val) => {
+      if (Array.isArray(val)) return val.join(", ");
+      if (typeof val === "string") return val;
+      return "";
+    };
+
     function App() {
       const [allData, setAllData] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -50,18 +68,18 @@
         category: null,
         maxPrice: null,
         domain: null,
-        keyword: null // 🚀 新增：模糊搜尋關鍵字欄位
+        keyword: null
       });
 
       const REGIONS = ["北部", "中部", "南部", "東部", "其他"];
       const CATEGORIES = ["企業管理", "商務交易", "行銷客服", "技術基礎", "ESG永續"];
 
       // ==========================================
-      // 1. Airtable API 抓取與資料清洗邏輯
+      // 1. Airtable API 抓取與防彈級資料清洗
       // ==========================================
       useEffect(() => {
         async function fetchAll() {
-          const TOKEN = "patmts6f2hUZLLkOj.3583d8a1d487f9db997e6eac85ce468424697fe2f9577f96428216294d60693c"; // ⚠️ 請記得替換為您的 Token
+          const TOKEN = "patyx5brD2TuRvjA8.3cdec9dfbe2e06cfdf19a97fed283e6dd102f9e5a242f776acdc901315ef00d7"; // ⚠️ 換上新的安全 Key
           const BASE_ID = "appttP04OnzzC7qxG";
           const TABLE = "Solutions";
           let allRecords = [];
@@ -81,25 +99,27 @@
 
               const converted = data.records.map(rec => {
                 const fields = {};
-                Object.keys(rec.fields).forEach(k => {
+                // 🚀 防彈修正：加上 rec.fields || {} 避免空資料列導致崩潰
+                Object.keys(rec.fields || {}).forEach(k => {
                   fields[k.replace(/^\uFEFF/, '')] = rec.fields[k];
                 });
 
+                // 🚀 防彈修正：強制轉型，確保不會出現 undefined 呼叫 method 的錯誤
                 return {
                   id: rec.id,
-                  s: fields["方案名稱"] || "",
-                  c: (fields["公司名稱"] || [])[0] || "",
-                  p: fields["參與計畫"] || "",
-                  ai: fields["是否AI方案"] === "True",
-                  d: (fields["服務領域"] || []).join(", "),
-                  cat: (fields["領域大分類"] || []).join(", "),
+                  s: String(fields["方案名稱"] || ""),
+                  c: String((Array.isArray(fields["公司名稱"]) ? fields["公司名稱"][0] : fields["公司名稱"]) || ""),
+                  p: String(fields["參與計畫"] || ""),
+                  ai: String(fields["是否AI方案"]) === "True",
+                  d: parseArrayField(fields["服務領域"]),
+                  cat: parseArrayField(fields["領域大分類"]),
                   pr: fields["費用"] || null,
-                  pt: fields["價格區間"] || "",
+                  pt: String(fields["價格區間"] || ""),
                   mo: fields["月費"] || null,
-                  mt: fields["月費區間"] || "",
-                  r: (typeof fields["區域"] === "string" ? fields["區域"].trim() : (fields["區域"] || [])[0] || "").trim(),
-                  st: fields["是否新創"] === "True",
-                  desc: fields["方案介紹"] || ""
+                  mt: String(fields["月費區間"] || ""),
+                  r: String(Array.isArray(fields["區域"]) ? fields["區域"][0] : fields["區域"] || "").trim(),
+                  st: String(Array.isArray(fields["是否新創"]) ? fields["是否新創"][0] : fields["是否新創"]) === "True",
+                  desc: String(fields["方案介紹"] || "")
                 };
               });
 
@@ -122,7 +142,7 @@
       // 2. Claude API 語意解析
       // ==========================================
       async function callClaude(userQuery) {
-        const CLAUDE_KEY = "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"; // ⚠️ 請記得替換為您的 Claude Key
+        const CLAUDE_KEY = "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"; // ⚠️ 換上新的安全 Key
         const systemPrompt = `你是一個資服方案資料庫的查詢助手。
 使用者會用自然語言描述想找的方案，你要把它轉成 JSON 篩選條件。
 
@@ -174,36 +194,30 @@
       // ==========================================
       const parseQueryFallback = (text) => {
         let newFilters = { region: null, isAI: null, isStartup: null, category: null, maxPrice: null, domain: null, keyword: null };
-        const q = text.toLowerCase();
-        let hasMatch = false; // 🚀 新增：用來記錄是否有配對到任何結構化條件
+        const q = String(text).toLowerCase();
+        let hasMatch = false; 
 
-        // 區域解析
         if (q.includes("北部")) { newFilters.region = "北部"; hasMatch = true; }
         else if (q.includes("中部")) { newFilters.region = "中部"; hasMatch = true; }
         else if (q.includes("南部")) { newFilters.region = "南部"; hasMatch = true; }
         else if (q.includes("東部")) { newFilters.region = "東部"; hasMatch = true; }
         
-        // 🚀 修正：嚴格的 AI 邊界與詞彙比對
         if (/\bai\b/i.test(text) || text.includes("人工智慧") || text.includes("智能") || text.includes("智慧")) {
           newFilters.isAI = true;
           hasMatch = true;
         }
 
-        // 新創標籤
         if (q.includes("新創")) { newFilters.isStartup = true; hasMatch = true; }
 
-        // 領域大分類
         if (q.includes("管理") || q.includes("erp") || q.includes("人資")) { newFilters.category = "企業管理"; hasMatch = true; }
         else if (q.includes("客服") || q.includes("行銷")) { newFilters.category = "行銷客服"; hasMatch = true; }
         else if (q.includes("esg") || q.includes("減碳")) { newFilters.category = "ESG永續"; hasMatch = true; }
         else if (q.includes("資安") || q.includes("防毒")) { newFilters.category = "技術基礎"; hasMatch = true; }
 
-        // 金額解析
         let numStr = q.replace(/一/g, '1').replace(/二/g, '2').replace(/兩/g, '2').replace(/三/g, '3').replace(/四/g, '4').replace(/五/g, '5').replace(/六/g, '6').replace(/七/g, '7').replace(/八/g, '8').replace(/九/g, '9').replace(/十/g, '10');
         const priceMatch = numStr.match(/(\d+)\s*萬/);
         if (priceMatch) { newFilters.maxPrice = parseInt(priceMatch[1]) * 10000; hasMatch = true; }
 
-        // 🚀 修正：如果完全沒有命中任何結構化條件，將原文存入 keyword
         if (!hasMatch) {
           newFilters.keyword = text.trim();
         }
@@ -229,10 +243,9 @@
             category: claudeResult.category || null,
             maxPrice: claudeResult.maxPrice || claudeResult.maxMonthly || null,
             domain: claudeResult.domainKey || null,
-            keyword: claudeResult.keyword || null // 支援 Claude 抓出的 Keyword
+            keyword: claudeResult.keyword || null 
           };
 
-          // 🚀 修正：如果 Claude 回傳的條件全部是 null (空物件)，也強制將原文轉為 keyword
           const hasAnyFilter = Object.values(parsedFilters).some(v => v !== null);
           if (!hasAnyFilter) {
             parsedFilters.keyword = query.trim();
@@ -261,23 +274,23 @@
       };
 
       // ==========================================
-      // 5. 資料篩選邏輯 (加入 Keyword 模糊比對)
+      // 5. 資料篩選邏輯 (防彈修正)
       // ==========================================
       const filteredResults = useMemo(() => {
         return allData.filter(item => {
-          const matchRegion = !filters.region || (item.r && item.r.trim() === filters.region.trim());
+          const matchRegion = !filters.region || (item.r && item.r === filters.region);
           const matchCat = !filters.category || (item.cat && item.cat.includes(filters.category));
           const matchDomain = !filters.domain || (item.d && item.d.includes(filters.domain));
           const matchAI = filters.isAI === null ? true : item.ai === filters.isAI;
           const matchStartup = filters.isStartup === null ? true : item.st === filters.isStartup;
           const matchPrice = !filters.maxPrice || (item.pr != null && Number(item.pr) <= Number(filters.maxPrice));
 
-          // 🚀 修正：加入針對方案名稱 (s) 或公司名稱 (c) 的模糊比對
           let matchKeyword = true;
           if (filters.keyword) {
-            const kw = filters.keyword.toLowerCase();
-            const sMatch = item.s && item.s.toLowerCase().includes(kw);
-            const cMatch = item.c && item.c.toLowerCase().includes(kw);
+            // 🚀 防彈修正：確保轉為小寫前絕對是字串
+            const kw = String(filters.keyword).toLowerCase();
+            const sMatch = item.s && String(item.s).toLowerCase().includes(kw);
+            const cMatch = item.c && String(item.c).toLowerCase().includes(kw);
             matchKeyword = sMatch || cMatch;
           }
 
@@ -448,7 +461,6 @@
                     領域: {filters.domain} <i className="fa-solid fa-xmark cursor-pointer ml-1 hover:text-purple-900" onClick={() => toggleFilter('domain', filters.domain)}></i>
                   </span>
                 )}
-                {/* 🚀 新增：當有 keyword 時，顯示在畫面上讓使用者知道 */}
                 {filters.keyword && (
                   <span className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
                     關鍵字: {filters.keyword} <i className="fa-solid fa-xmark cursor-pointer ml-1 hover:text-blue-900" onClick={() => toggleFilter('keyword', filters.keyword)}></i>
@@ -480,8 +492,8 @@
                 <div className="p-5 sm:p-6 flex flex-col sm:flex-row justify-between gap-4 cursor-pointer" onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}>
                   <div className="flex-1">
                     <div className="flex flex-wrap gap-2 mb-2">
-                      {(item.ai === true || item.ai === "True") && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-bolt mr-1"></i>AI方案</span>}
-                      {(item.st === true || item.st === "True") && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] px-2 py-0.5 rounded font-bold">新創嚴選</span>}
+                      {item.ai === true && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-bolt mr-1"></i>AI方案</span>}
+                      {item.st === true && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] px-2 py-0.5 rounded font-bold">新創嚴選</span>}
                       {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] px-2 py-0.5 rounded"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}</span>}
                     </div>
                     <h2 className="text-lg font-bold text-slate-900 mb-1">{item.s}</h2>
