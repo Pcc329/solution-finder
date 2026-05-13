@@ -11,9 +11,11 @@ export default async function handler(req, res) {
     let allRecords = [];
     let offset = null;
     do {
-      let url = `https://api.airtable.com/v0/${BASE_ID}/${table}?pageSize=100`;
-      if (fields.length) url += `&fields[]=${fields.join('&fields[]=')}`;
-      if (offset) url += `&offset=${offset}`;
+      const params = new URLSearchParams();
+      params.append('pageSize', '100');
+      if (offset) params.append('offset', offset);
+      fields.forEach(f => params.append('fields[]', f));
+      let url = `https://api.airtable.com/v0/${BASE_ID}/${table}?${params.toString()}`;
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${TOKEN}` },
       });
