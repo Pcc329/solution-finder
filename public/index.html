@@ -27,7 +27,9 @@
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState, useMemo, useEffect, useCallback } = React;
+    const { useState, useMemo, useEffect, useCallback, useRef } = React;
+
+    const PAGE_SIZE = 20;
 
     const formatCurrency = (num) => {
       if (num === null || num === undefined || num === "") return "未提供";
@@ -45,6 +47,14 @@
     const INDUSTRY_VERTICALS = ["旅宿觀光", "製造業", "醫療照護", "建築營造", "文化創意"];
     const PROGRAMS = ["雲市集", "新創嚴選", "五大領域調查"];
 
+    const SORT_OPTIONS = [
+      { value: "relevance", label: "相關性" },
+      { value: "price_asc", label: "價格低→高" },
+      { value: "price_desc", label: "價格高→低" },
+      { value: "company_az", label: "公司名 A-Z" },
+      { value: "name_az", label: "方案名 A-Z" },
+    ];
+
     function App() {
       const [allData, setAllData] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -58,6 +68,9 @@
         category: null, maxPrice: null, keyword: null,
         program: null, industry_vertical: null
       });
+      const [sortBy, setSortBy] = useState("relevance");
+      const [currentPage, setCurrentPage] = useState(1);
+      const listTopRef = useRef(null);
 
       // 1. 抓資料
       useEffect(() => {
@@ -102,13 +115,17 @@
         else if (q.includes("醫療") || q.includes("照護")) f.industry_vertical = "醫療照護";
         else if (q.includes("建築") || q.includes("營造")) f.industry_vertical = "建築營造";
         else if (q.includes("文創") || q.includes("文化")) f.industry_vertical = "文化創意";
+        CATEGORIES.forEach(cat => { if (q.includes(cat)) f.category = cat; });
+        PROGRAMS.forEach(prog => { if (q.includes(prog)) f.program = prog; });
         const priceMatch = q.match(/(\d+)\s*萬/);
         if (priceMatch) f.maxPrice = parseInt(priceMatch[1]) * 10000;
+        const priceMatch2 = q.match(/(\d+)\s*千/);
+        if (priceMatch2 && !priceMatch) f.maxPrice = parseInt(priceMatch2[1]) * 1000;
         f.keyword = text.trim();
         return f;
       };
 
-      // 4. 搜尋處理
+      // 4. 搜尋處理（統一走 Claude，失敗才 fallback）
       const handleSearch = async () => {
         if (!query.trim()) return;
         setIsSearching(true);
@@ -116,8 +133,8 @@
           const result = await callClaude(query);
           setFilters({
             region: result.region || null,
-            isAI: result.ai || null,
-            isStartup: result.startup || null,
+            isAI: result.ai != null ? result.ai : null,
+            isStartup: result.startup != null ? result.startup : null,
             category: result.category || null,
             maxPrice: result.maxPrice || null,
             keyword: result.keyword || null,
@@ -130,18 +147,54 @@
         setIsSearching(false);
         setActivePage("list");
         setSelectedItem(null);
+        setCurrentPage(1);
+        setSortBy("relevance");
       };
 
-      const handleQuickSearch = (text) => {
+      // 快速搜尋也走 Claude
+      const handleQuickSearch = async (text) => {
         setQuery(text);
-        setFilters(parseQueryFallback(text));
+        setIsSearching(true);
         setActivePage("list");
         setSelectedItem(null);
+        setCurrentPage(1);
+        setSortBy("relevance");
+        try {
+          const result = await callClaude(text);
+          setFilters({
+            region: result.region || null,
+            isAI: result.ai != null ? result.ai : null,
+            isStartup: result.startup != null ? result.startup : null,
+            category: result.category || null,
+            maxPrice: result.maxPrice || null,
+            keyword: result.keyword || null,
+            program: result.program || null,
+            industry_vertical: result.industry_vertical || null,
+          });
+        } catch (err) {
+          setFilters(parseQueryFallback(text));
+        }
+        setIsSearching(false);
       };
 
-      // 5. 篩選邏輯
+      // 5. 計算相關性分數（keyword 命中位置加權）
+      const getRelevanceScore = useCallback((item, kw) => {
+        if (!kw) return 0;
+        const k = kw.toLowerCase();
+        let score = 0;
+        if (item.s && item.s.toLowerCase().includes(k)) score += 100;
+        if (item.c && item.c.toLowerCase().includes(k)) score += 80;
+        if (item.cat && item.cat.toLowerCase().includes(k)) score += 60;
+        if (item.slogan && item.slogan.toLowerCase().includes(k)) score += 40;
+        if (item.desc && item.desc.toLowerCase().includes(k)) score += 30;
+        if (item.feat && item.feat.toLowerCase().includes(k)) score += 20;
+        if (item.tags && item.tags.toLowerCase().includes(k)) score += 10;
+        return score;
+      }, []);
+
+      // 6. 篩選邏輯（keyword 比對加入 feat, slogan）
       const filteredResults = useMemo(() => {
-        return allData.filter(item => {
+        let results = allData.filter(item => {
           if (filters.region && item.r !== filters.region) return false;
           if (filters.isAI !== null && item.ai !== filters.isAI) return false;
           if (filters.isStartup !== null && item.st !== filters.isStartup) return false;
@@ -154,12 +207,44 @@
             const matched = (item.s && item.s.toLowerCase().includes(kw))
               || (item.c && item.c.toLowerCase().includes(kw))
               || (item.desc && item.desc.toLowerCase().includes(kw))
+              || (item.feat && item.feat.toLowerCase().includes(kw))
+              || (item.slogan && item.slogan.toLowerCase().includes(kw))
               || (item.tags && item.tags.toLowerCase().includes(kw));
             if (!matched) return false;
           }
           return true;
         });
-      }, [filters, allData]);
+
+        // 排序
+        if (sortBy === "relevance" && filters.keyword) {
+          results.sort((a, b) => getRelevanceScore(b, filters.keyword) - getRelevanceScore(a, filters.keyword));
+        } else if (sortBy === "price_asc") {
+          results.sort((a, b) => (a.pr ?? Infinity) - (b.pr ?? Infinity));
+        } else if (sortBy === "price_desc") {
+          results.sort((a, b) => (b.pr ?? -1) - (a.pr ?? -1));
+        } else if (sortBy === "company_az") {
+          results.sort((a, b) => (a.c || "").localeCompare(b.c || "", "zh-Hant"));
+        } else if (sortBy === "name_az") {
+          results.sort((a, b) => (a.s || "").localeCompare(b.s || "", "zh-Hant"));
+        }
+
+        return results;
+      }, [filters, allData, sortBy, getRelevanceScore]);
+
+      // 7. 分頁
+      const totalPages = Math.max(1, Math.ceil(filteredResults.length / PAGE_SIZE));
+      const pagedResults = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredResults.slice(start, start + PAGE_SIZE);
+      }, [filteredResults, currentPage]);
+
+      // 篩選變動時回到第1頁
+      useEffect(() => { setCurrentPage(1); }, [filters, sortBy]);
+
+      const goToPage = (page) => {
+        setCurrentPage(page);
+        if (listTopRef.current) listTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      };
 
       const toggleFilter = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: prev[key] === value ? null : value }));
@@ -168,6 +253,7 @@
       const clearAll = () => {
         setFilters({ region: null, isAI: null, isStartup: null, category: null, maxPrice: null, keyword: null, program: null, industry_vertical: null });
         setQuery("");
+        setSortBy("relevance");
       };
 
       const hasActiveFilters = Object.values(filters).some(v => v !== null);
@@ -235,9 +321,62 @@
         </div>
       );
 
+      // ===== PAGINATION COMPONENT =====
+      const renderPagination = () => {
+        if (totalPages <= 1) return null;
+        const startItem = (currentPage - 1) * PAGE_SIZE + 1;
+        const endItem = Math.min(currentPage * PAGE_SIZE, filteredResults.length);
+
+        // 最多顯示 7 個頁碼按鈕
+        let pages = [];
+        if (totalPages <= 7) {
+          pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+        } else {
+          pages = [1];
+          if (currentPage > 3) pages.push("...");
+          for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+            pages.push(i);
+          }
+          if (currentPage < totalPages - 2) pages.push("...");
+          pages.push(totalPages);
+        }
+
+        return (
+          <div className="flex flex-col items-center gap-3 mt-8">
+            <p className="text-xs text-slate-400">
+              顯示第 <span className="font-bold text-slate-600">{startItem}-{endItem}</span> 筆，共 <span className="font-bold text-slate-600">{filteredResults.length}</span> 筆
+            </p>
+            <div className="flex items-center gap-1">
+              <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                <i className="fa-solid fa-chevron-left text-xs"></i>
+              </button>
+              {pages.map((p, i) =>
+                p === "..." ? (
+                  <span key={`dot-${i}`} className="w-9 h-9 flex items-center justify-center text-slate-400 text-sm">…</span>
+                ) : (
+                  <button key={p} onClick={() => goToPage(p)}
+                    className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${
+                      currentPage === p
+                        ? "bg-[#0d6e52] text-white shadow-sm"
+                        : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}>
+                    {p}
+                  </button>
+                )
+              )}
+              <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                <i className="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+          </div>
+        );
+      };
+
       // ===== LIST PAGE =====
       const renderList = () => (
-        <div className="max-w-4xl mx-auto px-4 py-8 animate-in">
+        <div className="max-w-4xl mx-auto px-4 py-8 animate-in" ref={listTopRef}>
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <button onClick={() => setActivePage("home")} className="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-colors">
@@ -278,7 +417,7 @@
             <div className="space-y-3">
               {/* Region */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-400 w-12">區域</span>
+                <span className="text-xs text-slate-400 w-12 shrink-0">區域</span>
                 {REGIONS.map(r => (
                   <button key={r} onClick={() => toggleFilter("region", r)}
                     className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.region === r ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
@@ -288,13 +427,13 @@
               </div>
               {/* Tags */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-400 w-12">標籤</span>
+                <span className="text-xs text-slate-400 w-12 shrink-0">標籤</span>
                 <button onClick={() => toggleFilter("isAI", true)}
-                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isAI ? "bg-yellow-50 border-yellow-400 text-yellow-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isAI === true ? "bg-yellow-50 border-yellow-400 text-yellow-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                   <i className="fa-solid fa-bolt mr-1"></i>AI 方案
                 </button>
                 <button onClick={() => toggleFilter("isStartup", true)}
-                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isStartup ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isStartup === true ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                   <i className="fa-solid fa-seedling mr-1"></i>新創
                 </button>
                 {PROGRAMS.map(p => (
@@ -306,7 +445,7 @@
               </div>
               {/* Industry Vertical */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-400 w-12">領域</span>
+                <span className="text-xs text-slate-400 w-12 shrink-0">領域</span>
                 {INDUSTRY_VERTICALS.map(iv => (
                   <button key={iv} onClick={() => toggleFilter("industry_vertical", iv)}
                     className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.industry_vertical === iv ? "bg-purple-50 border-purple-400 text-purple-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
@@ -316,7 +455,7 @@
               </div>
               {/* Category */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-400 w-12">類別</span>
+                <span className="text-xs text-slate-400 w-12 shrink-0">類別</span>
                 {CATEGORIES.map(c => (
                   <button key={c} onClick={() => toggleFilter("category", c)}
                     className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.category === c ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
@@ -327,7 +466,7 @@
               {/* Active keyword/price chips */}
               {(filters.keyword || filters.maxPrice) && (
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-400 w-12">套用</span>
+                  <span className="text-xs text-slate-400 w-12 shrink-0">套用</span>
                   {filters.keyword && (
                     <span className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
                       關鍵字: {filters.keyword}
@@ -336,7 +475,7 @@
                   )}
                   {filters.maxPrice && (
                     <span className="px-3 py-1 text-xs rounded-full border bg-orange-50 border-orange-200 text-orange-700 font-bold flex items-center gap-1">
-                      ≤ {(filters.maxPrice/10000).toFixed(0)}萬
+                      ≤ {filters.maxPrice >= 10000 ? (filters.maxPrice/10000).toFixed(0) + "萬" : filters.maxPrice.toLocaleString()}
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("maxPrice", filters.maxPrice)}></i>
                     </span>
                   )}
@@ -345,16 +484,27 @@
             </div>
           </div>
 
-          {/* Result count */}
+          {/* Result count + sort */}
           <div className="mb-4 flex justify-between items-center px-1">
-            <h3 className="text-sm font-bold text-slate-700">搜尋結果</h3>
-            <span className="text-xs text-slate-400 bg-slate-200 px-2 py-0.5 rounded-md font-mono">{filteredResults.length} 筆</span>
+            <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+              搜尋結果
+              <span className="text-xs text-slate-400 bg-slate-200 px-2 py-0.5 rounded-md font-mono">{filteredResults.length} 筆</span>
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400"><i className="fa-solid fa-arrow-down-wide-short mr-1"></i>排序</span>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
+                className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-600 outline-none focus:border-emerald-400 cursor-pointer">
+                {SORT_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* Results list */}
+          {/* Results list (paginated) */}
           <div className="space-y-3">
-            {filteredResults.length > 0 ? filteredResults.map((item, idx) => (
-              <div key={idx}
+            {pagedResults.length > 0 ? pagedResults.map((item) => (
+              <div key={item.id || item.s}
                 onClick={() => { setSelectedItem(item); setActivePage("detail"); }}
                 className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-[#0d6e52]/40 hover:shadow-md transition-all cursor-pointer animate-in">
                 <div className="p-5 sm:p-6 flex flex-col sm:flex-row justify-between gap-4">
@@ -364,6 +514,7 @@
                       {item.st && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] px-2 py-0.5 rounded font-bold">新創嚴選</span>}
                       {item.iv && <span className="bg-purple-100 text-purple-800 border border-purple-200 text-[10px] px-2 py-0.5 rounded font-bold">{item.iv}</span>}
                       {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] px-2 py-0.5 rounded"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}</span>}
+                      {item.scale && <span className="bg-sky-50 text-sky-700 border border-sky-200 text-[10px] px-2 py-0.5 rounded">{item.scale}</span>}
                     </div>
                     <h2 className="text-lg font-bold text-slate-900 mb-1 truncate">{item.s || "（未命名方案）"}</h2>
                     <p className="text-sm text-slate-500 font-medium truncate">{item.c}</p>
@@ -394,6 +545,9 @@
             )}
           </div>
 
+          {/* Pagination */}
+          {renderPagination()}
+
           <div className="mt-10 text-center text-xs text-slate-400 font-bold">
             共 <span className="text-slate-500">{allData.length.toLocaleString()}</span> 個方案
           </div>
@@ -404,6 +558,12 @@
       const renderDetail = () => {
         const item = selectedItem;
         if (!item) return null;
+
+        // 將 features_list 拆成陣列顯示
+        const featureLines = item.feat
+          ? item.feat.split(/\n|；|;/).map(l => l.trim()).filter(Boolean)
+          : [];
+
         return (
           <div className="max-w-3xl mx-auto px-4 py-8 animate-in">
             {/* Back button */}
@@ -420,6 +580,7 @@
                 {item.iv && <span className="bg-purple-100 text-purple-800 border border-purple-200 text-xs px-3 py-1 rounded-full font-bold">{item.iv}</span>}
                 {item.p && <span className="bg-blue-100 text-blue-800 border border-blue-200 text-xs px-3 py-1 rounded-full">{item.p}</span>}
                 {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-xs px-3 py-1 rounded-full"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}{item.city ? ` · ${item.city}` : ""}</span>}
+                {item.scale && <span className="bg-sky-50 text-sky-700 border border-sky-200 text-xs px-3 py-1 rounded-full">{item.scale}</span>}
               </div>
               <h1 className="text-2xl font-black text-slate-900 mb-2">{item.s || "（未命名方案）"}</h1>
               <p className="text-base text-slate-600 font-semibold mb-4">{item.c}</p>
@@ -446,17 +607,25 @@
                 <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                   <i className="fa-regular fa-file-lines text-slate-400"></i> 方案介紹
                 </h3>
-                <p className="text-slate-600 leading-relaxed text-sm">{item.desc}</p>
+                <p className="text-slate-600 leading-relaxed text-sm whitespace-pre-line">{item.desc}</p>
               </div>
             )}
 
-            {/* Features list */}
-            {item.feat && (
+            {/* Features list — structured display */}
+            {featureLines.length > 0 && (
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-4">
                 <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                   <i className="fa-solid fa-list-check text-slate-400"></i> 功能清單
+                  <span className="text-[10px] text-slate-400 font-normal bg-slate-100 px-2 py-0.5 rounded-md">{featureLines.length} 項</span>
                 </h3>
-                <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{item.feat}</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                  {featureLines.map((line, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm text-slate-600 py-1">
+                      <i className="fa-solid fa-check text-emerald-500 text-[10px] mt-1.5 shrink-0"></i>
+                      <span>{line}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
