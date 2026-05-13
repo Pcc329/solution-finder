@@ -177,18 +177,21 @@
         setIsSearching(false);
       };
 
+      // helper: 安全轉小寫字串（防止陣列或非字串欄位）
+      const safeStr = (v) => (typeof v === 'string' ? v : Array.isArray(v) ? v.join(',') : String(v || ''));
+
       // 5. 計算相關性分數（keyword 命中位置加權）
       const getRelevanceScore = useCallback((item, kw) => {
         if (!kw) return 0;
         const k = kw.toLowerCase();
         let score = 0;
-        if (item.s && item.s.toLowerCase().includes(k)) score += 100;
-        if (item.c && item.c.toLowerCase().includes(k)) score += 80;
-        if (item.cat && item.cat.toLowerCase().includes(k)) score += 60;
-        if (item.slogan && item.slogan.toLowerCase().includes(k)) score += 40;
-        if (item.desc && item.desc.toLowerCase().includes(k)) score += 30;
-        if (item.feat && item.feat.toLowerCase().includes(k)) score += 20;
-        if (item.tags && item.tags.toLowerCase().includes(k)) score += 10;
+        if (safeStr(item.s).toLowerCase().includes(k)) score += 100;
+        if (safeStr(item.c).toLowerCase().includes(k)) score += 80;
+        if (safeStr(item.cat).toLowerCase().includes(k)) score += 60;
+        if (safeStr(item.slogan).toLowerCase().includes(k)) score += 40;
+        if (safeStr(item.desc).toLowerCase().includes(k)) score += 30;
+        if (safeStr(item.feat).toLowerCase().includes(k)) score += 20;
+        if (safeStr(item.tags).toLowerCase().includes(k)) score += 10;
         return score;
       }, []);
 
@@ -204,12 +207,12 @@
           if (filters.maxPrice && (item.pr === null || Number(item.pr) > Number(filters.maxPrice))) return false;
           if (filters.keyword) {
             const kw = filters.keyword.toLowerCase();
-            const matched = (item.s && item.s.toLowerCase().includes(kw))
-              || (item.c && item.c.toLowerCase().includes(kw))
-              || (item.desc && item.desc.toLowerCase().includes(kw))
-              || (item.feat && item.feat.toLowerCase().includes(kw))
-              || (item.slogan && item.slogan.toLowerCase().includes(kw))
-              || (item.tags && item.tags.toLowerCase().includes(kw));
+            const matched = safeStr(item.s).toLowerCase().includes(kw)
+              || safeStr(item.c).toLowerCase().includes(kw)
+              || safeStr(item.desc).toLowerCase().includes(kw)
+              || safeStr(item.feat).toLowerCase().includes(kw)
+              || safeStr(item.slogan).toLowerCase().includes(kw)
+              || safeStr(item.tags).toLowerCase().includes(kw);
             if (!matched) return false;
           }
           return true;
