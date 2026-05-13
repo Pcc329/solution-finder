@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 - ai: 是否為AI方案，true/false
 - startup: 是否為新創，true/false
 - industry_vertical: 五大領域，可選值："旅宿觀光"/"製造業"/"醫療照護"/"建築營造"/"文化創意"
-- program: 資料來源，可選值："雲市集"/"新創嚴選"/"五大領域調查"/"商業署"
+- program: 資料來源，可選值："雲市集"/"新創嚴選"/"五大領域調查"/"商業署"/"中企署"/"產發署"
 - maxPrice: 總費用上限（數字）
 - maxMonthlyPrice: 月費上限（數字）
 - scale: 適用企業規模，可選值："微型企業"/"中小企業"/"中大型企業"/"大型企業"
