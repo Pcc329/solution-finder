@@ -4,85 +4,69 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台灣資服業者方案資料庫</title>
-  
   <script>
     window.onerror = function(message, source, lineno, colno, error) {
-      document.body.innerHTML = 
-        '<div style="padding: 2rem; color: #dc2626; font-family: sans-serif; text-align: center;">' +
-          '<i class="fa-solid fa-triangle-exclamation" style="font-size: 4rem; margin-bottom: 1rem;"></i>' +
-          '<h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">發生致命錯誤</h2>' +
-          '<p style="background: #fee2e2; padding: 1rem; border-radius: 0.5rem; display: inline-block;">' + message + '</p>' +
-        '</div>';
+      document.body.innerHTML = '<div style="padding: 2rem; color: #dc2626; font-family: sans-serif; text-align: center;"><h2>發生錯誤</h2><p>' + message + '</p></div>';
     };
   </script>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
   <style>
     body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background-color: #f8fafc; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    .animate-in { animation: fadeIn 0.4s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-in { animation: fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body>
-
   <div id="root"></div>
-
   <script type="text/babel">
-    const { useState, useMemo, useEffect } = React;
+    const { useState, useMemo, useEffect, useCallback } = React;
 
     const formatCurrency = (num) => {
       if (num === null || num === undefined || num === "") return "未提供";
       return "NT$ " + Number(num).toLocaleString();
     };
 
-    const parseArrayField = (val) => {
-      if (Array.isArray(val)) return val.join(", ");
-      if (typeof val === "string") return val;
-      return "";
-    };
+    // 欄位對照 (solutions.js 回傳的 key)
+    // id, s=方案名, c=公司名, cid, p=program_type, ai, d=target_industry,
+    // cat=industry_category, iv=industry_vertical, pr=price, pt=price_tier,
+    // mo=monthly_price, mt=monthly_price_tier, r=region, st=is_startup,
+    // city, desc=description, feat=features_list, tags=tech_tags, scale, slogan
+
+    const REGIONS = ["北部", "中部", "南部", "東部", "其他"];
+    const CATEGORIES = ["銷售管理", "行銷推廣", "生產物流", "協作辦公", "人力資源", "資安合規", "研發創新", "醫療照護"];
+    const INDUSTRY_VERTICALS = ["旅宿觀光", "製造業", "醫療照護", "建築營造", "文化創意"];
+    const PROGRAMS = ["雲市集", "新創嚴選", "五大領域調查"];
 
     function App() {
       const [allData, setAllData] = useState([]);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
-
-      const [activePage, setActivePage] = useState("home");
+      const [activePage, setActivePage] = useState("home"); // home | list | detail
+      const [selectedItem, setSelectedItem] = useState(null);
       const [query, setQuery] = useState("");
-      const [expandedId, setExpandedId] = useState(null);
       const [isSearching, setIsSearching] = useState(false);
-      
       const [filters, setFilters] = useState({
-        region: null,
-        isAI: null,
-        isStartup: null,
-        category: null,
-        maxPrice: null,
-        domain: null,
-        keyword: null
+        region: null, isAI: null, isStartup: null,
+        category: null, maxPrice: null, keyword: null,
+        program: null, industry_vertical: null
       });
 
-      const REGIONS = ["北部", "中部", "南部", "東部", "其他"];
-      const CATEGORIES = ["企業管理", "商務交易", "行銷客服", "技術基礎", "ESG永續"];
-
-      // ==========================================
-      // 1. Airtable API 抓取
-      // ==========================================
+      // 1. 抓資料
       useEffect(() => {
         async function fetchAll() {
           try {
             const res = await fetch("/api/solutions");
             if (!res.ok) throw new Error("API error: " + res.status);
-            const allRecords = await res.json();
-            setAllData(allRecords);
+            const data = await res.json();
+            setAllData(data);
             setLoading(false);
           } catch (err) {
             setError(err.message);
@@ -92,129 +76,88 @@
         fetchAll();
       }, []);
 
-      // ==========================================
-      // 2. Claude API 語意解析（透過後端 serverless function）
-      // ==========================================
+      // 2. Claude 語意解析
       async function callClaude(userQuery) {
         const res = await fetch("/api/claude", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query: userQuery })
         });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(`Claude API 錯誤 ${res.status}: ${errorData.error || '未知錯誤'}`);
-        }
-
+        if (!res.ok) throw new Error("Claude API 失敗");
         return await res.json();
       }
 
-      // ==========================================
-      // 3. Fallback: 前端關鍵字比對
-      // ==========================================
+      // 3. Fallback 關鍵字比對
       const parseQueryFallback = (text) => {
-        let newFilters = { region: null, isAI: null, isStartup: null, category: null, maxPrice: null, domain: null, keyword: null };
-        const q = String(text).toLowerCase();
-        let hasMatch = false; 
-
-        if (q.includes("北部")) { newFilters.region = "北部"; hasMatch = true; }
-        else if (q.includes("中部")) { newFilters.region = "中部"; hasMatch = true; }
-        else if (q.includes("南部")) { newFilters.region = "南部"; hasMatch = true; }
-        else if (q.includes("東部")) { newFilters.region = "東部"; hasMatch = true; }
-        
-        if (/\bai\b/i.test(text) || text.includes("人工智慧") || text.includes("智能") || text.includes("智慧")) {
-          newFilters.isAI = true;
-          hasMatch = true;
-        }
-
-        if (q.includes("新創")) { newFilters.isStartup = true; hasMatch = true; }
-
-        if (q.includes("管理") || q.includes("erp") || q.includes("人資")) { newFilters.category = "企業管理"; hasMatch = true; }
-        else if (q.includes("客服") || q.includes("行銷")) { newFilters.category = "行銷客服"; hasMatch = true; }
-        else if (q.includes("esg") || q.includes("減碳")) { newFilters.category = "ESG永續"; hasMatch = true; }
-        else if (q.includes("資安") || q.includes("防毒")) { newFilters.category = "技術基礎"; hasMatch = true; }
-
-        let numStr = q.replace(/一/g, '1').replace(/二/g, '2').replace(/兩/g, '2').replace(/三/g, '3').replace(/四/g, '4').replace(/五/g, '5').replace(/六/g, '6').replace(/七/g, '7').replace(/八/g, '8').replace(/九/g, '9').replace(/十/g, '10');
-        const priceMatch = numStr.match(/(\d+)\s*萬/);
-        if (priceMatch) { newFilters.maxPrice = parseInt(priceMatch[1]) * 10000; hasMatch = true; }
-
-        if (!hasMatch) {
-          newFilters.keyword = text.trim();
-        }
-
-        return newFilters;
+        let f = { region: null, isAI: null, isStartup: null, category: null, maxPrice: null, keyword: null, program: null, industry_vertical: null };
+        const q = text.toLowerCase();
+        if (q.includes("北部") || q.includes("台北") || q.includes("新北")) f.region = "北部";
+        else if (q.includes("中部") || q.includes("台中")) f.region = "中部";
+        else if (q.includes("南部") || q.includes("高雄") || q.includes("台南")) f.region = "南部";
+        else if (q.includes("東部") || q.includes("花蓮") || q.includes("台東")) f.region = "東部";
+        if (/\bai\b/i.test(text) || q.includes("人工智慧") || q.includes("智能") || q.includes("智慧")) f.isAI = true;
+        if (q.includes("新創")) f.isStartup = true;
+        if (q.includes("旅宿") || q.includes("觀光")) f.industry_vertical = "旅宿觀光";
+        else if (q.includes("製造")) f.industry_vertical = "製造業";
+        else if (q.includes("醫療") || q.includes("照護")) f.industry_vertical = "醫療照護";
+        else if (q.includes("建築") || q.includes("營造")) f.industry_vertical = "建築營造";
+        else if (q.includes("文創") || q.includes("文化")) f.industry_vertical = "文化創意";
+        const priceMatch = q.match(/(\d+)\s*萬/);
+        if (priceMatch) f.maxPrice = parseInt(priceMatch[1]) * 10000;
+        f.keyword = text.trim();
+        return f;
       };
 
-      // ==========================================
-      // 4. 搜尋行為處理
-      // ==========================================
-      const handleSearchSubmit = async () => {
+      // 4. 搜尋處理
+      const handleSearch = async () => {
         if (!query.trim()) return;
         setIsSearching(true);
-        setExpandedId(null);
-
         try {
-          const claudeResult = await callClaude(query);
-          
-          const parsedFilters = {
-            region: claudeResult.region || null,
-            isAI: claudeResult.ai || null,
-            isStartup: claudeResult.startup || null,
-            category: claudeResult.category || null,
-            maxPrice: claudeResult.maxPrice || claudeResult.maxMonthly || null,
-            domain: claudeResult.domainKey || null,
-            keyword: claudeResult.keyword || null 
-          };
-
-          const hasAnyFilter = Object.values(parsedFilters).some(v => v !== null);
-          if (!hasAnyFilter) {
-            parsedFilters.keyword = query.trim();
-          }
-
-          setFilters(parsedFilters);
+          const result = await callClaude(query);
+          setFilters({
+            region: result.region || null,
+            isAI: result.ai || null,
+            isStartup: result.startup || null,
+            category: result.category || null,
+            maxPrice: result.maxPrice || null,
+            keyword: result.keyword || null,
+            program: result.program || null,
+            industry_vertical: result.industry_vertical || null,
+          });
         } catch (err) {
-          console.error("❌ Claude API 失敗，啟用備用解析器:", err);
-          const fallbackFilters = parseQueryFallback(query);
-          setFilters(fallbackFilters);
+          setFilters(parseQueryFallback(query));
         }
-
         setIsSearching(false);
-        setActivePage("report");
+        setActivePage("list");
+        setSelectedItem(null);
       };
 
       const handleQuickSearch = (text) => {
         setQuery(text);
-        setIsSearching(true);
-        setTimeout(() => {
-          const fallbackFilters = parseQueryFallback(text);
-          setFilters(fallbackFilters);
-          setIsSearching(false);
-          setActivePage("report");
-        }, 500);
+        setFilters(parseQueryFallback(text));
+        setActivePage("list");
+        setSelectedItem(null);
       };
 
-      // ==========================================
-      // 5. 資料篩選邏輯
-      // ==========================================
+      // 5. 篩選邏輯
       const filteredResults = useMemo(() => {
         return allData.filter(item => {
-          const matchRegion = !filters.region || (item.r && item.r === filters.region);
-          const matchCat = !filters.category || (item.cat && item.cat.includes(filters.category));
-          const matchDomain = !filters.domain || (item.d && item.d.includes(filters.domain));
-          const matchAI = filters.isAI === null ? true : item.ai === filters.isAI;
-          const matchStartup = filters.isStartup === null ? true : item.st === filters.isStartup;
-          const matchPrice = !filters.maxPrice || (item.pr != null && Number(item.pr) <= Number(filters.maxPrice));
-
-          let matchKeyword = true;
+          if (filters.region && item.r !== filters.region) return false;
+          if (filters.isAI !== null && item.ai !== filters.isAI) return false;
+          if (filters.isStartup !== null && item.st !== filters.isStartup) return false;
+          if (filters.category && !(item.cat && item.cat.includes(filters.category))) return false;
+          if (filters.industry_vertical && item.iv !== filters.industry_vertical) return false;
+          if (filters.program && item.p !== filters.program) return false;
+          if (filters.maxPrice && (item.pr === null || Number(item.pr) > Number(filters.maxPrice))) return false;
           if (filters.keyword) {
-            const kw = String(filters.keyword).toLowerCase();
-            const sMatch = item.s && String(item.s).toLowerCase().includes(kw);
-            const cMatch = item.c && String(item.c).toLowerCase().includes(kw);
-            matchKeyword = sMatch || cMatch;
+            const kw = filters.keyword.toLowerCase();
+            const matched = (item.s && item.s.toLowerCase().includes(kw))
+              || (item.c && item.c.toLowerCase().includes(kw))
+              || (item.desc && item.desc.toLowerCase().includes(kw))
+              || (item.tags && item.tags.toLowerCase().includes(kw));
+            if (!matched) return false;
           }
-
-          return matchRegion && matchAI && matchStartup && matchCat && matchPrice && matchDomain && matchKeyword;
+          return true;
         });
       }, [filters, allData]);
 
@@ -222,20 +165,20 @@
         setFilters(prev => ({ ...prev, [key]: prev[key] === value ? null : value }));
       };
 
-      const clearAllFilters = () => {
-        setFilters({ region: null, isAI: null, isStartup: null, category: null, maxPrice: null, domain: null, keyword: null });
+      const clearAll = () => {
+        setFilters({ region: null, isAI: null, isStartup: null, category: null, maxPrice: null, keyword: null, program: null, industry_vertical: null });
         setQuery("");
       };
 
-      // ==========================================
-      // UI 畫面渲染
-      // ==========================================
+      const hasActiveFilters = Object.values(filters).some(v => v !== null);
+
+      // ===== LOADING / ERROR =====
       if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#f8fafc]">
           <i className="fa-solid fa-cloud-arrow-down text-6xl text-emerald-500 mb-6 animate-bounce"></i>
           <div className="text-2xl font-bold text-slate-800 mb-2">資料庫連線中...</div>
           <div className="text-slate-400 text-sm flex items-center gap-2">
-            <i className="fa-solid fa-circle-notch fa-spin"></i> 正在讀取 1,198 個產業方案
+            <i className="fa-solid fa-circle-notch fa-spin"></i> 正在讀取方案資料
           </div>
         </div>
       );
@@ -249,13 +192,13 @@
         </div>
       );
 
+      // ===== HOME PAGE =====
       const renderHome = () => (
         <div className="bg-[#0d3d2a] text-white py-32 px-6 border-t-[4px] border-[#0d6e52] flex flex-col items-center text-center animate-in min-h-screen relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <div className="absolute top-10 left-10 w-64 h-64 bg-[#1D9E75] rounded-full blur-[120px]"></div>
             <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#0d6e52] rounded-full blur-[150px]"></div>
           </div>
-          
           <div className="relative z-10 w-full max-w-2xl">
             <div className="bg-white/10 backdrop-blur-xl p-6 rounded-3xl mb-8 inline-block shadow-2xl border border-white/5">
               <i className="fa-solid fa-brain text-[#1D9E75] text-6xl"></i>
@@ -264,232 +207,329 @@
               產業策略智庫<br /><span className="text-[#1D9E75]">即時語意分析。</span>
             </h1>
             <p className="text-slate-300 text-lg mb-12 max-w-xl mx-auto font-medium leading-relaxed">
-              輸入您的數位轉型需求或公司現況，Claude AI 將自動為您從 {allData.length} 筆方案中精選最佳導入路徑。
+              輸入您的數位轉型需求，Claude AI 將從 <span className="text-white font-bold">{allData.length.toLocaleString()}</span> 筆方案中精選最佳路徑。
             </p>
-            
             <div className="flex flex-col sm:flex-row gap-4 w-full bg-white/5 p-2 rounded-[2.5rem] border border-white/10 backdrop-blur-sm shadow-2xl">
-              <input 
+              <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                placeholder="搜尋：我們預算三萬，想找台中的 AI 智能排班系統..."
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                placeholder="搜尋：我想找台中的 AI 智能排班系統，預算三萬..."
                 className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-white placeholder:text-white/30 text-lg font-medium"
               />
-              <button 
-                onClick={handleSearchSubmit}
-                disabled={isSearching}
-                className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-50 text-white px-10 py-4 rounded-full font-black text-lg shadow-2xl transition-all active:scale-95 whitespace-nowrap flex items-center justify-center gap-2"
-              >
+              <button onClick={handleSearch} disabled={isSearching}
+                className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-50 text-white px-10 py-4 rounded-full font-black text-lg shadow-2xl transition-all active:scale-95 whitespace-nowrap flex items-center justify-center gap-2">
                 {isSearching ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
                 {isSearching ? "解析中..." : "AI 搜尋"}
               </button>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2 mt-6">
+              {["北部有哪些 AI 客服方案", "旅宿業數位轉型", "醫療照護 SaaS", "五萬以下的 ERP"].map(text => (
+                <button key={text} onClick={() => handleQuickSearch(text)}
+                  className="text-xs text-white/60 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-all">
+                  {text}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       );
 
-      const renderReport = () => (
+      // ===== LIST PAGE =====
+      const renderList = () => (
         <div className="max-w-4xl mx-auto px-4 py-8 animate-in">
-          <div className="flex items-center gap-4 mb-8">
-             <button onClick={() => setActivePage("home")} className="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-colors">
-                <i className="fa-solid fa-arrow-left"></i>
-             </button>
-             <div>
-                <h2 className="text-2xl font-bold text-slate-800">搜尋結果分析</h2>
-                <p className="text-sm text-slate-500">已套用 AI 語意解析</p>
-             </div>
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-6">
+            <button onClick={() => setActivePage("home")} className="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-colors">
+              <i className="fa-solid fa-arrow-left"></i>
+            </button>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-800">搜尋結果</h2>
+              <p className="text-sm text-slate-500">AI 語意解析 + 手動篩選</p>
+            </div>
           </div>
 
-          <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex items-center relative z-20 mb-4 focus-within:shadow-md focus-within:border-emerald-300">
+          {/* Search bar */}
+          <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex items-center mb-4 focus-within:shadow-md focus-within:border-emerald-300">
             <i className="fa-solid fa-magnifying-glass text-slate-400 ml-4 mr-2"></i>
-            <input 
-              type="text" 
-              value={query}
+            <input type="text" value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-              placeholder="進一步描述您的需求（例如輸入：叡揚資訊）..."
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              placeholder="進一步描述您的需求..."
               className="flex-1 py-3 px-2 outline-none text-slate-700 bg-transparent"
             />
-            <button 
-              onClick={handleSearchSubmit}
-              disabled={isSearching}
-              className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2"
-            >
+            <button onClick={handleSearch} disabled={isSearching}
+              className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">
               {isSearching ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-sparkles"></i>}
               {isSearching ? "解析中..." : "重新搜尋"}
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-2 mb-8 px-1">
-            <span className="text-xs text-slate-400 font-bold py-1.5 mr-1">範例查詢：</span>
-            {["北部有哪些 AI 客服方案", "叡揚資訊", "南部新創的 ESG 方案", "企業管理的 ERP 系統"].map(text => (
-              <button 
-                key={text}
-                onClick={() => handleQuickSearch(text)}
-                className="text-xs text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg font-medium transition-colors border border-emerald-100"
-              >
-                {text}
-              </button>
-            ))}
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-8">
+          {/* Filters */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                <i className="fa-solid fa-sliders text-slate-400"></i> 解析與手動篩選條件
+                <i className="fa-solid fa-sliders text-slate-400"></i> 篩選條件
               </h3>
-              {(filters.region || filters.isAI || filters.isStartup || filters.category || filters.maxPrice || filters.domain || filters.keyword) && (
-                <button onClick={clearAllFilters} className="text-xs text-red-500 hover:text-red-700 font-bold transition-colors">
-                  清除全部
-                </button>
+              {hasActiveFilters && (
+                <button onClick={clearAll} className="text-xs text-red-500 hover:text-red-700 font-bold">清除全部</button>
               )}
             </div>
-            
-            <div className="space-y-4">
+            <div className="space-y-3">
+              {/* Region */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-400 w-10">區域</span>
+                <span className="text-xs text-slate-400 w-12">區域</span>
                 {REGIONS.map(r => (
-                  <button 
-                    key={r} onClick={() => toggleFilter('region', r)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.region === r ? 'bg-emerald-50 border-emerald-400 text-emerald-700 font-bold shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
-                  >
+                  <button key={r} onClick={() => toggleFilter("region", r)}
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.region === r ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {r}
                   </button>
                 ))}
               </div>
+              {/* Tags */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-400 w-10">標籤</span>
-                <button 
-                  onClick={() => toggleFilter('isAI', true)}
-                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isAI ? 'bg-emerald-50 border-emerald-400 text-emerald-700 font-bold shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
-                >
-                  <i className="fa-solid fa-robot mr-1"></i> AI 方案
+                <span className="text-xs text-slate-400 w-12">標籤</span>
+                <button onClick={() => toggleFilter("isAI", true)}
+                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isAI ? "bg-yellow-50 border-yellow-400 text-yellow-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  <i className="fa-solid fa-bolt mr-1"></i>AI 方案
                 </button>
-                <button 
-                  onClick={() => toggleFilter('isStartup', true)}
-                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isStartup ? 'bg-emerald-50 border-emerald-400 text-emerald-700 font-bold shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
-                >
-                  <i className="fa-solid fa-seedling mr-1"></i> 新創嚴選
+                <button onClick={() => toggleFilter("isStartup", true)}
+                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isStartup ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  <i className="fa-solid fa-seedling mr-1"></i>新創
                 </button>
-                {filters.maxPrice && (
-                  <span className="px-3 py-1 text-xs rounded-full border bg-orange-50 border-orange-200 text-orange-700 font-bold flex items-center gap-1">
-                    價格 ≤ {filters.maxPrice/10000}萬 <i className="fa-solid fa-xmark cursor-pointer ml-1 hover:text-orange-900" onClick={() => toggleFilter('maxPrice', filters.maxPrice)}></i>
-                  </span>
-                )}
-                {filters.domain && (
-                  <span className="px-3 py-1 text-xs rounded-full border bg-purple-50 border-purple-200 text-purple-700 font-bold flex items-center gap-1">
-                    領域: {filters.domain} <i className="fa-solid fa-xmark cursor-pointer ml-1 hover:text-purple-900" onClick={() => toggleFilter('domain', filters.domain)}></i>
-                  </span>
-                )}
-                {filters.keyword && (
-                  <span className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
-                    關鍵字: {filters.keyword} <i className="fa-solid fa-xmark cursor-pointer ml-1 hover:text-blue-900" onClick={() => toggleFilter('keyword', filters.keyword)}></i>
-                  </span>
-                )}
+                {PROGRAMS.map(p => (
+                  <button key={p} onClick={() => toggleFilter("program", p)}
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.program === p ? "bg-blue-50 border-blue-400 text-blue-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    {p}
+                  </button>
+                ))}
               </div>
+              {/* Industry Vertical */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-400 w-10">領域</span>
+                <span className="text-xs text-slate-400 w-12">領域</span>
+                {INDUSTRY_VERTICALS.map(iv => (
+                  <button key={iv} onClick={() => toggleFilter("industry_vertical", iv)}
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.industry_vertical === iv ? "bg-purple-50 border-purple-400 text-purple-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    {iv}
+                  </button>
+                ))}
+              </div>
+              {/* Category */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-slate-400 w-12">類別</span>
                 {CATEGORIES.map(c => (
-                  <button 
-                    key={c} onClick={() => toggleFilter('category', c)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.category === c ? 'bg-emerald-50 border-emerald-400 text-emerald-700 font-bold shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
-                  >
+                  <button key={c} onClick={() => toggleFilter("category", c)}
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.category === c ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {c}
                   </button>
                 ))}
               </div>
+              {/* Active keyword/price chips */}
+              {(filters.keyword || filters.maxPrice) && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-400 w-12">套用</span>
+                  {filters.keyword && (
+                    <span className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
+                      關鍵字: {filters.keyword}
+                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("keyword", filters.keyword)}></i>
+                    </span>
+                  )}
+                  {filters.maxPrice && (
+                    <span className="px-3 py-1 text-xs rounded-full border bg-orange-50 border-orange-200 text-orange-700 font-bold flex items-center gap-1">
+                      ≤ {(filters.maxPrice/10000).toFixed(0)}萬
+                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("maxPrice", filters.maxPrice)}></i>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="mb-4 flex justify-between items-end px-2">
+          {/* Result count */}
+          <div className="mb-4 flex justify-between items-center px-1">
             <h3 className="text-sm font-bold text-slate-700">搜尋結果</h3>
             <span className="text-xs text-slate-400 bg-slate-200 px-2 py-0.5 rounded-md font-mono">{filteredResults.length} 筆</span>
           </div>
 
-          <div className="space-y-4">
+          {/* Results list */}
+          <div className="space-y-3">
             {filteredResults.length > 0 ? filteredResults.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-[#0d6e52]/40 transition-colors animate-in">
-                <div className="p-5 sm:p-6 flex flex-col sm:flex-row justify-between gap-4 cursor-pointer" onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}>
-                  <div className="flex-1">
+              <div key={idx}
+                onClick={() => { setSelectedItem(item); setActivePage("detail"); }}
+                className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-[#0d6e52]/40 hover:shadow-md transition-all cursor-pointer animate-in">
+                <div className="p-5 sm:p-6 flex flex-col sm:flex-row justify-between gap-4">
+                  <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap gap-2 mb-2">
-                      {item.ai === true && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-bolt mr-1"></i>AI方案</span>}
-                      {item.st === true && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] px-2 py-0.5 rounded font-bold">新創嚴選</span>}
+                      {item.ai && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-bolt mr-1"></i>AI方案</span>}
+                      {item.st && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] px-2 py-0.5 rounded font-bold">新創嚴選</span>}
+                      {item.iv && <span className="bg-purple-100 text-purple-800 border border-purple-200 text-[10px] px-2 py-0.5 rounded font-bold">{item.iv}</span>}
                       {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] px-2 py-0.5 rounded"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}</span>}
                     </div>
-                    <h2 className="text-lg font-bold text-slate-900 mb-1">{item.s}</h2>
-                    <p className="text-sm text-slate-500 font-medium">{item.c}</p>
-                    <div className="flex items-center gap-2 mt-3 text-xs text-slate-400 w-full overflow-x-auto no-scrollbar">
-                      {item.cat && item.cat.split(',').map((cat, i) => (
-                        <span key={i} className="bg-slate-50 border border-slate-100 px-2 py-1 rounded-md whitespace-nowrap">{cat.trim()}</span>
-                      ))}
-                    </div>
+                    <h2 className="text-lg font-bold text-slate-900 mb-1 truncate">{item.s || "（未命名方案）"}</h2>
+                    <p className="text-sm text-slate-500 font-medium truncate">{item.c}</p>
+                    {item.cat && (
+                      <div className="flex items-center gap-2 mt-2 overflow-x-auto no-scrollbar">
+                        {item.cat.split(",").map((c, i) => (
+                          <span key={i} className="bg-slate-50 border border-slate-100 px-2 py-0.5 rounded text-[10px] text-slate-500 whitespace-nowrap">{c.trim()}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  
-                  <div className="flex flex-row sm:flex-col justify-between sm:justify-center items-center sm:items-end border-t sm:border-t-0 border-slate-100 pt-4 sm:pt-0 sm:pl-4 sm:border-l sm:min-w-[120px]">
+                  <div className="flex flex-row sm:flex-col justify-between sm:justify-center items-center sm:items-end border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0 sm:pl-4 sm:border-l sm:min-w-[110px]">
                     <div className="text-left sm:text-right">
-                      <p className="text-[10px] text-slate-400 mb-0.5">預估方案費用</p>
-                      <p className="text-lg font-bold text-[#0d6e52] font-mono">{formatCurrency(item.pr)}</p>
-                      {item.mo && <p className="text-[10px] text-slate-400 mt-1">約 {formatCurrency(item.mo)} / 月</p>}
+                      <p className="text-[10px] text-slate-400 mb-0.5">方案費用</p>
+                      <p className="text-base font-bold text-[#0d6e52] font-mono">{formatCurrency(item.pr)}</p>
+                      {item.mo && <p className="text-[10px] text-slate-400 mt-0.5">{formatCurrency(item.mo)}/月</p>}
                     </div>
-                    <div className={`mt-0 sm:mt-4 text-slate-300 transition-transform ${expandedId === item.id ? 'rotate-180' : ''}`}>
-                      <i className="fa-solid fa-chevron-down"></i>
-                    </div>
+                    <i className="fa-solid fa-chevron-right text-slate-300 mt-0 sm:mt-4"></i>
                   </div>
                 </div>
-
-                {expandedId === item.id && (
-                  <div className="px-5 sm:px-6 pb-6 pt-2 bg-slate-50 border-t border-slate-100 text-sm animate-in">
-                    <div className="mb-4">
-                      <h4 className="font-bold text-slate-700 mb-1.5 text-xs"><i className="fa-regular fa-file-lines mr-1 text-slate-400"></i>方案介紹</h4>
-                      <p className="text-slate-600 leading-relaxed bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                        {item.desc || "此方案暫無詳細介紹，請聯繫廠商獲取更多資訊。"}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-700 mb-1.5 text-xs"><i className="fa-solid fa-tags mr-1 text-slate-400"></i>適用服務領域</h4>
-                      <p className="text-slate-600 leading-relaxed font-medium">{item.d || "未提供分類資訊"}</p>
-                    </div>
-                  </div>
-                )}
               </div>
             )) : (
               <div className="py-16 text-center bg-white rounded-2xl border border-slate-200">
                 <i className="fa-solid fa-robot text-4xl text-slate-300 mb-3"></i>
                 <p className="text-slate-500 font-bold">找不到符合條件的方案</p>
-                <p className="text-slate-400 text-sm mt-1">請嘗試減少過濾條件，或更換關鍵字搜尋</p>
+                <p className="text-slate-400 text-sm mt-1">請嘗試減少過濾條件，或更換關鍵字</p>
               </div>
             )}
           </div>
 
-          <div className="mt-12 text-center text-xs text-slate-400 font-bold">
-            即時連線 Airtable 資料庫 — 共 <span className="text-slate-500">{allData.length}</span> 個方案
+          <div className="mt-10 text-center text-xs text-slate-400 font-bold">
+            共 <span className="text-slate-500">{allData.length.toLocaleString()}</span> 個方案
           </div>
         </div>
       );
 
+      // ===== DETAIL PAGE =====
+      const renderDetail = () => {
+        const item = selectedItem;
+        if (!item) return null;
+        return (
+          <div className="max-w-3xl mx-auto px-4 py-8 animate-in">
+            {/* Back button */}
+            <button onClick={() => { setActivePage("list"); setSelectedItem(null); }}
+              className="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 mb-6 transition-colors">
+              <i className="fa-solid fa-arrow-left"></i> 返回搜尋結果
+            </button>
+
+            {/* Header card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-4">
+              <div className="flex flex-wrap gap-2 mb-4">
+                {item.ai && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 text-xs px-3 py-1 rounded-full font-bold"><i className="fa-solid fa-bolt mr-1"></i>AI方案</span>}
+                {item.st && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs px-3 py-1 rounded-full font-bold"><i className="fa-solid fa-seedling mr-1"></i>新創嚴選</span>}
+                {item.iv && <span className="bg-purple-100 text-purple-800 border border-purple-200 text-xs px-3 py-1 rounded-full font-bold">{item.iv}</span>}
+                {item.p && <span className="bg-blue-100 text-blue-800 border border-blue-200 text-xs px-3 py-1 rounded-full">{item.p}</span>}
+                {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-xs px-3 py-1 rounded-full"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}{item.city ? ` · ${item.city}` : ""}</span>}
+              </div>
+              <h1 className="text-2xl font-black text-slate-900 mb-2">{item.s || "（未命名方案）"}</h1>
+              <p className="text-base text-slate-600 font-semibold mb-4">{item.c}</p>
+              {item.slogan && <p className="text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 italic">「{item.slogan}」</p>}
+            </div>
+
+            {/* Price card */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                <p className="text-xs text-slate-400 mb-1">方案總費用</p>
+                <p className="text-2xl font-black text-[#0d6e52] font-mono">{formatCurrency(item.pr)}</p>
+                {item.pt && <p className="text-xs text-slate-400 mt-1">{item.pt}</p>}
+              </div>
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                <p className="text-xs text-slate-400 mb-1">月費</p>
+                <p className="text-2xl font-black text-slate-700 font-mono">{item.mo ? formatCurrency(item.mo) : "—"}</p>
+                {item.mt && <p className="text-xs text-slate-400 mt-1">{item.mt}/月</p>}
+              </div>
+            </div>
+
+            {/* Description */}
+            {item.desc && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-4">
+                <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                  <i className="fa-regular fa-file-lines text-slate-400"></i> 方案介紹
+                </h3>
+                <p className="text-slate-600 leading-relaxed text-sm">{item.desc}</p>
+              </div>
+            )}
+
+            {/* Features list */}
+            {item.feat && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-4">
+                <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                  <i className="fa-solid fa-list-check text-slate-400"></i> 功能清單
+                </h3>
+                <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{item.feat}</div>
+              </div>
+            )}
+
+            {/* Tags & Info */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-4">
+              <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                <i className="fa-solid fa-tags text-slate-400"></i> 方案屬性
+              </h3>
+              <div className="grid grid-cols-2 gap-y-3 text-sm">
+                {item.cat && (
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1">服務類別</p>
+                    <p className="text-slate-700 font-medium">{item.cat}</p>
+                  </div>
+                )}
+                {item.d && (
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1">適用產業</p>
+                    <p className="text-slate-700 font-medium">{item.d}</p>
+                  </div>
+                )}
+                {item.scale && (
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1">適用規模</p>
+                    <p className="text-slate-700 font-medium">{item.scale}</p>
+                  </div>
+                )}
+                {item.tags && (
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1">技術標籤</p>
+                    <p className="text-slate-700 font-medium">{item.tags}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Solution ID */}
+            <p className="text-xs text-slate-300 text-center">{item.id}</p>
+          </div>
+        );
+      };
+
       return (
         <div className="min-h-screen flex flex-col">
-          <header className="bg-white/90 backdrop-blur-md border-b border-black/5 sticky top-0 z-[100] transition-all">
+          <header className="bg-white/90 backdrop-blur-md border-b border-black/5 sticky top-0 z-[100]">
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActivePage("home"); setIsSearching(false); setQuery(""); }}>
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActivePage("home"); setQuery(""); }}>
                 <div className="w-10 h-10 bg-[#0d6e52] rounded-2xl flex items-center justify-center text-white shadow-lg">
                   <i className="fa-solid fa-layer-group text-xl"></i>
                 </div>
                 <div>
-                  <span className="font-black text-lg text-[#0d3d2a] tracking-tight block leading-none mb-1">產業策略 V16.0</span>
+                  <span className="font-black text-lg text-[#0d3d2a] tracking-tight block leading-none mb-1">產業策略智庫</span>
+                  <span className="text-xs text-slate-400">{allData.length.toLocaleString()} 個方案</span>
                 </div>
               </div>
+              {activePage !== "home" && (
+                <button onClick={() => { setActivePage("list"); setSelectedItem(null); }}
+                  className="text-sm text-slate-500 hover:text-emerald-600 flex items-center gap-1">
+                  <i className="fa-solid fa-list"></i> 搜尋結果
+                </button>
+              )}
             </div>
           </header>
-
           <main className="flex-1 overflow-hidden overflow-y-auto custom-scrollbar">
-            {activePage === "home" ? renderHome() : renderReport()}
+            {activePage === "home" && renderHome()}
+            {activePage === "list" && renderList()}
+            {activePage === "detail" && renderDetail()}
           </main>
         </div>
       );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
+    const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(<App />);
   </script>
 </body>
