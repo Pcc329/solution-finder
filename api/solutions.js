@@ -33,27 +33,48 @@ export default async function handler(req, res) {
       fetchAll('Companies'),
     ]);
 
-    // company_id lookup map
-    const companyMap = {};
+    // 建立兩種 lookup map：
+    // 1. by company_id (統編) → 給文字欄位用
+    // 2. by record ID → 給 Link 關聯欄位用
+    const companyByCid = {};
+    const companyByRecId = {};
+
     coRecords.forEach(rec => {
       const f = rec.fields;
       const cid = String(f['company_id'] || '').replace(/^\uFEFF/, '').trim();
-      if (cid) {
-        companyMap[cid] = {
-          name: f['company_name'] || '',
-          region: f['region'] || '',
-          is_startup: f['is_startup'] === 'checked',
-          city: f['city'] || '',
-          tech_tags: f['tech_tags'] || '',
-          industry_vertical_co: f['industry_vertical'] || '',
-        };
-      }
+      const coData = {
+        name: f['company_name'] || '',
+        cid: cid,
+        region: f['region'] || '',
+        is_startup: f['is_startup'] === 'checked',
+        city: f['city'] || '',
+        tech_tags: f['tech_tags'] || '',
+        industry_vertical_co: f['industry_vertical'] || '',
+      };
+      if (cid) companyByCid[cid] = coData;
+      companyByRecId[rec.id] = coData;
     });
 
     const converted = solRecords.map(rec => {
       const f = rec.fields;
-      const cid = String(f['company_id'] || '').replace(/^\uFEFF/, '').trim();
-      const co = companyMap[cid] || {};
+
+      // company_id 可能是：
+      // 1. Link 關聯欄位 → 陣列 ["recXXXXX"] (record ID)
+      // 2. 純文字 → "12345678" (統編)
+      let co = {};
+      let cidDisplay = '';
+      const rawCid = f['company_id'];
+
+      if (Array.isArray(rawCid) && rawCid.length > 0) {
+        // Link 關聯欄位：用 record ID 查
+        co = companyByRecId[rawCid[0]] || {};
+        cidDisplay = co.cid || '';
+      } else {
+        // 純文字：用統編查
+        const cid = String(rawCid || '').replace(/^\uFEFF/, '').trim();
+        co = companyByCid[cid] || {};
+        cidDisplay = cid;
+      }
 
       const hasAiRaw = f['has_ai'] || '';
       const hasAi = hasAiRaw === '有' || hasAiRaw === 'True' || hasAiRaw === true;
@@ -62,7 +83,7 @@ export default async function handler(req, res) {
         id: String(f['solution_id'] || rec.id || '').replace(/^\uFEFF/, ''),
         s: f['solution_name'] || '',
         c: co.name || '',
-        cid: cid,
+        cid: cidDisplay,
         p: f['program_type'] || '',
         ai: hasAi,
         d: f['target_industry'] || '',
