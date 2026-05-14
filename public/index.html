@@ -70,6 +70,8 @@
       });
       const [sortBy, setSortBy] = useState("relevance");
       const [currentPage, setCurrentPage] = useState(1);
+      const [compareItems, setCompareItems] = useState([]);
+      const [compareNotice, setCompareNotice] = useState("");
       const listTopRef = useRef(null);
 
       // 1. 抓資料
@@ -260,6 +262,53 @@
       };
 
       const hasActiveFilters = Object.values(filters).some(v => v !== null);
+
+      const toComparePayload = (item) => ({
+        id: item.id,
+        s: item.s,
+        c: item.c,
+        pr: item.pr,
+        pt: item.pt,
+        ai: item.ai,
+        cat: item.cat,
+        r: item.r,
+        city: item.city,
+        feat: item.feat,
+        tags: item.tags,
+        p: item.p,
+        desc: item.desc,
+      });
+
+      const isCompareSelected = (item) => compareItems.some(selected => selected.id === item.id);
+
+      const toggleCompareItem = (item, checked) => {
+        setCompareNotice("");
+        if (checked) {
+          if (compareItems.length >= 4) {
+            setCompareNotice("最多只能選擇 4 個方案進行比較");
+            return;
+          }
+          if (!isCompareSelected(item)) {
+            setCompareItems(prev => [...prev, toComparePayload(item)]);
+          }
+        } else {
+          setCompareItems(prev => prev.filter(selected => selected.id !== item.id));
+        }
+      };
+
+      const clearCompareItems = () => {
+        setCompareItems([]);
+        setCompareNotice("");
+      };
+
+      const startCompare = () => {
+        if (compareItems.length < 2) {
+          setCompareNotice("請至少選擇 2 個方案");
+          return;
+        }
+        sessionStorage.setItem("compareItems", JSON.stringify(compareItems));
+        window.location.href = "/compare.html";
+      };
 
       // ===== LOADING / ERROR =====
       if (loading) return (
@@ -506,11 +555,22 @@
 
           {/* Results list (paginated) */}
           <div className="space-y-3">
-            {pagedResults.length > 0 ? pagedResults.map((item) => (
+            {pagedResults.length > 0 ? pagedResults.map((item) => {
+              const checked = isCompareSelected(item);
+              const disabled = !checked && compareItems.length >= 4;
+              return (
               <div key={item.id || item.s}
                 onClick={() => { setSelectedItem(item); setActivePage("detail"); }}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-[#0d6e52]/40 hover:shadow-md transition-all cursor-pointer animate-in">
+                className={`bg-white rounded-2xl border shadow-sm overflow-hidden hover:border-[#0d6e52]/40 hover:shadow-md transition-all cursor-pointer animate-in ${checked ? "border-[#1D9E75] ring-2 ring-[#1D9E75]/20" : "border-slate-200"}`}>
                 <div className="p-5 sm:p-6 flex flex-col sm:flex-row justify-between gap-4">
+                  <label onClick={(e) => e.stopPropagation()}
+                    className={`flex items-center justify-center w-9 h-9 rounded-xl border shrink-0 cursor-pointer transition-colors ${checked ? "bg-emerald-50 border-[#1D9E75] text-[#0d6e52]" : "bg-white border-slate-200 text-slate-400 hover:border-emerald-300"} ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
+                    title="加入比較">
+                    <input type="checkbox" checked={checked}
+                      onChange={(e) => toggleCompareItem(item, e.target.checked)}
+                      className="sr-only" />
+                    <i className={`fa-solid ${checked ? "fa-check" : "fa-plus"} text-sm`}></i>
+                  </label>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap gap-2 mb-2">
                       {item.ai && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-bolt mr-1"></i>AI方案</span>}
@@ -539,7 +599,7 @@
                   </div>
                 </div>
               </div>
-            )) : (
+            )}) : (
               <div className="py-16 text-center bg-white rounded-2xl border border-slate-200">
                 <i className="fa-solid fa-robot text-4xl text-slate-300 mb-3"></i>
                 <p className="text-slate-500 font-bold">找不到符合條件的方案</p>
@@ -550,6 +610,25 @@
 
           {/* Pagination */}
           {renderPagination()}
+
+          {compareItems.length > 0 && (
+            <div className="sticky bottom-4 z-40 mt-8 bg-white/95 backdrop-blur border border-emerald-100 shadow-2xl rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-slate-800">已選 {compareItems.length} 個方案</p>
+                {compareNotice && <p className="text-xs text-red-500 mt-1">{compareNotice}</p>}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={clearCompareItems}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors">
+                  清除
+                </button>
+                <button onClick={startCompare} disabled={compareItems.length < 2}
+                  className="px-5 py-2 rounded-xl bg-[#0d6e52] disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-black shadow-sm hover:bg-[#1D9E75] transition-colors">
+                  比較
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="mt-10 text-center text-xs text-slate-400 font-bold">
             共 <span className="text-slate-500">{allData.length.toLocaleString()}</span> 個方案
