@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>產業策略智庫 戰情儀表板</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #1D9E75;
+      --primary-dark: #13785A;
+      --bg: #f8f9fa;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .source-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status {
+      min-width: 132px;
+      color: var(--primary-dark);
+      font-size: 14px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
+    }
+
+    .kpi-card {
+      padding: 18px;
+    }
+
+    .kpi-label {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .kpi-value {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 750;
+      line-height: 1.1;
+    }
+
+    .kpi-sub {
+      margin: 8px 0 0;
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .chart-card {
+      padding: 18px;
+      min-height: 360px;
+    }
+
+    .chart-card h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 290px;
+    }
+
+    .error {
+      display: none;
+      margin: 0 0 18px;
+      padding: 14px 16px;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    @media (max-width: 900px) {
+      header {
+        display: block;
+      }
+
+      .status {
+        margin-top: 10px;
+        text-align: left;
+      }
+
+      .kpis,
+      .charts {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>產業策略智庫 戰情儀表板</h1>
+        <p class="source-note">資料來源：Airtable，每次載入即時更新</p>
+      </div>
+      <div id="status" class="status">loading...</div>
+    </header>
+
+    <p id="error" class="error"></p>
+
+    <section class="kpis" aria-label="KPI">
+      <article class="card kpi-card">
+        <p class="kpi-label">總方案數</p>
+        <p id="total" class="kpi-value">--</p>
+      </article>
+      <article class="card kpi-card">
+        <p class="kpi-label">AI 方案數</p>
+        <p id="aiCount" class="kpi-value">--</p>
+        <p id="aiPercent" class="kpi-sub">--</p>
+      </article>
+      <article class="card kpi-card">
+        <p class="kpi-label">業者總數</p>
+        <p id="companyTotal" class="kpi-value">--</p>
+      </article>
+      <article class="card kpi-card">
+        <p class="kpi-label">費用中位數</p>
+        <p id="medianPrice" class="kpi-value">--</p>
+        <p id="validPriceCount" class="kpi-sub">--</p>
+      </article>
+    </section>
+
+    <section class="charts" aria-label="圖表">
+      <article class="card chart-card">
+        <h2>方案類別 Top 8</h2>
+        <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
+      </article>
+      <article class="card chart-card">
+        <h2>資料來源分布</h2>
+        <div class="chart-wrap"><canvas id="programChart"></canvas></div>
+      </article>
+      <article class="card chart-card">
+        <h2>費用級距分布</h2>
+        <div class="chart-wrap"><canvas id="priceTierChart"></canvas></div>
+      </article>
+      <article class="card chart-card">
+        <h2>業者地區分布</h2>
+        <div class="chart-wrap"><canvas id="regionChart"></canvas></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const tealPalette = ['#1D9E75', '#36B58B', '#61C7A3', '#8ED8BC', '#13785A', '#0F5F48', '#74A99A', '#A7D8CB', '#D7EDE7'];
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat('zh-TW').format(value || 0);
+    }
+
+    function formatCurrency(value) {
+      if (value === null || value === undefined) return '--';
+      return `NT$ ${formatNumber(value)}`;
+    }
+
+    function toEntries(map) {
+      return Object.entries(map || {}).sort((a, b) => b[1] - a[1]);
+    }
+
+    function topWithOther(map, limit) {
+      const entries = toEntries(map);
+      const top = entries.slice(0, limit);
+      const rest = entries.slice(limit).reduce((sum, item) => sum + item[1], 0);
+      if (rest > 0) top.push(['其他', rest]);
+      return top;
+    }
+
+    function updateKpis(data) {
+      const aiPercent = data.total ? Math.round((data.aiCount / data.total) * 1000) / 10 : 0;
+      document.getElementById('total').textContent = formatNumber(data.total);
+      document.getElementById('aiCount').textContent = formatNumber(data.aiCount);
+      document.getElementById('aiPercent').textContent = `${aiPercent}% of total`;
+      document.getElementById('companyTotal').textContent = formatNumber(data.companyTotal);
+      document.getElementById('medianPrice').textContent = formatCurrency(data.medianPrice);
+      document.getElementById('validPriceCount').textContent = `有效價格 ${formatNumber(data.validPriceCount)} 筆`;
+    }
+
+    function renderBar(canvasId, entries, options = {}) {
+      const labels = entries.map(item => item[0]);
+      const values = entries.map(item => item[1]);
+      return new Chart(document.getElementById(canvasId), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: options.colors || tealPalette,
+            borderRadius: 6,
+            maxBarThickness: 34,
+          }],
+        },
+        options: {
+          indexAxis: options.horizontal ? 'y' : 'x',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: context => formatNumber(context.parsed.x || context.parsed.y) } },
+          },
+          scales: {
+            x: { beginAtZero: true, grid: { color: '#eef2f7' } },
+            y: { grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    function renderPie(canvasId, entries) {
+      return new Chart(document.getElementById(canvasId), {
+        type: 'pie',
+        data: {
+          labels: entries.map(item => item[0]),
+          datasets: [{
+            data: entries.map(item => item[1]),
+            backgroundColor: tealPalette,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { callbacks: { label: context => `${context.label}: ${formatNumber(context.parsed)}` } },
+          },
+        },
+      });
+    }
+
+    async function loadDashboard() {
+      const status = document.getElementById('status');
+      const error = document.getElementById('error');
+      try {
+        const response = await fetch('/api/stats');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        updateKpis(data);
+        renderBar('categoryChart', topWithOther(data.byCategory, 8), { horizontal: true });
+        renderPie('programChart', toEntries(data.byProgramType));
+        renderBar('priceTierChart', toEntries(data.byPriceTier));
+        renderBar('regionChart', toEntries(data.byRegion), { horizontal: true });
+        status.textContent = '已更新';
+      } catch (err) {
+        status.textContent = '載入失敗';
+        error.textContent = `儀表板資料載入失敗：${err.message}`;
+        error.style.display = 'block';
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
