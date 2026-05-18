@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>方案比較</title>
+  <style>
+    :root {
+      --primary: #1D9E75;
+      --primary-dark: #0d6e52;
+      --bg: #f8f9fa;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --card: #ffffff;
+      --danger: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: var(--primary-dark);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .empty {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
+      padding: 40px;
+      text-align: center;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
+    }
+
+    table {
+      width: 100%;
+      min-width: 860px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 16px;
+      vertical-align: top;
+      text-align: left;
+      line-height: 1.55;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    tr:last-child th,
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      background: #f1f5f9;
+      font-size: 14px;
+      color: #334155;
+      width: 150px;
+    }
+
+    td {
+      min-width: 210px;
+      font-size: 14px;
+      color: #334155;
+    }
+
+    .field-name {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: #f1f5f9;
+      font-weight: 800;
+    }
+
+    .different {
+      text-decoration: underline;
+      text-decoration-color: var(--primary);
+      text-decoration-thickness: 3px;
+      text-underline-offset: 5px;
+    }
+
+    .name {
+      font-weight: 800;
+      color: #0f172a;
+      font-size: 15px;
+    }
+
+    .price-low {
+      color: var(--primary-dark);
+      font-weight: 900;
+    }
+
+    .price-high {
+      color: var(--danger);
+      font-weight: 900;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge-ai {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .badge-muted {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+
+    .features {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .features li + li {
+      margin-top: 6px;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 24px, 1180px);
+        padding-top: 24px;
+      }
+
+      header {
+        display: block;
+      }
+
+      header a {
+        display: inline-block;
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>方案比較</h1>
+      <a href="/">← 返回搜尋</a>
+    </header>
+    <section id="content"></section>
+  </main>
+
+  <script>
+    const content = document.getElementById('content');
+
+    function formatCurrency(value) {
+      if (value === null || value === undefined || value === '') return '未提供';
+      const n = Number(value);
+      if (!Number.isFinite(n)) return '未提供';
+      return `NT$ ${n.toLocaleString('zh-TW')}`;
+    }
+
+    function normalize(value) {
+      if (value === null || value === undefined || value === '') return '未提供';
+      if (Array.isArray(value)) return value.join(', ');
+      return String(value);
+    }
+
+    function escapeHtml(value) {
+      return normalize(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function splitFeatures(value) {
+      return normalize(value)
+        .split(/\n|；|;/)
+        .map(item => item.trim())
+        .filter(Boolean)
+        .slice(0, 3);
+    }
+
+    function rowHasDifference(items, getter) {
+      const values = items.map(item => normalize(getter(item)).trim());
+      return new Set(values).size > 1;
+    }
+
+    function priceClass(item, prices) {
+      const price = Number(item.pr);
+      if (!Number.isFinite(price) || !prices.length) return '';
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      if (min === max) return '';
+      if (price === min) return 'price-low';
+      if (price === max) return 'price-high';
+      return '';
+    }
+
+    function renderCell(field, item, prices) {
+      if (field.key === 's') return `<span class="name">${escapeHtml(item.s)}</span>`;
+      if (field.key === 'pr') return `<span class="${priceClass(item, prices)}">${formatCurrency(item.pr)}</span>`;
+      if (field.key === 'ai') {
+        return item.ai
+          ? '<span class="badge badge-ai">有 AI</span>'
+          : '<span class="badge badge-muted">無 AI</span>';
+      }
+      if (field.key === 'feat') {
+        const features = splitFeatures(item.feat);
+        if (!features.length) return '未提供';
+        return `<ul class="features">${features.map(feature => `<li>${escapeHtml(feature)}</li>`).join('')}</ul>`;
+      }
+      return escapeHtml(item[field.key]);
+    }
+
+    function renderEmpty() {
+      content.innerHTML = `
+        <div class="empty">
+          <h2>請先從搜尋結果選擇方案</h2>
+          <p><a href="/">← 返回搜尋</a></p>
+        </div>
+      `;
+    }
+
+    function renderCompare(items) {
+      const fields = [
+        { key: 's', label: '方案名稱' },
+        { key: 'c', label: '業者名稱' },
+        { key: 'pr', label: '費用' },
+        { key: 'pt', label: '費用級距' },
+        { key: 'ai', label: '是否 AI' },
+        { key: 'cat', label: '類別' },
+        { key: 'r', label: '服務地區' },
+        { key: 'city', label: '城市' },
+        { key: 'p', label: '方案來源' },
+        { key: 'tags', label: '技術標籤' },
+        { key: 'feat', label: '功能摘要' },
+      ];
+      const prices = items.map(item => Number(item.pr)).filter(Number.isFinite);
+      const rows = fields.map(field => {
+        const different = field.key !== 'pr' && field.key !== 'ai' && rowHasDifference(items, item => item[field.key]);
+        return `
+          <tr>
+            <th class="field-name ${different ? 'different' : ''}">${field.label}</th>
+            ${items.map(item => `<td>${renderCell(field, item, prices)}</td>`).join('')}
+          </tr>
+        `;
+      }).join('');
+
+      content.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    try {
+      const raw = sessionStorage.getItem('compareItems');
+      const items = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(items) || items.length === 0) {
+        renderEmpty();
+      } else {
+        renderCompare(items.slice(0, 4));
+      }
+    } catch (err) {
+      renderEmpty();
+    }
+  </script>
+</body>
+</html>
