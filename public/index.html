@@ -766,12 +766,19 @@
                   <span className="text-xs text-slate-400">{allData.length.toLocaleString()} 個方案</span>
                 </div>
               </div>
-              {activePage !== "home" && (
-                <button onClick={() => { setActivePage("list"); setSelectedItem(null); }}
-                  className="text-sm text-slate-500 hover:text-emerald-600 flex items-center gap-1">
-                  <i className="fa-solid fa-list"></i> 搜尋結果
-                </button>
-              )}
+              <div className="flex items-center gap-3">
+                <a href="/dashboard.html"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1D9E75] text-white text-sm font-bold hover:bg-[#0d6e52] transition-colors shadow-sm">
+                  <i className="fa-solid fa-chart-line"></i>
+                  戰情儀表板
+                </a>
+                {activePage !== "home" && (
+                  <button onClick={() => { setActivePage("list"); setSelectedItem(null); }}
+                    className="text-sm text-slate-500 hover:text-emerald-600 flex items-center gap-1">
+                    <i className="fa-solid fa-list"></i> 搜尋結果
+                  </button>
+                )}
+              </div>
             </div>
           </header>
           <main className="flex-1 overflow-hidden overflow-y-auto custom-scrollbar">
