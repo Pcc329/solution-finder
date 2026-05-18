@@ -129,7 +129,7 @@
 
       // 4. 搜尋處理（統一走 Claude，失敗才 fallback）
       const handleSearch = async () => {
-        if (!query.trim()) return;
+        if (loading || !query.trim()) return;
         setIsSearching(true);
         try {
           const result = await callClaude(query);
@@ -155,6 +155,7 @@
 
       // 快速搜尋也走 Claude
       const handleQuickSearch = async (text) => {
+        if (loading) return;
         setQuery(text);
         setIsSearching(true);
         setActivePage("list");
@@ -310,17 +311,7 @@
         window.location.href = "/compare.html";
       };
 
-      // ===== LOADING / ERROR =====
-      if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#f8fafc]">
-          <i className="fa-solid fa-cloud-arrow-down text-6xl text-emerald-500 mb-6 animate-bounce"></i>
-          <div className="text-2xl font-bold text-slate-800 mb-2">資料庫連線中...</div>
-          <div className="text-slate-400 text-sm flex items-center gap-2">
-            <i className="fa-solid fa-circle-notch fa-spin"></i> 正在讀取方案資料
-          </div>
-        </div>
-      );
-
+      // ===== ERROR =====
       if (error) return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#f8fafc]">
           <i className="fa-solid fa-triangle-exclamation text-6xl text-red-500 mb-6"></i>
@@ -355,12 +346,18 @@
                 placeholder="搜尋：我想找台中的 AI 智能排班系統，預算三萬..."
                 className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-white placeholder:text-white/30 text-lg font-medium"
               />
-              <button onClick={handleSearch} disabled={isSearching}
-                className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-50 text-white px-10 py-4 rounded-full font-black text-lg shadow-2xl transition-all active:scale-95 whitespace-nowrap flex items-center justify-center gap-2">
+              <button onClick={handleSearch} disabled={loading || isSearching}
+                className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-60 disabled:cursor-not-allowed text-white px-10 py-4 rounded-full font-black text-lg shadow-2xl transition-all active:scale-95 whitespace-nowrap flex items-center justify-center gap-2">
                 {isSearching ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
-                {isSearching ? "解析中..." : "AI 搜尋"}
+                {loading ? "資料載入中..." : isSearching ? "解析中..." : "AI 搜尋"}
               </button>
             </div>
+            {loading && (
+              <div className="flex items-center gap-2 text-xs text-slate-400 mt-2">
+                <i className="fa-solid fa-circle-notch animate-spin"></i>
+                正在讀取方案資料...
+              </div>
+            )}
             <div className="flex flex-wrap justify-center gap-2 mt-6">
               {["北部有哪些 AI 客服方案", "旅宿業數位轉型", "醫療照護 SaaS", "五萬以下的 ERP"].map(text => (
                 <button key={text} onClick={() => handleQuickSearch(text)}
@@ -449,12 +446,18 @@
               placeholder="進一步描述您的需求..."
               className="flex-1 py-3 px-2 outline-none text-slate-700 bg-transparent"
             />
-            <button onClick={handleSearch} disabled={isSearching}
-              className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">
+            <button onClick={handleSearch} disabled={loading || isSearching}
+              className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-60 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">
               {isSearching ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-sparkles"></i>}
-              {isSearching ? "解析中..." : "重新搜尋"}
+              {loading ? "資料載入中..." : isSearching ? "解析中..." : "重新搜尋"}
             </button>
           </div>
+          {loading && (
+            <div className="flex items-center gap-2 text-xs text-slate-400 mt-2 mb-4">
+              <i className="fa-solid fa-circle-notch animate-spin"></i>
+              正在讀取方案資料...
+            </div>
+          )}
 
           {/* Filters */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6">
@@ -555,7 +558,7 @@
 
           {/* Results list (paginated) */}
           <div className="space-y-3">
-            {pagedResults.length > 0 ? pagedResults.map((item) => {
+            {loading ? null : pagedResults.length > 0 ? pagedResults.map((item) => {
               const checked = isCompareSelected(item);
               const disabled = !checked && compareItems.length >= 4;
               return (
