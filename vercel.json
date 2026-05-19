@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/solutions", "destination": "/api/solutions" },
-    { "source": "/api/stats", "destination": "/api/stats" }
+    { "source": "/api/stats", "destination": "/api/stats" },
+    { "source": "/api/ask", "destination": "/api/ask" }
   ]
 }
