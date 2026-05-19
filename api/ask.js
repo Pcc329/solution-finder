@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 1000,
         system: '你是產業策略智庫的 AI 分析助手。\n根據以下方案資料回答使用者問題。\n回答請使用繁體中文，條列清楚，簡潔有力。\n如果問題超出資料範圍，請說明資料中找不到相關資訊。',
         messages: [
