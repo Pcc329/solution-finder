@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
     body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background-color: #f8fafc; }
@@ -600,7 +601,8 @@
                   <div className="flex items-center justify-between gap-3 mb-3">
                     <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs px-3 py-1 rounded-full font-black">AI 分析</span>
                   </div>
-                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{askAnswer}</p>
+                  <div className="text-sm text-slate-700 leading-relaxed prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: marked.parse(askAnswer) }} />
                   <p className="text-xs text-slate-400 text-right mt-4">根據 {Math.min(filteredResults.length, 50)} 筆方案分析</p>
                 </div>
               )}

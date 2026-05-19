@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>方案比較</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <style>
     :root {
       --primary: #1D9E75;
@@ -366,7 +367,7 @@
       button.innerHTML = '<span class="spinner"></span>AI 分析中...';
       error.textContent = '';
       card.style.display = 'none';
-      answer.textContent = '';
+      answer.innerHTML = '';
 
       try {
         const response = await fetch('/api/ask', {
@@ -381,7 +382,7 @@
         if (!response.ok) {
           throw new Error(data.error || 'AI 分析失敗');
         }
-        answer.textContent = data.answer || '';
+        answer.innerHTML = marked.parse(data.answer || '');
         card.style.display = 'block';
       } catch (err) {
         error.textContent = err.message || 'AI 分析失敗';
@@ -428,7 +429,7 @@
         </div>
         <div id="aiSummaryCard" class="ai-summary-card">
           <h2>AI 比較分析</h2>
-          <p id="aiSummaryAnswer" class="ai-summary-answer"></p>
+          <div id="aiSummaryAnswer" class="ai-summary-answer"></div>
         </div>
       `;
 
