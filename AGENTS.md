@@ -16,7 +16,7 @@
 - Companies Table: tblkOaOBGK96vfRm1（約 784 筆業者）
 - API Token 環境變數名稱：process.env.AIRTABLE_TOKEN
 - Claude API 環境變數名稱：process.env.ANTHROPIC_API_KEY
-- Claude Model：claude-sonnet-4-20250514
+- Claude Model：claude-sonnet-4-5
 
 ## 欄位縮寫對照（api/solutions.js 回傳格式）
 id=方案ID s=方案名 c=公司名 cid=統編
