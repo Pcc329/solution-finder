@@ -88,7 +88,7 @@ export default async function handler(req, res) {
         ai: hasAi,
         d: f['target_industry'] || '',
         cat: f['industry_category'] || '',
-        iv: f['industry_vertical'] || co.industry_vertical_co || '',
+        iv: f['industry_vertical'] || '',
         pr: parseFloat(f['price']) || null,
         pt: f['price_tier'] || '',
         mo: parseFloat(f['monthly_price']) || null,
