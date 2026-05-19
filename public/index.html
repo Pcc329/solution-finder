@@ -73,6 +73,10 @@
       const [currentPage, setCurrentPage] = useState(1);
       const [compareItems, setCompareItems] = useState([]);
       const [compareNotice, setCompareNotice] = useState("");
+      const [askQuestion, setAskQuestion] = useState("");
+      const [askAnswer, setAskAnswer] = useState("");
+      const [askLoading, setAskLoading] = useState(false);
+      const [askError, setAskError] = useState("");
       const listTopRef = useRef(null);
 
       // 1. 抓資料
@@ -310,6 +314,34 @@
         }
         sessionStorage.setItem("compareItems", JSON.stringify(compareItems));
         window.location.href = "/compare.html";
+      };
+
+      const handleAsk = async () => {
+        if (!askQuestion.trim()) return;
+        setAskLoading(true);
+        setAskError("");
+        setAskAnswer("");
+        try {
+          const payload = {
+            question: askQuestion,
+            solutions: filteredResults.slice(0, 50),
+          };
+          const res = await fetch("/api/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            setAskError(data.error || "發生錯誤");
+          } else {
+            setAskAnswer(data.answer);
+          }
+        } catch (err) {
+          setAskError(err.message || "發生錯誤");
+        } finally {
+          setAskLoading(false);
+        }
       };
 
       // ===== ERROR =====
@@ -614,6 +646,41 @@
 
           {/* Pagination */}
           {renderPagination()}
+
+          {!loading && allData.length > 0 && filteredResults.length > 0 && (
+            <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <div className="mb-4">
+                <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
+                  <i className="fa-solid fa-comments text-[#1D9E75]"></i> 詢問 AI
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">針對目前 {filteredResults.length} 筆搜尋結果提問</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  value={askQuestion}
+                  onChange={(e) => setAskQuestion(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !askLoading && handleAsk()}
+                  placeholder="例如：這些方案中哪個最適合中小企業？"
+                  className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 outline-none focus:border-emerald-400"
+                />
+                <button onClick={handleAsk} disabled={askLoading || !askQuestion.trim()}
+                  className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl text-sm font-black transition-colors flex items-center justify-center gap-2">
+                  {askLoading && <i className="fa-solid fa-circle-notch fa-spin"></i>}
+                  {askLoading ? "分析中..." : "送出"}
+                </button>
+              </div>
+              {askError && <p className="text-xs text-red-500 mt-3">{askError}</p>}
+              {askAnswer && (
+                <div className="mt-4 bg-white rounded-2xl border border-emerald-100 shadow-md p-5">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs px-3 py-1 rounded-full font-black">AI 分析</span>
+                  </div>
+                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{askAnswer}</p>
+                  <p className="text-xs text-slate-400 text-right mt-4">根據 {Math.min(filteredResults.length, 50)} 筆方案分析</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {compareItems.length > 0 && createPortal(
             <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-t border-emerald-100 shadow-2xl px-6 pt-4 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
