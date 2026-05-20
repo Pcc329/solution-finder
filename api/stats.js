@@ -56,6 +56,21 @@ export default async function handler(req, res) {
       fetchAll('Companies'),
     ]);
 
+    const now = new Date();
+    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    const newThisWeek = solutions.filter(rec => new Date(rec.createdTime) > weekAgo).length;
+    const newThisMonth = solutions.filter(rec => new Date(rec.createdTime) > monthAgo).length;
+    const latest5 = [...solutions]
+      .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
+      .slice(0, 5)
+      .map(rec => ({
+        name: rec.fields?.['solution_name'] || '',
+        company: rec.fields?.['company_name'] || '',
+        category: rec.fields?.['industry_category'] || '',
+        createdTime: rec.createdTime,
+      }));
+
     const byCategory = {};
     const byProgramType = {};
     const byPriceTier = {};
@@ -94,6 +109,9 @@ export default async function handler(req, res) {
       byRegion,
       byCity,
       companyTotal: companies.length,
+      newThisWeek,
+      newThisMonth,
+      latest5,
     });
   } catch (err) {
     console.error('Stats API error:', err);
