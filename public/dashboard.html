@@ -202,6 +202,79 @@
       font-weight: 700;
     }
 
+    .cross-card {
+      margin-top: 18px;
+      padding: 18px;
+    }
+
+    .cross-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .cross-card h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .cross-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .cross-controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 6px;
+    }
+
+    .control-group label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .control-group select {
+      min-width: 180px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    .control-group select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12);
+    }
+
+    .cross-chart-wrap {
+      position: relative;
+      height: 320px;
+    }
+
+    .cross-loading {
+      display: none;
+      margin: 0 0 10px;
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
     .error {
       display: none;
       margin: 0 0 18px;
@@ -229,6 +302,19 @@
 
       .map-wrap {
         height: 420px;
+      }
+
+      .cross-head {
+        display: block;
+      }
+
+      .cross-controls {
+        margin-top: 14px;
+      }
+
+      .control-group,
+      .control-group select {
+        width: 100%;
       }
     }
   </style>
@@ -299,6 +385,37 @@
           </div>
         </div>
       </div>
+    </section>
+    <section class="card cross-card" aria-label="交叉分析">
+      <div class="cross-head">
+        <div>
+          <h2>交叉分析</h2>
+          <p class="cross-note">選擇兩個維度，查看方案分布</p>
+        </div>
+        <div class="cross-controls">
+          <div class="control-group">
+            <label for="crossPrimary">X 軸（分組）</label>
+            <select id="crossPrimary">
+              <option value="program_type">方案來源</option>
+              <option value="industry_category">方案類別</option>
+              <option value="price_tier">費用級距</option>
+              <option value="has_ai">是否 AI</option>
+              <option value="region">服務地區</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="crossSecondary">交叉維度</label>
+            <select id="crossSecondary">
+              <option value="">無（單維度長條圖）</option>
+              <option value="has_ai">是否 AI</option>
+              <option value="region">地區</option>
+              <option value="price_tier">費用級距</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <p id="crossLoading" class="cross-loading">交叉分析資料載入中...</p>
+      <div class="cross-chart-wrap"><canvas id="crossChart"></canvas></div>
     </section>
   </main>
 
@@ -385,6 +502,148 @@
           },
         },
       });
+    }
+
+    const crossFields = {
+      program_type: { label: '方案來源', get: item => item.p },
+      industry_category: { label: '方案類別', get: item => item.cat },
+      price_tier: { label: '費用級距', get: item => item.pt },
+      has_ai: { label: '是否 AI', get: item => item.ai ? '有 AI' : '無 AI' },
+      region: { label: '服務地區', get: item => item.r },
+    };
+    let crossRows = [];
+    let crossChart = null;
+
+    function normalizeCrossValue(value) {
+      const normalized = String(value ?? '').trim();
+      return normalized || '未分類';
+    }
+
+    function getCrossValue(item, field) {
+      const config = crossFields[field];
+      if (!config) return '未分類';
+      return normalizeCrossValue(config.get(item));
+    }
+
+    function setCrossLoading(isLoading) {
+      const loading = document.getElementById('crossLoading');
+      if (loading) loading.style.display = isLoading ? 'block' : 'none';
+    }
+
+    function destroyCrossChart() {
+      if (crossChart) {
+        crossChart.destroy();
+        crossChart = null;
+      }
+    }
+
+    function renderCrossChart() {
+      const primary = document.getElementById('crossPrimary').value;
+      const secondary = document.getElementById('crossSecondary').value;
+      const canvas = document.getElementById('crossChart');
+      destroyCrossChart();
+
+      if (!secondary) {
+        const counts = {};
+        crossRows.forEach(item => {
+          const key = getCrossValue(item, primary);
+          counts[key] = (counts[key] || 0) + 1;
+        });
+        const entries = toEntries(counts);
+        crossChart = new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: entries.map(item => item[0]),
+            datasets: [{
+              label: '方案數量',
+              data: entries.map(item => item[1]),
+              backgroundColor: '#1D9E75',
+              borderRadius: 6,
+              maxBarThickness: 34,
+            }],
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: context => `方案數量: ${formatNumber(context.parsed.x)}` } },
+            },
+            scales: {
+              x: { beginAtZero: true, grid: { color: '#eef2f7' }, stacked: false },
+              y: { grid: { display: false }, stacked: false },
+            },
+          },
+        });
+        return;
+      }
+
+      const grouped = {};
+      const secondaryValues = new Set();
+      crossRows.forEach(item => {
+        const primaryKey = getCrossValue(item, primary);
+        const secondaryKey = getCrossValue(item, secondary);
+        if (!grouped[primaryKey]) grouped[primaryKey] = {};
+        grouped[primaryKey][secondaryKey] = (grouped[primaryKey][secondaryKey] || 0) + 1;
+        secondaryValues.add(secondaryKey);
+      });
+
+      const labels = Object.entries(grouped)
+        .sort((a, b) => {
+          const totalA = Object.values(a[1]).reduce((sum, value) => sum + value, 0);
+          const totalB = Object.values(b[1]).reduce((sum, value) => sum + value, 0);
+          return totalB - totalA;
+        })
+        .map(item => item[0]);
+      const series = Array.from(secondaryValues).sort();
+      const datasets = series.map((key, index) => ({
+        label: key,
+        data: labels.map(label => grouped[label][key] || 0),
+        backgroundColor: tealPalette[index % tealPalette.length],
+        borderRadius: 4,
+        maxBarThickness: 34,
+      }));
+
+      crossChart = new Chart(canvas, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatNumber(context.parsed.y)}` } },
+          },
+          scales: {
+            x: { stacked: true, grid: { display: false } },
+            y: { beginAtZero: true, stacked: true, grid: { color: '#eef2f7' } },
+          },
+        },
+      });
+    }
+
+    function updateCrossChart() {
+      setCrossLoading(true);
+      window.requestAnimationFrame(() => {
+        renderCrossChart();
+        setCrossLoading(false);
+      });
+    }
+
+    async function loadCrossAnalysis() {
+      setCrossLoading(true);
+      try {
+        const response = await fetch('/api/solutions');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        crossRows = Array.isArray(data) ? data : (data.records || []);
+        renderCrossChart();
+        document.getElementById('crossPrimary').addEventListener('change', updateCrossChart);
+        document.getElementById('crossSecondary').addEventListener('change', updateCrossChart);
+      } finally {
+        setCrossLoading(false);
+      }
     }
 
     const cityNameMap = {
@@ -501,6 +760,7 @@
         renderBar('priceTierChart', toEntries(data.byPriceTier));
         renderBar('regionChart', toEntries(data.byRegion), { horizontal: true });
         await renderTaiwanMap(data.byCity || {});
+        await loadCrossAnalysis();
         status.textContent = '已更新';
       } catch (err) {
         status.textContent = '載入失敗';
