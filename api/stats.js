@@ -32,6 +32,10 @@ export default async function handler(req, res) {
     map[normalized] = (map[normalized] || 0) + 1;
   }
 
+  function normalizeCity(value) {
+    return String(value || '').trim().replace(/臺/g, '台');
+  }
+
   function parsePrice(value) {
     if (value === null || value === undefined || value === '') return null;
     const n = Number(String(value).replace(/,/g, '').trim());
@@ -56,6 +60,7 @@ export default async function handler(req, res) {
     const byProgramType = {};
     const byPriceTier = {};
     const byRegion = {};
+    const byCity = {};
     const prices = [];
     let aiCount = 0;
 
@@ -75,6 +80,7 @@ export default async function handler(req, res) {
     companies.forEach(rec => {
       const f = rec.fields || {};
       increment(byRegion, f['region']);
+      increment(byCity, normalizeCity(f['city']));
     });
 
     return res.status(200).json({
@@ -86,6 +92,7 @@ export default async function handler(req, res) {
       byProgramType,
       byPriceTier,
       byRegion,
+      byCity,
       companyTotal: companies.length,
     });
   } catch (err) {

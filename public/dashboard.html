@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>產業策略智庫 戰情儀表板</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <style>
     :root {
       --primary: #1D9E75;
@@ -123,6 +124,84 @@
       height: 290px;
     }
 
+    .map-card {
+      margin-top: 18px;
+      padding: 18px;
+    }
+
+    .map-card h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .map-wrap {
+      position: relative;
+      width: 100%;
+      height: 480px;
+    }
+
+    #taiwanMap {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .county {
+      cursor: pointer;
+      stroke: #ffffff;
+      stroke-width: 1;
+      transition: fill 0.15s ease, stroke 0.15s ease;
+    }
+
+    .county:hover {
+      stroke: #0f5f48;
+      stroke-width: 1.8;
+    }
+
+    .map-tooltip {
+      position: absolute;
+      display: none;
+      pointer-events: none;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.92);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      transform: translate(12px, -34px);
+      white-space: nowrap;
+      z-index: 5;
+    }
+
+    .map-legend {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      min-width: 180px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 8px 20px rgba(31, 41, 55, 0.08);
+    }
+
+    .legend-gradient {
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #e7f6f1, var(--primary));
+    }
+
+    .legend-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
     .error {
       display: none;
       margin: 0 0 18px;
@@ -146,6 +225,10 @@
       .kpis,
       .charts {
         grid-template-columns: 1fr;
+      }
+
+      .map-wrap {
+        height: 420px;
       }
     }
   </style>
@@ -201,6 +284,21 @@
         <h2>業者地區分布</h2>
         <div class="chart-wrap"><canvas id="regionChart"></canvas></div>
       </article>
+    </section>
+
+    <section class="card map-card" aria-label="業者地區分布地圖">
+      <h2>業者地區分布地圖</h2>
+      <div class="map-wrap">
+        <svg id="taiwanMap" role="img" aria-label="台灣縣市業者密度地圖"></svg>
+        <div id="mapTooltip" class="map-tooltip"></div>
+        <div class="map-legend" aria-label="地圖色階圖例">
+          <div class="legend-gradient"></div>
+          <div class="legend-labels">
+            <span>0</span>
+            <span id="legendMax">--</span>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -289,6 +387,98 @@
       });
     }
 
+    const cityNameMap = {
+      'Taipei City': '台北市',
+      'New Taipei City': '新北市',
+      'Taichung City': '台中市',
+      'Tainan City': '台南市',
+      'Kaohsiung City': '高雄市',
+      'Taoyuan City': '桃園市',
+      'Hsinchu City': '新竹市',
+      'Hsinchu County': '新竹縣',
+      'Miaoli County': '苗栗縣',
+      'Changhua County': '彰化縣',
+      'Nantou County': '南投縣',
+      'Yunlin County': '雲林縣',
+      'Chiayi City': '嘉義市',
+      'Chiayi County': '嘉義縣',
+      'Pingtung County': '屏東縣',
+      'Yilan County': '宜蘭縣',
+      'Hualien County': '花蓮縣',
+      'Taitung County': '台東縣',
+      'Keelung City': '基隆市',
+      'Penghu County': '澎湖縣',
+      'Kinmen County': '金門縣',
+      'Lienchiang County': '連江縣',
+    };
+
+    function normalizeCityName(name) {
+      const normalized = String(name || '').trim().replace(/臺/g, '台');
+      return cityNameMap[normalized] || normalized;
+    }
+
+    function getCountyName(feature) {
+      const props = feature.properties || {};
+      return normalizeCityName(
+        props.name ||
+        props.NAME ||
+        props.Name ||
+        props.COUNTYNAME ||
+        props.COUNTYENG ||
+        props.C_Name ||
+        props.city ||
+        props.county
+      );
+    }
+
+    async function renderTaiwanMap(byCity) {
+      const mapWrap = document.querySelector('.map-wrap');
+      const svg = d3.select('#taiwanMap');
+      const tooltip = d3.select('#mapTooltip');
+      const width = mapWrap.clientWidth;
+      const height = mapWrap.clientHeight;
+      const geoUrl = 'https://raw.githubusercontent.com/codeforgermany/click_that_hood/main/public/data/taiwan.geojson';
+      const geojson = await d3.json(geoUrl);
+      const values = Object.values(byCity || {});
+      const maxValue = d3.max(values) || 0;
+      const color = d3.scaleLinear()
+        .domain([0, Math.max(maxValue, 1)])
+        .range(['#e7f6f1', '#1D9E75']);
+      const projection = d3.geoMercator().fitSize([width, height], geojson);
+      const path = d3.geoPath(projection);
+
+      document.getElementById('legendMax').textContent = formatNumber(maxValue);
+      svg.attr('viewBox', `0 0 ${width} ${height}`);
+      svg.selectAll('*').remove();
+
+      svg.selectAll('path')
+        .data(geojson.features || [])
+        .join('path')
+        .attr('class', 'county')
+        .attr('d', path)
+        .attr('fill', feature => {
+          const city = getCountyName(feature);
+          const count = byCity[city] || 0;
+          return count > 0 ? color(count) : '#f0f0f0';
+        })
+        .on('mousemove', (event, feature) => {
+          const city = getCountyName(feature);
+          const count = byCity[city] || 0;
+          tooltip
+            .style('display', 'block')
+            .style('left', `${event.offsetX}px`)
+            .style('top', `${event.offsetY}px`)
+            .text(`${city} ${formatNumber(count)} 家業者`);
+        })
+        .on('mouseleave', () => {
+          tooltip.style('display', 'none');
+        })
+        .on('click', (event, feature) => {
+          const city = getCountyName(feature);
+          window.location.href = `/?region=${encodeURIComponent(city)}`;
+        });
+    }
+
     async function loadDashboard() {
       const status = document.getElementById('status');
       const error = document.getElementById('error');
@@ -301,6 +491,7 @@
         renderPie('programChart', toEntries(data.byProgramType));
         renderBar('priceTierChart', toEntries(data.byPriceTier));
         renderBar('regionChart', toEntries(data.byRegion), { horizontal: true });
+        await renderTaiwanMap(data.byCity || {});
         status.textContent = '已更新';
       } catch (err) {
         status.textContent = '載入失敗';
