@@ -28,6 +28,8 @@ export default async function handler(req, res) {
               question: query,
               search_query: query,
               log_type: logType,
+              result_count: -1,
+              answer_length: -1,
             },
           }),
         }
