@@ -15,7 +15,8 @@ export default async function handler(req, res) {
   async function writeLog(token, { question, resultCount, searchQuery, answerLength }) {
     try {
       if (!token) return;
-      await fetch('https://api.airtable.com/v0/appttP04OnzzC7qxG/tblLdVCmLwkzDFtMq', {
+      const timestamp = new Date().toISOString().slice(0, 19) + '.000Z';
+      const logRes = await fetch('https://api.airtable.com/v0/appttP04OnzzC7qxG/tblLdVCmLwkzDFtMq', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -23,7 +24,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           fields: {
-            timestamp: new Date().toISOString(),
+            timestamp,
             question,
             result_count: resultCount,
             search_query: searchQuery || '',
@@ -31,6 +32,10 @@ export default async function handler(req, res) {
           },
         }),
       });
+      if (!logRes.ok) {
+        const errText = await logRes.text();
+        console.error('Log write failed:', logRes.status, errText);
+      }
     } catch (err) {
       console.error('Log write error:', err);
     }
