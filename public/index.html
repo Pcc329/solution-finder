@@ -328,7 +328,7 @@
           const payload = {
             question,
             solutions: filteredResults.slice(0, 50),
-            searchQuery: filters.keyword || '',
+            searchQuery: query || filters.keyword || '',
           };
           const res = await fetch("/api/ask", {
             method: "POST",
