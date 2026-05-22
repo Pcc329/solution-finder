@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     try {
       if (!token) return;
       const timestamp = new Date().toISOString().slice(0, 19) + '.000Z';
-      const logRes = await fetch('https://api.airtable.com/v0/appttP04OnzzC7qxG/tblLdVCmLwkzDFtMq', {
+      const logRes = await fetch('https://api.airtable.com/v0/appttP04OnzzC7qxG/tblvnoz1WHtXBzAqA', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -29,7 +29,6 @@ export default async function handler(req, res) {
             result_count: resultCount,
             search_query: searchQuery || '',
             answer_length: answerLength,
-            log_type: 'ai_ask',
           },
         }),
       });
