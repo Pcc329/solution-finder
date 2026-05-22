@@ -319,12 +319,14 @@
 
       const handleAsk = async () => {
         if (!askQuestion.trim()) return;
+        const question = askQuestion;
         setAskLoading(true);
+        setAskQuestion("");
         setAskError("");
         setAskAnswer("");
         try {
           const payload = {
-            question: askQuestion,
+            question,
             solutions: filteredResults.slice(0, 50),
             searchQuery: filters.keyword || '',
           };
