@@ -11,6 +11,36 @@ export default async function handler(req, res) {
   const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
   if (!CLAUDE_API_KEY) return res.status(500).json({ error: 'CLAUDE_API_KEY not configured' });
 
+  async function writeLog(token, { query, logType }) {
+    try {
+      if (!token) return;
+      const logRes = await fetch(
+        'https://api.airtable.com/v0/appttP04OnzzC7qxG/tblLdVCmLwkzDFtMq',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fields: {
+              timestamp: new Date().toISOString().slice(0, 19) + '.000Z',
+              question: query,
+              search_query: query,
+              log_type: logType,
+            },
+          }),
+        }
+      );
+      if (!logRes.ok) {
+        const errText = await logRes.text();
+        console.error('Log write failed:', logRes.status, errText);
+      }
+    } catch (err) {
+      console.error('Log write error:', err);
+    }
+  }
+
   try {
     const { query } = req.body;
     if (!query) return res.status(400).json({ error: 'Missing query' });
@@ -64,6 +94,11 @@ export default async function handler(req, res) {
     const text = data.content[0].text;
     const clean = text.replace(/```json\n?/g, '').replace(/```/g, '').trim();
     const parsed = JSON.parse(clean);
+    const airtableToken = process.env.AIRTABLE_TOKEN;
+    await writeLog(airtableToken, {
+      query,
+      logType: 'ai_search',
+    });
     return res.status(200).json(parsed);
   } catch (error) {
     console.error('Server error:', error);
