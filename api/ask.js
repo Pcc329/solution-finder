@@ -29,6 +29,7 @@ export default async function handler(req, res) {
             result_count: resultCount,
             search_query: searchQuery || '',
             answer_length: answerLength,
+            log_type: 'ai_ask',
           },
         }),
       });
