@@ -12,9 +12,34 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  async function writeLog(token, { question, resultCount, searchQuery, answerLength }) {
+    try {
+      if (!token) return;
+      await fetch('https://api.airtable.com/v0/appttP04OnzzC7qxG/tblLdVCmLwkzDFtMq', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fields: {
+            timestamp: new Date().toISOString(),
+            question,
+            result_count: resultCount,
+            search_query: searchQuery || '',
+            answer_length: answerLength,
+          },
+        }),
+      });
+    } catch (err) {
+      console.error('Log write error:', err);
+    }
+  }
+
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const question = String(body.question || '').trim();
+    const searchQuery = String(body.searchQuery || '').trim();
     const solutions = Array.isArray(body.solutions) ? body.solutions : [];
 
     if (!question) {
@@ -26,6 +51,7 @@ export default async function handler(req, res) {
     }
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
+    const airtableToken = process.env.AIRTABLE_TOKEN;
     if (!apiKey) {
       throw new Error('ANTHROPIC_API_KEY not configured');
     }
@@ -76,6 +102,13 @@ export default async function handler(req, res) {
       .map(part => part.text)
       .join('\n')
       .trim();
+
+    void writeLog(airtableToken, {
+      question,
+      resultCount: solutions.length,
+      searchQuery,
+      answerLength: answer.length,
+    });
 
     return res.status(200).json({ answer });
   } catch (err) {
