@@ -108,7 +108,7 @@ export default async function handler(req, res) {
       .join('\n')
       .trim();
 
-    void writeLog(airtableToken, {
+    await writeLog(airtableToken, {
       question,
       resultCount: solutions.length,
       searchQuery,
