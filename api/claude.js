@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
   if (!CLAUDE_API_KEY) return res.status(500).json({ error: 'CLAUDE_API_KEY not configured' });
 
-  async function writeLog(token, { query, logType }) {
+  async function writeLog(token, { query }) {
     try {
       if (!token) return;
       const logRes = await fetch(
@@ -25,11 +25,8 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             fields: {
               timestamp: new Date().toISOString().slice(0, 19) + '.000Z',
-              question: query,
               search_query: query,
-              log_type: logType,
-              result_count: -1,
-              answer_length: -1,
+              log_type: 'ai_search',
             },
           }),
         }
@@ -99,7 +96,6 @@ export default async function handler(req, res) {
     const airtableToken = process.env.AIRTABLE_TOKEN;
     await writeLog(airtableToken, {
       query,
-      logType: 'ai_search',
     });
     return res.status(200).json(parsed);
   } catch (error) {
