@@ -60,6 +60,17 @@
       text-decoration: underline;
     }
 
+    .nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .nav-home {
+      color: var(--muted);
+    }
+
     .empty {
       background: var(--card);
       border: 1px solid var(--border);
@@ -277,7 +288,10 @@
   <main>
     <header>
       <h1>方案比較</h1>
-      <a href="/">← 返回搜尋</a>
+      <div class="nav-buttons">
+        <a href="#" onclick="history.back(); return false;">← 返回搜尋結果</a>
+        <a href="/" class="nav-home">回首頁</a>
+      </div>
     </header>
     <section id="content"></section>
   </main>
