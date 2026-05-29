@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🗂️ 資料來源說明</title>
+  <style>
+    :root {
+      --primary: #1D9E75;
+      --primary-dark: #13785A;
+      --blue: #2563eb;
+      --gray: #64748b;
+      --bg: #f8f9fa;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h2,
+    h3 {
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .home-link {
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .home-link:hover {
+      text-decoration: underline;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
+    }
+
+    .intro {
+      margin-bottom: 18px;
+      padding: 22px;
+      border-left: 3px solid var(--primary);
+    }
+
+    .intro p {
+      margin: 0;
+      color: #334155;
+      font-size: 18px;
+      line-height: 1.65;
+      font-weight: 700;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .section-head {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .layer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .layer-card {
+      padding: 20px;
+      border-top: 4px solid var(--primary);
+    }
+
+    .layer-card.subsidy {
+      border-top-color: var(--blue);
+    }
+
+    .layer-card.procurement {
+      border-top-color: var(--gray);
+    }
+
+    .layer-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .layer-title h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .layer-pill {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .subsidy .layer-pill {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .procurement .layer-pill {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .source-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .source-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid #eef2f7;
+      color: #334155;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .source-list li:last-child {
+      border-bottom: 0;
+    }
+
+    .count {
+      color: var(--primary-dark);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .subsidy .count {
+      color: #1d4ed8;
+    }
+
+    .procurement .count {
+      color: #475569;
+    }
+
+    .layer-note {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+
+    .path-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .path-card {
+      padding: 18px;
+    }
+
+    .path-label {
+      display: inline-flex;
+      margin-bottom: 10px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .path-card h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .path-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .detail-card {
+      padding: 18px;
+    }
+
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .detail-card h3 {
+      margin: 0 0 5px;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .agency {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .meta {
+      display: grid;
+      gap: 9px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .meta strong {
+      color: #475569;
+    }
+
+    .feature {
+      margin: 0;
+      color: #334155;
+      font-size: 14px;
+      line-height: 1.65;
+      font-weight: 700;
+    }
+
+    .notes {
+      padding: 18px 20px;
+    }
+
+    .notes ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    @media (max-width: 900px) {
+      .layer-grid,
+      .path-grid,
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 24px, 1180px);
+        padding-top: 24px;
+      }
+
+      header {
+        display: block;
+      }
+
+      .home-link {
+        display: inline-block;
+        margin-top: 10px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      .intro p {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>🗂️ 資料來源說明</h1>
+        <p class="subtitle">III 產業資料庫 · 收錄 7 大來源 · 2,322 筆方案</p>
+      </div>
+      <a href="/" class="home-link">← 回首頁</a>
+    </header>
+
+    <section class="card intro" aria-label="資料來源一句話說明">
+      <p>這個資料庫整合了 7 個政府單位和平台的方案，涵蓋「找方案 → 確認補助 → 採購」的完整路徑。</p>
+    </section>
+
+    <section class="section" aria-label="三層架構">
+      <h2 class="section-head">三層架構</h2>
+      <div class="layer-grid">
+        <article class="card layer-card">
+          <div class="layer-title">
+            <h3>探索層</h3>
+            <span class="layer-pill">找方案</span>
+          </div>
+          <ul class="source-list">
+            <li><span>臺灣雲市集（數位部）</span><span class="count">1,231 筆</span></li>
+            <li><span>雲市集工業館（數位部/工業局）</span><span class="count">329 筆</span></li>
+            <li><span>領域型調查（III 自有）</span><span class="count">133 筆</span></li>
+          </ul>
+          <p class="layer-note">找到適合的方案，評估要不要買</p>
+        </article>
+
+        <article class="card layer-card subsidy">
+          <div class="layer-title">
+            <h3>補助層</h3>
+            <span class="layer-pill">確認補助</span>
+          </div>
+          <ul class="source-list">
+            <li><span>SMEI平台（中企署）</span><span class="count">279 筆</span></li>
+            <li><span>商業服務業專區（商業署）</span><span class="count">117 筆</span></li>
+            <li><span>新創嚴選網（國發會）</span><span class="count">132 筆</span></li>
+          </ul>
+          <p class="layer-note">確認可以申請哪些政府補助</p>
+        </article>
+
+        <article class="card layer-card procurement">
+          <div class="layer-title">
+            <h3>採購層</h3>
+            <span class="layer-pill">走採購</span>
+          </div>
+          <ul class="source-list">
+            <li><span>政府軟體採購網（共構平台組(軟採網)）</span><span class="count">100 筆</span></li>
+          </ul>
+          <p class="layer-note">政府機關 / 學校走採購流程，與中小企業路徑不同</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" aria-label="組合路徑">
+      <h2 class="section-head">三條組合路徑</h2>
+      <div class="path-grid">
+        <article class="card path-card">
+          <span class="path-label">路徑 A</span>
+          <h3>中小企業申請補助買雲端工具</h3>
+          <p>SMEI平台 ＋ 臺灣雲市集</p>
+        </article>
+        <article class="card path-card">
+          <span class="path-label">路徑 B</span>
+          <h3>製造業補助購買工業 4.0 方案</h3>
+          <p>SMEI平台 ＋ 雲市集工業館</p>
+        </article>
+        <article class="card path-card">
+          <span class="path-label">路徑 C</span>
+          <h3>商服業導入 AI 創新工具</h3>
+          <p>商業服務業專區 ＋ 新創嚴選網</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" aria-label="各來源詳細說明">
+      <h2 class="section-head">各來源詳細說明</h2>
+      <div class="detail-grid">
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div>
+              <h3>臺灣雲市集</h3>
+              <span class="agency">數位部</span>
+            </div>
+            <span class="badge">1,231 筆</span>
+          </div>
+          <div class="meta">
+            <div><strong>補助類型：</strong>採購平台（無直接補助）</div>
+            <div><strong>適用對象：</strong>中小企業、政府機關</div>
+          </div>
+          <p class="feature">SaaS/雲端服務，月費/年費為主，品項最多</p>
+        </article>
+
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div>
+              <h3>雲市集工業館</h3>
+              <span class="agency">數位部/工業局</span>
+            </div>
+            <span class="badge">329 筆</span>
+          </div>
+          <div class="meta">
+            <div><strong>補助類型：</strong>採購平台（製造業專區）</div>
+            <div><strong>適用對象：</strong>製造業</div>
+          </div>
+          <p class="feature">工業 4.0、智慧製造、IoT 相關方案</p>
+        </article>
+
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div>
+              <h3>SMEI平台</h3>
+              <span class="agency">中企署</span>
+            </div>
+            <span class="badge">279 筆</span>
+          </div>
+          <div class="meta">
+            <div><strong>補助類型：</strong>政府補助（中小企業數位轉型）</div>
+            <div><strong>適用對象：</strong>中小企業</div>
+          </div>
+          <p class="feature">有補助資格認證，企業可申請補助購買</p>
+        </article>
+
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div>
+              <h3>領域型調查</h3>
+              <span class="agency">III 自有</span>
+            </div>
+            <span class="badge">133 筆</span>
+          </div>
+          <div class="meta">
+            <div><strong>補助類型：</strong>無補助，純資訊整理</div>
+            <div><strong>適用對象：</strong>五大領域（旅宿/製造/醫療/建築/文創）</div>
+          </div>
+          <p class="feature">深度調查，有產業情境脈絡，III 獨家蒐集</p>
+        </article>
+
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div>
+              <h3>新創嚴選網</h3>
+              <span class="agency">國發會</span>
+            </div>
+            <span class="badge">132 筆</span>
+          </div>
+          <div class="meta">
+            <div><strong>補助類型：</strong>新創認證（非直接補助）</div>
+            <div><strong>適用對象：</strong>想導入創新方案的企業</div>
+          </div>
+          <p class="feature">成立 8 年內、具創新性，可與 SMEI 補助組合使用</p>
+        </article>
+
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div>
+              <h3>商業服務業專區</h3>
+              <span class="agency">商業署</span>
+            </div>
+            <span class="badge">117 筆</span>
+          </div>
+          <div class="meta">
+            <div><strong>補助類型：</strong>政府補助（商服業）</div>
+            <div><strong>適用對象：</strong>餐飲、零售、服務業</div>
+          </div>
+          <p class="feature">AI 解決方案為主，商服業一站式查詢</p>
+        </article>
+
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div>
+              <h3>政府軟體採購網</h3>
+              <span class="agency">共構平台組(軟採網)</span>
+            </div>
+            <span class="badge">100 筆</span>
+          </div>
+          <div class="meta">
+            <div><strong>補助類型：</strong>政府採購（已完成採購流程）</div>
+            <div><strong>適用對象：</strong>政府機關、公立學校</div>
+          </div>
+          <p class="feature">大型授權、EA 合約為主，price 偏高，與中小企業定位不同</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section card notes" aria-label="注意事項">
+      <ul>
+        <li>部分方案同時出現在多個來源，系統已自動去重</li>
+        <li>政府軟體採購網方案定位為大型採購，建議搭配篩選功能使用</li>
+        <li>資料持續更新中，最新筆數以首頁顯示為準</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
