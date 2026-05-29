@@ -63,7 +63,16 @@ export default async function handler(req, res) {
 2. 只包含使用者提到的條件，沒提到的欄位不要加
 3. 金額要轉成數字，例如"5萬"=50000，"3千"=3000
 4. 如果使用者輸入包含產業關鍵字（如"旅宿"/"製造"/"醫療"/"建築"/"文創"），對應到 industry_vertical
-5. 如果無法解析成任何條件，回傳空物件 {}`;
+5. 需求關鍵字對照表（需求 → keyword）：
+   - 接觸新客戶、開發客戶、業績成長 → keyword: "行銷"
+   - 改善客戶體驗、顧客服務、客戶滿意 → keyword: "客服"
+   - 數位轉型入門、開始數位化、數位化第一步 → keyword: "數位"
+   - 提升辦公室效率、辦公自動化、文件管理 → keyword: "辦公"
+   - 吸引人才、招募人才、人才管理 → keyword: "人資"
+   - 資訊安全、網路安全、資安防護 → keyword: "資安"
+   - 供應鏈管理、進銷存、倉儲物流 → keyword: "供應鏈"
+   - 碳排放、淨零、ESG → keyword: "碳"
+6. 最重要規則：禁止回傳空物件 {}。若無法精確解析，請從使用者輸入中取最關鍵的一個詞作為 keyword 回傳。例如查詢「旅遊住宿業想要改善客戶體驗」至少回傳 {"keyword": "客服"}`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
