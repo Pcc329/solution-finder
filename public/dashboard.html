@@ -649,6 +649,7 @@
         data: {
           labels,
           datasets: [{
+            label: options.label || '方案數量',
             data: values,
             backgroundColor: options.colors || tealPalette,
             borderRadius: 6,
@@ -661,7 +662,11 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: context => formatNumber(context.parsed.x || context.parsed.y) } },
+            tooltip: {
+              callbacks: {
+                label: context => `${context.dataset.label || '方案數量'}：${formatNumber(context.parsed.x || context.parsed.y)} 筆`,
+              },
+            },
           },
           scales: {
             x: { beginAtZero: true, grid: { color: '#eef2f7' } },
