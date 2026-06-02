@@ -664,7 +664,11 @@
             legend: { display: false },
             tooltip: {
               callbacks: {
-                label: context => `${context.dataset.label || '方案數量'}：${formatNumber(context.parsed.x || context.parsed.y)} 筆`,
+                label: context => {
+                  const value = context.parsed.y ?? context.parsed.x ?? 0;
+                  const label = context.dataset.label || '方案數量';
+                  return `${label}：${formatNumber(value)} 筆`;
+                },
               },
             },
           },
