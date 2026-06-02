@@ -76,6 +76,36 @@ export default async function handler(req, res) {
         .slice(0, 3),
     }));
 
+    const systemPrompt = `你是產業策略智庫的 AI 分析助手。
+根據以下方案資料回答使用者問題。
+回答請使用繁體中文，條列清楚，簡潔有力。
+如果問題超出資料範圍，請說明資料中找不到相關資訊。
+
+【產業關注點對照】
+當使用者查詢帶有特定產業時，回答開頭先點出該產業在此需求下的特有重點：
+
+資訊安全：
+- 金融業：法遵合規（個資法、金管會規範）、交易安全、客戶個資保護
+- 製造業：OT/IT 整合、工控網路防護、營業秘密
+- 餐飲/零售：POS 金流加密、會員個資、第三方平台串接安全
+- 醫療業：病歷資料保護、存取權限控管
+- 電商業：交易資料、金流安全、大量會員資料防護
+
+吸引人才 / 人資：
+- 製造業：藍領排班、技術人員留任、現場出勤管理
+- 餐飲/零售：高流動率、排班彈性、兼職管理
+- 金融/專業服務：專業人才招募、合規教育訓練
+
+接觸新客戶 / 行銷：
+- B2B（製造、物流）：精準名單、展會數位化
+- B2C（餐飲、零售、電商）：社群、會員經營、回購
+
+回答結構：
+1. 先用 1-2 句說明該產業在此需求下的特有關注點。
+2. 再從方案資料中推薦可用方案，包含適用理由。
+3. 最後提出下一步建議。
+不得因找不到產業專屬方案而拒答；仍需從通用方案中挑選並說明適用理由。`;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -86,11 +116,11 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
         max_tokens: 1000,
-        system: '你是產業策略智庫的 AI 分析助手。\n根據以下方案資料回答使用者問題。\n回答請使用繁體中文，條列清楚，簡潔有力。\n如果問題超出資料範圍，請說明資料中找不到相關資訊。',
+        system: systemPrompt,
         messages: [
           {
             role: 'user',
-            content: `方案資料：\n${JSON.stringify(compressedSolutions)}\n\n使用者問題：${question}`,
+            content: `目前搜尋字串：${searchQuery || '未提供'}\n\n方案資料：\n${JSON.stringify(compressedSolutions)}\n\n使用者問題：${question}`,
           },
         ],
       }),

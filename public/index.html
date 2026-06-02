@@ -189,6 +189,63 @@
       // helper: 安全轉小寫字串（防止陣列或非字串欄位）
       const safeStr = (v) => (typeof v === 'string' ? v : Array.isArray(v) ? v.join(',') : String(v || ''));
 
+      const INDUSTRY_KEYWORDS = {
+        "金融": ["法遵", "合規", "金融", "個資法", "金管會", "洗錢", "KYC", "銀行", "保險"],
+        "製造": ["工控", "OT", "工廠", "製造", "產線", "SCADA", "PLC", "機台"],
+        "餐飲": ["POS", "餐飲", "門市", "收銀", "點餐", "外送", "訂位"],
+        "醫療": ["醫療", "病歷", "診所", "醫院", "長照", "健保"],
+        "零售電商": ["電商", "零售", "網購", "購物車", "會員", "門市", "上架"],
+        "物流": ["物流", "倉儲", "配送", "車隊", "運輸"],
+        "教育": ["教育", "教學", "學校", "課程", "補習", "學習"],
+        "旅遊": ["旅遊", "住宿", "訂房", "旅宿", "觀光", "飯店"],
+      };
+
+      const INDUSTRY_ALIASES = [
+        ["金融", ["金融", "銀行", "保險", "證券", "金控"]],
+        ["製造", ["製造", "工廠", "工業", "產線", "智慧製造"]],
+        ["餐飲", ["餐飲", "餐廳", "飲料", "咖啡", "外送"]],
+        ["醫療", ["醫療", "診所", "醫院", "照護", "長照"]],
+        ["零售電商", ["零售", "電商", "網購", "門市", "商店"]],
+        ["物流", ["物流", "倉儲", "配送", "運輸", "車隊"]],
+        ["教育", ["教育", "學校", "教學", "補習", "課程"]],
+        ["旅遊", ["旅遊", "旅宿", "住宿", "觀光", "飯店"]],
+      ];
+
+      const INDUSTRY_VERTICAL_TO_SOFT_KEY = {
+        "旅宿觀光": "旅遊",
+        "製造業": "製造",
+        "醫療照護": "醫療",
+      };
+
+      const detectIndustryKey = useCallback((text, currentFilters) => {
+        if (currentFilters.industry_vertical && INDUSTRY_VERTICAL_TO_SOFT_KEY[currentFilters.industry_vertical]) {
+          return INDUSTRY_VERTICAL_TO_SOFT_KEY[currentFilters.industry_vertical];
+        }
+        const source = safeStr(text).toLowerCase();
+        if (!source) return null;
+        for (const [industry, aliases] of INDUSTRY_ALIASES) {
+          if (aliases.some(alias => source.includes(alias.toLowerCase()))) return industry;
+        }
+        return null;
+      }, []);
+
+      const getIndustryScore = useCallback((item, industryKey) => {
+        const terms = INDUSTRY_KEYWORDS[industryKey];
+        if (!terms) return 0;
+        const haystack = [
+          item.desc,
+          item.feat,
+          item.d,
+          item.iv,
+          item.cat,
+          item.tags,
+          item.slogan,
+        ].map(safeStr).join(" ").toLowerCase();
+        return terms.reduce((score, term) => {
+          return score + (haystack.includes(term.toLowerCase()) ? 12 : 0);
+        }, 0);
+      }, []);
+
       // 5. 計算相關性分數（keyword 命中位置加權）
       const getRelevanceScore = useCallback((item, kw) => {
         if (!kw) return 0;
@@ -206,12 +263,12 @@
 
       // 6. 篩選邏輯（keyword 比對加入 feat, slogan）
       const filteredResults = useMemo(() => {
+        const industryKey = detectIndustryKey(query || filters.keyword || filters.industry_vertical, filters);
         let results = allData.filter(item => {
           if (filters.region && item.r !== filters.region) return false;
           if (filters.isAI !== null && item.ai !== filters.isAI) return false;
           if (filters.isStartup !== null && item.st !== filters.isStartup) return false;
           if (filters.category && !(item.cat && item.cat.includes(filters.category))) return false;
-          if (filters.industry_vertical && item.iv !== filters.industry_vertical) return false;
           if (filters.program && item.p !== filters.program) return false;
           if (filters.maxPrice && (item.pr === null || Number(item.pr) > Number(filters.maxPrice))) return false;
           if (filters.keyword) {
@@ -229,7 +286,18 @@
 
         // 排序
         if (sortBy === "relevance" && filters.keyword) {
-          results.sort((a, b) => getRelevanceScore(b, filters.keyword) - getRelevanceScore(a, filters.keyword));
+          results = results
+            .map((item, index) => {
+              const relevanceScore = getRelevanceScore(item, filters.keyword);
+              const industryScore = industryKey ? getIndustryScore(item, industryKey) : 0;
+              return { item, index, relevanceScore, industryScore };
+            })
+            .sort((a, b) => {
+              const scoreDiff = (b.relevanceScore + b.industryScore) - (a.relevanceScore + a.industryScore);
+              if (scoreDiff !== 0) return scoreDiff;
+              return a.index - b.index;
+            })
+            .map(entry => entry.item);
         } else if (sortBy === "price_asc") {
           results.sort((a, b) => (a.pr ?? Infinity) - (b.pr ?? Infinity));
         } else if (sortBy === "price_desc") {
@@ -241,7 +309,7 @@
         }
 
         return results;
-      }, [filters, allData, sortBy, getRelevanceScore]);
+      }, [filters, allData, sortBy, getRelevanceScore, getIndustryScore, detectIndustryKey, query]);
 
       // 7. 分頁
       const totalPages = Math.max(1, Math.ceil(filteredResults.length / PAGE_SIZE));
