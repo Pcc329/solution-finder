@@ -338,6 +338,30 @@
 
       const hasActiveFilters = Object.values(filters).some(v => v !== null);
 
+      const renderStars = (score) => {
+        const value = Number(score);
+        if (!Number.isFinite(value)) {
+          return (
+            <span className="inline-flex items-center gap-1 whitespace-nowrap" title="評分建置中">
+              <span className="text-xs text-slate-300 tracking-tight">☆☆☆☆☆</span>
+            </span>
+          );
+        }
+        const bounded = Math.max(0, Math.min(5, value));
+        const full = Math.floor(bounded);
+        const half = bounded - full >= 0.5 ? 1 : 0;
+        const empty = Math.max(0, 5 - full - half);
+        return (
+          <span className="inline-flex items-center gap-1 whitespace-nowrap" title={`綜合評分 ${bounded.toFixed(1)}`}>
+            <span className="text-xs text-amber-500 tracking-tight">
+              {"★".repeat(full)}{half ? "⯨" : ""}
+            </span>
+            <span className="text-xs text-slate-300 tracking-tight">{"★".repeat(empty)}</span>
+            <span className="text-[11px] text-slate-400">{bounded.toFixed(1)}</span>
+          </span>
+        );
+      };
+
       const toComparePayload = (item) => ({
         id: item.id,
         s: item.s,
@@ -352,6 +376,7 @@
         tags: item.tags,
         p: item.p,
         desc: item.desc,
+        so: item.so,
       });
 
       const isCompareSelected = (item) => compareItems.some(selected => selected.id === item.id);
@@ -437,6 +462,7 @@
             <div className="bg-white/10 backdrop-blur-xl p-6 rounded-3xl mb-8 inline-block shadow-2xl border border-white/5">
               <span style={{fontSize: "4rem", lineHeight: "1"}}>💡</span>
             </div>
+            <p className="text-[11px] tracking-[0.16em] uppercase text-white/50 mb-3">SOLUTION FINDER</p>
             <h1 className="text-5xl md:text-7xl font-black mb-8 leading-tight tracking-tight">
               資服產業資料庫<br /><span className="text-[#1D9E75]">即時語意分析。</span>
             </h1>
@@ -723,7 +749,10 @@
                       {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] px-2 py-0.5 rounded"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}</span>}
                       {item.scale && <span className="bg-sky-50 text-sky-700 border border-sky-200 text-[10px] px-2 py-0.5 rounded">{item.scale}</span>}
                     </div>
-                    <h2 className="text-lg font-bold text-slate-900 mb-1 truncate">{item.s || "（未命名方案）"}</h2>
+                    <div className="flex items-start justify-between gap-3 mb-1">
+                      <h2 className="text-lg font-bold text-slate-900 truncate">{item.s || "（未命名方案）"}</h2>
+                      <div className="shrink-0">{renderStars(item.so)}</div>
+                    </div>
                     <p className="text-sm text-slate-500 font-medium truncate">{item.c}</p>
                     {item.cat && (
                       <div className="flex items-center gap-2 mt-2 overflow-x-auto no-scrollbar">
@@ -904,6 +933,7 @@
                   <i className="fa-solid fa-layer-group text-xl"></i>
                 </div>
                 <div>
+                  <span className="text-[11px] tracking-[0.16em] uppercase text-slate-400 block leading-none mb-1">SOLUTION FINDER</span>
                   <span className="font-black text-lg text-[#0d3d2a] tracking-tight block leading-none mb-1">資服產業資料庫</span>
                   <span className="text-xs text-slate-400">{allData.length.toLocaleString()} 個方案</span>
                 </div>
@@ -918,6 +948,11 @@
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1D9E75] text-white text-sm font-bold hover:bg-[#0d6e52] transition-colors shadow-sm">
                   <i className="fa-solid fa-chart-line"></i>
                   戰情儀表板
+                </a>
+                <a href="/strategy-guide.html"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1D9E75] text-white text-sm font-bold hover:bg-[#0d6e52] transition-colors shadow-sm">
+                  <i className="fa-solid fa-lightbulb"></i>
+                  策略智庫 ↗
                 </a>
                 {activePage !== "home" && (
                   <button onClick={() => { setActivePage("list"); setSelectedItem(null); }}

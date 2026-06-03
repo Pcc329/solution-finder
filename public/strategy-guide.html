@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>產業策略智庫 2026</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     :root {
       color-scheme: light dark;
@@ -20,6 +21,12 @@
       --green-soft: #E1F5EE;
       --amber-soft: #FAEEDA;
       --coral-soft: #FAECE7;
+      --text2: var(--muted);
+      --text3: #888780;
+      --border2: var(--line);
+      --green600: var(--green);
+      --amber600: var(--amber);
+      --coral600: var(--coral);
     }
 
     @media (prefers-color-scheme: dark) {
@@ -57,6 +64,19 @@
     .hero {
       padding: 56px 0 28px;
       border-bottom: 0.5px solid var(--line);
+    }
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .guide-name {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
     }
     .eyebrow {
       margin: 0 0 10px;
@@ -337,6 +357,90 @@
       color: var(--text);
       font-size: 14px;
     }
+    .detail-block {
+      border-top: 0.5px solid var(--line);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+    .detail-label {
+      display: block;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .detail-text {
+      margin: 0;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .detail-pitch {
+      margin: 12px 0 0;
+      padding: 12px;
+      border-left: 3px solid var(--green);
+      background: var(--green-soft);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .avg-score-row, .score-ref-card {
+      margin-top: 12px;
+      padding: 12px;
+      border: 0.5px solid var(--line);
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--green-soft) 42%, transparent);
+      color: var(--text);
+      font-size: 13px;
+    }
+    .muted { color: var(--muted); }
+    .stars { color: var(--amber); letter-spacing: 0; white-space: nowrap; }
+    .empty-stars { color: color-mix(in srgb, var(--muted) 32%, transparent); }
+    .score-ref-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 8px 0;
+      border-top: 0.5px solid var(--line);
+      font-size: 13px;
+    }
+    .score-ref-row:first-of-type { border-top: 0; }
+    .market-grid, .roi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .chart-box, .roi-control, .roi-result {
+      border: 0.5px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--card);
+    }
+    .chart-box canvas {
+      width: 100%;
+      height: 280px;
+    }
+    .quality-note {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .slider-row {
+      display: grid;
+      grid-template-columns: 130px 1fr 86px;
+      gap: 10px;
+      align-items: center;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+    .slider-row input { width: 100%; accent-color: var(--green); }
+    .result-val {
+      display: block;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .result-val.warning { color: var(--amber); }
+    .result-val.danger { color: var(--coral); }
     .error {
       color: var(--coral);
       font-size: 13px;
@@ -349,12 +453,15 @@
       border-top: 0.5px solid var(--line);
     }
     @media (max-width: 720px) {
-      .kpis, .panel-grid, .metric-grid {
+      .kpis, .panel-grid, .metric-grid, .market-grid, .roi-grid {
         grid-template-columns: 1fr;
       }
-      .section-head, .toolbar, .company-head {
+      .section-head, .toolbar, .company-head, .hero-top {
         align-items: flex-start;
         flex-direction: column;
+      }
+      .slider-row {
+        grid-template-columns: 1fr;
       }
       .nav-inner {
         overflow-x: auto;
@@ -365,7 +472,16 @@
 <body>
   <main>
     <header class="hero" id="top">
-      <p class="eyebrow">iii internal strategy guide</p>
+      <div class="hero-top">
+        <div>
+          <p class="eyebrow">iii internal strategy guide</p>
+          <p class="guide-name">策略智庫</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="/">方案查詢 ↗</a>
+          <a class="btn" href="/dashboard.html">儀表板 ↗</a>
+        </div>
+      </div>
       <h1>產業策略智庫 2026</h1>
       <p class="subtitle">資服業解決方案全覽 · iii 內部顧問專用</p>
       <div class="kpis" aria-label="資料庫 KPI">
@@ -377,6 +493,8 @@
         <a class="btn" href="#services">服務分類 ↓</a>
         <a class="btn" href="#companies">公司圖譜 ↓</a>
         <a class="btn" href="#ai">AI 推薦 ↓</a>
+        <a class="btn" href="#market">市場現況 ↓</a>
+        <a class="btn" href="#roi">ROI 試算 ↓</a>
       </div>
     </header>
   </main>
@@ -387,6 +505,8 @@
       <a href="#services">服務分類</a>
       <a href="#companies">公司圖譜</a>
       <a href="#ai">AI 推薦</a>
+      <a href="#market">市場現況</a>
+      <a href="#roi">ROI 試算</a>
     </div>
   </nav>
 
@@ -437,7 +557,81 @@
       <div class="result-box hidden" id="askResult">
         <strong>Claude 推薦結果</strong>
         <div class="result-content" id="askContent"></div>
+        <div id="scoreRef"></div>
       </div>
+    </section>
+
+    <section id="market">
+      <div class="section-head">
+        <div>
+          <h2>市場現況</h2>
+          <p class="section-note">從方案來源、地區與更新狀態快速掌握資料庫供給結構。</p>
+        </div>
+      </div>
+      <div class="kpis" aria-label="市場現況 KPI">
+        <div class="kpi"><span class="kpi-value" id="marketTotal">—</span><span class="kpi-label">總方案</span></div>
+        <div class="kpi"><span class="kpi-value" id="marketCompanies">—</span><span class="kpi-label">業者數</span></div>
+        <div class="kpi"><span class="kpi-value" id="marketWeek">—</span><span class="kpi-label">本週新增</span></div>
+      </div>
+      <div class="market-grid">
+        <div class="chart-box">
+          <h3>方案來源分布</h3>
+          <canvas id="typeChart" height="280"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>主要城市分布</h3>
+          <canvas id="cityChart" height="280"></canvas>
+        </div>
+      </div>
+      <p class="quality-note">資料品質提示：城市欄位已在統計 API 正規化「臺」為「台」；空值不納入城市分布。</p>
+    </section>
+
+    <section id="roi">
+      <div class="section-head">
+        <div>
+          <h2>ROI 試算</h2>
+          <p class="section-note">用粗估參數快速判斷導入方案是否值得進入下一輪訪談。</p>
+        </div>
+      </div>
+      <div class="roi-grid">
+        <div class="roi-control">
+          <div class="slider-row">
+            <label for="inp-headcount">影響人數</label>
+            <input id="inp-headcount" type="range" min="1" max="100" value="20" />
+            <span id="val-headcount">20 人</span>
+          </div>
+          <div class="slider-row">
+            <label for="inp-salary">人月成本</label>
+            <input id="inp-salary" type="range" min="30000" max="120000" step="5000" value="60000" />
+            <span id="val-salary">60,000</span>
+          </div>
+          <div class="slider-row">
+            <label for="inp-efficiency">效率提升</label>
+            <input id="inp-efficiency" type="range" min="1" max="50" value="15" />
+            <span id="val-efficiency">15%</span>
+          </div>
+          <div class="slider-row">
+            <label for="inp-setup">導入成本</label>
+            <input id="inp-setup" type="range" min="0" max="1000000" step="50000" value="220000" />
+            <span id="val-setup">220,000</span>
+          </div>
+          <div class="slider-row">
+            <label for="inp-monthly">月費</label>
+            <input id="inp-monthly" type="range" min="0" max="200000" step="5000" value="0" />
+            <span id="val-monthly">0</span>
+          </div>
+        </div>
+        <div class="roi-result">
+          <span class="kpi-label">預估每月節省</span>
+          <span class="result-val" id="res-monthly">NT$ 180,000</span>
+          <span class="kpi-label">預估年度效益</span>
+          <span class="result-val" id="res-annual">NT$ 2,160,000</span>
+          <span class="kpi-label">回收期</span>
+          <span class="result-val success" id="res-payback">1.2 個月</span>
+          <p class="quality-note" id="roi-summary">回收期低於 6 個月，可列入優先評估。</p>
+        </div>
+      </div>
+      <p class="quality-note">試算僅供顧問初步溝通使用，正式評估仍需以客戶實際流程、導入範圍與維運成本校正。</p>
     </section>
   </main>
 
@@ -458,6 +652,58 @@
       { name: '政府採購', icon: '📋', count: 100, source: '採購網', desc: '軟體採購網收錄項目，公部門適用', tags: ['公開採購', '公部門適用', '規格公開', '價格透明'] },
     ];
 
+    const catDetail = {
+      '雲市集': {
+        target: '已具備明確採購需求、希望快速導入雲端服務的中小企業與公協會。',
+        pain: '預算有限、需要合規供應商清單、採購流程希望降低試錯成本。',
+        talk: '先鎖定可立即採購的 SaaS 類型，再依資安、維運、資料匯出條件篩選。',
+        risk: '方案成熟但差異度高，需確認功能邊界、續約費用與資料主權。',
+        pitch: '適合作為「短期可落地」方案池。'
+      },
+      '產業數位化升級': {
+        target: '製造、商業服務、醫療等已有流程痛點、需要產業場景解法的業者。',
+        pain: '流程跨部門、導入成本較高、需要補助或顧問協助降低阻力。',
+        talk: '以痛點場景切入，例如排程、庫存、客服、資安或營運儀表板。',
+        risk: '需確認客戶是否已有資料基礎，否則導入週期會被資料整理拖慢。',
+        pitch: '適合作為「產業專案型」顧問提案來源。'
+      },
+      '中小企業數位轉型': {
+        target: '第一次導入數位工具或只需輕量系統的中小企業。',
+        pain: '缺 IT 人力、需求描述不清、希望低成本測試。',
+        talk: '先用低門檻工具建立資料留存，再逐步擴充整合。',
+        risk: '客戶期待可能過度發散，需明確定義第一階段範圍。',
+        pitch: '適合作為「數位入門」輔導清單。'
+      },
+      '領域型調查(攻頂PO)': {
+        target: '需要先理解產業痛點、再設計解方組合的顧問情境。',
+        pain: '資料分散、需求不明、需要用研究證據支持建議。',
+        talk: '把痛點、利害關係人與可量化效益先拆清楚，再對接方案。',
+        risk: '不一定能直接採購，需轉換成具體導入規格。',
+        pitch: '適合作為「策略盤點與需求診斷」材料。'
+      },
+      '新創嚴選': {
+        target: '願意嘗試新技術、重視差異化與速度的企業。',
+        pain: '想導入 AI、資料應用或創新服務，但擔心供應商成熟度。',
+        talk: '先確認 PoC 成功條件、資料介接、維運能力與資安責任。',
+        risk: '創新度高但交付穩定性需評估，建議從小範圍試點開始。',
+        pitch: '適合作為「高差異化候選方案」來源。'
+      },
+      '商服業AI解決方案': {
+        target: '客服、銷售、行銷、營運等商服流程需要 AI 協助的業者。',
+        pain: '人工作業量大、回覆品質不穩、資料沉澱不足。',
+        talk: '用明確任務切入，例如客服摘要、銷售推薦、文件處理或預測分析。',
+        risk: '需檢查資料品質、模型輸出責任與人機協作流程。',
+        pitch: '適合作為「AI 落地場景」快速比對。'
+      },
+      '政府採購': {
+        target: '需要公開採購資訊、規格與價格參考的公部門或大型組織。',
+        pain: '採購規格難寫、比價基準不足、需要既有標案參照。',
+        talk: '用既有採購項目作為規格參考，再回推市場可供應方案。',
+        risk: '採購資料不等於最新產品能力，需再向供應商確認。',
+        pitch: '適合作為「採購規格與價格校準」資料源。'
+      }
+    };
+
     const scenarios = [
       ['餐飲 × 人力短缺', '餐飲業想要解決人力短缺，預算有限'],
       ['製造 × 資安', '製造業想要加強資訊安全，規模中小型'],
@@ -473,6 +719,34 @@
     let activeService = null;
     let selectedCompany = null;
     let dimTimer = null;
+    let typeChart = null;
+    let cityChart = null;
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderStars(score) {
+      const value = Number(score);
+      if (!Number.isFinite(value)) return '<span class="empty-stars">☆☆☆☆☆</span><span class="muted"> 評分建置中</span>';
+      const bounded = Math.max(0, Math.min(5, value));
+      const full = Math.floor(bounded);
+      const half = bounded - full >= 0.5 ? 1 : 0;
+      const empty = Math.max(0, 5 - full - half);
+      return `<span class="stars">${'★'.repeat(full)}${half ? '⯨' : ''}</span><span class="empty-stars">${'★'.repeat(empty)}</span><span class="muted"> ${bounded.toFixed(1)}</span>`;
+    }
+
+    function topEntries(obj, limit = 8) {
+      return Object.entries(obj || {})
+        .filter(([, value]) => Number(value) > 0)
+        .sort((a, b) => Number(b[1]) - Number(a[1]))
+        .slice(0, limit);
+    }
 
     function colorFor(company) {
       if (company.is_startup && company.has_award) return { bg: '#FAECE7', border: '#993C1D', text: '#712B13' };
@@ -493,6 +767,7 @@
           award_count: n % 7 === 0 ? (n % 3) + 1 : 0,
           solution_count: 2 + (n * 3) % 24,
           contact_count: n % 4,
+          avg_score: n % 3 === 0 ? null : Number((3.4 + (n % 12) / 10).toFixed(1)),
           industry: industries[n % industries.length],
           city: ['台北', '新北', '台中', '高雄', '桃園'][n % 5],
           est_year: 2010 + (n % 14),
@@ -532,6 +807,7 @@
         return;
       }
       const item = categories[activeCategory];
+      const detail = catDetail[item.name] || {};
       const total = categories.reduce((sum, entry) => sum + entry.count, 0);
       const pct = (item.count / total * 100).toFixed(1);
       panel.classList.remove('hidden');
@@ -549,6 +825,23 @@
           <div class="metric"><strong>${pct}%</strong><span>占比</span></div>
         </div>
         <div class="tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+        <div class="detail-block">
+          <span class="detail-label">適用對象</span>
+          <p class="detail-text">${escapeHtml(detail.target || '依實際產業需求判斷。')}</p>
+        </div>
+        <div class="detail-block">
+          <span class="detail-label">常見痛點</span>
+          <p class="detail-text">${escapeHtml(detail.pain || '需求仍需訪談確認。')}</p>
+        </div>
+        <div class="detail-block">
+          <span class="detail-label">顧問溝通切入點</span>
+          <p class="detail-text">${escapeHtml(detail.talk || '先確認流程、資料與預算，再篩選方案。')}</p>
+        </div>
+        <div class="detail-block">
+          <span class="detail-label">風險提醒</span>
+          <p class="detail-text">${escapeHtml(detail.risk || '需確認供應商維運能力與導入條件。')}</p>
+        </div>
+        <p class="detail-pitch">${escapeHtml(detail.pitch || item.desc)}</p>
       `;
       document.getElementById('closeCategory').addEventListener('click', () => toggleCategory(activeCategory));
     }
@@ -561,11 +854,51 @@
         document.getElementById('kpiSolutions').textContent = fmt.format(data.total ?? 0);
         document.getElementById('kpiCompanies').textContent = fmt.format(data.totalCompanies ?? data.companyTotal ?? 0);
         document.getElementById('kpiWeek').textContent = fmt.format(data.newThisWeek ?? 0);
+        document.getElementById('marketTotal').textContent = fmt.format(data.total ?? 0);
+        document.getElementById('marketCompanies').textContent = fmt.format(data.totalCompanies ?? data.companyTotal ?? 0);
+        document.getElementById('marketWeek').textContent = fmt.format(data.newThisWeek ?? 0);
+        renderMarketCharts(data);
       } catch {
         document.getElementById('kpiSolutions').textContent = '—';
         document.getElementById('kpiCompanies').textContent = '—';
         document.getElementById('kpiWeek').textContent = '—';
+        document.getElementById('marketTotal').textContent = '—';
+        document.getElementById('marketCompanies').textContent = '—';
+        document.getElementById('marketWeek').textContent = '—';
       }
+    }
+
+    function renderMarketCharts(data) {
+      if (!window.Chart) return;
+      const typeCtx = document.getElementById('typeChart');
+      const cityCtx = document.getElementById('cityChart');
+      if (!typeCtx || !cityCtx) return;
+      const typeEntries = topEntries(data.byProgramType, 7);
+      const cityEntries = topEntries(data.byCity, 8);
+      const palette = ['#0F6E56', '#1D9E75', '#185FA5', '#BA7517', '#D85A30', '#6B7280', '#94A3B8', '#C7D2FE'];
+      if (typeChart) typeChart.destroy();
+      if (cityChart) cityChart.destroy();
+      typeChart = new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+          labels: typeEntries.map(([key]) => key || '未分類'),
+          datasets: [{ data: typeEntries.map(([, value]) => value), backgroundColor: palette }]
+        },
+        options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
+      });
+      cityChart = new Chart(cityCtx, {
+        type: 'bar',
+        data: {
+          labels: cityEntries.map(([key]) => key),
+          datasets: [{ label: '業者數', data: cityEntries.map(([, value]) => value), backgroundColor: '#1D9E75' }]
+        },
+        options: {
+          indexAxis: 'y',
+          scales: { x: { beginAtZero: true } },
+          plugins: { legend: { display: false } },
+          maintainAspectRatio: false
+        }
+      });
     }
 
     async function loadCompanies() {
@@ -713,6 +1046,9 @@
           <div class="metric"><strong>${fmt.format(company.contact_count || 0)}</strong><span>聯絡人數</span></div>
           <div class="metric"><strong>${fmt.format(company.award_count || 0)}</strong><span>得獎紀錄</span></div>
         </div>
+        ${company.avg_score !== null && company.avg_score !== undefined
+          ? `<div class="avg-score-row"><strong>旗下方案平均評分：</strong>${renderStars(company.avg_score)} <span class="muted">（共 ${fmt.format(company.solution_count || 0)} 筆）</span></div>`
+          : '<div class="avg-score-row muted">評分建置中</div>'}
       `;
       document.getElementById('closeCompany').addEventListener('click', () => {
         selectedCompany = null;
@@ -751,17 +1087,37 @@
         .map(entry => entry.item);
     }
 
+    function renderScoreRef(items) {
+      if (!items.length) return '';
+      return `
+        <div class="score-ref-card">
+          <strong>評分參考（前 3 個候選方案）</strong>
+          ${items.map(item => `
+            <div class="score-ref-row">
+              <div>
+                <strong>${escapeHtml(item.s || '未命名方案')}</strong>
+                <div class="muted">${escapeHtml(item.c || '')}</div>
+              </div>
+              <div>${renderStars(item.so)}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
     async function submitAsk() {
       const input = document.getElementById('aiInput');
       const button = document.getElementById('askBtn');
       const error = document.getElementById('askError');
       const result = document.getElementById('askResult');
       const content = document.getElementById('askContent');
+      const scoreRef = document.getElementById('scoreRef');
       const question = input.value.trim();
       if (!question) return;
       button.disabled = true;
       button.textContent = '分析中...';
       error.textContent = '';
+      scoreRef.innerHTML = '';
       result.classList.add('hidden');
       try {
         const solutions = await loadCandidateSolutions(question);
@@ -773,6 +1129,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'ask failed');
         content.textContent = data.answer || '';
+        scoreRef.innerHTML = renderScoreRef(solutions.slice(0, 3));
         result.classList.remove('hidden');
       } catch {
         error.textContent = 'API 連線失敗，請確認 Vercel 服務正常';
@@ -782,11 +1139,52 @@
       }
     }
 
+    function updateRoi() {
+      const headcount = Number(document.getElementById('inp-headcount').value);
+      const salary = Number(document.getElementById('inp-salary').value);
+      const efficiency = Number(document.getElementById('inp-efficiency').value);
+      const setup = Number(document.getElementById('inp-setup').value);
+      const monthlyCost = Number(document.getElementById('inp-monthly').value);
+      const grossMonthlySaving = headcount * salary * (efficiency / 100);
+      const netMonthlySaving = Math.max(0, grossMonthlySaving - monthlyCost);
+      const annualBenefit = netMonthlySaving * 12;
+      const payback = netMonthlySaving > 0 ? setup / netMonthlySaving : Infinity;
+
+      document.getElementById('val-headcount').textContent = `${headcount} 人`;
+      document.getElementById('val-salary').textContent = fmt.format(salary);
+      document.getElementById('val-efficiency').textContent = `${efficiency}%`;
+      document.getElementById('val-setup').textContent = fmt.format(setup);
+      document.getElementById('val-monthly').textContent = fmt.format(monthlyCost);
+      document.getElementById('res-monthly').textContent = `NT$ ${fmt.format(Math.round(netMonthlySaving))}`;
+      document.getElementById('res-annual').textContent = `NT$ ${fmt.format(Math.round(annualBenefit))}`;
+
+      const paybackEl = document.getElementById('res-payback');
+      paybackEl.classList.remove('success', 'warning', 'danger');
+      if (!Number.isFinite(payback)) {
+        paybackEl.textContent = '無法回收';
+        paybackEl.classList.add('danger');
+        document.getElementById('roi-summary').textContent = '每月節省不足以覆蓋月費，需重新檢查導入範圍或成本假設。';
+      } else {
+        paybackEl.textContent = `${payback.toFixed(1)} 個月`;
+        const status = payback <= 6 ? 'success' : payback <= 12 ? 'warning' : 'danger';
+        paybackEl.classList.add(status);
+        document.getElementById('roi-summary').textContent = payback <= 6
+          ? '回收期低於 6 個月，可列入優先評估。'
+          : payback <= 12
+            ? '回收期在 12 個月內，可進一步確認導入阻力與維運成本。'
+            : '回收期偏長，建議縮小導入範圍或改找低成本方案。';
+      }
+    }
+
+    ['headcount', 'salary', 'efficiency', 'setup', 'monthly'].forEach(key => {
+      document.getElementById(`inp-${key}`).addEventListener('input', updateRoi);
+    });
     document.getElementById('askBtn').addEventListener('click', submitAsk);
     window.addEventListener('resize', () => renderBubbles());
 
     renderCategories();
     renderScenarios();
+    updateRoi();
     loadStats();
     loadCompanies();
   </script>
