@@ -55,6 +55,11 @@ export default async function handler(req, res) {
       companyByRecId[rec.id] = coData;
     });
 
+    const parseScore = value => {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    };
+
     const converted = solRecords.map(rec => {
       const f = rec.fields;
 
@@ -101,6 +106,11 @@ export default async function handler(req, res) {
         tags: co.tech_tags || '',
         scale: f['target_scale'] || '',
         slogan: f['slogan'] || '',
+        sf: parseScore(f['score_function']),
+        sp: parseScore(f['score_price']),
+        ss: parseScore(f['score_support']),
+        si: parseScore(f['score_innovation']),
+        so: parseScore(f['score_overall']),
       };
     });
 
