@@ -42,12 +42,6 @@ export default async function handler(req, res) {
     return match ? Number(match[0]) : null;
   }
 
-  function increment(map, key) {
-    const normalized = normalizeCid(key);
-    if (!normalized) return;
-    map[normalized] = (map[normalized] || 0) + 1;
-  }
-
   function addTag(tags, value) {
     if (value && !tags.includes(value)) tags.push(value);
   }
@@ -60,29 +54,37 @@ export default async function handler(req, res) {
     return [normalizeCid(raw)].filter(Boolean);
   }
 
-  function awardCompanyKeys(fields, companyByRecId) {
-    const candidates = [
-      fields?.['company_id'],
-      fields?.['company'],
-      fields?.['Companies'],
-      fields?.['company_name'],
-    ];
-    return candidates.flatMap(value => {
-      if (Array.isArray(value)) {
-        return value.map(item => companyByRecId[item]?.cid || normalizeCid(item));
-      }
-      return [normalizeCid(value)];
-    }).filter(Boolean);
+  function tagFromFields(company) {
+    const text = `${company.tech_tags || ''} ${company.industry_vertical || ''}`;
+    if (text.toLowerCase().includes('ai') || text.includes('AI')) addTag(company.tags, 'AI工具');
+    if (text.toLowerCase().includes('erp') || text.includes('ERP')) addTag(company.tags, 'ERP');
+    if (text.toLowerCase().includes('security') || text.includes('資安')) addTag(company.tags, '資安');
   }
 
   function applyFilter(companies, filter) {
     if (!filter) return companies;
     if (filter === 'startup') return companies.filter(item => item.is_startup);
     if (filter === 'award') return companies.filter(item => item.award_count > 0);
-    if (filter === 'large') return companies.filter(item => item.solution_count >= 15);
-    if (filter === 'ai') return companies.filter(item => item.tags.includes('AI工具'));
-    if (filter === 'erp') return companies.filter(item => item.tags.includes('ERP'));
-    if (filter === 'sec') return companies.filter(item => item.tags.includes('資安'));
+    if (filter === 'large') return companies.slice(0, 30);
+    if (filter === 'ai') {
+      return companies.filter(item =>
+        String(item.tech_tags || '').toLowerCase().includes('ai') ||
+        String(item.industry_vertical || '').includes('AI')
+      );
+    }
+    if (filter === 'erp') {
+      return companies.filter(item =>
+        String(item.tech_tags || '').toLowerCase().includes('erp') ||
+        String(item.industry_vertical || '').includes('ERP')
+      );
+    }
+    if (filter === 'sec') {
+      return companies.filter(item =>
+        String(item.tech_tags || '').toLowerCase().includes('security') ||
+        String(item.tech_tags || '').includes('資安') ||
+        String(item.industry_vertical || '').includes('資安')
+      );
+    }
     return companies;
   }
 
@@ -92,38 +94,38 @@ export default async function handler(req, res) {
       fetchAll('Solutions'),
     ]);
 
-    let awardRecords = [];
-    try {
-      awardRecords = await fetchAll('Awards');
-    } catch (err) {
-      console.error('Awards fetch skipped:', err.message);
-    }
-
     const companyByCid = {};
     const companyByRecId = {};
+    const companies = [];
 
     companyRecords.forEach(rec => {
       const f = rec.fields || {};
       const cid = normalizeCid(f['company_id']);
+      const awardCount = Array.isArray(f['Awards']) ? f['Awards'].length : 0;
+      const linkedSolutionCount = Array.isArray(f['Solutions']) ? f['Solutions'].length : 0;
+      const industryVertical = f['industry_vertical'] || '';
+      const techTags = f['tech_tags'] || '';
       const item = {
         id: rec.id,
         cid,
         name: f['company_name'] || '',
-        is_startup: isChecked(f['is_startup']),
-        has_award: false,
-        award_count: 0,
-        solution_count: 0,
+        is_startup: f['is_startup'] === 'checked' || f['is_startup_auto'] === '新創',
+        has_award: awardCount > 0,
+        award_count: awardCount,
+        solution_count: linkedSolutionCount,
+        linked_solution_count: linkedSolutionCount,
         contact_count: Number(f['contact_count'] || f['contacts_count'] || 0) || 0,
-        industry: f['industry_vertical'] || f['industry'] || '資訊服務',
+        industry: industryVertical || f['industry'] || '資訊服務',
+        industry_vertical: industryVertical,
         city: f['city'] || '',
-        est_year: parseYear(f['established_date'] || f['founded_date'] || f['est_year']),
+        est_year: parseYear(f['established_date']),
+        tech_tags: techTags,
         tags: [],
       };
-      if (String(item.industry).includes('AI')) addTag(item.tags, 'AI工具');
-      if (String(item.industry).includes('ERP')) addTag(item.tags, 'ERP');
-      if (String(item.industry).includes('資安')) addTag(item.tags, '資安');
+      tagFromFields(item);
       if (cid) companyByCid[cid] = item;
       companyByRecId[rec.id] = item;
+      companies.push(item);
     });
 
     solutionRecords.forEach(rec => {
@@ -141,26 +143,18 @@ export default async function handler(req, res) {
       solutionCompanyKeys(f, companyByRecId).forEach(cid => {
         const company = companyByCid[cid] || companyByRecId[cid];
         if (!company) return;
-        company.solution_count += 1;
+        if (!company.linked_solution_count) company.solution_count += 1;
         if (hasAi || /AI|人工智慧|智慧/.test(text)) addTag(company.tags, 'AI工具');
         if (/ERP|進銷存|企業資源/.test(text)) addTag(company.tags, 'ERP');
         if (/資安|資訊安全|防毒|弱點|防護|備份/.test(text)) addTag(company.tags, '資安');
       });
     });
 
-    awardRecords.forEach(rec => {
-      awardCompanyKeys(rec.fields || {}, companyByRecId).forEach(cid => {
-        const company = companyByCid[cid] || companyByRecId[cid];
-        if (!company) return;
-        company.award_count += 1;
-        company.has_award = true;
-      });
-    });
-
     const filter = String(req.query?.filter || '').trim();
-    const companies = applyFilter(Object.values(companyByCid), filter)
-      .sort((a, b) => b.solution_count - a.solution_count || a.name.localeCompare(b.name, 'zh-Hant'))
-      .slice(0, 200)
+    const sortedCompanies = companies
+      .sort((a, b) => b.solution_count - a.solution_count || a.name.localeCompare(b.name, 'zh-Hant'));
+    const filteredCompanies = applyFilter(sortedCompanies, filter);
+    const limitedCompanies = (filter ? filteredCompanies : filteredCompanies.slice(0, 200))
       .map(item => ({
         id: item.id,
         name: item.name,
@@ -172,10 +166,11 @@ export default async function handler(req, res) {
         industry: item.industry,
         city: item.city,
         est_year: item.est_year,
+        tech_tags: item.tech_tags,
         tags: item.tags,
       }));
 
-    return res.status(200).json(companies);
+    return res.status(200).json(limitedCompanies);
   } catch (err) {
     console.error('Companies API error:', err);
     return res.status(500).json({ error: err.message });
