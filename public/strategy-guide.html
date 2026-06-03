@@ -748,6 +748,20 @@
         .slice(0, limit);
     }
 
+    function toChartEntries(source, limit = 8) {
+      const rows = Array.isArray(source)
+        ? source.map(item => [
+            item.name ?? item.label ?? item.key ?? item.category ?? item.city ?? '未分類',
+            item.value ?? item.count ?? item.total ?? 0,
+          ])
+        : Object.entries(source || {});
+      return rows
+        .map(([key, value]) => [String(key || '未分類'), Number(value) || 0])
+        .filter(([, value]) => value > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit);
+    }
+
     function colorFor(company) {
       if (company.is_startup && company.has_award) return { bg: '#FAECE7', border: '#993C1D', text: '#712B13' };
       if (company.has_award) return { bg: '#FAEEDA', border: '#BA7517', text: '#633806' };
@@ -873,16 +887,16 @@
       const typeCtx = document.getElementById('typeChart');
       const cityCtx = document.getElementById('cityChart');
       if (!typeCtx || !cityCtx) return;
-      const typeEntries = topEntries(data.byProgramType, 7);
-      const cityEntries = topEntries(data.byCity, 8);
+      const sourceEntries = toChartEntries(data.bySource || data.byProgramType, 7);
+      const cityEntries = toChartEntries(data.byCity, 8);
       const palette = ['#0F6E56', '#1D9E75', '#185FA5', '#BA7517', '#D85A30', '#6B7280', '#94A3B8', '#C7D2FE'];
       if (typeChart) typeChart.destroy();
       if (cityChart) cityChart.destroy();
       typeChart = new Chart(typeCtx, {
         type: 'doughnut',
         data: {
-          labels: typeEntries.map(([key]) => key || '未分類'),
-          datasets: [{ data: typeEntries.map(([, value]) => value), backgroundColor: palette }]
+          labels: sourceEntries.map(([key]) => key || '未分類'),
+          datasets: [{ data: sourceEntries.map(([, value]) => value), backgroundColor: palette }]
         },
         options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
       });
