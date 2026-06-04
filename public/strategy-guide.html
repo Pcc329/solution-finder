@@ -6,7 +6,7 @@
   <title>產業策略智庫 2026</title>
   <style>
     :root {
-      color-scheme: light dark;
+      color-scheme: light;
       --bg: #ffffff;
       --text: #1a1a18;
       --muted: #65635d;
@@ -30,15 +30,15 @@
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #1a1a18;
-        --text: #f3f0e9;
-        --muted: #b8b4ab;
-        --line: rgba(255,255,255,0.18);
-        --card: #22221f;
-        --blue-soft: rgba(24,95,165,0.22);
-        --green-soft: rgba(15,110,86,0.22);
-        --amber-soft: rgba(186,117,23,0.22);
-        --coral-soft: rgba(216,90,48,0.22);
+        --bg: #ffffff;
+        --text: #1a1a18;
+        --muted: #65635d;
+        --line: rgba(0,0,0,0.12);
+        --card: #ffffff;
+        --blue-soft: #E6F1FB;
+        --green-soft: #E1F5EE;
+        --amber-soft: #FAEEDA;
+        --coral-soft: #FAECE7;
       }
     }
 
@@ -60,6 +60,25 @@
     button, textarea {
       font: inherit;
     }
+    #global-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .global-nav-brand { display: flex; align-items: center; gap: 10px; }
+    .global-nav-logo { width: 36px; height: 36px; background: #0d9488; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .global-nav-kicker { font-size: 10px; color: #6b7280; letter-spacing: 0.1em; }
+    .global-nav-title { font-size: 14px; font-weight: 600; color: #111827; }
+    .global-nav-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .global-nav-link { padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; color: #374151; text-decoration: none; background: #fff; font-weight: 600; }
+    .global-nav-link.active { background: #0d9488; color: #ffffff; border-color: #0d9488; }
     .hero {
       padding: 56px 0 28px;
       border-bottom: 0.5px solid var(--line);
@@ -151,7 +170,7 @@
     }
     .anchor-nav {
       position: sticky;
-      top: 0;
+      top: 61px;
       z-index: 10;
       background: color-mix(in srgb, var(--bg) 94%, transparent);
       border-bottom: 0.5px solid var(--line);
@@ -480,6 +499,37 @@
     }
     .result-val.warning { color: var(--amber); }
     .result-val.danger { color: var(--coral); }
+    .roi-selector {
+      margin-bottom: 16px;
+    }
+    .roi-selector label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .roi-selector select {
+      width: 100%;
+      border: 0.5px solid var(--line);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--text);
+      font-size: 14px;
+      padding: 8px 12px;
+    }
+    .roi-solution-name {
+      min-height: 20px;
+      margin-bottom: 12px;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .roi-solution-name:empty {
+      display: none;
+    }
     .error {
       color: var(--coral);
       font-size: 13px;
@@ -492,6 +542,9 @@
       border-top: 0.5px solid var(--line);
     }
     @media (max-width: 720px) {
+      #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
+      .global-nav-actions { width: 100%; justify-content: flex-start; }
+      .anchor-nav { top: 108px; }
       .kpis, .panel-grid, .metric-grid, .market-grid, .roi-grid {
         grid-template-columns: 1fr;
       }
@@ -509,18 +562,24 @@
   </style>
 </head>
 <body>
+  <nav id="global-nav">
+    <div class="global-nav-brand">
+      <div class="global-nav-logo"><span style="font-size:18px;">🔷</span></div>
+      <div>
+        <div class="global-nav-kicker">SOLUTION FINDER</div>
+        <div class="global-nav-title">資服產業資料庫</div>
+      </div>
+    </div>
+    <div class="global-nav-actions">
+      <a class="global-nav-link" href="/">資料來源</a>
+      <a class="global-nav-link" href="/dashboard.html">戰情儀表板</a>
+      <a class="global-nav-link active" href="/strategy-guide.html">策略智庫 ↗</a>
+    </div>
+  </nav>
   <main>
     <header class="hero" id="top">
-      <div class="hero-top">
-        <div>
-          <p class="eyebrow">iii internal strategy guide</p>
-          <p class="guide-name">策略智庫</p>
-        </div>
-        <div class="actions">
-          <a class="btn" href="/">方案查詢 ↗</a>
-          <a class="btn" href="/dashboard.html">儀表板 ↗</a>
-        </div>
-      </div>
+      <p class="eyebrow">iii internal strategy guide</p>
+      <p class="guide-name">策略智庫</p>
       <h1>產業策略智庫 2026</h1>
       <p class="subtitle">資服業解決方案全覽 · iii 內部顧問專用</p>
       <div class="kpis" aria-label="資料庫 KPI">
@@ -634,6 +693,8 @@
       </div>
       <div class="roi-grid">
         <div class="roi-control">
+          <div id="roi-selector-container"></div>
+          <div id="roi-solution-name" class="roi-solution-name"></div>
           <div class="slider-row">
             <label for="inp-headcount">影響人數</label>
             <input id="inp-headcount" type="range" min="1" max="100" value="20" />
@@ -1184,6 +1245,74 @@
       }
     }
 
+    window._roiSolutions = [];
+
+    function setRoiMonthlyCost(value) {
+      const monthlyInput = document.getElementById('inp-monthly');
+      const fee = Math.max(0, Number(value) || 0);
+      if (fee > Number(monthlyInput.max || 0)) {
+        monthlyInput.max = String(Math.ceil(fee / 5000) * 5000);
+      }
+      monthlyInput.value = String(fee);
+    }
+
+    function applyROISolution(solution) {
+      if (!solution) return;
+      setRoiMonthlyCost(solution.fee);
+      document.getElementById('roi-solution-name').textContent = solution.name || '未命名方案';
+      updateRoi();
+    }
+
+    function applyROISolutionByIndex(index) {
+      applyROISolution(window._roiSolutions[Number(index)]);
+    }
+
+    function renderROISelector(solutions) {
+      window._roiSolutions = solutions;
+      const container = document.getElementById('roi-selector-container');
+      container.innerHTML = `
+        <div class="roi-selector">
+          <label for="roi-solution-select">試算方案</label>
+          <select id="roi-solution-select">
+            ${solutions.map((solution, index) => `
+              <option value="${index}">
+                ${escapeHtml(solution.name)}${solution.fee ? ` — NT$${fmt.format(solution.fee)}/月` : ' — 月費未填'}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+      `;
+      document.getElementById('roi-solution-select').addEventListener('change', (event) => {
+        applyROISolutionByIndex(event.target.value);
+      });
+      applyROISolution(solutions[0]);
+    }
+
+    function initROIFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      const solutionsParam = params.get('solutions');
+      if (!solutionsParam) return;
+
+      const solutions = solutionsParam.split(',')
+        .map(item => {
+          const separatorIndex = item.lastIndexOf('|');
+          const encodedName = separatorIndex >= 0 ? item.slice(0, separatorIndex) : item;
+          const fee = separatorIndex >= 0 ? item.slice(separatorIndex + 1) : '0';
+          return {
+            name: decodeURIComponent(encodedName || '未命名方案'),
+            fee: Number(fee) || 0,
+          };
+        })
+        .filter(solution => solution.name);
+
+      if (!solutions.length) return;
+      if (solutions.length === 1) {
+        applyROISolution(solutions[0]);
+        return;
+      }
+      renderROISelector(solutions);
+    }
+
     function updateRoi() {
       const headcount = Number(document.getElementById('inp-headcount').value);
       const salary = Number(document.getElementById('inp-salary').value);
@@ -1230,6 +1359,7 @@
     renderCategories();
     renderScenarios();
     updateRoi();
+    initROIFromURL();
     loadStats();
     loadCompanies();
   </script>
