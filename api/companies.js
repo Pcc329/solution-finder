@@ -42,6 +42,11 @@ export default async function handler(req, res) {
     return match ? Number(match[0]) : null;
   }
 
+  function parseScore(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
   function addTag(tags, value) {
     if (value && !tags.includes(value)) tags.push(value);
   }
@@ -114,6 +119,8 @@ export default async function handler(req, res) {
         award_count: awardCount,
         solution_count: linkedSolutionCount,
         linked_solution_count: linkedSolutionCount,
+        score_sum: 0,
+        score_count: 0,
         contact_count: Number(f['contact_count'] || f['contacts_count'] || 0) || 0,
         industry: industryVertical || f['industry'] || '資訊服務',
         industry_vertical: industryVertical,
@@ -144,6 +151,11 @@ export default async function handler(req, res) {
         const company = companyByCid[cid] || companyByRecId[cid];
         if (!company) return;
         if (!company.linked_solution_count) company.solution_count += 1;
+        const score = parseScore(f['score_overall']);
+        if (score !== null) {
+          company.score_sum += score;
+          company.score_count += 1;
+        }
         if (hasAi || /AI|人工智慧|智慧/.test(text)) addTag(company.tags, 'AI工具');
         if (/ERP|進銷存|企業資源/.test(text)) addTag(company.tags, 'ERP');
         if (/資安|資訊安全|防毒|弱點|防護|備份/.test(text)) addTag(company.tags, '資安');
@@ -167,6 +179,9 @@ export default async function handler(req, res) {
         city: item.city,
         est_year: item.est_year,
         tech_tags: item.tech_tags,
+        avg_score: item.score_count > 0
+          ? Number((item.score_sum / item.score_count).toFixed(1))
+          : null,
         tags: item.tags,
       }));
 
