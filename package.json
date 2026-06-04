@@ -1,0 +1,16 @@
+{
+  "name": "solution-finder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev --listen 3000",
+    "smoke": "node scripts/smoke-preview.mjs",
+    "smoke:headed": "node scripts/smoke-preview.mjs --headed",
+    "screenshots": "node scripts/smoke-preview.mjs --screenshots-only"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.1",
+    "vercel": "^39.2.5"
+  }
+}
