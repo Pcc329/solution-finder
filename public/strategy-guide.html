@@ -889,6 +889,13 @@
       if (!typeCtx || !cityCtx) return;
       const sourceEntries = toChartEntries(data.bySource || data.byProgramType, 7);
       const cityEntries = toChartEntries(data.byCity, 8);
+      console.log('=== Strategy Guide Debug ===');
+      console.log('API data:', data);
+      console.log('data.bySource:', data.bySource);
+      console.log('data.byCity:', data.byCity);
+      console.log('data.byProgramType:', data.byProgramType);
+      console.log('sourceEntries:', sourceEntries);
+      console.log('cityEntries:', cityEntries);
       const palette = ['#0F6E56', '#1D9E75', '#185FA5', '#BA7517', '#D85A30', '#6B7280', '#94A3B8', '#C7D2FE'];
       if (typeChart) typeChart.destroy();
       if (cityChart) cityChart.destroy();
