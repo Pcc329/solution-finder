@@ -16,7 +16,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background-color: #f8fafc; }
+    body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background-color: #ffffff; color: #111827; }
+    #global-nav { position: sticky; top: 0; z-index: 1000; background: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .global-nav-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .global-nav-logo { width: 36px; height: 36px; background: #0d9488; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .global-nav-kicker { font-size: 10px; color: #6b7280; letter-spacing: 0.1em; }
+    .global-nav-title { font-size: 14px; font-weight: 600; color: #111827; }
+    .global-nav-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .global-nav-link { padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; color: #374151; text-decoration: none; background: #fff; font-weight: 600; }
+    .global-nav-link.active { background: #0d9488; color: #ffffff; border-color: #0d9488; }
+    @media (max-width: 640px) {
+      #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
+      .global-nav-actions { width: 100%; justify-content: flex-start; }
+    }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     .animate-in { animation: fadeIn 0.3s ease-out forwards; }
@@ -376,6 +388,7 @@
         tags: item.tags,
         p: item.p,
         desc: item.desc,
+        mo: item.mo,
         so: item.so,
       });
 
@@ -408,6 +421,16 @@
         }
         sessionStorage.setItem("compareItems", JSON.stringify(compareItems));
         window.location.href = "/compare.html";
+      };
+
+      const startRoiEstimate = () => {
+        if (compareItems.length === 0) return;
+        const params = compareItems.map(item => {
+          const name = encodeURIComponent(item.s || item.name || "未命名");
+          const fee = Number(item.mo || item.monthlyPrice || 0) || 0;
+          return `${name}|${fee}`;
+        }).join(",");
+        window.location.href = `/strategy-guide.html?solutions=${params}#roi`;
       };
 
       const handleAsk = async () => {
@@ -453,29 +476,29 @@
 
       // ===== HOME PAGE =====
       const renderHome = () => (
-        <div className="bg-[#0d3d2a] text-white py-32 px-6 border-t-[4px] border-[#0d6e52] flex flex-col items-center text-center animate-in min-h-screen relative overflow-hidden">
+        <div className="bg-white text-slate-900 py-32 px-6 border-t border-slate-100 flex flex-col items-center text-center animate-in min-h-screen relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <div className="absolute top-10 left-10 w-64 h-64 bg-[#1D9E75] rounded-full blur-[120px]"></div>
             <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#0d6e52] rounded-full blur-[150px]"></div>
           </div>
           <div className="relative z-10 w-full max-w-2xl">
-            <div className="bg-white/10 backdrop-blur-xl p-6 rounded-3xl mb-8 inline-block shadow-2xl border border-white/5">
+            <div className="bg-emerald-50 p-6 rounded-3xl mb-8 inline-block shadow-xl border border-emerald-100">
               <span style={{fontSize: "4rem", lineHeight: "1"}}>💡</span>
             </div>
-            <p className="text-[11px] tracking-[0.16em] uppercase text-white/50 mb-3">SOLUTION FINDER</p>
+            <p className="text-[11px] tracking-[0.16em] uppercase text-slate-400 mb-3">SOLUTION FINDER</p>
             <h1 className="text-5xl md:text-7xl font-black mb-8 leading-tight tracking-tight">
               資服產業資料庫<br /><span className="text-[#1D9E75]">即時語意分析。</span>
             </h1>
-            <p className="text-slate-300 text-lg mb-12 max-w-xl mx-auto font-medium leading-relaxed">
-              輸入您的數位轉型需求，Claude AI 將從 <span className="text-white font-bold">{allData.length.toLocaleString()}</span> 筆方案中精選最佳路徑。
+            <p className="text-slate-600 text-lg mb-12 max-w-xl mx-auto font-medium leading-relaxed">
+              輸入您的數位轉型需求，Claude AI 將從 <span className="text-slate-900 font-bold">{allData.length.toLocaleString()}</span> 筆方案中精選最佳路徑。
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 w-full bg-white/5 p-2 rounded-[2.5rem] border border-white/10 backdrop-blur-sm shadow-2xl">
+            <div className="flex flex-col sm:flex-row gap-4 w-full bg-white p-2 rounded-[2.5rem] border border-slate-200 shadow-2xl">
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="搜尋：我想找台中的 AI 智能排班系統，預算三萬..."
-                className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-white placeholder:text-white/30 text-lg font-medium"
+                className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-slate-800 placeholder:text-slate-400 text-lg font-medium"
               />
               <button onClick={handleSearch} disabled={loading || isSearching}
                 className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-60 disabled:cursor-not-allowed text-white px-10 py-4 rounded-full font-black text-lg shadow-2xl transition-all active:scale-95 whitespace-nowrap flex items-center justify-center gap-2">
@@ -492,7 +515,7 @@
             <div className="flex flex-wrap justify-center gap-2 mt-6">
               {["AI 客服方案", "銷售管理系統", "醫療照護系統", "五萬以下 ERP"].map(text => (
                 <button key={text} onClick={() => handleQuickSearch(text)}
-                  className="text-xs text-white/60 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-all">
+                  className="text-xs text-slate-500 hover:text-[#0d6e52] bg-slate-50 hover:bg-emerald-50 px-4 py-2 rounded-full border border-slate-200 transition-all">
                   {text}
                 </button>
               ))}
@@ -785,12 +808,12 @@
           {renderPagination()}
 
           {compareItems.length > 0 && createPortal(
-            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-t border-emerald-100 shadow-2xl px-6 pt-4 pb-6 flex flex-col sm:flex-row sm:items-center justify-center gap-4">
+            <div className="fixed bottom-0 left-0 right-0 z-[1100] bg-white/95 backdrop-blur border-t border-emerald-100 shadow-2xl px-6 pt-4 pb-6 flex flex-col sm:flex-row sm:items-center justify-center gap-4">
               <div className="text-center sm:text-left">
                 <p className="text-sm font-black text-slate-800">已選 {compareItems.length} 個方案</p>
                 {compareNotice && <p className="text-xs text-red-500 mt-1">{compareNotice}</p>}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap justify-center gap-2">
                 <button onClick={clearCompareItems}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors">
                   清除
@@ -798,6 +821,10 @@
                 <button onClick={startCompare} disabled={compareItems.length < 2}
                   className="px-5 py-2 rounded-xl bg-[#0d6e52] disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-black shadow-sm hover:bg-[#1D9E75] transition-colors">
                   比較
+                </button>
+                <button onClick={startRoiEstimate}
+                  className="px-5 py-2 rounded-xl bg-[#0d6e52] text-white text-sm font-black shadow-sm hover:bg-[#1D9E75] transition-colors">
+                  試算 ROI ↗
                 </button>
               </div>
             </div>,
@@ -926,43 +953,20 @@
 
       return (
         <div className="min-h-screen flex flex-col">
-          <header className="bg-white/90 backdrop-blur-md border-b border-black/5 sticky top-0 z-[100]">
-            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActivePage("home"); setQuery(""); }}>
-                <div className="w-10 h-10 bg-[#0d6e52] rounded-2xl flex items-center justify-center text-white shadow-lg">
-                  <i className="fa-solid fa-layer-group text-xl"></i>
-                </div>
-                <div>
-                  <span className="text-[11px] tracking-[0.16em] uppercase text-slate-400 block leading-none mb-1">SOLUTION FINDER</span>
-                  <span className="font-black text-lg text-[#0d3d2a] tracking-tight block leading-none mb-1">資服產業資料庫</span>
-                  <span className="text-xs text-slate-400">{allData.length.toLocaleString()} 個方案</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <a href="/sources.html"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-200 bg-white text-[#0d6e52] text-sm font-bold hover:bg-emerald-50 transition-colors shadow-sm">
-                  <i className="fa-solid fa-folder-open"></i>
-                  <span className="hidden sm:inline">資料來源</span>
-                </a>
-                <a href="/dashboard.html"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1D9E75] text-white text-sm font-bold hover:bg-[#0d6e52] transition-colors shadow-sm">
-                  <i className="fa-solid fa-chart-line"></i>
-                  戰情儀表板
-                </a>
-                <a href="/strategy-guide.html"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1D9E75] text-white text-sm font-bold hover:bg-[#0d6e52] transition-colors shadow-sm">
-                  <i className="fa-solid fa-lightbulb"></i>
-                  策略智庫 ↗
-                </a>
-                {activePage !== "home" && (
-                  <button onClick={() => { setActivePage("list"); setSelectedItem(null); }}
-                    className="text-sm text-slate-500 hover:text-emerald-600 flex items-center gap-1">
-                    <i className="fa-solid fa-list"></i> 搜尋結果
-                  </button>
-                )}
+          <nav id="global-nav">
+            <div className="global-nav-brand" onClick={() => { setActivePage("home"); setQuery(""); }}>
+              <div className="global-nav-logo"><span style={{fontSize: "18px"}}>🔷</span></div>
+              <div>
+                <div className="global-nav-kicker">SOLUTION FINDER</div>
+                <div className="global-nav-title">資服產業資料庫</div>
               </div>
             </div>
-          </header>
+            <div className="global-nav-actions">
+              <a className="global-nav-link active" href="/">資料來源</a>
+              <a className="global-nav-link" href="/dashboard.html">戰情儀表板</a>
+              <a className="global-nav-link" href="/strategy-guide.html">策略智庫 ↗</a>
+            </div>
+          </nav>
           <main className="flex-1 overflow-hidden overflow-y-auto custom-scrollbar">
             {activePage === "home" && renderHome()}
             {activePage === "list" && renderList()}
