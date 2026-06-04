@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>產業策略智庫 2026</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     :root {
       color-scheme: light dark;
@@ -415,9 +414,49 @@
       padding: 14px;
       background: var(--card);
     }
-    .chart-box canvas {
-      width: 100%;
-      height: 280px;
+    .bar-chart {
+      padding: 8px 0;
+      min-height: 280px;
+    }
+    .bar-chart-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+    }
+    .bar-chart-label {
+      width: 110px;
+      color: var(--muted);
+      flex-shrink: 0;
+      font-size: 12px;
+      overflow: hidden;
+      text-align: right;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .bar-chart-track {
+      flex: 1;
+      height: 22px;
+      overflow: hidden;
+      background: color-mix(in srgb, var(--line) 46%, transparent);
+      border-radius: 4px;
+    }
+    .bar-chart-fill {
+      height: 100%;
+      min-width: 2px;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .bar-chart-value {
+      width: 50px;
+      color: var(--text);
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+    .bar-chart-empty {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 24px 0;
     }
     .quality-note {
       margin: 14px 0 0;
@@ -576,11 +615,11 @@
       <div class="market-grid">
         <div class="chart-box">
           <h3>方案來源分布</h3>
-          <canvas id="typeChart" height="280"></canvas>
+          <div id="sourceChart" class="bar-chart"></div>
         </div>
         <div class="chart-box">
           <h3>主要城市分布</h3>
-          <canvas id="cityChart" height="280"></canvas>
+          <div id="cityChart" class="bar-chart"></div>
         </div>
       </div>
       <p class="quality-note">資料品質提示：城市欄位已在統計 API 正規化「臺」為「台」；空值不納入城市分布。</p>
@@ -719,8 +758,6 @@
     let activeService = null;
     let selectedCompany = null;
     let dimTimer = null;
-    let typeChart = null;
-    let cityChart = null;
 
     function escapeHtml(value) {
       return String(value ?? '')
@@ -760,6 +797,26 @@
         .filter(([, value]) => value > 0)
         .sort((a, b) => b[1] - a[1])
         .slice(0, limit);
+    }
+
+    function renderBarChart(containerId, entries, color = '#10b981') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      if (!entries || entries.length === 0) {
+        container.innerHTML = '<div class="bar-chart-empty">暫無可顯示資料</div>';
+        return;
+      }
+
+      const max = Math.max(...entries.map(([, value]) => value));
+      container.innerHTML = entries.map(([name, value]) => `
+        <div class="bar-chart-row">
+          <span class="bar-chart-label" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+          <div class="bar-chart-track">
+            <div class="bar-chart-fill" style="background:${color};width:${(value / max * 100).toFixed(1)}%;"></div>
+          </div>
+          <span class="bar-chart-value">${fmt.format(value)}</span>
+        </div>
+      `).join('');
     }
 
     function colorFor(company) {
@@ -883,43 +940,10 @@
     }
 
     function renderMarketCharts(data) {
-      if (!window.Chart) return;
-      const typeCtx = document.getElementById('typeChart');
-      const cityCtx = document.getElementById('cityChart');
-      if (!typeCtx || !cityCtx) return;
       const sourceEntries = toChartEntries(data.bySource || data.byProgramType, 7);
       const cityEntries = toChartEntries(data.byCity, 8);
-      console.log('=== Strategy Guide Debug ===');
-      console.log('API data:', data);
-      console.log('data.bySource:', data.bySource);
-      console.log('data.byCity:', data.byCity);
-      console.log('data.byProgramType:', data.byProgramType);
-      console.log('sourceEntries:', sourceEntries);
-      console.log('cityEntries:', cityEntries);
-      const palette = ['#0F6E56', '#1D9E75', '#185FA5', '#BA7517', '#D85A30', '#6B7280', '#94A3B8', '#C7D2FE'];
-      if (typeChart) typeChart.destroy();
-      if (cityChart) cityChart.destroy();
-      typeChart = new Chart(typeCtx, {
-        type: 'doughnut',
-        data: {
-          labels: sourceEntries.map(([key]) => key || '未分類'),
-          datasets: [{ data: sourceEntries.map(([, value]) => value), backgroundColor: palette }]
-        },
-        options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
-      });
-      cityChart = new Chart(cityCtx, {
-        type: 'bar',
-        data: {
-          labels: cityEntries.map(([key]) => key),
-          datasets: [{ label: '業者數', data: cityEntries.map(([, value]) => value), backgroundColor: '#1D9E75' }]
-        },
-        options: {
-          indexAxis: 'y',
-          scales: { x: { beginAtZero: true } },
-          plugins: { legend: { display: false } },
-          maintainAspectRatio: false
-        }
-      });
+      renderBarChart('sourceChart', sourceEntries, '#10b981');
+      renderBarChart('cityChart', cityEntries, '#3b82f6');
     }
 
     async function loadCompanies() {
