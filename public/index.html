@@ -376,6 +376,7 @@
         tags: item.tags,
         p: item.p,
         desc: item.desc,
+        mo: item.mo,
         so: item.so,
       });
 
@@ -408,6 +409,16 @@
         }
         sessionStorage.setItem("compareItems", JSON.stringify(compareItems));
         window.location.href = "/compare.html";
+      };
+
+      const startRoiEstimate = () => {
+        if (compareItems.length === 0) return;
+        const params = compareItems.map(item => {
+          const name = encodeURIComponent(item.s || item.name || "未命名");
+          const fee = Number(item.mo || item.monthlyPrice || 0) || 0;
+          return `${name}|${fee}`;
+        }).join(",");
+        window.location.href = `/strategy-guide.html?solutions=${params}#roi`;
       };
 
       const handleAsk = async () => {
@@ -790,7 +801,7 @@
                 <p className="text-sm font-black text-slate-800">已選 {compareItems.length} 個方案</p>
                 {compareNotice && <p className="text-xs text-red-500 mt-1">{compareNotice}</p>}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap justify-center gap-2">
                 <button onClick={clearCompareItems}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors">
                   清除
@@ -798,6 +809,10 @@
                 <button onClick={startCompare} disabled={compareItems.length < 2}
                   className="px-5 py-2 rounded-xl bg-[#0d6e52] disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-black shadow-sm hover:bg-[#1D9E75] transition-colors">
                   比較
+                </button>
+                <button onClick={startRoiEstimate}
+                  className="px-5 py-2 rounded-xl bg-[#0d6e52] text-white text-sm font-black shadow-sm hover:bg-[#1D9E75] transition-colors">
+                  試算 ROI ↗
                 </button>
               </div>
             </div>,

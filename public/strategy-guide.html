@@ -480,6 +480,37 @@
     }
     .result-val.warning { color: var(--amber); }
     .result-val.danger { color: var(--coral); }
+    .roi-selector {
+      margin-bottom: 16px;
+    }
+    .roi-selector label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .roi-selector select {
+      width: 100%;
+      border: 0.5px solid var(--line);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--text);
+      font-size: 14px;
+      padding: 8px 12px;
+    }
+    .roi-solution-name {
+      min-height: 20px;
+      margin-bottom: 12px;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .roi-solution-name:empty {
+      display: none;
+    }
     .error {
       color: var(--coral);
       font-size: 13px;
@@ -634,6 +665,8 @@
       </div>
       <div class="roi-grid">
         <div class="roi-control">
+          <div id="roi-selector-container"></div>
+          <div id="roi-solution-name" class="roi-solution-name"></div>
           <div class="slider-row">
             <label for="inp-headcount">影響人數</label>
             <input id="inp-headcount" type="range" min="1" max="100" value="20" />
@@ -1184,6 +1217,74 @@
       }
     }
 
+    window._roiSolutions = [];
+
+    function setRoiMonthlyCost(value) {
+      const monthlyInput = document.getElementById('inp-monthly');
+      const fee = Math.max(0, Number(value) || 0);
+      if (fee > Number(monthlyInput.max || 0)) {
+        monthlyInput.max = String(Math.ceil(fee / 5000) * 5000);
+      }
+      monthlyInput.value = String(fee);
+    }
+
+    function applyROISolution(solution) {
+      if (!solution) return;
+      setRoiMonthlyCost(solution.fee);
+      document.getElementById('roi-solution-name').textContent = solution.name || '未命名方案';
+      updateRoi();
+    }
+
+    function applyROISolutionByIndex(index) {
+      applyROISolution(window._roiSolutions[Number(index)]);
+    }
+
+    function renderROISelector(solutions) {
+      window._roiSolutions = solutions;
+      const container = document.getElementById('roi-selector-container');
+      container.innerHTML = `
+        <div class="roi-selector">
+          <label for="roi-solution-select">試算方案</label>
+          <select id="roi-solution-select">
+            ${solutions.map((solution, index) => `
+              <option value="${index}">
+                ${escapeHtml(solution.name)}${solution.fee ? ` — NT$${fmt.format(solution.fee)}/月` : ' — 月費未填'}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+      `;
+      document.getElementById('roi-solution-select').addEventListener('change', (event) => {
+        applyROISolutionByIndex(event.target.value);
+      });
+      applyROISolution(solutions[0]);
+    }
+
+    function initROIFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      const solutionsParam = params.get('solutions');
+      if (!solutionsParam) return;
+
+      const solutions = solutionsParam.split(',')
+        .map(item => {
+          const separatorIndex = item.lastIndexOf('|');
+          const encodedName = separatorIndex >= 0 ? item.slice(0, separatorIndex) : item;
+          const fee = separatorIndex >= 0 ? item.slice(separatorIndex + 1) : '0';
+          return {
+            name: decodeURIComponent(encodedName || '未命名方案'),
+            fee: Number(fee) || 0,
+          };
+        })
+        .filter(solution => solution.name);
+
+      if (!solutions.length) return;
+      if (solutions.length === 1) {
+        applyROISolution(solutions[0]);
+        return;
+      }
+      renderROISelector(solutions);
+    }
+
     function updateRoi() {
       const headcount = Number(document.getElementById('inp-headcount').value);
       const salary = Number(document.getElementById('inp-salary').value);
@@ -1230,6 +1331,7 @@
     renderCategories();
     renderScenarios();
     updateRoi();
+    initROIFromURL();
     loadStats();
     loadCompanies();
   </script>
