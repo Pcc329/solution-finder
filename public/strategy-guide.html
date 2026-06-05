@@ -189,6 +189,7 @@
       text-decoration: none;
     }
     section { padding: 42px 0; }
+    #gap { scroll-margin-top: 120px; }
     .section-head {
       display: flex;
       justify-content: space-between;
@@ -477,6 +478,96 @@
       font-size: 13px;
       padding: 24px 0;
     }
+    .gap-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .gap-legend span {
+      border: 0.5px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .gap-table-wrap {
+      overflow-x: auto;
+      border: 0.5px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+    }
+    .gap-table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .gap-table th,
+    .gap-table td {
+      padding: 10px 8px;
+      border-bottom: 0.5px solid var(--line);
+      text-align: center;
+      white-space: nowrap;
+    }
+    .gap-table th {
+      color: var(--muted);
+      font-weight: 600;
+      background: color-mix(in srgb, var(--green-soft) 36%, transparent);
+    }
+    .gap-table th:first-child,
+    .gap-table td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--card);
+      color: var(--text);
+      font-weight: 600;
+      text-align: left;
+    }
+    .gap-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+    .cell-suf,
+    .cell-mid,
+    .cell-low {
+      display: inline-block;
+      min-width: 40px;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .cell-suf { background: #EAF3DE; color: #3B6D11; }
+    .cell-mid { background: #FAEEDA; color: #854F0B; }
+    .cell-low { background: #FCEBEB; color: #A32D2D; }
+    .gap-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .gap-summary-card {
+      border: 0.5px solid var(--line);
+      border-left-width: 4px;
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--card);
+    }
+    .gap-summary-card.suf { border-left-color: #3B6D11; }
+    .gap-summary-card.mid { border-left-color: #BA7517; }
+    .gap-summary-card.low { border-left-color: #A32D2D; }
+    .gap-summary-card h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .gap-summary-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
     .quality-note {
       margin: 14px 0 0;
       color: var(--muted);
@@ -545,7 +636,7 @@
       #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
       .global-nav-actions { width: 100%; justify-content: flex-start; }
       .anchor-nav { top: 108px; }
-      .kpis, .panel-grid, .metric-grid, .market-grid, .roi-grid {
+      .kpis, .panel-grid, .metric-grid, .market-grid, .roi-grid, .gap-summary-grid {
         grid-template-columns: 1fr;
       }
       .section-head, .toolbar, .company-head, .hero-top {
@@ -558,6 +649,7 @@
       .nav-inner {
         overflow-x: auto;
       }
+      #gap { scroll-margin-top: 170px; }
     }
   </style>
 </head>
@@ -592,6 +684,7 @@
         <a class="btn" href="#companies">公司圖譜 ↓</a>
         <a class="btn" href="#ai">AI 推薦 ↓</a>
         <a class="btn" href="#market">市場現況 ↓</a>
+        <a class="btn" href="#gap">缺口分析 ↓</a>
         <a class="btn" href="#roi">ROI 試算 ↓</a>
       </div>
     </header>
@@ -604,6 +697,7 @@
       <a href="#companies">公司圖譜</a>
       <a href="#ai">AI 推薦</a>
       <a href="#market">市場現況</a>
+      <a href="#gap">缺口分析</a>
       <a href="#roi">ROI 試算</a>
     </div>
   </nav>
@@ -682,6 +776,28 @@
         </div>
       </div>
       <p class="quality-note">資料品質提示：城市欄位已在統計 API 正規化「臺」為「台」；空值不納入城市分布。</p>
+    </section>
+
+    <section id="gap">
+      <div class="section-head">
+        <div>
+          <h2>產業數位需求覆蓋矩陣</h2>
+          <p class="section-note">根據 Round 06 模擬測試，快速辨識不同產業需求的方案覆蓋缺口。</p>
+        </div>
+      </div>
+      <div class="gap-legend" aria-label="覆蓋等級圖例">
+        <span><span class="cell-suf">充足</span> ≥200 筆</span>
+        <span><span class="cell-mid">中等</span> 50–199 筆</span>
+        <span><span class="cell-low">不足</span> &lt;50 筆</span>
+      </div>
+      <div class="gap-table-wrap" aria-label="產業數位需求覆蓋矩陣">
+        <table class="gap-table">
+          <thead id="gapMatrixHead"></thead>
+          <tbody id="gapMatrixBody"></tbody>
+        </table>
+      </div>
+      <div class="gap-summary-grid" id="gapSummaryCards" aria-label="缺口分析摘要"></div>
+      <p class="quality-note">資料來源：Round 06 模擬測試（2026-06-03）。矩陣為靜態驗證資料，共 10 個需求 × 10 個產業。</p>
     </section>
 
     <section id="roi">
@@ -813,6 +929,21 @@
       ['金融 × 淨零', '金融業想要淨零碳排，尋找永續相關方案'],
     ];
 
+    const INDUSTRIES = ['餐飲', '製造', '零售', '醫療', '物流', '建築', '金融', '教育', '旅遊', '電商'];
+
+    const GAP_DATA = [
+      { need: '數位轉型入門', counts: [608, 608, 608, 608, 608, 608, 608, 608, 608, 608] },
+      { need: '接觸新客戶', counts: [400, 400, 400, 400, 400, 400, 400, 400, 400, 400] },
+      { need: '改善客戶體驗', counts: [249, 249, 249, 249, 249, 249, 249, 249, 249, 249] },
+      { need: '提升辦公效率', counts: [97, 97, 97, 97, 97, 97, 97, 97, 97, 97] },
+      { need: '淨零碳排', counts: [96, 96, 96, 96, 96, 96, 96, 96, 96, 96] },
+      { need: '加強資訊安全', counts: [91, 91, 91, 91, 91, 91, 91, 91, 91, 91] },
+      { need: '簡化供應鏈', counts: [58, 58, 58, 58, 58, 58, 58, 58, 58, 58] },
+      { need: '解決人力短缺', counts: [38, 38, 38, 38, 38, 38, 38, 38, 38, 38] },
+      { need: '吸引人才', counts: [38, 38, 38, 38, 38, 38, 38, 38, 38, 38] },
+      { need: '簡化現金流', counts: [10, 10, 10, 10, 58, 10, 10, 10, 75, 10] },
+    ];
+
     let activeCategory = null;
     let allCompanies = [];
     let activeType = 'all';
@@ -858,6 +989,69 @@
         .filter(([, value]) => value > 0)
         .sort((a, b) => b[1] - a[1])
         .slice(0, limit);
+    }
+
+    function getLevel(n) {
+      if (n >= 200) return { cls: 'suf', label: '充足' };
+      if (n >= 50) return { cls: 'mid', label: '中等' };
+      return { cls: 'low', label: '不足' };
+    }
+
+    function avgCount(row) {
+      return Math.round(row.counts.reduce((sum, value) => sum + value, 0) / row.counts.length);
+    }
+
+    function renderGapMatrix() {
+      const head = document.getElementById('gapMatrixHead');
+      const body = document.getElementById('gapMatrixBody');
+      const cards = document.getElementById('gapSummaryCards');
+      if (!head || !body || !cards) return;
+
+      head.innerHTML = `
+        <tr>
+          <th>需求名稱</th>
+          ${INDUSTRIES.map(name => `<th>${escapeHtml(name)}</th>`).join('')}
+          <th>平均</th>
+        </tr>
+      `;
+      body.innerHTML = GAP_DATA.map(row => {
+        const avg = avgCount(row);
+        const avgLevel = getLevel(avg);
+        return `
+          <tr>
+            <td>${escapeHtml(row.need)}</td>
+            ${row.counts.map(count => {
+              const level = getLevel(count);
+              return `<td><span class="cell-${level.cls}" title="${level.label}">${fmt.format(count)}</span></td>`;
+            }).join('')}
+            <td><span class="cell-${avgLevel.cls}" title="${avgLevel.label}">${fmt.format(avg)}</span></td>
+          </tr>
+        `;
+      }).join('');
+
+      const summaryGroups = [
+        {
+          cls: 'suf',
+          title: '充足覆蓋 - 3 個需求',
+          items: ['接觸新客戶 400筆', '改善客戶體驗 249筆', '數位轉型入門 608筆'],
+        },
+        {
+          cls: 'mid',
+          title: '中等覆蓋 - 4 個需求',
+          items: ['提升辦公效率 97筆', '加強資訊安全 91筆', '淨零碳排 96筆', '簡化供應鏈 58筆'],
+        },
+        {
+          cls: 'low',
+          title: '高優先缺口 - 3 個需求',
+          items: ['解決人力短缺 38筆', '吸引人才 38筆', '簡化現金流 21筆（平均）'],
+        },
+      ];
+      cards.innerHTML = summaryGroups.map(group => `
+        <div class="gap-summary-card ${group.cls}">
+          <h3>${escapeHtml(group.title)}</h3>
+          <ul>${group.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        </div>
+      `).join('');
     }
 
     function renderBarChart(containerId, entries, color = '#10b981') {
@@ -1358,6 +1552,7 @@
 
     renderCategories();
     renderScenarios();
+    renderGapMatrix();
     updateRoi();
     initROIFromURL();
     loadStats();
