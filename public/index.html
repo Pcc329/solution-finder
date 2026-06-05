@@ -69,6 +69,92 @@
       { value: "name_az", label: "方案名 A-Z" },
     ];
 
+    function ROIModal({ item, onClose }) {
+      const [people, setPeople] = useState(10);
+      const [salary, setSalary] = useState(40000);
+
+      const monthlyFee = Number(item.mo || 0) || 0;
+      const monthlyLabor = people * salary;
+      const requiredEff = monthlyLabor > 0 ? Number(((monthlyFee / monthlyLabor) * 100).toFixed(1)) : 0;
+      const difficulty =
+        requiredEff < 3 ? { label: "非常容易達到", cls: "green" } :
+        requiredEff < 8 ? { label: "可達成", cls: "amber" } :
+        { label: "挑戰性較高", cls: "red" };
+
+      const toneClass = difficulty.cls === "green"
+        ? "bg-green-50 border border-green-200"
+        : difficulty.cls === "amber"
+          ? "bg-amber-50 border border-amber-200"
+          : "bg-red-50 border border-red-200";
+      const valueClass = difficulty.cls === "green"
+        ? "text-green-700"
+        : difficulty.cls === "amber"
+          ? "text-amber-700"
+          : "text-red-700";
+      const labelClass = difficulty.cls === "green"
+        ? "text-green-600"
+        : difficulty.cls === "amber"
+          ? "text-amber-600"
+          : "text-red-600";
+
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={onClose}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-5">
+              <div>
+                <h3 className="font-black text-slate-800 text-lg">ROI 試算</h3>
+                <p className="text-xs text-slate-500 mt-1">{item.name}</p>
+              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl">✕</button>
+            </div>
+
+            <div className="bg-emerald-50 rounded-xl p-3 mb-5 flex justify-between items-center">
+              <span className="text-sm text-emerald-700 font-bold">方案月費</span>
+              <span className="text-lg font-black text-emerald-800 font-mono">
+                {monthlyFee > 0 ? `NT$ ${monthlyFee.toLocaleString()}` : "未提供"}
+              </span>
+            </div>
+
+            <div className="space-y-4 mb-5">
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">影響人數（人）</label>
+                <input type="number" min="1" value={people}
+                  onChange={e => setPeople(+e.target.value || 1)}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-400" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">平均人月成本（元）</label>
+                <input type="number" min="1000" step="1000" value={salary}
+                  onChange={e => setSalary(+e.target.value || 1000)}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-400" />
+              </div>
+            </div>
+
+            {monthlyFee > 0 ? (
+              <div className={`rounded-xl p-4 text-center ${toneClass}`}>
+                <p className="text-xs text-slate-500 mb-1">只需提升</p>
+                <p className={`text-4xl font-black mb-1 ${valueClass}`}>{requiredEff.toFixed(1)}%</p>
+                <p className="text-sm font-bold text-slate-600">效率，即可回收月費</p>
+                <p className={`text-xs mt-2 font-bold ${labelClass}`}>{difficulty.label}</p>
+              </div>
+            ) : (
+              <div className="bg-slate-50 rounded-xl p-4 text-center text-sm text-slate-400">
+                此方案未提供月費資訊<br />
+                <span className="text-xs">請聯繫業者詢問報價</span>
+              </div>
+            )}
+
+            <p className="text-[10px] text-slate-300 text-center mt-4">
+              試算僅供顧問初步評估，正式報告仍需以實際導入範圍校正。
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     function App() {
       const [allData, setAllData] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -90,6 +176,7 @@
       const [askAnswer, setAskAnswer] = useState("");
       const [askLoading, setAskLoading] = useState(false);
       const [askError, setAskError] = useState("");
+      const [roiModal, setROIModal] = useState(null);
       const listTopRef = useRef(null);
 
       // 1. 抓資料
@@ -423,14 +510,18 @@
         window.location.href = "/compare.html";
       };
 
+      const openROIModal = (item) => {
+        setROIModal({
+          name: item.s || item.name || "此方案",
+          mo: item.mo || item.monthlyPrice || 0,
+        });
+      };
+
+      const closeROIModal = () => setROIModal(null);
+
       const startRoiEstimate = () => {
         if (compareItems.length === 0) return;
-        const params = compareItems.map(item => {
-          const name = encodeURIComponent(item.s || item.name || "未命名");
-          const fee = Number(item.mo || item.monthlyPrice || 0) || 0;
-          return `${name}|${fee}`;
-        }).join(",");
-        window.location.href = `/strategy-guide.html?solutions=${params}#roi`;
+        openROIModal(compareItems[0]);
       };
 
       const handleAsk = async () => {
@@ -790,6 +881,11 @@
                       <p className="text-[10px] text-slate-400 mb-0.5">方案費用</p>
                       <p className="text-base font-bold text-[#0d6e52] font-mono">{formatCurrency(item.pr)}</p>
                       {item.mo && <p className="text-[10px] text-slate-400 mt-0.5">{formatCurrency(item.mo)}/月</p>}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); openROIModal(item); }}
+                        className="mt-2 text-xs text-emerald-600 hover:text-emerald-800 font-bold flex items-center gap-1 transition-colors sm:ml-auto">
+                        <i className="fa-solid fa-calculator"></i> 試算 ROI
+                      </button>
                     </div>
                     <i className="fa-solid fa-chevron-right text-slate-300 mt-0 sm:mt-4"></i>
                   </div>
@@ -883,6 +979,12 @@
                 {item.mt && <p className="text-xs text-slate-400 mt-1">{item.mt}/月</p>}
               </div>
             </div>
+            <button
+              onClick={() => openROIModal(selectedItem)}
+              className="mb-6 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-emerald-500 text-emerald-700 font-bold text-sm hover:bg-emerald-50 transition-colors">
+              <i className="fa-solid fa-calculator"></i>
+              試算這個方案的 ROI
+            </button>
 
             {/* Description */}
             {item.desc && (
@@ -972,6 +1074,10 @@
             {activePage === "list" && renderList()}
             {activePage === "detail" && renderDetail()}
           </main>
+          {roiModal && createPortal(
+            <ROIModal item={roiModal} onClose={closeROIModal} />,
+            document.body
+          )}
         </div>
       );
     }
