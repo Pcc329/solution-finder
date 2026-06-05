@@ -922,6 +922,7 @@
 
     const COMPETITION_X_MID = 150;
     const COMPETITION_Y_MID = 0.47;
+    const COMPANY_DISPLAY_LIMIT = 200;
 
     let activeCategory = null;
     let allCompanies = [];
@@ -1463,8 +1464,11 @@
     function renderBubbles() {
       const stage = document.getElementById('bubbleStage');
       const card = document.getElementById('companyCard');
-      const items = filteredCompanies().sort((a, b) => b.solution_count - a.solution_count).slice(0, 80);
-      document.getElementById('companyCount').textContent = `目前顯示 ${items.length} / 總計 ${allCompanies.length}`;
+      const filtered = filteredCompanies().sort((a, b) => b.solution_count - a.solution_count);
+      const filteredCount = filtered.length;
+      const displayCount = Math.min(filteredCount, COMPANY_DISPLAY_LIMIT);
+      const items = filtered.slice(0, COMPANY_DISPLAY_LIMIT);
+      document.getElementById('companyCount').textContent = `目前顯示 ${displayCount} / 統計 ${filteredCount}`;
       card.classList.toggle('hidden', !selectedCompany);
       const width = stage.clientWidth || 860;
       const height = stage.clientHeight || 440;
