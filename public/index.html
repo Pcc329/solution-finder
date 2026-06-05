@@ -75,10 +75,13 @@
 
       const monthlyFee = Number(item.mo || 0) || 0;
       const monthlyLabor = people * salary;
-      const requiredEff = monthlyLabor > 0 ? Number(((monthlyFee / monthlyLabor) * 100).toFixed(1)) : 0;
+      const requiredEff = monthlyLabor > 0
+        ? ((monthlyFee / monthlyLabor) * 100).toFixed(1)
+        : "0.0";
+      const requiredEffValue = Number(requiredEff);
       const difficulty =
-        requiredEff < 3 ? { label: "非常容易達到", cls: "green" } :
-        requiredEff < 8 ? { label: "可達成", cls: "amber" } :
+        requiredEffValue < 3 ? { label: "非常容易達到", cls: "green" } :
+        requiredEffValue < 8 ? { label: "可達成", cls: "amber" } :
         { label: "挑戰性較高", cls: "red" };
 
       const toneClass = difficulty.cls === "green"
@@ -122,13 +125,13 @@
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">影響人數（人）</label>
                 <input type="number" min="1" value={people}
-                  onChange={e => setPeople(+e.target.value || 1)}
+                  onChange={e => setPeople(Number(e.target.value) || 1)}
                   className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-400" />
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">平均人月成本（元）</label>
                 <input type="number" min="1000" step="1000" value={salary}
-                  onChange={e => setSalary(+e.target.value || 1000)}
+                  onChange={e => setSalary(Number(e.target.value) || 1000)}
                   className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-400" />
               </div>
             </div>
@@ -136,7 +139,7 @@
             {monthlyFee > 0 ? (
               <div className={`rounded-xl p-4 text-center ${toneClass}`}>
                 <p className="text-xs text-slate-500 mb-1">只需提升</p>
-                <p className={`text-4xl font-black mb-1 ${valueClass}`}>{requiredEff.toFixed(1)}%</p>
+                <p className={`text-4xl font-black mb-1 ${valueClass}`}>{requiredEff}%</p>
                 <p className="text-sm font-bold text-slate-600">效率，即可回收月費</p>
                 <p className={`text-xs mt-2 font-bold ${labelClass}`}>{difficulty.label}</p>
               </div>
