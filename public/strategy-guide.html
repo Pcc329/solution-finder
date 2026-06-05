@@ -425,12 +425,12 @@
       font-size: 13px;
     }
     .score-ref-row:first-of-type { border-top: 0; }
-    .market-grid, .roi-grid {
+    .market-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
     }
-    .chart-box, .roi-control, .roi-result {
+    .chart-box {
       border: 0.5px solid var(--line);
       border-radius: 12px;
       padding: 14px;
@@ -604,54 +604,6 @@
       color: var(--muted);
       font-size: 13px;
     }
-    .slider-row {
-      display: grid;
-      grid-template-columns: 130px 1fr 86px;
-      gap: 10px;
-      align-items: center;
-      margin: 12px 0;
-      font-size: 13px;
-    }
-    .slider-row input { width: 100%; accent-color: var(--green); }
-    .result-val {
-      display: block;
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--green);
-    }
-    .result-val.warning { color: var(--amber); }
-    .result-val.danger { color: var(--coral); }
-    .roi-selector {
-      margin-bottom: 16px;
-    }
-    .roi-selector label {
-      display: block;
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-    .roi-selector select {
-      width: 100%;
-      border: 0.5px solid var(--line);
-      border-radius: 6px;
-      background: var(--card);
-      color: var(--text);
-      font-size: 14px;
-      padding: 8px 12px;
-    }
-    .roi-solution-name {
-      min-height: 20px;
-      margin-bottom: 12px;
-      color: var(--green);
-      font-size: 13px;
-      font-weight: 700;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .roi-solution-name:empty {
-      display: none;
-    }
     .error {
       color: var(--coral);
       font-size: 13px;
@@ -667,7 +619,7 @@
       #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
       .global-nav-actions { width: 100%; justify-content: flex-start; }
       .anchor-nav { top: 108px; }
-      .kpis, .panel-grid, .metric-grid, .market-grid, .roi-grid, .gap-summary-grid {
+      .kpis, .panel-grid, .metric-grid, .market-grid, .gap-summary-grid {
         grid-template-columns: 1fr;
       }
       .section-head, .toolbar, .company-head, .hero-top {
@@ -719,7 +671,6 @@
         <a class="btn" href="#market">市場現況 ↓</a>
         <a class="btn" href="#gap">缺口分析 ↓</a>
         <a class="btn" href="#competition">競爭態勢 ↓</a>
-        <a class="btn" href="#roi">ROI 試算 ↓</a>
       </div>
     </header>
   </main>
@@ -733,7 +684,6 @@
       <a href="#market">市場現況</a>
       <a href="#gap">缺口分析</a>
       <a href="#competition">競爭態勢</a>
-      <a href="#roi">ROI 試算</a>
     </div>
   </nav>
 
@@ -856,55 +806,6 @@
       </div>
     </section>
 
-    <section id="roi">
-      <div class="section-head">
-        <div>
-          <h2>ROI 試算</h2>
-          <p class="section-note">用粗估參數快速判斷導入方案是否值得進入下一輪訪談。</p>
-        </div>
-      </div>
-      <div class="roi-grid">
-        <div class="roi-control">
-          <div id="roi-selector-container"></div>
-          <div id="roi-solution-name" class="roi-solution-name"></div>
-          <div class="slider-row">
-            <label for="inp-headcount">影響人數</label>
-            <input id="inp-headcount" type="range" min="1" max="100" value="20" />
-            <span id="val-headcount">20 人</span>
-          </div>
-          <div class="slider-row">
-            <label for="inp-salary">人月成本</label>
-            <input id="inp-salary" type="range" min="30000" max="120000" step="5000" value="60000" />
-            <span id="val-salary">60,000</span>
-          </div>
-          <div class="slider-row">
-            <label for="inp-efficiency">效率提升</label>
-            <input id="inp-efficiency" type="range" min="1" max="50" value="15" />
-            <span id="val-efficiency">15%</span>
-          </div>
-          <div class="slider-row">
-            <label for="inp-setup">導入成本</label>
-            <input id="inp-setup" type="range" min="0" max="1000000" step="50000" value="220000" />
-            <span id="val-setup">220,000</span>
-          </div>
-          <div class="slider-row">
-            <label for="inp-monthly">月費</label>
-            <input id="inp-monthly" type="range" min="0" max="200000" step="5000" value="0" />
-            <span id="val-monthly">0</span>
-          </div>
-        </div>
-        <div class="roi-result">
-          <span class="kpi-label">預估每月節省</span>
-          <span class="result-val" id="res-monthly">NT$ 180,000</span>
-          <span class="kpi-label">預估年度效益</span>
-          <span class="result-val" id="res-annual">NT$ 2,160,000</span>
-          <span class="kpi-label">回收期</span>
-          <span class="result-val success" id="res-payback">1.2 個月</span>
-          <p class="quality-note" id="roi-summary">回收期低於 6 個月，可列入優先評估。</p>
-        </div>
-      </div>
-      <p class="quality-note">試算僅供顧問初步溝通使用，正式評估仍需以客戶實際流程、導入範圍與維運成本校正。</p>
-    </section>
   </main>
 
   <footer>
@@ -1726,114 +1627,6 @@
       }
     }
 
-    window._roiSolutions = [];
-
-    function setRoiMonthlyCost(value) {
-      const monthlyInput = document.getElementById('inp-monthly');
-      const fee = Math.max(0, Number(value) || 0);
-      if (fee > Number(monthlyInput.max || 0)) {
-        monthlyInput.max = String(Math.ceil(fee / 5000) * 5000);
-      }
-      monthlyInput.value = String(fee);
-    }
-
-    function applyROISolution(solution) {
-      if (!solution) return;
-      setRoiMonthlyCost(solution.fee);
-      document.getElementById('roi-solution-name').textContent = solution.name || '未命名方案';
-      updateRoi();
-    }
-
-    function applyROISolutionByIndex(index) {
-      applyROISolution(window._roiSolutions[Number(index)]);
-    }
-
-    function renderROISelector(solutions) {
-      window._roiSolutions = solutions;
-      const container = document.getElementById('roi-selector-container');
-      container.innerHTML = `
-        <div class="roi-selector">
-          <label for="roi-solution-select">試算方案</label>
-          <select id="roi-solution-select">
-            ${solutions.map((solution, index) => `
-              <option value="${index}">
-                ${escapeHtml(solution.name)}${solution.fee ? ` — NT$${fmt.format(solution.fee)}/月` : ' — 月費未填'}
-              </option>
-            `).join('')}
-          </select>
-        </div>
-      `;
-      document.getElementById('roi-solution-select').addEventListener('change', (event) => {
-        applyROISolutionByIndex(event.target.value);
-      });
-      applyROISolution(solutions[0]);
-    }
-
-    function initROIFromURL() {
-      const params = new URLSearchParams(window.location.search);
-      const solutionsParam = params.get('solutions');
-      if (!solutionsParam) return;
-
-      const solutions = solutionsParam.split(',')
-        .map(item => {
-          const separatorIndex = item.lastIndexOf('|');
-          const encodedName = separatorIndex >= 0 ? item.slice(0, separatorIndex) : item;
-          const fee = separatorIndex >= 0 ? item.slice(separatorIndex + 1) : '0';
-          return {
-            name: decodeURIComponent(encodedName || '未命名方案'),
-            fee: Number(fee) || 0,
-          };
-        })
-        .filter(solution => solution.name);
-
-      if (!solutions.length) return;
-      if (solutions.length === 1) {
-        applyROISolution(solutions[0]);
-        return;
-      }
-      renderROISelector(solutions);
-    }
-
-    function updateRoi() {
-      const headcount = Number(document.getElementById('inp-headcount').value);
-      const salary = Number(document.getElementById('inp-salary').value);
-      const efficiency = Number(document.getElementById('inp-efficiency').value);
-      const setup = Number(document.getElementById('inp-setup').value);
-      const monthlyCost = Number(document.getElementById('inp-monthly').value);
-      const grossMonthlySaving = headcount * salary * (efficiency / 100);
-      const netMonthlySaving = Math.max(0, grossMonthlySaving - monthlyCost);
-      const annualBenefit = netMonthlySaving * 12;
-      const payback = netMonthlySaving > 0 ? setup / netMonthlySaving : Infinity;
-
-      document.getElementById('val-headcount').textContent = `${headcount} 人`;
-      document.getElementById('val-salary').textContent = fmt.format(salary);
-      document.getElementById('val-efficiency').textContent = `${efficiency}%`;
-      document.getElementById('val-setup').textContent = fmt.format(setup);
-      document.getElementById('val-monthly').textContent = fmt.format(monthlyCost);
-      document.getElementById('res-monthly').textContent = `NT$ ${fmt.format(Math.round(netMonthlySaving))}`;
-      document.getElementById('res-annual').textContent = `NT$ ${fmt.format(Math.round(annualBenefit))}`;
-
-      const paybackEl = document.getElementById('res-payback');
-      paybackEl.classList.remove('success', 'warning', 'danger');
-      if (!Number.isFinite(payback)) {
-        paybackEl.textContent = '無法回收';
-        paybackEl.classList.add('danger');
-        document.getElementById('roi-summary').textContent = '每月節省不足以覆蓋月費，需重新檢查導入範圍或成本假設。';
-      } else {
-        paybackEl.textContent = `${payback.toFixed(1)} 個月`;
-        const status = payback <= 6 ? 'success' : payback <= 12 ? 'warning' : 'danger';
-        paybackEl.classList.add(status);
-        document.getElementById('roi-summary').textContent = payback <= 6
-          ? '回收期低於 6 個月，可列入優先評估。'
-          : payback <= 12
-            ? '回收期在 12 個月內，可進一步確認導入阻力與維運成本。'
-            : '回收期偏長，建議縮小導入範圍或改找低成本方案。';
-      }
-    }
-
-    ['headcount', 'salary', 'efficiency', 'setup', 'monthly'].forEach(key => {
-      document.getElementById(`inp-${key}`).addEventListener('input', updateRoi);
-    });
     document.getElementById('askBtn').addEventListener('click', submitAsk);
     window.addEventListener('resize', () => renderBubbles());
 
@@ -1841,8 +1634,6 @@
     renderScenarios();
     renderGapMatrix();
     renderCompetitionGrid();
-    updateRoi();
-    initROIFromURL();
     loadStats();
     loadCompanies();
   </script>
