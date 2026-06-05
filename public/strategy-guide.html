@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>產業策略智庫 2026</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     :root {
       color-scheme: light;
@@ -190,6 +191,7 @@
     }
     section { padding: 42px 0; }
     #gap { scroll-margin-top: 120px; }
+    #competition { scroll-margin-top: 120px; }
     .section-head {
       display: flex;
       justify-content: space-between;
@@ -568,6 +570,35 @@
       color: var(--muted);
       font-size: 13px;
     }
+    .competition-card {
+      border: 0.5px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      background: var(--card);
+    }
+    .competition-chart-wrap {
+      position: relative;
+      height: 460px;
+      min-height: 360px;
+    }
+    .competition-chart-wrap canvas {
+      width: 100%;
+      height: 100%;
+    }
+    .competition-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .competition-legend span {
+      border: 0.5px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: var(--card);
+    }
     .quality-note {
       margin: 14px 0 0;
       color: var(--muted);
@@ -650,6 +681,8 @@
         overflow-x: auto;
       }
       #gap { scroll-margin-top: 170px; }
+      #competition { scroll-margin-top: 170px; }
+      .competition-chart-wrap { height: 420px; }
     }
   </style>
 </head>
@@ -685,6 +718,7 @@
         <a class="btn" href="#ai">AI 推薦 ↓</a>
         <a class="btn" href="#market">市場現況 ↓</a>
         <a class="btn" href="#gap">缺口分析 ↓</a>
+        <a class="btn" href="#competition">競爭態勢 ↓</a>
         <a class="btn" href="#roi">ROI 試算 ↓</a>
       </div>
     </header>
@@ -698,6 +732,7 @@
       <a href="#ai">AI 推薦</a>
       <a href="#market">市場現況</a>
       <a href="#gap">缺口分析</a>
+      <a href="#competition">競爭態勢</a>
       <a href="#roi">ROI 試算</a>
     </div>
   </nav>
@@ -798,6 +833,27 @@
       </div>
       <div class="gap-summary-grid" id="gapSummaryCards" aria-label="缺口分析摘要"></div>
       <p class="quality-note">資料來源：Round 06 模擬測試（2026-06-03）。矩陣為靜態驗證資料，共 10 個需求 × 10 個產業。</p>
+    </section>
+
+    <section id="competition">
+      <div class="section-head">
+        <div>
+          <h2>競爭態勢</h2>
+          <p class="section-note">以 G2 Grid 風格觀察市場規模、競爭密度與各類別策略位置。</p>
+        </div>
+      </div>
+      <div class="competition-card">
+        <div class="competition-chart-wrap">
+          <canvas id="competitionGrid" aria-label="方案競爭態勢氣泡圖"></canvas>
+        </div>
+        <div class="competition-legend" aria-label="競爭態勢圖例">
+          <span>🔴 主戰場領導者</span>
+          <span>🟡 成長競爭者</span>
+          <span>🟣 利基深耕者</span>
+          <span>🔵 藍海探索者</span>
+        </div>
+        <p class="quality-note">氣泡越大 = 方案數越多｜競爭密度 = 公司數÷方案數。資料來源：Solutions CSV 分析（2026-06-05）。</p>
+      </div>
     </section>
 
     <section id="roi">
@@ -944,6 +1000,28 @@
       { need: '簡化現金流', counts: [10, 10, 10, 10, 58, 10, 10, 10, 75, 10] },
     ];
 
+    const COMPETITION_DATA = [
+      { label: '銷售管理', sol: 651, co: 307, zone: 'leader' },
+      { label: '行銷推廣', sol: 397, co: 178, zone: 'leader' },
+      { label: '生產物流', sol: 258, co: 124, zone: 'leader' },
+      { label: '協作辦公', sol: 157, co: 94, zone: 'leader' },
+      { label: '人力資源', sol: 143, co: 78, zone: 'contender' },
+      { label: '暫無法分類', sol: 172, co: 31, zone: 'niche' },
+      { label: '資安合規', sol: 63, co: 44, zone: 'blue' },
+      { label: '研發創新', sol: 61, co: 48, zone: 'blue' },
+      { label: '醫療照護', sol: 28, co: 20, zone: 'blue' },
+    ];
+
+    const ZONE_COLOR = {
+      leader: { bg: 'rgba(220,38,38,0.18)', bd: '#dc2626' },
+      contender: { bg: 'rgba(245,158,11,0.18)', bd: '#f59e0b' },
+      niche: { bg: 'rgba(124,58,237,0.18)', bd: '#7c3aed' },
+      blue: { bg: 'rgba(37,99,235,0.18)', bd: '#2563eb' },
+    };
+
+    const COMPETITION_X_MID = 150;
+    const COMPETITION_Y_MID = 0.47;
+
     let activeCategory = null;
     let allCompanies = [];
     let activeType = 'all';
@@ -1052,6 +1130,215 @@
           <ul>${group.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
         </div>
       `).join('');
+    }
+
+    const quadrantPlugin = {
+      id: 'competitionQuadrants',
+      beforeDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea || !scales.x || !scales.y) return;
+        const { left, right, top, bottom } = chartArea;
+        const xMid = scales.x.getPixelForValue(COMPETITION_X_MID);
+        const yMid = scales.y.getPixelForValue(COMPETITION_Y_MID);
+        ctx.save();
+        ctx.fillStyle = 'rgba(220,38,38,0.06)';
+        ctx.fillRect(xMid, top, right - xMid, yMid - top);
+        ctx.fillStyle = 'rgba(245,158,11,0.06)';
+        ctx.fillRect(left, top, xMid - left, yMid - top);
+        ctx.fillStyle = 'rgba(124,58,237,0.06)';
+        ctx.fillRect(xMid, yMid, right - xMid, bottom - yMid);
+        ctx.fillStyle = 'rgba(37,99,235,0.06)';
+        ctx.fillRect(left, yMid, xMid - left, bottom - yMid);
+        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = 'rgba(0,0,0,0.24)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(xMid, top);
+        ctx.lineTo(xMid, bottom);
+        ctx.moveTo(left, yMid);
+        ctx.lineTo(right, yMid);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(26,26,24,0.58)';
+        ctx.font = '600 12px system-ui, -apple-system, sans-serif';
+        ctx.textBaseline = 'top';
+        ctx.fillText('成長競爭者', left + 10, top + 10);
+        ctx.fillText('主戰場領導者', xMid + 10, top + 10);
+        ctx.fillText('藍海探索者', left + 10, yMid + 10);
+        ctx.fillText('利基深耕者', xMid + 10, yMid + 10);
+        ctx.restore();
+      },
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea } = chart;
+        ctx.save();
+        ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+        ctx.textBaseline = 'middle';
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+          const point = chart.getDatasetMeta(datasetIndex).data[0];
+          if (!point) return;
+          const props = point.getProps(['x', 'y', 'options'], true);
+          const labelX = Math.min(props.x + (props.options.radius || 8) + 6, chartArea.right - 58);
+          const labelY = Math.max(chartArea.top + 8, Math.min(props.y, chartArea.bottom - 8));
+          ctx.fillStyle = dataset.borderColor;
+          ctx.fillText(dataset.label, labelX, labelY);
+        });
+        ctx.restore();
+      },
+    };
+
+    function drawCompetitionFallback(canvas) {
+      const box = canvas.parentElement.getBoundingClientRect();
+      const width = Math.max(680, Math.floor(box.width || 900));
+      const height = Math.max(360, Math.floor(box.height || 460));
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      const padding = { top: 46, right: 70, bottom: 56, left: 58 };
+      const area = {
+        left: padding.left,
+        right: width - padding.right,
+        top: padding.top,
+        bottom: height - padding.bottom,
+      };
+      const xFor = value => area.left + (value / 720) * (area.right - area.left);
+      const yFor = value => area.bottom - (value / 0.85) * (area.bottom - area.top);
+      const xMid = xFor(COMPETITION_X_MID);
+      const yMid = yFor(COMPETITION_Y_MID);
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = 'rgba(220,38,38,0.06)';
+      ctx.fillRect(xMid, area.top, area.right - xMid, yMid - area.top);
+      ctx.fillStyle = 'rgba(245,158,11,0.06)';
+      ctx.fillRect(area.left, area.top, xMid - area.left, yMid - area.top);
+      ctx.fillStyle = 'rgba(124,58,237,0.06)';
+      ctx.fillRect(xMid, yMid, area.right - xMid, area.bottom - yMid);
+      ctx.fillStyle = 'rgba(37,99,235,0.06)';
+      ctx.fillRect(area.left, yMid, xMid - area.left, area.bottom - yMid);
+
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= 720; x += 120) {
+        const px = xFor(x);
+        ctx.beginPath();
+        ctx.moveTo(px, area.top);
+        ctx.lineTo(px, area.bottom);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= 0.8; y += 0.2) {
+        const py = yFor(y);
+        ctx.beginPath();
+        ctx.moveTo(area.left, py);
+        ctx.lineTo(area.right, py);
+        ctx.stroke();
+      }
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = 'rgba(0,0,0,0.24)';
+      ctx.beginPath();
+      ctx.moveTo(xMid, area.top);
+      ctx.lineTo(xMid, area.bottom);
+      ctx.moveTo(area.left, yMid);
+      ctx.lineTo(area.right, yMid);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = 'rgba(26,26,24,0.58)';
+      ctx.font = '600 12px system-ui, -apple-system, sans-serif';
+      ctx.textBaseline = 'top';
+      ctx.fillText('成長競爭者', area.left + 10, area.top + 10);
+      ctx.fillText('主戰場領導者', xMid + 10, area.top + 10);
+      ctx.fillText('藍海探索者', area.left + 10, yMid + 10);
+      ctx.fillText('利基深耕者', xMid + 10, yMid + 10);
+
+      ctx.font = '11px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = '#65635d';
+      ctx.textAlign = 'center';
+      ctx.fillText('市場規模（方案數）', (area.left + area.right) / 2, height - 16);
+      ctx.save();
+      ctx.translate(18, (area.top + area.bottom) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('競爭密度 ↑', 0, 0);
+      ctx.restore();
+
+      COMPETITION_DATA.forEach(item => {
+        const color = ZONE_COLOR[item.zone] || ZONE_COLOR.blue;
+        const x = xFor(item.sol);
+        const y = yFor(item.co / item.sol);
+        const radius = Math.max(8, Math.min(28, item.sol / 28));
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color.bg;
+        ctx.strokeStyle = color.bd;
+        ctx.lineWidth = 2;
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = color.bd;
+        ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(item.label, Math.min(x + radius + 6, area.right - 58), Math.max(area.top + 8, Math.min(y, area.bottom - 8)));
+      });
+    }
+
+    function renderCompetitionGrid() {
+      const canvas = document.getElementById('competitionGrid');
+      if (!canvas) return;
+      if (typeof Chart === 'undefined') {
+        drawCompetitionFallback(canvas);
+        return;
+      }
+      const datasets = COMPETITION_DATA.map(item => {
+        const color = ZONE_COLOR[item.zone] || ZONE_COLOR.blue;
+        return {
+          label: item.label,
+          data: [{ x: item.sol, y: item.co / item.sol, r: Math.max(8, Math.min(28, item.sol / 28)) }],
+          backgroundColor: color.bg,
+          borderColor: color.bd,
+          borderWidth: 2,
+          hoverBorderWidth: 3,
+          _sol: item.sol,
+          _co: item.co,
+        };
+      });
+      new Chart(canvas, {
+        type: 'bubble',
+        data: { datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { top: 30, right: 40, bottom: 10, left: 10 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: ctx => [ctx[0].dataset.label],
+                label: ctx => [
+                  `方案數：${ctx.dataset._sol} 筆`,
+                  `公司數：${ctx.dataset._co} 家`,
+                  `競爭密度：${(ctx.dataset._co / ctx.dataset._sol * 100).toFixed(0)}%`,
+                ],
+              },
+            },
+          },
+          scales: {
+            x: {
+              min: 0,
+              max: 720,
+              title: { display: true, text: '市場規模（方案數）', font: { size: 11 } },
+              grid: { color: 'rgba(0,0,0,0.08)' },
+            },
+            y: {
+              min: 0,
+              max: 0.85,
+              title: { display: true, text: '競爭密度 ↑', font: { size: 11 } },
+              ticks: { callback: v => `${(v * 100).toFixed(0)}%` },
+              grid: { color: 'rgba(0,0,0,0.08)' },
+            },
+          },
+        },
+        plugins: [quadrantPlugin],
+      });
     }
 
     function renderBarChart(containerId, entries, color = '#10b981') {
@@ -1553,6 +1840,7 @@
     renderCategories();
     renderScenarios();
     renderGapMatrix();
+    renderCompetitionGrid();
     updateRoi();
     initROIFromURL();
     loadStats();
