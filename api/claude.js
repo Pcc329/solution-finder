@@ -56,6 +56,8 @@ export default async function handler(req, res) {
 - maxPrice: 總費用上限（數字）
 - maxMonthlyPrice: 月費上限（數字）
 - scale: 適用企業規模，可選值："微型企業"/"中小企業"/"中大型企業"/"大型企業"
+- category: 方案服務類別，可選值（9個）："銷售管理"/"行銷推廣"/"生產物流"/"協作辦公"/"人力資源"/"資安合規"/"研發創新"/"醫療照護"/"暫無法分類"
+- industryKeyword: 產業關鍵字（用於前端軟性排序，比對 target_industry 欄位）
 - keyword: 公司名稱、方案名稱、功能關鍵字、或無法歸類的詞
 
 規則：
@@ -72,13 +74,33 @@ export default async function handler(req, res) {
    - 資訊安全、網路安全、資安防護 → keyword: "資安"
    - 供應鏈管理、進銷存、倉儲物流 → keyword: "供應鏈"
    - 碳排放、淨零、ESG → keyword: "碳"
+6. 服務類別關鍵字對照（輸入包含以下詞 → 設定 category）：
+   - 醫療照護、長照、診所、醫院、健康 → category: "醫療照護"
+   - 資安、資訊安全、網路安全、合規 → category: "資安合規"
+   - ERP、進銷存、供應鏈、倉儲、物流、生產 → category: "生產物流"
+   - CRM、銷售、POS、訂單、報價 → category: "銷售管理"
+   - SEO、廣告、行銷、社群、官網 → category: "行銷推廣"
+   - HR、人資、招募、排班、薪資 → category: "人力資源"
+   - 協作、辦公、專案管理、會議、文件 → category: "協作辦公"
+   - AI開發、資料分析、IoT、研發 → category: "研發創新"
+   - category 和 keyword 可同時存在
+7. 產業關鍵字對照（輸入包含產業名 → 設定 industryKeyword）：
+   - 餐飲 → industryKeyword: "住宿及餐飲業"
+   - 製造 → industryKeyword: "製造業"
+   - 零售 → industryKeyword: "批發零售業"
+   - 醫療 → industryKeyword: "醫療"
+   - 物流 → industryKeyword: "運輸及倉儲"
+   - 建築、營造 → industryKeyword: "營建工程"
+   - 金融、銀行、保險 → industryKeyword: "金融保險"
+   - 教育 → industryKeyword: "教育業"
+   - 旅遊、旅宿、住宿 → industryKeyword: "旅宿業"
+   - 電商 → industryKeyword: "批發零售業"
 注意：金融業、教育業、電商業、物流業、餐飲業等不在 industry_vertical 可選值內的產業，
-不要設定 industry_vertical 欄位，應將產業名稱視為 keyword 的一部分或直接忽略產業條件，
-專注解析需求對應的 keyword。
-例如：「金融業想要改善客戶體驗」→ {"keyword": "客服"}
-例如：「金融業想要淨零碳排」→ {"keyword": "碳"}
-例如：「教育業想要吸引人才」→ {"keyword": "人資"}
-6. 最重要規則：禁止回傳空物件 {}。若無法精確解析，請從使用者輸入中取最關鍵的一個詞作為 keyword 回傳。例如查詢「旅遊住宿業想要改善客戶體驗」至少回傳 {"keyword": "客服"}`;
+不要設定 industry_vertical 欄位；請用 industryKeyword 表示產業，並專注解析需求對應的 keyword。
+例如：「金融業想要改善客戶體驗」→ {"keyword": "客服", "industryKeyword": "金融保險"}
+例如：「金融業想要淨零碳排」→ {"keyword": "碳", "industryKeyword": "金融保險"}
+例如：「教育業想要吸引人才」→ {"keyword": "人資", "industryKeyword": "教育業"}
+8. 最重要規則：禁止回傳空物件 {}。若無法精確解析，請從使用者輸入中取最關鍵的一個詞作為 keyword 回傳。例如查詢「旅遊住宿業想要改善客戶體驗」至少回傳 {"keyword": "客服", "industryKeyword": "旅宿業"}`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
