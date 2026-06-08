@@ -169,7 +169,8 @@
       const [filters, setFilters] = useState({
         region: null, isAI: null, isStartup: null,
         category: null, maxPrice: null, keyword: null,
-        program: null, industry_vertical: null
+        program: null, industry_vertical: null,
+        industryKeyword: null
       });
       const [sortBy, setSortBy] = useState("relevance");
       const [currentPage, setCurrentPage] = useState(1);
@@ -212,7 +213,7 @@
 
       // 3. Fallback 關鍵字比對
       const parseQueryFallback = (text) => {
-        let f = { region: null, isAI: null, isStartup: null, category: null, maxPrice: null, keyword: null, program: null, industry_vertical: null };
+        let f = { region: null, isAI: null, isStartup: null, category: null, maxPrice: null, keyword: null, program: null, industry_vertical: null, industryKeyword: null };
         const q = text.toLowerCase();
         if (q.includes("北部") || q.includes("台北") || q.includes("新北")) f.region = "北部";
         else if (q.includes("中部") || q.includes("台中")) f.region = "中部";
@@ -225,6 +226,15 @@
         else if (q.includes("醫療") || q.includes("照護")) f.industry_vertical = "醫療照護";
         else if (q.includes("建築") || q.includes("營造")) f.industry_vertical = "建築營造";
         else if (q.includes("文創") || q.includes("文化")) f.industry_vertical = "文化創意";
+        if (q.includes("餐飲")) f.industryKeyword = "住宿及餐飲業";
+        else if (q.includes("製造")) f.industryKeyword = "製造業";
+        else if (q.includes("零售") || q.includes("電商")) f.industryKeyword = "批發零售業";
+        else if (q.includes("醫療")) f.industryKeyword = "醫療";
+        else if (q.includes("物流")) f.industryKeyword = "運輸及倉儲";
+        else if (q.includes("建築") || q.includes("營造")) f.industryKeyword = "營建工程";
+        else if (q.includes("金融") || q.includes("銀行") || q.includes("保險")) f.industryKeyword = "金融保險";
+        else if (q.includes("教育")) f.industryKeyword = "教育業";
+        else if (q.includes("旅遊") || q.includes("旅宿") || q.includes("住宿")) f.industryKeyword = "旅宿業";
         CATEGORIES.forEach(cat => { if (q.includes(cat)) f.category = cat; });
         PROGRAMS.forEach(prog => { if (q.includes(prog)) f.program = prog; });
         const priceMatch = q.match(/(\d+)\s*萬/);
@@ -250,6 +260,7 @@
             keyword: result.keyword || null,
             program: result.program || null,
             industry_vertical: result.industry_vertical || null,
+            industryKeyword: result.industryKeyword || null,
           });
         } catch (err) {
           setFilters(parseQueryFallback(query));
@@ -281,6 +292,7 @@
             keyword: result.keyword || null,
             program: result.program || null,
             industry_vertical: result.industry_vertical || null,
+            industryKeyword: result.industryKeyword || null,
           });
         } catch (err) {
           setFilters(parseQueryFallback(text));
@@ -387,16 +399,20 @@
         });
 
         // 排序
-        if (sortBy === "relevance" && filters.keyword) {
+        if (sortBy === "relevance" && (filters.keyword || filters.industryKeyword)) {
           results = results
             .map((item, index) => {
-              const relevanceScore = getRelevanceScore(item, filters.keyword);
+              const relevanceScore = filters.keyword ? getRelevanceScore(item, filters.keyword) : 0;
               const industryScore = industryKey ? getIndustryScore(item, industryKey) : 0;
-              return { item, index, relevanceScore, industryScore };
+              const industryKeywordScore = filters.industryKeyword
+                ? (safeStr(item.d).includes(filters.industryKeyword) ? 50 : 0)
+                : 0;
+              return { item, index, relevanceScore, industryScore, industryKeywordScore };
             })
             .sort((a, b) => {
-              const scoreDiff = (b.relevanceScore + b.industryScore) - (a.relevanceScore + a.industryScore);
-              if (scoreDiff !== 0) return scoreDiff;
+              const scoreA = a.relevanceScore + a.industryScore + a.industryKeywordScore;
+              const scoreB = b.relevanceScore + b.industryScore + b.industryKeywordScore;
+              if (scoreB !== scoreA) return scoreB - scoreA;
               return a.index - b.index;
             })
             .map(entry => entry.item);
@@ -433,7 +449,7 @@
       };
 
       const clearAll = () => {
-        setFilters({ region: null, isAI: null, isStartup: null, category: null, maxPrice: null, keyword: null, program: null, industry_vertical: null });
+        setFilters({ region: null, isAI: null, isStartup: null, category: null, maxPrice: null, keyword: null, program: null, industry_vertical: null, industryKeyword: null });
         setQuery("");
         setSortBy("relevance");
       };
@@ -767,13 +783,19 @@
                 ))}
               </div>
               {/* Active keyword/price chips */}
-              {(filters.keyword || filters.maxPrice) && (
+              {(filters.keyword || filters.maxPrice || filters.industryKeyword) && (
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-400 w-12 shrink-0">套用</span>
                   {filters.keyword && (
                     <span className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
                       關鍵字: {filters.keyword}
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("keyword", filters.keyword)}></i>
+                    </span>
+                  )}
+                  {filters.industryKeyword && (
+                    <span className="px-3 py-1 text-xs rounded-full border bg-purple-50 border-purple-200 text-purple-700 font-bold flex items-center gap-1">
+                      產業: {filters.industryKeyword}
+                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("industryKeyword", filters.industryKeyword)}></i>
                     </span>
                   )}
                   {filters.maxPrice && (
