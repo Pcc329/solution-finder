@@ -384,6 +384,7 @@
           if (filters.isStartup !== null && item.st !== filters.isStartup) return false;
           if (filters.category && !(item.cat && item.cat.includes(filters.category))) return false;
           if (filters.program && item.p !== filters.program) return false;
+          if (filters.industry_vertical && item.iv !== filters.industry_vertical) return false;
           if (filters.maxPrice && (item.pr === null || Number(item.pr) > Number(filters.maxPrice))) return false;
           if (filters.keyword) {
             const kw = filters.keyword.toLowerCase();
