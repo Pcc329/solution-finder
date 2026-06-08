@@ -668,7 +668,7 @@
               <span class="update-item-company">${escapeHtml(item.company)}</span>
             </div>
             <div class="update-item-meta">
-              <span class="update-item-cat">${escapeHtml(item.category || '未分類')}</span>
+              ${item.category ? `<span class="update-item-cat">${escapeHtml(item.category)}</span>` : ''}
               <span class="update-item-time">${timeText}</span>
             </div>
           </div>

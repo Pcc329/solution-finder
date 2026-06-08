@@ -367,7 +367,7 @@
         let score = 0;
         if (safeStr(item.s).toLowerCase().includes(k)) score += 100;
         if (safeStr(item.c).toLowerCase().includes(k)) score += 80;
-        if (safeStr(item.cat).toLowerCase().includes(k)) score += 60;
+        if (safeStr(item.cat).toLowerCase().includes(k)) score += 70;
         if (safeStr(item.slogan).toLowerCase().includes(k)) score += 40;
         if (safeStr(item.desc).toLowerCase().includes(k)) score += 30;
         if (safeStr(item.feat).toLowerCase().includes(k)) score += 20;
@@ -392,12 +392,12 @@
               || safeStr(item.desc).toLowerCase().includes(kw)
               || safeStr(item.feat).toLowerCase().includes(kw)
               || safeStr(item.slogan).toLowerCase().includes(kw)
+              || safeStr(item.cat).toLowerCase().includes(kw)
               || safeStr(item.tags).toLowerCase().includes(kw);
             if (!matched) return false;
           }
           return true;
         });
-
         // 排序
         if (sortBy === "relevance" && (filters.keyword || filters.industryKeyword)) {
           results = results
