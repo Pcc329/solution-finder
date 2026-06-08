@@ -46,7 +46,7 @@ export default async function handler(req, res) {
         name: f['company_name'] || '',
         cid: cid,
         region: f['region'] || '',
-        is_startup: f['is_startup'] === 'checked',
+        is_startup: f['is_startup'] === true,
         city: f['city'] || '',
         tech_tags: f['tech_tags'] || '',
         industry_vertical_co: f['industry_vertical'] || '',
