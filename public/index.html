@@ -806,25 +806,29 @@
                 <span className="text-xs text-slate-400 w-12 shrink-0">區域</span>
                 {REGIONS.map(r => (
                   <button key={r} onClick={() => toggleFilter("region", r)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.region.includes(r) ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.region.includes(r) ? "bg-blue-100 border-blue-300 text-blue-800 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {r}
                   </button>
                 ))}
               </div>
-              {/* Tags */}
+              {/* Trait */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-400 w-12 shrink-0">標籤</span>
+                <span className="text-xs text-slate-400 w-12 shrink-0">特質</span>
                 <button onClick={() => toggleFilter("isAI", true)}
-                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isAI === true ? "bg-yellow-50 border-yellow-400 text-yellow-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isAI === true ? "bg-yellow-100 border-yellow-300 text-yellow-800 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                   <i className="fa-solid fa-bolt mr-1"></i>AI 方案
                 </button>
                 <button onClick={() => toggleFilter("isStartup", true)}
-                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isStartup === true ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.isStartup === true ? "bg-green-100 border-green-300 text-green-800 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                   <i className="fa-solid fa-seedling mr-1"></i>新創
                 </button>
+              </div>
+              {/* Program */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-slate-400 w-12 shrink-0">來源</span>
                 {PROGRAMS.map(p => (
                   <button key={p} onClick={() => toggleFilter("program", p)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.program.includes(p) ? "bg-blue-50 border-blue-400 text-blue-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.program.includes(p) ? "bg-amber-100 border-amber-300 text-amber-800 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {p}
                   </button>
                 ))}
@@ -834,7 +838,7 @@
                 <span className="text-xs text-slate-400 w-12 shrink-0">領域</span>
                 {INDUSTRY_VERTICALS.map(iv => (
                   <button key={iv} onClick={() => toggleFilter("industry_vertical", iv)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.industry_vertical.includes(iv) ? "bg-purple-50 border-purple-400 text-purple-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.industry_vertical.includes(iv) ? "bg-pink-100 border-pink-300 text-pink-800 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {iv}
                   </button>
                 ))}
@@ -844,7 +848,7 @@
                 <span className="text-xs text-slate-400 w-12 shrink-0">類別</span>
                 {CATEGORIES.map(c => (
                   <button key={c} onClick={() => toggleFilter("category", c)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.category.includes(c) ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.category.includes(c) ? "bg-purple-100 border-purple-300 text-purple-800 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {c}
                   </button>
                 ))}
@@ -854,55 +858,55 @@
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-400 w-12 shrink-0">套用</span>
                   {filters.region.map(r => (
-                    <span key={r} className="px-3 py-1 text-xs rounded-full border bg-emerald-50 border-emerald-200 text-emerald-700 font-bold flex items-center gap-1">
+                    <span key={r} className="px-3 py-1 text-xs rounded-full border bg-blue-100 border-blue-300 text-blue-800 font-bold flex items-center gap-1">
                       區域：{r}
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("region", r)}></i>
                     </span>
                   ))}
                   {filters.isAI === true && (
-                    <span className="px-3 py-1 text-xs rounded-full border bg-yellow-50 border-yellow-200 text-yellow-700 font-bold flex items-center gap-1">
+                    <span className="px-3 py-1 text-xs rounded-full border bg-yellow-100 border-yellow-300 text-yellow-800 font-bold flex items-center gap-1">
                       AI 方案
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("isAI", true)}></i>
                     </span>
                   )}
                   {filters.isStartup === true && (
-                    <span className="px-3 py-1 text-xs rounded-full border bg-emerald-50 border-emerald-200 text-emerald-700 font-bold flex items-center gap-1">
+                    <span className="px-3 py-1 text-xs rounded-full border bg-green-100 border-green-300 text-green-800 font-bold flex items-center gap-1">
                       新創
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("isStartup", true)}></i>
                     </span>
                   )}
                   {filters.category.map(c => (
-                    <span key={c} className="px-3 py-1 text-xs rounded-full border bg-emerald-50 border-emerald-200 text-emerald-700 font-bold flex items-center gap-1">
+                    <span key={c} className="px-3 py-1 text-xs rounded-full border bg-purple-100 border-purple-300 text-purple-800 font-bold flex items-center gap-1">
                       類別：{c}
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("category", c)}></i>
                     </span>
                   ))}
                   {filters.program.map(p => (
-                    <span key={p} className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
+                    <span key={p} className="px-3 py-1 text-xs rounded-full border bg-amber-100 border-amber-300 text-amber-800 font-bold flex items-center gap-1">
                       來源：{p}
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("program", p)}></i>
                     </span>
                   ))}
                   {filters.industry_vertical.map(iv => (
-                    <span key={iv} className="px-3 py-1 text-xs rounded-full border bg-purple-50 border-purple-200 text-purple-700 font-bold flex items-center gap-1">
+                    <span key={iv} className="px-3 py-1 text-xs rounded-full border bg-pink-100 border-pink-300 text-pink-800 font-bold flex items-center gap-1">
                       領域：{iv}
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("industry_vertical", iv)}></i>
                     </span>
                   ))}
                   {filters.keyword && (
-                    <span className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
+                    <span className="px-3 py-1 text-xs rounded-full border bg-slate-100 border-slate-300 text-slate-700 font-bold flex items-center gap-1">
                       關鍵字：{filters.keyword}
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("keyword", filters.keyword)}></i>
                     </span>
                   )}
                   {filters.industryKeyword && (
-                    <span className="px-3 py-1 text-xs rounded-full border bg-purple-50 border-purple-200 text-purple-700 font-bold flex items-center gap-1">
+                    <span className="px-3 py-1 text-xs rounded-full border bg-orange-100 border-orange-300 text-orange-800 font-bold flex items-center gap-1">
                       產業：{filters.industryKeyword}
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("industryKeyword", filters.industryKeyword)}></i>
                     </span>
                   )}
                   {filters.maxPrice && (
-                    <span className="px-3 py-1 text-xs rounded-full border bg-orange-50 border-orange-200 text-orange-700 font-bold flex items-center gap-1">
+                    <span className="px-3 py-1 text-xs rounded-full border bg-rose-100 border-rose-300 text-rose-800 font-bold flex items-center gap-1">
                       ≤ {filters.maxPrice >= 10000 ? (filters.maxPrice/10000).toFixed(0) + "萬" : filters.maxPrice.toLocaleString()}
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("maxPrice", filters.maxPrice)}></i>
                     </span>
