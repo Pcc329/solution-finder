@@ -167,9 +167,9 @@
       const [query, setQuery] = useState("");
       const [isSearching, setIsSearching] = useState(false);
       const [filters, setFilters] = useState({
-        region: null, isAI: null, isStartup: null,
-        category: null, maxPrice: null, keyword: null,
-        program: null, industry_vertical: null,
+        region: [], isAI: null, isStartup: null,
+        category: [], maxPrice: null, keyword: null,
+        program: [], industry_vertical: [],
         industryKeyword: null
       });
       const [sortBy, setSortBy] = useState("relevance");
@@ -213,19 +213,19 @@
 
       // 3. Fallback 關鍵字比對
       const parseQueryFallback = (text) => {
-        let f = { region: null, isAI: null, isStartup: null, category: null, maxPrice: null, keyword: null, program: null, industry_vertical: null, industryKeyword: null };
+        let f = { region: [], isAI: null, isStartup: null, category: [], maxPrice: null, keyword: null, program: [], industry_vertical: [], industryKeyword: null };
         const q = text.toLowerCase();
-        if (q.includes("北部") || q.includes("台北") || q.includes("新北")) f.region = "北部";
-        else if (q.includes("中部") || q.includes("台中")) f.region = "中部";
-        else if (q.includes("南部") || q.includes("高雄") || q.includes("台南")) f.region = "南部";
-        else if (q.includes("東部") || q.includes("花蓮") || q.includes("台東")) f.region = "東部";
+        if (q.includes("北部") || q.includes("台北") || q.includes("新北")) f.region = ["北部"];
+        else if (q.includes("中部") || q.includes("台中")) f.region = ["中部"];
+        else if (q.includes("南部") || q.includes("高雄") || q.includes("台南")) f.region = ["南部"];
+        else if (q.includes("東部") || q.includes("花蓮") || q.includes("台東")) f.region = ["東部"];
         if (/\bai\b/i.test(text) || q.includes("人工智慧") || q.includes("智能") || q.includes("智慧")) f.isAI = true;
         if (q.includes("新創")) f.isStartup = true;
-        if (q.includes("旅宿") || q.includes("觀光")) f.industry_vertical = "旅宿觀光";
-        else if (q.includes("製造")) f.industry_vertical = "製造業";
-        else if (q.includes("醫療") || q.includes("照護")) f.industry_vertical = "醫療照護";
-        else if (q.includes("建築") || q.includes("營造")) f.industry_vertical = "建築營造";
-        else if (q.includes("文創") || q.includes("文化")) f.industry_vertical = "文化創意";
+        if (q.includes("旅宿") || q.includes("觀光")) f.industry_vertical = ["旅宿觀光"];
+        else if (q.includes("製造")) f.industry_vertical = ["製造業"];
+        else if (q.includes("醫療") || q.includes("照護")) f.industry_vertical = ["醫療照護"];
+        else if (q.includes("建築") || q.includes("營造")) f.industry_vertical = ["建築營造"];
+        else if (q.includes("文創") || q.includes("文化")) f.industry_vertical = ["文化創意"];
         if (q.includes("餐飲")) f.industryKeyword = "住宿及餐飲業";
         else if (q.includes("製造")) f.industryKeyword = "製造業";
         else if (q.includes("零售") || q.includes("電商")) f.industryKeyword = "批發零售業";
@@ -235,8 +235,8 @@
         else if (q.includes("金融") || q.includes("銀行") || q.includes("保險")) f.industryKeyword = "金融保險";
         else if (q.includes("教育")) f.industryKeyword = "教育業";
         else if (q.includes("旅遊") || q.includes("旅宿") || q.includes("住宿")) f.industryKeyword = "旅宿業";
-        CATEGORIES.forEach(cat => { if (q.includes(cat)) f.category = cat; });
-        PROGRAMS.forEach(prog => { if (q.includes(prog)) f.program = prog; });
+        CATEGORIES.forEach(cat => { if (q.includes(cat)) f.category = [cat]; });
+        PROGRAMS.forEach(prog => { if (q.includes(prog)) f.program = [prog]; });
         const priceMatch = q.match(/(\d+)\s*萬/);
         if (priceMatch) f.maxPrice = parseInt(priceMatch[1]) * 10000;
         const priceMatch2 = q.match(/(\d+)\s*千/);
@@ -252,14 +252,14 @@
         try {
           const result = await callClaude(query);
           setFilters({
-            region: result.region || null,
+            region: result.region ? [result.region] : [],
             isAI: result.ai != null ? result.ai : null,
             isStartup: result.startup != null ? result.startup : null,
-            category: result.category || null,
+            category: result.category ? [result.category] : [],
             maxPrice: result.maxPrice || null,
             keyword: result.keyword || null,
-            program: result.program || null,
-            industry_vertical: result.industry_vertical || null,
+            program: result.program ? [result.program] : [],
+            industry_vertical: result.industry_vertical ? [result.industry_vertical] : [],
             industryKeyword: result.industryKeyword || null,
           });
         } catch (err) {
@@ -284,14 +284,14 @@
         try {
           const result = await callClaude(text);
           setFilters({
-            region: result.region || null,
+            region: result.region ? [result.region] : [],
             isAI: result.ai != null ? result.ai : null,
             isStartup: result.startup != null ? result.startup : null,
-            category: result.category || null,
+            category: result.category ? [result.category] : [],
             maxPrice: result.maxPrice || null,
             keyword: result.keyword || null,
-            program: result.program || null,
-            industry_vertical: result.industry_vertical || null,
+            program: result.program ? [result.program] : [],
+            industry_vertical: result.industry_vertical ? [result.industry_vertical] : [],
             industryKeyword: result.industryKeyword || null,
           });
         } catch (err) {
@@ -332,8 +332,11 @@
       };
 
       const detectIndustryKey = useCallback((text, currentFilters) => {
-        if (currentFilters.industry_vertical && INDUSTRY_VERTICAL_TO_SOFT_KEY[currentFilters.industry_vertical]) {
-          return INDUSTRY_VERTICAL_TO_SOFT_KEY[currentFilters.industry_vertical];
+        const selectedVertical = Array.isArray(currentFilters.industry_vertical)
+          ? currentFilters.industry_vertical.find(iv => INDUSTRY_VERTICAL_TO_SOFT_KEY[iv])
+          : currentFilters.industry_vertical;
+        if (selectedVertical && INDUSTRY_VERTICAL_TO_SOFT_KEY[selectedVertical]) {
+          return INDUSTRY_VERTICAL_TO_SOFT_KEY[selectedVertical];
         }
         const source = safeStr(text).toLowerCase();
         if (!source) return null;
@@ -379,12 +382,12 @@
       const filteredResults = useMemo(() => {
         const industryKey = detectIndustryKey(query || filters.keyword || filters.industry_vertical, filters);
         let results = allData.filter(item => {
-          if (filters.region && item.r !== filters.region) return false;
+          if (filters.region.length > 0 && !filters.region.includes(item.r)) return false;
           if (filters.isAI !== null && item.ai !== filters.isAI) return false;
           if (filters.isStartup !== null && item.st !== filters.isStartup) return false;
-          if (filters.category && !(item.cat && item.cat.includes(filters.category))) return false;
-          if (filters.program && item.p !== filters.program) return false;
-          if (filters.industry_vertical && item.iv !== filters.industry_vertical) return false;
+          if (filters.category.length > 0 && !(item.cat && filters.category.some(c => item.cat.includes(c)))) return false;
+          if (filters.program.length > 0 && !filters.program.includes(item.p)) return false;
+          if (filters.industry_vertical.length > 0 && !filters.industry_vertical.includes(item.iv)) return false;
           if (filters.maxPrice && (item.pr === null || Number(item.pr) > Number(filters.maxPrice))) return false;
           if (filters.keyword) {
             const kw = filters.keyword.toLowerCase();
@@ -446,16 +449,32 @@
       };
 
       const toggleFilter = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: prev[key] === value ? null : value }));
+        const arrayKeys = ["region", "category", "program", "industry_vertical"];
+        if (arrayKeys.includes(key)) {
+          setFilters(prev => {
+            const arr = prev[key] || [];
+            return {
+              ...prev,
+              [key]: arr.includes(value)
+                ? arr.filter(v => v !== value)
+                : [...arr, value]
+            };
+          });
+        } else {
+          setFilters(prev => ({ ...prev, [key]: prev[key] === value ? null : value }));
+        }
       };
 
       const clearAll = () => {
-        setFilters({ region: null, isAI: null, isStartup: null, category: null, maxPrice: null, keyword: null, program: null, industry_vertical: null, industryKeyword: null });
+        setFilters({ region: [], isAI: null, isStartup: null, category: [], maxPrice: null, keyword: null, program: [], industry_vertical: [], industryKeyword: null });
         setQuery("");
         setSortBy("relevance");
       };
 
-      const hasActiveFilters = Object.values(filters).some(v => v !== null);
+      const hasActiveFilters = Object.entries(filters).some(([, v]) => {
+        if (Array.isArray(v)) return v.length > 0;
+        return v !== null;
+      });
 
       const renderStars = (score) => {
         const value = Number(score);
@@ -740,7 +759,7 @@
                 <span className="text-xs text-slate-400 w-12 shrink-0">區域</span>
                 {REGIONS.map(r => (
                   <button key={r} onClick={() => toggleFilter("region", r)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.region === r ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.region.includes(r) ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {r}
                   </button>
                 ))}
@@ -758,7 +777,7 @@
                 </button>
                 {PROGRAMS.map(p => (
                   <button key={p} onClick={() => toggleFilter("program", p)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.program === p ? "bg-blue-50 border-blue-400 text-blue-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.program.includes(p) ? "bg-blue-50 border-blue-400 text-blue-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {p}
                   </button>
                 ))}
@@ -768,7 +787,7 @@
                 <span className="text-xs text-slate-400 w-12 shrink-0">領域</span>
                 {INDUSTRY_VERTICALS.map(iv => (
                   <button key={iv} onClick={() => toggleFilter("industry_vertical", iv)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.industry_vertical === iv ? "bg-purple-50 border-purple-400 text-purple-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.industry_vertical.includes(iv) ? "bg-purple-50 border-purple-400 text-purple-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {iv}
                   </button>
                 ))}
@@ -778,7 +797,7 @@
                 <span className="text-xs text-slate-400 w-12 shrink-0">類別</span>
                 {CATEGORIES.map(c => (
                   <button key={c} onClick={() => toggleFilter("category", c)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.category === c ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.category.includes(c) ? "bg-emerald-50 border-emerald-400 text-emerald-700 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {c}
                   </button>
                 ))}
@@ -787,12 +806,12 @@
               {hasActiveFilters && (
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-400 w-12 shrink-0">套用</span>
-                  {filters.region && (
-                    <span className="px-3 py-1 text-xs rounded-full border bg-emerald-50 border-emerald-200 text-emerald-700 font-bold flex items-center gap-1">
-                      區域：{filters.region}
-                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("region", filters.region)}></i>
+                  {filters.region.map(r => (
+                    <span key={r} className="px-3 py-1 text-xs rounded-full border bg-emerald-50 border-emerald-200 text-emerald-700 font-bold flex items-center gap-1">
+                      區域：{r}
+                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("region", r)}></i>
                     </span>
-                  )}
+                  ))}
                   {filters.isAI === true && (
                     <span className="px-3 py-1 text-xs rounded-full border bg-yellow-50 border-yellow-200 text-yellow-700 font-bold flex items-center gap-1">
                       AI 方案
@@ -805,24 +824,24 @@
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("isStartup", true)}></i>
                     </span>
                   )}
-                  {filters.category && (
-                    <span className="px-3 py-1 text-xs rounded-full border bg-emerald-50 border-emerald-200 text-emerald-700 font-bold flex items-center gap-1">
-                      類別：{filters.category}
-                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("category", filters.category)}></i>
+                  {filters.category.map(c => (
+                    <span key={c} className="px-3 py-1 text-xs rounded-full border bg-emerald-50 border-emerald-200 text-emerald-700 font-bold flex items-center gap-1">
+                      類別：{c}
+                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("category", c)}></i>
                     </span>
-                  )}
-                  {filters.program && (
-                    <span className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
-                      來源：{filters.program}
-                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("program", filters.program)}></i>
+                  ))}
+                  {filters.program.map(p => (
+                    <span key={p} className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
+                      來源：{p}
+                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("program", p)}></i>
                     </span>
-                  )}
-                  {filters.industry_vertical && (
-                    <span className="px-3 py-1 text-xs rounded-full border bg-purple-50 border-purple-200 text-purple-700 font-bold flex items-center gap-1">
-                      領域：{filters.industry_vertical}
-                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("industry_vertical", filters.industry_vertical)}></i>
+                  ))}
+                  {filters.industry_vertical.map(iv => (
+                    <span key={iv} className="px-3 py-1 text-xs rounded-full border bg-purple-50 border-purple-200 text-purple-700 font-bold flex items-center gap-1">
+                      領域：{iv}
+                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("industry_vertical", iv)}></i>
                     </span>
-                  )}
+                  ))}
                   {filters.keyword && (
                     <span className="px-3 py-1 text-xs rounded-full border bg-blue-50 border-blue-200 text-blue-700 font-bold flex items-center gap-1">
                       關鍵字：{filters.keyword}
