@@ -8,13 +8,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <style>
     :root {
-      --primary: #1D9E75;
-      --primary-dark: #13785A;
-      --bg: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
+      --primary: #0BA08C;
+      --primary-dark: #06564B;
+      --header: #0D2237;
+      --bg: #F7F9FA;
+      --text: #10253A;
+      --muted: #667085;
       --card: #ffffff;
-      --border: #e5e7eb;
+      --border: #E4E8EC;
+      --ai: #D9604A;
+      --startup: #308A56;
+      --price: #E8A33C;
     }
 
     * {
@@ -33,7 +37,7 @@
       top: 0;
       z-index: 1000;
       background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--border);
       padding: 12px 24px;
       display: flex;
       align-items: center;
@@ -41,17 +45,17 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
     .global-nav-brand { display: flex; align-items: center; gap: 10px; }
-    .global-nav-logo { width: 36px; height: 36px; background: #0d9488; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    .global-nav-kicker { font-size: 10px; color: #6b7280; letter-spacing: 0.1em; }
-    .global-nav-title { font-size: 14px; font-weight: 600; color: #111827; }
+    .global-nav-logo { width: 36px; height: 36px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .global-nav-kicker { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
+    .global-nav-title { font-size: 14px; font-weight: 600; color: var(--text); }
     .global-nav-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
     .global-nav-link { padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; color: #374151; text-decoration: none; background: #fff; font-weight: 600; }
-    .global-nav-link.active { background: #0d9488; color: #ffffff; border-color: #0d9488; }
+    .global-nav-link.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
     main {
       width: min(1180px, calc(100% - 40px));
       margin: 0 auto;
-      padding: 32px 0 48px;
+      padding: 0 0 48px;
     }
 
     .page-head {
@@ -59,7 +63,11 @@
       justify-content: space-between;
       gap: 24px;
       align-items: flex-end;
-      margin-bottom: 24px;
+      width: 100vw;
+      margin: 0 calc(50% - 50vw) 24px;
+      padding: 30px max(20px, calc((100vw - 1180px) / 2));
+      background: var(--header);
+      color: #ffffff;
     }
 
     h1 {
@@ -69,15 +77,35 @@
       letter-spacing: 0;
     }
 
+    .page-head h1 {
+      color: #ffffff;
+    }
+
+    .page-head a[href="/"],
+    .header-link {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 10px;
+      color: #D7F4EE !important;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none !important;
+    }
+
+    .page-head a[href="/"]:hover,
+    .header-link:hover {
+      color: #ffffff !important;
+    }
+
     .source-note {
       margin: 0;
-      color: var(--muted);
+      color: rgba(255, 255, 255, 0.72);
       font-size: 14px;
     }
 
     .status {
       min-width: 132px;
-      color: var(--primary-dark);
+      color: #D7F4EE;
       font-size: 14px;
       font-weight: 600;
       text-align: right;
@@ -94,7 +122,7 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
+      box-shadow: 0 8px 24px rgba(16, 37, 58, 0.08);
     }
 
     .kpi-card {
@@ -112,6 +140,18 @@
       font-size: 30px;
       font-weight: 750;
       line-height: 1.1;
+    }
+
+    .kpi-neutral {
+      color: var(--text);
+    }
+
+    .kpi-ai {
+      color: var(--ai);
+    }
+
+    .kpi-price {
+      color: var(--price);
     }
 
     .kpi-sub {
@@ -159,13 +199,13 @@
       min-width: 140px;
       padding: 12px 14px;
       border-radius: 8px;
-      background: #f0fdf8;
-      border: 1px solid #d1fae5;
+      background: #F3F7F6;
+      border: 1px solid #DDEBE8;
     }
 
     .update-num {
       display: block;
-      color: var(--primary);
+      color: var(--startup);
       font-size: 24px;
       font-weight: 900;
       line-height: 1;
@@ -228,8 +268,8 @@
 
     .update-item-cat {
       border-radius: 999px;
-      background: #ecfdf5;
-      border: 1px solid #d1fae5;
+      background: #E6F4F1;
+      border: 1px solid #CDE9E3;
       color: var(--primary-dark);
       font-size: 12px;
       font-weight: 800;
@@ -295,7 +335,7 @@
     }
 
     .county:hover {
-      stroke: #0f5f48;
+      stroke: var(--primary-dark);
       stroke-width: 1.8;
     }
 
@@ -330,7 +370,7 @@
     .legend-gradient {
       height: 10px;
       border-radius: 999px;
-      background: linear-gradient(90deg, #e7f6f1, var(--primary));
+      background: linear-gradient(90deg, #E6F4F1, #0BA08C, #06564B);
     }
 
     .legend-labels {
@@ -399,7 +439,7 @@
 
     .control-group select:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12);
+      box-shadow: 0 0 0 3px rgba(11, 160, 140, 0.12);
     }
 
     .cross-chart-wrap {
@@ -490,7 +530,7 @@
     <div class="page-head">
       <div>
         <h1> 資服業產業資料庫 戰情儀表板</h1>
-        <a href="/" style="font-size:13px; color:#0d6e52; font-weight:700; text-decoration:none;">← 返回搜尋</a>
+        <a class="header-link" href="/">← 返回搜尋</a>
         <p class="source-note">資料來源：Airtable，每次載入即時更新</p>
       </div>
       <div id="status" class="status">loading...</div>
@@ -501,20 +541,20 @@
     <section class="kpis" aria-label="KPI">
       <article class="card kpi-card">
         <p class="kpi-label">總方案數</p>
-        <p id="total" class="kpi-value">--</p>
+        <p id="total" class="kpi-value kpi-neutral">--</p>
       </article>
       <article class="card kpi-card">
         <p class="kpi-label">AI 方案數</p>
-        <p id="aiCount" class="kpi-value">--</p>
+        <p id="aiCount" class="kpi-value kpi-ai">--</p>
         <p id="aiPercent" class="kpi-sub">--</p>
       </article>
       <article class="card kpi-card">
         <p class="kpi-label">業者總數</p>
-        <p id="companyTotal" class="kpi-value">--</p>
+        <p id="companyTotal" class="kpi-value kpi-neutral">--</p>
       </article>
       <article class="card kpi-card">
         <p class="kpi-label">費用中位數</p>
-        <p id="medianPrice" class="kpi-value">--</p>
+        <p id="medianPrice" class="kpi-value kpi-price">--</p>
         <p id="validPriceCount" class="kpi-sub">--</p>
       </article>
     </section>
@@ -604,7 +644,12 @@
   </main>
 
   <script>
-    const tealPalette = ['#1D9E75', '#36B58B', '#61C7A3', '#8ED8BC', '#13785A', '#0F5F48', '#74A99A', '#A7D8CB', '#D7EDE7'];
+    const CHART_COLORS = [
+      '#0BA08C', '#3E7DB2', '#E8A33C', '#E0664F',
+      '#308A56', '#7D5AC2', '#8A8F3B', '#BE5C8B', '#5D8AA7',
+    ];
+    const TEAL = '#0BA08C';
+    const MAP_NO_DATA = '#EFF2F3';
 
     function formatNumber(value) {
       return new Intl.NumberFormat('zh-TW').format(value || 0);
@@ -687,7 +732,7 @@
           datasets: [{
             label: options.label || '方案數量',
             data: values,
-            backgroundColor: options.colors || tealPalette,
+            backgroundColor: options.colors || CHART_COLORS,
             borderRadius: 6,
             maxBarThickness: 34,
           }],
@@ -723,7 +768,7 @@
           labels: entries.map(item => item[0]),
           datasets: [{
             data: entries.map(item => item[1]),
-            backgroundColor: tealPalette,
+            backgroundColor: CHART_COLORS,
           }],
         },
         options: {
@@ -790,7 +835,7 @@
             datasets: [{
               label: '方案數量',
               data: entries.map(item => item[1]),
-              backgroundColor: '#1D9E75',
+              backgroundColor: TEAL,
               borderRadius: 6,
               maxBarThickness: 34,
             }],
@@ -833,7 +878,7 @@
       const datasets = series.map((key, index) => ({
         label: key,
         data: labels.map(label => grouped[label][key] || 0),
-        backgroundColor: tealPalette[index % tealPalette.length],
+        backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
         borderRadius: 4,
         maxBarThickness: 34,
       }));
@@ -933,9 +978,10 @@
       const geojson = await d3.json(geoUrl);
       const values = Object.values(byCity || {});
       const maxValue = d3.max(values) || 0;
+      const safeMax = Math.max(maxValue, 1);
       const color = d3.scaleLinear()
-        .domain([0, Math.max(maxValue, 1)])
-        .range(['#e7f6f1', '#1D9E75']);
+        .domain([0, safeMax / 2, safeMax])
+        .range(['#E6F4F1', '#0BA08C', '#06564B']);
       const outliers = ['金門縣', '連江縣', '澎湖縣'];
       const mainlandFeatures = {
         type: 'FeatureCollection',
@@ -960,7 +1006,7 @@
         .attr('fill', feature => {
           const city = getCountyName(feature);
           const count = byCity[city] || 0;
-          return count > 0 ? color(count) : '#f0f0f0';
+          return count > 0 ? color(count) : MAP_NO_DATA;
         })
         .on('mousemove', (event, feature) => {
           const city = getCountyName(feature);
@@ -989,10 +1035,10 @@
         const data = await response.json();
         updateKpis(data);
         updateRecentActivity(data);
-        renderBar('categoryChart', topWithOther(data.byCategory, 8), { horizontal: true });
+        renderBar('categoryChart', topWithOther(data.byCategory, 8), { horizontal: true, colors: CHART_COLORS });
         renderPie('programChart', toEntries(data.byProgramType));
-        renderBar('priceTierChart', toEntries(data.byPriceTier));
-        renderBar('regionChart', toEntries(data.byRegion), { horizontal: true });
+        renderBar('priceTierChart', toEntries(data.byPriceTier), { colors: TEAL });
+        renderBar('regionChart', toEntries(data.byRegion), { horizontal: true, colors: TEAL });
         await renderTaiwanMap(data.byCity || {});
         await loadCrossAnalysis();
         status.textContent = '已更新';
