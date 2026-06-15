@@ -35,6 +35,7 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .roi-entry { display: none !important; }
   </style>
 </head>
 <body>
@@ -1018,7 +1019,7 @@
                       {item.mo && <p className="text-[10px] text-slate-400 mt-0.5">{formatCurrency(item.mo)}/月</p>}
                       <button
                         onClick={(e) => { e.stopPropagation(); openROIModal(item); }}
-                        className="mt-2 text-xs text-emerald-600 hover:text-emerald-800 font-bold flex items-center gap-1 transition-colors sm:ml-auto">
+                        className="roi-entry mt-2 text-xs text-emerald-600 hover:text-emerald-800 font-bold flex items-center gap-1 transition-colors sm:ml-auto">
                         <i className="fa-solid fa-calculator"></i> 試算 ROI
                       </button>
                     </div>
@@ -1054,7 +1055,7 @@
                   比較
                 </button>
                 <button onClick={startRoiEstimate}
-                  className="px-5 py-2 rounded-xl bg-[#0d6e52] text-white text-sm font-black shadow-sm hover:bg-[#1D9E75] transition-colors">
+                  className="roi-entry px-5 py-2 rounded-xl bg-[#0d6e52] text-white text-sm font-black shadow-sm hover:bg-[#1D9E75] transition-colors">
                   試算 ROI ↗
                 </button>
               </div>
@@ -1116,7 +1117,7 @@
             </div>
             <button
               onClick={() => openROIModal(selectedItem)}
-              className="mb-6 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-emerald-500 text-emerald-700 font-bold text-sm hover:bg-emerald-50 transition-colors">
+              className="roi-entry mb-6 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-emerald-500 text-emerald-700 font-bold text-sm hover:bg-emerald-50 transition-colors">
               <i className="fa-solid fa-calculator"></i>
               試算這個方案的 ROI
             </button>
