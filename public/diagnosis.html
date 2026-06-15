@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>顧問診斷工具 | Solution Finder</title>
+  <title>顧問協助工具 | Solution Finder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -59,17 +59,17 @@
       <a class="global-nav-link" href="/sources.html">資料來源</a>
       <a class="global-nav-link" href="/dashboard.html">戰情儀表板</a>
       <a class="global-nav-link" href="/strategy-guide.html">策略智庫 ↗</a>
-      <a class="global-nav-link active" href="/diagnosis.html">診斷工具 ↗</a>
+      <a class="global-nav-link active" href="/diagnosis.html">顧問協助工具 ↗</a>
     </div>
   </nav>
 
   <main class="w-[calc(100%_-_32px)] max-w-[1180px] mx-auto py-8">
     <header class="mb-6">
-      <p class="text-xs tracking-[0.18em] uppercase text-teal-700 font-black mb-2">consultant assistant</p>
+      <p class="text-xs tracking-[0.18em] uppercase text-teal-700 font-black mb-2">CONSULTANT ASSISTANT</p>
       <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
         <div>
-          <h1 class="text-3xl md:text-4xl font-black text-slate-900">顧問智能診斷</h1>
-          <p class="text-sm text-slate-500 mt-2">透過 AI 助手逐步釐清產業、規模、預算與痛點，再從資料庫推薦方案。</p>
+          <h1 class="text-3xl md:text-4xl font-black text-slate-900">顧問協助工具</h1>
+          <p class="text-sm text-slate-500 mt-2">讓 AI 助手釐清產業需求，快速找出適合的數位方案。</p>
         </div>
         <div id="dataStatus" class="text-xs text-slate-400">正在讀取方案資料...</div>
       </div>
@@ -285,6 +285,11 @@
       return `NT$ ${n.toLocaleString("zh-TW")}`;
     };
 
+    const getBudgetPhrase = budget => {
+      const phrase = budgetPhraseMap[budget];
+      return phrase || "預算未指定";
+    };
+
     const getPrice = item => {
       if (item.pr === null || item.pr === undefined || item.pr === "") return null;
       const price = Number(item.pr);
@@ -415,7 +420,7 @@
 
     function buildQuery(formData) {
       const painText = formData.pains.join("和");
-      return `${formData.industry}業，${formData.scale}，${budgetPhraseMap[formData.budget]}，想要${painText}`;
+      return `${formData.industry}業，${formData.scale}，${getBudgetPhrase(formData.budget)}，想要${painText}`;
     }
 
     function localParse(formData) {
@@ -609,8 +614,20 @@
         return;
       }
       refs.aiSummaryBody.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin text-teal-700 mr-2"></i>AI 正在整理顧問摘要...';
+      const normalizedContext = {
+        formData: {
+          ...formData,
+          budget: formData.budget || null,
+          budgetPhrase: getBudgetPhrase(formData.budget),
+        },
+        parsed: {
+          ...parsed,
+          maxPrice: parsed.maxPrice ?? null,
+        },
+        conversationHistory: conversationHistory.map(({ role, content }) => ({ role, content })),
+      };
       const localFallback = [
-        `需求摘要：${formData.industry}業、${formData.scale}、${budgetPhraseMap[formData.budget]}，主要痛點為 ${formData.pains.join("、")}。`,
+        `需求摘要：${formData.industry}業、${formData.scale}、${getBudgetPhrase(formData.budget)}，主要痛點為 ${formData.pains.join("、")}。`,
         `初步建議：優先檢視前 ${Math.min(results.length, 5)} 筆高分方案，再依導入成本、功能完整度與企業規模適配度進行人工確認。`,
       ].join("\n");
       try {
@@ -618,7 +635,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            question: `請以顧問口吻，根據以下診斷條件、對話歷程與候選方案，產生簡潔的繁體中文摘要。條件與歷程：${JSON.stringify({ formData, parsed, conversationHistory: conversationHistory.map(({ role, content }) => ({ role, content })) })}。請包含：1. 需求判斷 2. 推薦方向 3. 需要顧問再確認的風險。`,
+            question: `請以顧問口吻，根據以下診斷條件、對話歷程與候選方案，產生簡潔的繁體中文摘要。條件與歷程：${JSON.stringify(normalizedContext)}。預算欄位規則：數字代表金額上限；null 代表未指定或不限預算；嚴禁在回答中輸出 undefined，遇到未知值請寫「未指定」。請包含：1. 需求判斷 2. 推薦方向 3. 需要顧問再確認的風險。`,
             solutions: results.slice(0, 20),
             searchQuery: buildQuery(formData),
           }),
