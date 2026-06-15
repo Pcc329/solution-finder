@@ -30,6 +30,16 @@
     .badge-muted { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
     .selected-card { border-color: #0d9488 !important; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12); }
     .sticky-compare { position: sticky; bottom: 16px; z-index: 30; }
+    .chat-panel { min-height: 360px; max-height: 520px; overflow-y: auto; padding-right: 4px; }
+    .chat-message { display: flex; margin-bottom: 12px; }
+    .chat-message.assistant { justify-content: flex-start; }
+    .chat-message.user { justify-content: flex-end; }
+    .chat-bubble { max-width: 88%; border-radius: 16px; padding: 10px 12px; font-size: 14px; line-height: 1.55; }
+    .chat-message.assistant .chat-bubble { background: #f0fdfa; color: #0f172a; border: 1px solid #ccfbf1; border-bottom-left-radius: 6px; }
+    .chat-message.user .chat-bubble { background: #0d9488; color: #ffffff; border-bottom-right-radius: 6px; }
+    .option-chip { border: 1px solid #dbe3ea; border-radius: 999px; padding: 7px 10px; font-size: 12px; font-weight: 800; color: #334155; background: #ffffff; transition: 0.16s; }
+    .option-chip:hover { border-color: #0d9488; color: #0f766e; background: #f0fdfa; }
+    .summary-card { border-left: 4px solid #0d9488; }
     @media (max-width: 768px) {
       #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
       .global-nav-actions { width: 100%; justify-content: flex-start; }
@@ -55,11 +65,11 @@
 
   <main class="w-[calc(100%_-_32px)] max-w-[1180px] mx-auto py-8">
     <header class="mb-6">
-      <p class="text-xs tracking-[0.18em] uppercase text-teal-700 font-black mb-2">consultant diagnosis</p>
+      <p class="text-xs tracking-[0.18em] uppercase text-teal-700 font-black mb-2">consultant assistant</p>
       <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
         <div>
-          <h1 class="text-3xl md:text-4xl font-black text-slate-900">顧問數位診斷工具</h1>
-          <p class="text-sm text-slate-500 mt-2">輸入企業條件，快速從方案資料庫產出顧問推薦清單。</p>
+          <h1 class="text-3xl md:text-4xl font-black text-slate-900">顧問智能診斷</h1>
+          <p class="text-sm text-slate-500 mt-2">透過 AI 助手逐步釐清產業、規模、預算與痛點，再從資料庫推薦方案。</p>
         </div>
         <div id="dataStatus" class="text-xs text-slate-400">正在讀取方案資料...</div>
       </div>
@@ -68,70 +78,29 @@
     <section class="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6 items-start">
       <aside class="card p-5">
         <div class="flex items-center justify-between mb-5">
-          <h2 class="text-lg font-black text-slate-900">診斷問卷</h2>
-          <span class="badge badge-muted">Phase 1</span>
+          <h2 class="text-lg font-black text-slate-900">顧問 AI 助手</h2>
+          <span class="badge badge-ai">Agent v1</span>
         </div>
 
-        <form id="diagnosisForm" class="space-y-5">
-          <div>
-            <label class="field-label" for="industry">產業別</label>
-            <select id="industry" class="control" required>
-              <option value="餐飲">餐飲</option>
-              <option value="製造">製造</option>
-              <option value="零售">零售</option>
-              <option value="醫療">醫療</option>
-              <option value="物流">物流</option>
-              <option value="建築營造">建築營造</option>
-              <option value="金融">金融</option>
-              <option value="教育">教育</option>
-              <option value="旅遊住宿">旅遊住宿</option>
-              <option value="電商">電商</option>
-              <option value="其他">其他</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="field-label" for="scale">企業規模</label>
-            <select id="scale" class="control" required>
-              <option value="10人以下">10人以下</option>
-              <option value="10–50人">10–50人</option>
-              <option value="50–100人">50–100人</option>
-              <option value="100–300人">100–300人</option>
-              <option value="300人以上">300人以上</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="field-label" for="budget">預算上限</label>
-            <select id="budget" class="control" required>
-              <option value="5萬以下">5萬以下</option>
-              <option value="5–10萬">5–10萬</option>
-              <option value="10–30萬">10–30萬</option>
-              <option value="30–50萬">30–50萬</option>
-              <option value="50萬以上">50萬以上</option>
-              <option value="不限">不限</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="field-label">主要痛點 <span class="text-red-500">*</span></label>
-            <div class="grid grid-cols-1 gap-2">
-              <label class="pain-option"><input type="checkbox" name="pain" value="解決人力短缺"> 解決人力短缺</label>
-              <label class="pain-option"><input type="checkbox" name="pain" value="提升辦公效率"> 提升辦公效率</label>
-              <label class="pain-option"><input type="checkbox" name="pain" value="加強資訊安全"> 加強資訊安全</label>
-              <label class="pain-option"><input type="checkbox" name="pain" value="簡化現金流管理"> 簡化現金流管理</label>
-              <label class="pain-option"><input type="checkbox" name="pain" value="接觸新客戶"> 接觸新客戶</label>
-              <label class="pain-option"><input type="checkbox" name="pain" value="改善客戶體驗"> 改善客戶體驗</label>
-              <label class="pain-option"><input type="checkbox" name="pain" value="簡化供應鏈"> 簡化供應鏈</label>
-              <label class="pain-option"><input type="checkbox" name="pain" value="數位轉型入門"> 數位轉型入門</label>
-            </div>
-            <p id="formError" class="text-xs text-red-500 mt-2 hidden">請至少選擇一個主要痛點。</p>
-          </div>
-
-          <button id="submitBtn" class="btn-primary w-full" type="submit">
-            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>開始診斷
+        <div id="agentChat" class="chat-panel mb-4" aria-live="polite"></div>
+        <div id="agentOptions" class="flex flex-wrap gap-2 mb-4"></div>
+        <div class="flex gap-2">
+          <input id="agentInput" class="control flex-1" type="text" placeholder="也可以直接輸入回答..." />
+          <button id="agentSendBtn" class="btn-primary px-4" type="button">
+            <i class="fa-solid fa-paper-plane"></i>
           </button>
-        </form>
+        </div>
+        <p id="formError" class="text-xs text-red-500 mt-2 hidden">請先回答目前問題，或點選下方建議選項。</p>
+        <div class="flex items-center justify-between mt-4">
+          <button id="restartAgentBtn" class="text-xs text-slate-500 hover:text-teal-700 font-bold" type="button">
+            <i class="fa-solid fa-rotate-left mr-1"></i>重新診斷
+          </button>
+          <span id="agentProgress" class="text-xs text-slate-400">1 / 4</span>
+        </div>
+        <div class="mt-4 rounded-xl bg-slate-50 border border-slate-200 p-3">
+          <p class="text-xs font-black text-slate-500 mb-2">目前已整理</p>
+          <div id="profilePreview" class="text-xs text-slate-500 leading-relaxed">尚未取得企業條件。</div>
+        </div>
       </aside>
 
       <section class="space-y-4">
@@ -139,7 +108,7 @@
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
               <h2 class="text-xl font-black text-slate-900">推薦方案 <span id="resultCount" class="text-teal-700">0</span> 筆</h2>
-              <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成問卷後產生推薦清單。</p>
+              <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成 AI 助手對話後產生推薦清單。</p>
             </div>
             <div id="parsedPreview" class="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 hidden"></div>
           </div>
@@ -149,8 +118,8 @@
           <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center mx-auto mb-4">
             <i class="fa-solid fa-clipboard-check"></i>
           </div>
-          <p class="font-bold text-slate-700">請先完成左側診斷問卷</p>
-          <p class="text-sm mt-2">系統會依產業、規模、預算與痛點推薦最多 20 筆方案。</p>
+          <p class="font-bold text-slate-700">請先與左側 AI 助手完成需求釐清</p>
+          <p class="text-sm mt-2">Agent 會逐步確認產業、規模、預算與痛點，再推薦最多 20 筆方案。</p>
         </div>
 
         <div id="loadingState" class="card p-8 text-center text-slate-500 hidden">
@@ -161,6 +130,14 @@
         <div id="noResultState" class="card p-10 text-center text-slate-500 hidden">
           <p class="font-bold text-slate-700">目前資料庫沒有完全符合的方案</p>
           <p class="text-sm mt-2">建議放寬預算或減少痛點條件後再次診斷。</p>
+        </div>
+
+        <div id="aiSummaryCard" class="card summary-card p-5 hidden">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h3 class="text-base font-black text-slate-900">AI 診斷摘要</h3>
+            <span class="badge badge-ai">Sonnet</span>
+          </div>
+          <div id="aiSummaryBody" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line"></div>
         </div>
 
         <div id="resultsList" class="space-y-3"></div>
@@ -228,13 +205,42 @@
       "300人以上": ["大型企業", "中大型企業", "300人以上"],
     };
 
+    const agentSteps = [
+      {
+        key: "industry",
+        label: "產業",
+        question: "先確認企業所屬產業。最接近哪一類？",
+        options: ["餐飲", "製造", "零售", "醫療", "物流", "建築營造", "金融", "教育", "旅遊住宿", "電商", "其他"],
+      },
+      {
+        key: "scale",
+        label: "規模",
+        question: "大約有多少員工？這會影響我對方案導入難度的判斷。",
+        options: ["10人以下", "10–50人", "50–100人", "100–300人", "300人以上"],
+      },
+      {
+        key: "budget",
+        label: "預算",
+        question: "本次可接受的方案預算大約在哪個範圍？",
+        options: ["5萬以下", "5–10萬", "10–30萬", "30–50萬", "50萬以上", "不限"],
+      },
+      {
+        key: "pains",
+        label: "痛點",
+        question: "最後確認主要想解決的問題。可輸入 1 到 3 個，也可以直接點選。",
+        options: Object.keys(painRules),
+      },
+    ];
+
     const refs = {
-      form: document.getElementById("diagnosisForm"),
-      industry: document.getElementById("industry"),
-      scale: document.getElementById("scale"),
-      budget: document.getElementById("budget"),
+      agentChat: document.getElementById("agentChat"),
+      agentOptions: document.getElementById("agentOptions"),
+      agentInput: document.getElementById("agentInput"),
+      agentSendBtn: document.getElementById("agentSendBtn"),
+      restartAgentBtn: document.getElementById("restartAgentBtn"),
+      agentProgress: document.getElementById("agentProgress"),
+      profilePreview: document.getElementById("profilePreview"),
       formError: document.getElementById("formError"),
-      submitBtn: document.getElementById("submitBtn"),
       dataStatus: document.getElementById("dataStatus"),
       emptyState: document.getElementById("emptyState"),
       loadingState: document.getElementById("loadingState"),
@@ -248,11 +254,16 @@
       compareBtn: document.getElementById("compareBtn"),
       clearSelectedBtn: document.getElementById("clearSelectedBtn"),
       compareNotice: document.getElementById("compareNotice"),
+      aiSummaryCard: document.getElementById("aiSummaryCard"),
+      aiSummaryBody: document.getElementById("aiSummaryBody"),
     };
 
     let allSolutions = [];
     let currentResults = [];
     let selectedItems = [];
+    let agentStepIndex = 0;
+    let diagnosisProfile = { industry: "", scale: "", budget: "", pains: [] };
+    let conversationHistory = [];
 
     const safeStr = value => {
       if (value === null || value === undefined) return "";
@@ -280,8 +291,126 @@
       return Number.isFinite(price) ? price : null;
     };
 
-    function getSelectedPains() {
-      return [...document.querySelectorAll('input[name="pain"]:checked')].map(input => input.value);
+    function addMessage(role, content) {
+      conversationHistory.push({ role, content, time: new Date().toISOString() });
+      renderChat();
+    }
+
+    function renderChat() {
+      refs.agentChat.innerHTML = conversationHistory.map(message => `
+        <div class="chat-message ${message.role}">
+          <div class="chat-bubble">${escapeHtml(message.content)}</div>
+        </div>
+      `).join("");
+      refs.agentChat.scrollTop = refs.agentChat.scrollHeight;
+    }
+
+    function renderAgentOptions() {
+      const step = agentSteps[agentStepIndex];
+      refs.agentProgress.textContent = `${Math.min(agentStepIndex + 1, agentSteps.length)} / ${agentSteps.length}`;
+      refs.agentOptions.innerHTML = step.options.map(option => `
+        <button type="button" class="option-chip" data-agent-option="${escapeHtml(option)}">${escapeHtml(option)}</button>
+      `).join("");
+      refs.agentOptions.querySelectorAll("[data-agent-option]").forEach(button => {
+        button.addEventListener("click", () => handleAgentInput(button.dataset.agentOption));
+      });
+    }
+
+    function updateProfilePreview() {
+      const items = [
+        diagnosisProfile.industry ? `產業：${diagnosisProfile.industry}` : null,
+        diagnosisProfile.scale ? `規模：${diagnosisProfile.scale}` : null,
+        diagnosisProfile.budget ? `預算：${diagnosisProfile.budget}` : null,
+        diagnosisProfile.pains.length ? `痛點：${diagnosisProfile.pains.join("、")}` : null,
+      ].filter(Boolean);
+      refs.profilePreview.textContent = items.length ? items.join("｜") : "尚未取得企業條件。";
+    }
+
+    function normalizeOption(value, options) {
+      const text = safeStr(value).trim();
+      if (!text) return "";
+      const exact = options.find(option => option === text);
+      if (exact) return exact;
+      return options.find(option => text.includes(option) || option.includes(text)) || text;
+    }
+
+    function inferPains(text) {
+      const raw = safeStr(text);
+      const direct = Object.keys(painRules).filter(pain => raw.includes(pain));
+      const inferred = Object.entries(painRules)
+        .filter(([pain, rule]) => direct.includes(pain) || rule.terms.some(term => raw.includes(term)) || raw.includes(rule.keyword))
+        .map(([pain]) => pain);
+      return [...new Set([...direct, ...inferred])].slice(0, 3);
+    }
+
+    function askCurrentQuestion() {
+      const step = agentSteps[agentStepIndex];
+      addMessage("assistant", step.question);
+      renderAgentOptions();
+      updateProfilePreview();
+    }
+
+    function resetAgent() {
+      agentStepIndex = 0;
+      diagnosisProfile = { industry: "", scale: "", budget: "", pains: [] };
+      conversationHistory = [];
+      currentResults = [];
+      selectedItems = [];
+      refs.resultsList.innerHTML = "";
+      refs.resultCount.textContent = "0";
+      refs.parsedPreview.classList.add("hidden");
+      refs.aiSummaryCard.classList.add("hidden");
+      refs.noResultState.classList.add("hidden");
+      refs.emptyState.classList.remove("hidden");
+      refs.queryPreview.textContent = "完成 AI 助手對話後產生推薦清單。";
+      updateCompareBar();
+      askCurrentQuestion();
+    }
+
+    async function handleAgentInput(value) {
+      if (agentStepIndex >= agentSteps.length) {
+        addMessage("assistant", "本次診斷已完成。若要重新整理需求，請按「重新診斷」。");
+        return;
+      }
+      const text = safeStr(value).trim();
+      if (!text) {
+        refs.formError.classList.remove("hidden");
+        return;
+      }
+      refs.formError.classList.add("hidden");
+      refs.agentInput.value = "";
+      addMessage("user", text);
+
+      const step = agentSteps[agentStepIndex];
+      if (step.key === "pains") {
+        const pains = inferPains(text);
+        if (!pains.length) {
+          addMessage("assistant", "我還無法判斷主要痛點。請用「提升辦公效率、改善客戶體驗、加強資訊安全」這類描述回答。");
+          renderAgentOptions();
+          return;
+        }
+        diagnosisProfile.pains = pains;
+      } else {
+        diagnosisProfile[step.key] = normalizeOption(text, step.options);
+      }
+
+      if (agentStepIndex === agentSteps.length - 1 && !allSolutions.length) {
+        addMessage("assistant", "方案資料還在讀取中。請等右上角顯示已載入後，再送出這一題。");
+        renderAgentOptions();
+        updateProfilePreview();
+        return;
+      }
+
+      agentStepIndex += 1;
+      updateProfilePreview();
+      if (agentStepIndex >= agentSteps.length) {
+        refs.agentOptions.innerHTML = "";
+        refs.agentProgress.textContent = "完成";
+        addMessage("assistant", "條件已整理完成。我會先做需求解析，再從資料庫篩出候選方案。");
+        await runDiagnosis({ ...diagnosisProfile });
+        return;
+      }
+      askCurrentQuestion();
     }
 
     function buildQuery(formData) {
@@ -406,10 +535,8 @@
     }
 
     function setLoading(loading) {
-      refs.submitBtn.disabled = loading || allSolutions.length === 0;
-      refs.submitBtn.innerHTML = loading
-        ? '<i class="fa-solid fa-circle-notch animate-spin mr-2"></i>診斷中...'
-        : '<i class="fa-solid fa-wand-magic-sparkles mr-2"></i>開始診斷';
+      refs.agentSendBtn.disabled = loading || allSolutions.length === 0;
+      refs.agentInput.disabled = loading || allSolutions.length === 0;
       refs.loadingState.classList.toggle("hidden", !loading);
     }
 
@@ -475,25 +602,47 @@
       });
     }
 
-    async function handleSubmit(event) {
-      event.preventDefault();
-      const pains = getSelectedPains();
-      if (pains.length === 0) {
-        refs.formError.classList.remove("hidden");
+    async function generateAgentSummary(formData, parsed, results) {
+      refs.aiSummaryCard.classList.remove("hidden");
+      if (!results.length) {
+        refs.aiSummaryBody.textContent = "目前沒有足夠候選方案可產生 AI 摘要。建議放寬預算或改用較通用的痛點描述重新診斷。";
+        return;
+      }
+      refs.aiSummaryBody.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin text-teal-700 mr-2"></i>AI 正在整理顧問摘要...';
+      const localFallback = [
+        `需求摘要：${formData.industry}業、${formData.scale}、${budgetPhraseMap[formData.budget]}，主要痛點為 ${formData.pains.join("、")}。`,
+        `初步建議：優先檢視前 ${Math.min(results.length, 5)} 筆高分方案，再依導入成本、功能完整度與企業規模適配度進行人工確認。`,
+      ].join("\n");
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: `請以顧問口吻，根據以下診斷條件、對話歷程與候選方案，產生簡潔的繁體中文摘要。條件與歷程：${JSON.stringify({ formData, parsed, conversationHistory: conversationHistory.map(({ role, content }) => ({ role, content })) })}。請包含：1. 需求判斷 2. 推薦方向 3. 需要顧問再確認的風險。`,
+            solutions: results.slice(0, 20),
+            searchQuery: buildQuery(formData),
+          }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        refs.aiSummaryBody.textContent = data.answer || localFallback;
+      } catch (err) {
+        refs.aiSummaryBody.textContent = localFallback;
+      }
+    }
+
+    async function runDiagnosis(formData) {
+      if (!allSolutions.length) {
+        addMessage("assistant", "方案資料還在讀取中。請等右上角顯示已載入後，再送出最後一題。");
         return;
       }
       refs.formError.classList.add("hidden");
       refs.noResultState.classList.add("hidden");
       refs.resultsList.innerHTML = "";
+      refs.aiSummaryCard.classList.add("hidden");
       selectedItems = [];
       updateCompareBar();
 
-      const formData = {
-        industry: refs.industry.value,
-        scale: refs.scale.value,
-        budget: refs.budget.value,
-        pains,
-      };
       const query = buildQuery(formData);
       refs.queryPreview.textContent = query;
       setLoading(true);
@@ -505,23 +654,30 @@
       refs.parsedPreview.textContent = `解析：${[parsed.category, parsed.keyword, parsed.industryKeyword].filter(Boolean).join(" / ") || "基本條件"}`;
       setLoading(false);
       renderResults(currentResults);
+      await generateAgentSummary(formData, parsed, currentResults);
     }
 
     async function loadSolutions() {
-      refs.submitBtn.disabled = true;
+      refs.agentSendBtn.disabled = true;
+      refs.agentInput.disabled = true;
       try {
         const res = await fetch("/api/solutions");
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         allSolutions = await res.json();
         refs.dataStatus.textContent = `已載入 ${allSolutions.length.toLocaleString("zh-TW")} 筆方案`;
-        refs.submitBtn.disabled = false;
+        refs.agentSendBtn.disabled = false;
+        refs.agentInput.disabled = false;
       } catch (err) {
         refs.dataStatus.textContent = "方案資料載入失敗，請稍後重試";
         refs.dataStatus.className = "text-xs text-red-500";
       }
     }
 
-    refs.form.addEventListener("submit", handleSubmit);
+    refs.agentSendBtn.addEventListener("click", () => handleAgentInput(refs.agentInput.value));
+    refs.agentInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") handleAgentInput(refs.agentInput.value);
+    });
+    refs.restartAgentBtn.addEventListener("click", resetAgent);
     refs.clearSelectedBtn.addEventListener("click", () => {
       selectedItems = [];
       renderResults(currentResults);
@@ -533,6 +689,7 @@
       window.location.href = "/compare.html";
     });
 
+    resetAgent();
     loadSolutions();
   </script>
 </body>
