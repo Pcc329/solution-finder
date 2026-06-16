@@ -93,7 +93,7 @@
         <p id="formError" class="text-xs text-red-500 mt-2 hidden">請先回答目前問題，或點選下方建議選項。</p>
         <div class="flex items-center justify-between mt-4">
           <button id="restartAgentBtn" class="text-xs text-slate-500 hover:text-teal-700 font-bold" type="button">
-            <i class="fa-solid fa-rotate-left mr-1"></i>重新診斷
+            <i class="fa-solid fa-rotate-left mr-1"></i>重新規劃
           </button>
           <span id="agentProgress" class="text-xs text-slate-400">1 / 4</span>
         </div>
@@ -129,12 +129,12 @@
 
         <div id="noResultState" class="card p-10 text-center text-slate-500 hidden">
           <p class="font-bold text-slate-700">目前資料庫沒有完全符合的方案</p>
-          <p class="text-sm mt-2">建議放寬預算或減少痛點條件後再次診斷。</p>
+          <p class="text-sm mt-2">建議放寬預算或減少痛點條件後再次規劃。</p>
         </div>
 
         <div id="aiSummaryCard" class="card summary-card p-5 hidden">
           <div class="flex items-center justify-between gap-3 mb-3">
-            <h3 class="text-base font-black text-slate-900">AI 診斷摘要</h3>
+            <h3 class="text-base font-black text-slate-900">AI 規劃摘要</h3>
             <span class="badge badge-ai">Sonnet</span>
           </div>
           <div id="aiSummaryBody" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line"></div>
@@ -374,7 +374,7 @@
 
     async function handleAgentInput(value) {
       if (agentStepIndex >= agentSteps.length) {
-        addMessage("assistant", "本次診斷已完成。若要重新整理需求，請按「重新診斷」。");
+        addMessage("assistant", "本次規劃已完成。若要重新整理需求，請按「重新規劃」。");
         return;
       }
       const text = safeStr(value).trim();
@@ -610,7 +610,7 @@
     async function generateAgentSummary(formData, parsed, results) {
       refs.aiSummaryCard.classList.remove("hidden");
       if (!results.length) {
-        refs.aiSummaryBody.textContent = "目前沒有足夠候選方案可產生 AI 摘要。建議放寬預算或改用較通用的痛點描述重新診斷。";
+        refs.aiSummaryBody.textContent = "目前沒有足夠候選方案可產生 AI 摘要。建議放寬預算或改用較通用的痛點描述重新規劃。";
         return;
       }
       refs.aiSummaryBody.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin text-teal-700 mr-2"></i>AI 正在整理顧問摘要...';
@@ -635,7 +635,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            question: `請以顧問口吻，根據以下診斷條件、對話歷程與候選方案，產生簡潔的繁體中文摘要。條件與歷程：${JSON.stringify(normalizedContext)}。預算欄位規則：數字代表金額上限；null 代表未指定或不限預算；嚴禁在回答中輸出 undefined，遇到未知值請寫「未指定」。請包含：1. 需求判斷 2. 推薦方向 3. 需要顧問再確認的風險。`,
+            question: `請以顧問口吻，根據以下規劃條件、對話歷程與候選方案，產生簡潔的繁體中文摘要。條件與歷程：${JSON.stringify(normalizedContext)}。預算欄位規則：數字代表金額上限；null 代表未指定或不限預算；嚴禁在回答中輸出 undefined，遇到未知值請寫「未指定」。請包含：1. 需求判斷 2. 推薦方向 3. 需要顧問再確認的風險。`,
             solutions: results.slice(0, 20),
             searchQuery: buildQuery(formData),
           }),
