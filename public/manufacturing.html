@@ -228,6 +228,8 @@
 
     let allSolutions = [];
     let profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
+    let extractedData = null;
+    let documentText = "";
     let stepIndex = 0;
     let conversationHistory = [];
 
@@ -278,6 +280,7 @@
         profile.pain ? `痛點：${profile.pain}` : null,
         profile.budget ? `預算：${profile.budget}` : null,
         profile.documentNote ? `文件：${profile.documentNote}` : null,
+        extractedData && extractedData.keyword ? `文件關鍵字：${extractedData.keyword}` : null,
       ].filter(Boolean);
       refs.profilePreview.textContent = items.length ? items.join("｜") : "尚未取得完整條件。";
       refs.runBtn.disabled = !(profile.subIndustry && profile.size && profile.pain && allSolutions.length);
@@ -291,6 +294,9 @@
 
     function resetAgent() {
       profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
+      extractedData = null;
+      documentText = "";
+      refs.fileInfo.textContent = "";
       stepIndex = 0;
       conversationHistory = [];
       refs.officialList.textContent = "尚未產生推薦。";
@@ -334,11 +340,23 @@
         .map(safeStr).join(" ").toLowerCase();
     }
 
+    function extractedTerms() {
+      if (!extractedData) return [];
+      return [
+        extractedData.industry,
+        extractedData.size,
+        extractedData.digital_maturity,
+        extractedData.keyword,
+        ...(Array.isArray(extractedData.pain_points) ? extractedData.pain_points : []),
+      ].map(safeStr).map(term => term.trim()).filter(Boolean);
+    }
+
     function scoreSolution(item) {
       const text = solutionText(item);
       let score = 0;
       manufacturingTerms.forEach(term => { if (text.includes(term.toLowerCase())) score += 8; });
       (issueTerms[profile.pain] || []).forEach(term => { if (text.includes(term.toLowerCase())) score += 18; });
+      extractedTerms().forEach(term => { if (text.includes(term.toLowerCase())) score += 12; });
       if (safeStr(item.d).includes("製造") || safeStr(item.iv).includes("製造")) score += 35;
       if (safeStr(item.scale).includes(profile.size.replace("人", ""))) score += 8;
       if (item.ai) score += 8;
@@ -395,9 +413,9 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            question: `請以製造業數位顧問口吻，根據需求條件與候選方案產生簡短規劃摘要。需求：${JSON.stringify({ profile, conversationHistory })}。請包含：1. 需求判斷 2. 官方推薦優先順序 3. 其他候選方案用途 4. 補助申請提醒。`,
+            question: `請以製造業數位顧問口吻，根據需求條件、文件萃取結果與候選方案產生簡短規劃摘要。需求：${JSON.stringify({ profile, extractedData, documentText: documentText.slice(0, 1200), conversationHistory })}。請包含：1. 需求判斷 2. 官方推薦優先順序 3. 其他候選方案用途 4. 補助申請提醒。`,
             solutions: [...official, ...others].slice(0, 20),
-            searchQuery: `製造業 ${profile.subIndustry} ${profile.pain}`,
+            searchQuery: `製造業 ${profile.subIndustry} ${profile.pain} ${extractedData?.keyword || ""}`,
           }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -421,21 +439,108 @@
       await generateSummary(official, others);
     }
 
-    function handleFile(file) {
+    function detectUploadMediaType(file) {
+      const name = file.name.toLowerCase();
+      if (file.type === "application/pdf" || name.endsWith(".pdf")) return "application/pdf";
+      if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || name.endsWith(".docx")) {
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      }
+      if (/\.(txt|md)$/i.test(file.name)) return "text/plain";
+      return "";
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || "");
+          resolve(result.includes(",") ? result.split(",")[1] : result);
+        };
+        reader.onerror = () => reject(reader.error || new Error("檔案讀取失敗"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function applyExtractedProfile(extracted) {
+      if (!extracted) return;
+      const text = [
+        extracted.industry,
+        extracted.size,
+        extracted.digital_maturity,
+        ...(Array.isArray(extracted.pain_points) ? extracted.pain_points : []),
+        extracted.keyword,
+      ].map(safeStr).join(" ");
+      if (!profile.subIndustry && extracted.industry) {
+        profile.subIndustry = normalizeOption(extracted.industry, agentSteps[0].options);
+      }
+      if (!profile.size && extracted.size) {
+        profile.size = normalizeOption(extracted.size, agentSteps[1].options);
+      }
+      if (!profile.maturity && extracted.digital_maturity) {
+        profile.maturity = normalizeOption(extracted.digital_maturity, agentSteps[2].options);
+      }
+      if (!profile.pain) {
+        const matchedPain = agentSteps[3].options.find(option =>
+          text.includes(option) || (issueTerms[option] || []).some(term => text.includes(term))
+        );
+        if (matchedPain) profile.pain = matchedPain;
+      }
+    }
+
+    async function analyzeDocument(file, mediaType) {
+      refs.fileInfo.innerHTML = '<span class="text-teal-700 font-bold"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>AI 正在讀取文件內容...</span>';
+      addMessage("assistant", `AI 正在讀取 ${file.name}，完成後會把萃取結果納入推薦。`);
+      const fileBase64 = await fileToBase64(file);
+      const res = await fetch("/api/manufacturing-analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileBase64,
+          mediaType,
+          fileName: file.name,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || `文件解析失敗 (${res.status})`);
+      }
+      extractedData = data.extracted || null;
+      documentText = data.summary || "";
+      profile.documentNote = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+      applyExtractedProfile(extractedData);
+      refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(file.name)}`;
+      addMessage("assistant", data.agentMessage || "文件解析完成，我會把萃取結果納入推薦。");
+      updateProfilePreview();
+    }
+
+    async function handleFile(file) {
       if (!file) return;
+      const mediaType = detectUploadMediaType(file);
+      if (!mediaType) {
+        refs.fileInfo.innerHTML = '<span class="text-red-500 font-bold">僅支援 PDF、DOCX、TXT、MD。</span>';
+        addMessage("assistant", "這個檔案格式目前不支援，請改用 PDF、DOCX、TXT 或 MD。");
+        return;
+      }
+      if (mediaType !== "text/plain") {
+        try {
+          await analyzeDocument(file, mediaType);
+        } catch (err) {
+          refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "文件解析失敗")}</span>`;
+          addMessage("assistant", `文件解析失敗：${err.message || "請稍後再試，或改用文字補充重點需求。"}`);
+        }
+        return;
+      }
       const reader = new FileReader();
       reader.onload = () => {
-        const text = typeof reader.result === "string" ? reader.result.slice(0, 800) : "";
+        const text = typeof reader.result === "string" ? reader.result.slice(0, 2000) : "";
+        documentText = text;
+        extractedData = { keyword: text.slice(0, 40), summary: text.slice(0, 200), pain_points: [] };
         profile.documentNote = `${file.name} (${Math.round(file.size / 1024)} KB)`;
-        if (text && /\.(txt|md)$/i.test(file.name)) {
-          addMessage("assistant", `已讀取文字文件前段內容。若內容正確，我會把它作為需求補充：${text.slice(0, 120)}...`);
-        } else {
-          addMessage("assistant", `已收到 ${file.name}。目前先記錄檔名與附件資訊，PDF/DOCX 內容請用文字補充重點需求。`);
-        }
+        refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已讀取文字文件：</span>${escapeHtml(file.name)}`;
+        addMessage("assistant", `已讀取文字文件前段內容。若內容正確，我會把它作為需求補充：${text.slice(0, 120)}...`);
         updateProfilePreview();
       };
-      if (/\.(txt|md)$/i.test(file.name)) reader.readAsText(file, "utf-8");
-      else reader.readAsDataURL(file);
+      reader.readAsText(file, "utf-8");
     }
 
     async function loadSolutions() {
