@@ -11,6 +11,11 @@ index.html 例外使用 React UMD + Babel standalone（瀏覽器端編譯）。
 - 部署：Vercel，push main → 自動上線
 - 現有功能網址：https://solution-finder-gray.vercel.app
 
+## ✅ 每次任務完成後的必要動作
+1. commit 推送到指定分支
+2. **自動建立 Pull Request**：base: main，head: 當前分支，title 使用 commit message
+3. 在 SYNC .md 回傳 PR 連結（格式：https://github.com/Pcc329/solution-finder/pull/xxx）
+
 ## 資料庫（Airtable）
 - Base ID: appttP04OnzzC7qxG
 - Solutions Table: tblqQkVQ4dSo7xgoE（約 2,322 筆方案）
