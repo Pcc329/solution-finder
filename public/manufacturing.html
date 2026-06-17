@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>製造業方案探索 | Solution Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background: #f7faf9; color: #10253a; }
+    #global-nav { position: sticky; top: 0; z-index: 1000; background: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .global-nav-brand { display: flex; align-items: center; gap: 10px; }
+    .global-nav-logo { width: 36px; height: 36px; background: #0d9488; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .global-nav-kicker { font-size: 10px; color: #6b7280; letter-spacing: 0.1em; }
+    .global-nav-title { font-size: 14px; font-weight: 600; color: #111827; }
+    .global-nav-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .global-nav-link { padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; color: #374151; text-decoration: none; background: #fff; font-weight: 600; }
+    .global-nav-link.active { background: #0d9488; color: #ffffff; border-color: #0d9488; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06); }
+    .btn-primary { background: #0d9488; color: white; border-radius: 12px; font-weight: 900; padding: 11px 15px; transition: 0.16s; }
+    .btn-primary:hover { background: #0f766e; }
+    .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+    .badge-teal { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-muted { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+    .dropzone { border: 2px dashed #99f6e4; background: #f0fdfa; border-radius: 16px; padding: 22px; text-align: center; cursor: pointer; transition: 0.16s; }
+    .dropzone.dragover { border-color: #0d9488; background: #ccfbf1; }
+    .chat-panel { min-height: 310px; max-height: 470px; overflow-y: auto; padding-right: 4px; }
+    .chat-message { display: flex; margin-bottom: 12px; }
+    .chat-message.assistant { justify-content: flex-start; }
+    .chat-message.user { justify-content: flex-end; }
+    .chat-bubble { max-width: 90%; border-radius: 16px; padding: 10px 12px; font-size: 14px; line-height: 1.55; }
+    .chat-message.assistant .chat-bubble { background: #f0fdfa; color: #0f172a; border: 1px solid #ccfbf1; border-bottom-left-radius: 6px; }
+    .chat-message.user .chat-bubble { background: #0d9488; color: #ffffff; border-bottom-right-radius: 6px; }
+    .option-chip { border: 1px solid #dbe3ea; border-radius: 999px; padding: 7px 10px; font-size: 12px; font-weight: 800; color: #334155; background: #ffffff; transition: 0.16s; }
+    .option-chip:hover { border-color: #0d9488; color: #0f766e; background: #f0fdfa; }
+    .accordion-body { display: none; }
+    .accordion-item.open .accordion-body { display: block; }
+    .solution-card { border-left: 4px solid #0d9488; cursor: pointer; transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
+    .solution-card:hover { border-color: #14b8a6; box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
+    .markdown-body h1 { font-size: 1.25rem; }
+    .markdown-body h2 { font-size: 1.15rem; }
+    .markdown-body h3 { font-size: 1.05rem; }
+    .markdown-body ul, .markdown-body ol { margin: 0.5em 0 0.5em 1.25em; }
+    .markdown-body ul { list-style: disc; }
+    .markdown-body ol { list-style: decimal; }
+    .markdown-body p { margin: 0.45em 0; }
+    .markdown-body strong { font-weight: 900; color: #0f766e; }
+    .profile-tags { display: grid; gap: 8px; }
+    .profile-row { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; align-items: start; }
+    .profile-row .label { color: #64748b; font-weight: 900; white-space: nowrap; }
+    .profile-row .value { color: #0f172a; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+    @media (max-width: 900px) {
+      #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
+      .global-nav-actions { width: 100%; justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <nav id="global-nav">
+    <a class="global-nav-brand" href="/" style="text-decoration:none;">
+      <div class="global-nav-logo"><span style="font-size:18px;">🏭</span></div>
+      <div>
+        <div class="global-nav-kicker">SOLUTION FINDER</div>
+        <div class="global-nav-title">資服產業資料庫</div>
+      </div>
+    </a>
+    <div class="global-nav-actions">
+      <a class="global-nav-link" href="/sources.html">資料來源</a>
+      <a class="global-nav-link" href="/dashboard.html">戰情儀表板</a>
+      <a class="global-nav-link" href="/strategy-guide.html">策略智庫 ↗</a>
+      <a class="global-nav-link active" href="/manufacturing.html">製造業方案探索 ↗</a>
+      <a class="global-nav-link" href="/diagnosis.html">智能方案探索 ↗</a>
+    </div>
+  </nav>
+
+  <main class="w-[calc(100%_-_32px)] max-w-[1240px] mx-auto py-8">
+    <header class="mb-6">
+      <p class="text-xs tracking-[0.18em] uppercase text-teal-700 font-black mb-2">MANUFACTURING SOLUTION EXPLORER</p>
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
+        <div>
+          <h1 class="text-3xl md:text-4xl font-black text-slate-900">製造業方案探索</h1>
+          <p class="text-sm text-slate-500 mt-2">上傳需求文件或逐步回答問題，快速找出製造業可用的 AI 與數位化方案。</p>
+        </div>
+        <div id="dataStatus" class="text-xs text-slate-400">正在讀取方案資料...</div>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-1 lg:grid-cols-[390px_1fr] gap-6 items-start">
+      <aside class="space-y-4">
+        <section class="card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-black text-slate-900">需求文件</h2>
+            <span class="badge badge-blue">PDF / DOCX / TXT</span>
+          </div>
+          <label id="dropzone" class="dropzone block" for="fileInput">
+            <i class="fa-solid fa-cloud-arrow-up text-2xl text-teal-700 mb-2"></i>
+            <p class="font-black text-slate-700">拖曳或點選上傳製造業 AI 需求文件</p>
+            <p class="text-xs text-slate-500 mt-1">目前會讀取檔名與純文字內容，PDF/DOCX 可先作為需求附件紀錄。</p>
+          </label>
+          <input id="fileInput" type="file" class="hidden" accept=".pdf,.docx,.txt,.md">
+          <div id="fileInfo" class="mt-3 text-xs text-slate-500"></div>
+        </section>
+
+        <section class="card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-black text-slate-900">AI Agent 問答</h2>
+            <span class="badge badge-teal">Haiku flow</span>
+          </div>
+          <div id="agentChat" class="chat-panel mb-4" aria-live="polite"></div>
+          <div id="agentOptions" class="flex flex-wrap gap-2 mb-4"></div>
+          <div class="flex gap-2">
+            <input id="agentInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-500" type="text" placeholder="也可以直接輸入回答...">
+            <button id="agentSendBtn" class="btn-primary px-4" type="button"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div class="flex items-center justify-between mt-4">
+            <button id="restartBtn" class="text-xs text-slate-500 hover:text-teal-700 font-bold" type="button">
+              <i class="fa-solid fa-rotate-left mr-1"></i>重新規劃
+            </button>
+            <span id="agentProgress" class="text-xs text-slate-400">1 / 5</span>
+          </div>
+        </section>
+      </aside>
+
+      <section class="space-y-4">
+        <section class="card p-5">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-black text-slate-900">製造業推薦清單</h2>
+              <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成左側問答後產生官方推薦與其他候選方案。</p>
+            </div>
+            <button id="runBtn" class="btn-primary" type="button" disabled>
+              <i class="fa-solid fa-magnifying-glass-chart mr-2"></i>產生推薦
+            </button>
+          </div>
+          <div id="profilePreview" class="mt-4 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-3">尚未取得完整條件。</div>
+        </section>
+
+        <section id="loadingState" class="card p-8 text-center text-slate-500 hidden">
+          <i class="fa-solid fa-circle-notch animate-spin text-teal-700 mr-2"></i>
+          正在分析製造業需求並篩選方案...
+        </section>
+
+        <section id="summaryCard" class="card p-5 hidden">
+          <h3 class="text-base font-black text-slate-900 mb-2">AI 規劃摘要</h3>
+          <div id="summaryText" class="markdown-body text-sm text-slate-600 leading-relaxed"></div>
+        </section>
+
+        <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div class="card p-5">
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <h3 class="font-black text-slate-900">官方推薦方案</h3>
+              <span id="officialCount" class="badge badge-teal">0 筆</span>
+            </div>
+            <div id="officialList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
+          </div>
+          <div class="card p-5">
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <h3 class="font-black text-slate-900">其他候選方案</h3>
+              <span id="otherCount" class="badge badge-muted">0 筆</span>
+            </div>
+            <div id="otherList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
+          </div>
+        </section>
+
+        <section class="card p-5">
+          <h3 class="font-black text-slate-900 mb-4">製造業補助資訊</h3>
+          <div class="space-y-3" id="accordion">
+            <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden open">
+              <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
+                <span>補助資格</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
+              </button>
+              <div class="accordion-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
+                <p><strong>補助對象：</strong>以中小型製造業與具工廠登記、商業登記或公司登記的企業為主要對象，實際資格仍以主管機關公告為準。</p>
+                <p><strong>補助資訊整理：</strong></p>
+                <ol class="list-decimal pl-5 space-y-1 mt-2">
+                  <li>補助通常聚焦在雲端工具、AI 應用、資料整合、智慧製造與營運效率改善。</li>
+                  <li>建議先確認企業是否符合中小企業資格、產業別、登記狀態與導入場域。</li>
+                  <li>申請前需整理現況痛點、預計導入方案、預算、時程與預期效益。</li>
+                  <li>可優先檢視官方方案來源，例如雲市集工業館或 SME AI 平台，再搭配其他候選供應商。</li>
+                  <li>若方案需要顧問輔導、系統建置或教育訓練，應在申請資料中清楚列出。</li>
+                  <li>實際補助額度、比例與核銷方式需依各年度計畫公告與受理窗口規定辦理。</li>
+                </ol>
+              </div>
+            </article>
+            <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden">
+              <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
+                <span>受理期間</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
+              </button>
+              <div class="accordion-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
+                <p><strong>申請期間：</strong>請以官方公告為準。若公告載明截止時間，需在期限前完成線上申請與文件上傳。</p>
+                <br>
+                <p><strong>補助申請重點：</strong></p>
+                <ul class="list-disc pl-5 space-y-1 mt-2">
+                  <li>先確認企業基本資料、登記證明、負責人與聯絡窗口資訊是否完整。</li>
+                  <li>痛點描述應具體，例如品管人力不足、生產排程延誤、設備停機、庫存不透明或資料分散。</li>
+                  <li>方案內容需能對應痛點，避免只列軟體名稱但沒有說明導入後改善方式。</li>
+                  <li>補助金額、企業自籌款、導入期程與驗收方式應先估算清楚。</li>
+                  <li>若要導入 AI 方案，建議補充資料來源、資料品質、使用場景與預期指標。</li>
+                  <li>送件後仍可能需要補件，建議預留至少數個工作天處理文件修正。</li>
+                </ul>
+                <br>
+                <p><strong>官方資訊：</strong>以主管機關公告為準，可參考 <a class="text-teal-700 font-bold underline" href="https://keid.nat.gov.tw/cloud/Web/project_description_AI.aspx" target="_blank" rel="noopener">雲市集工業館 AI 應用服務說明</a>。</p>
+              </div>
+            </article>
+            <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden">
+              <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
+                <span>委託執行</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
+              </button>
+              <div class="accordion-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
+                <p><strong>主要窗口：</strong>經濟部相關計畫服務窗口或雲市集工業館計畫網站公告窗口。</p>
+                <p><strong>適合洽詢：</strong>補助資格、申請流程、方案適用性、文件補件、核銷與驗收規定。</p>
+                <br>
+                <p><strong>聯絡資訊整理：</strong></p>
+                <ul class="list-disc pl-5 space-y-1 mt-2">
+                  <li>地址、電話、傳真與承辦窗口請以最新官方公告為準。</li>
+                  <li>送件前可先備妥公司基本資料、需求摘要、預計導入方案與預算估算。</li>
+                  <li>若不確定是否適用補助，建議先以「製造業痛點 + 導入目標 + 預計方案」詢問窗口。</li>
+                  <li>官方說明頁：<a class="text-teal-700 font-bold underline" href="https://keid.nat.gov.tw/cloud/Web/project_description_AI.aspx" target="_blank" rel="noopener">https://keid.nat.gov.tw/cloud/Web/project_description_AI.aspx</a></li>
+                </ul>
+                <br>
+                <p>本頁資訊用於協助顧問快速判斷方向，不取代官方公告與正式申請規定。正式送件前仍需再次確認最新計畫內容。</p>
+              </div>
+            </article>
+            <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden">
+              <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
+                <span>補助申請須知</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
+              </button>
+              <div class="accordion-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
+                <p><strong>申請流程：</strong></p>
+                <ol class="list-decimal pl-5 space-y-1 mt-2">
+                  <li>確認補助資訊與企業資格。</li>
+                  <li>整理公司基本資料、工廠或營運場域、主要痛點與導入目標。</li>
+                  <li>挑選候選方案並確認供應商、報價、導入期程與驗收方式。</li>
+                  <li>填寫申請文件，附上必要證明與方案說明。</li>
+                  <li>送出申請後追蹤審查狀態，依通知完成補件。</li>
+                  <li>通過後依核定內容導入方案，保留合約、發票、成果紀錄與驗收資料。</li>
+                </ol>
+                <br>
+                <p><strong>常見準備文件：</strong></p>
+                <ul class="list-disc pl-5 space-y-1 mt-2">
+                  <li>公司或商業登記證明。</li>
+                  <li>工廠登記或營運場域相關資料。</li>
+                  <li>最近期財務或稅務資料，依計畫要求提供。</li>
+                  <li>導入方案報價單、規格書或服務建議書。</li>
+                  <li>需求說明、痛點描述、預期效益與導入時程。</li>
+                </ul>
+                <br>
+                <p><strong>提醒：</strong>本流程為顧問協助初步規劃用途。實際申請資料、格式、期限與審查標準仍以當年度公告為準。</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const refs = {
+      dataStatus: document.getElementById("dataStatus"),
+      dropzone: document.getElementById("dropzone"),
+      fileInput: document.getElementById("fileInput"),
+      fileInfo: document.getElementById("fileInfo"),
+      agentChat: document.getElementById("agentChat"),
+      agentOptions: document.getElementById("agentOptions"),
+      agentInput: document.getElementById("agentInput"),
+      agentSendBtn: document.getElementById("agentSendBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      agentProgress: document.getElementById("agentProgress"),
+      runBtn: document.getElementById("runBtn"),
+      queryPreview: document.getElementById("queryPreview"),
+      profilePreview: document.getElementById("profilePreview"),
+      loadingState: document.getElementById("loadingState"),
+      summaryCard: document.getElementById("summaryCard"),
+      summaryText: document.getElementById("summaryText"),
+      officialList: document.getElementById("officialList"),
+      otherList: document.getElementById("otherList"),
+      officialCount: document.getElementById("officialCount"),
+      otherCount: document.getElementById("otherCount"),
+    };
+
+    const officialPrograms = ["雲市集工業館", "SME AI平台"];
+    const manufacturingTerms = ["製造", "工廠", "生產", "機台", "設備", "品管", "排程", "MES", "ERP", "WMS", "倉儲", "IoT", "AI"];
+    const issueTerms = {
+      "生產排程": ["排程", "生產", "工單", "產線", "製程"],
+      "品管檢測": ["品管", "檢測", "瑕疵", "影像", "品質"],
+      "設備維護": ["設備", "機台", "維護", "保養", "預測"],
+      "庫存物流": ["庫存", "倉儲", "物流", "WMS", "進銷存"],
+      "資料整合": ["ERP", "MES", "資料", "儀表板", "整合"],
+    };
+
+    const agentSteps = [
+      { key: "subIndustry", question: "先確認製造領域。比較接近哪一類？", options: ["金屬加工", "電子零組件", "食品製造", "機械設備", "化學材料", "其他製造"] },
+      { key: "size", question: "工廠或公司規模大約是？", options: ["10人以下", "10-50人", "50-200人", "200人以上"] },
+      { key: "maturity", question: "目前數位化程度比較接近哪一種？", options: ["剛起步", "已有 ERP/MES", "有資料但未整合", "已有 AI/IoT 專案"] },
+      { key: "pain", question: "主要想先解決哪個問題？", options: Object.keys(issueTerms) },
+      { key: "budget", question: "預算或導入規模大約在哪裡？", options: ["30萬以下", "30-100萬", "100萬以上", "尚未確定"] },
+    ];
+
+    let allSolutions = [];
+    let profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
+    let extractedData = null;
+    let documentText = "";
+    let stepIndex = 0;
+    let conversationHistory = [];
+
+    const safeStr = value => {
+      if (value === null || value === undefined) return "";
+      if (Array.isArray(value)) return value.join(" ");
+      return String(value);
+    };
+
+    const escapeHtml = value => safeStr(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+    function renderMarkdown(text) {
+      const raw = safeStr(text);
+      if (window.marked && typeof window.marked.parse === "function") {
+        return window.marked.parse(raw);
+      }
+      return `<p>${escapeHtml(raw)}</p>`;
+    }
+
+    const formatCurrency = value => {
+      const n = Number(value);
+      return Number.isFinite(n) && n > 0 ? `NT$ ${n.toLocaleString("zh-TW")}` : "未提供";
+    };
+
+    function openSolution(item) {
+      const id = item && item.id ? encodeURIComponent(item.id) : "";
+      if (id) {
+        sessionStorage.setItem("highlight_solution", id);
+      }
+      const url = id ? `/strategy-guide.html#solution-${id}` : "/strategy-guide.html";
+      window.open(url, "_blank");
+    }
+
+    function saveResult(official, others, summary, recommendationJson) {
+      try {
+        sessionStorage.setItem("mfg_result", JSON.stringify({
+          official,
+          others,
+          summary,
+          recommendationJson,
+          extractedData,
+          profile,
+          documentText,
+          timestamp: Date.now(),
+        }));
+      } catch (err) {
+        console.warn("Unable to save manufacturing result:", err);
+      }
+    }
+
+    function restoreResult() {
+      try {
+        const raw = sessionStorage.getItem("mfg_result");
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data.timestamp || Date.now() - data.timestamp > 2 * 60 * 60 * 1000) {
+          sessionStorage.removeItem("mfg_result");
+          return false;
+        }
+        profile = data.profile || profile;
+        extractedData = data.extractedData || null;
+        documentText = data.documentText || "";
+        renderResult(data.official || [], data.others || [], data.summary || "");
+        updateProfilePreview();
+        addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新規劃，請按「重新規劃」。");
+        return true;
+      } catch (err) {
+        sessionStorage.removeItem("mfg_result");
+        return false;
+      }
+    }
+
+    function addMessage(role, content) {
+      conversationHistory.push({ role, content });
+      refs.agentChat.innerHTML = conversationHistory.map(message => `
+        <div class="chat-message ${message.role}">
+          <div class="chat-bubble">${escapeHtml(message.content)}</div>
+        </div>
+      `).join("");
+      refs.agentChat.scrollTop = refs.agentChat.scrollHeight;
+    }
+
+    function updateOptions() {
+      const step = agentSteps[stepIndex];
+      refs.agentProgress.textContent = `${Math.min(stepIndex + 1, agentSteps.length)} / ${agentSteps.length}`;
+      refs.agentOptions.innerHTML = step.options.map(option => `
+        <button type="button" class="option-chip" data-option="${escapeHtml(option)}">${escapeHtml(option)}</button>
+      `).join("");
+      refs.agentOptions.querySelectorAll("[data-option]").forEach(button => {
+        button.addEventListener("click", () => handleAnswer(button.dataset.option));
+      });
+    }
+
+    function updateProfilePreview() {
+      const items = [
+        profile.subIndustry ? ["產業", profile.subIndustry] : null,
+        profile.size ? ["規模", profile.size] : null,
+        profile.maturity ? ["數位成熟度", profile.maturity] : null,
+        profile.pain ? ["主要痛點", profile.pain] : null,
+        profile.budget ? ["預算", profile.budget] : null,
+        profile.documentNote ? ["需求文件", profile.documentNote] : null,
+        extractedData && extractedData.keyword ? ["文件關鍵字", extractedData.keyword] : null,
+      ].filter(Boolean);
+      refs.profilePreview.innerHTML = items.length
+        ? `<div class="profile-tags">${items.map(([label, value]) => `
+            <div class="profile-row">
+              <span class="label">${escapeHtml(label)}</span>
+              <span class="value">${escapeHtml(value)}</span>
+            </div>
+          `).join("")}</div>`
+        : "尚未取得完整條件。";
+      refs.runBtn.disabled = !(profile.subIndustry && profile.size && profile.pain && allSolutions.length);
+    }
+
+    function askCurrentQuestion() {
+      addMessage("assistant", agentSteps[stepIndex].question);
+      updateOptions();
+      updateProfilePreview();
+    }
+
+    function resetAgent(clearSaved = true) {
+      profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
+      extractedData = null;
+      documentText = "";
+      refs.fileInfo.textContent = "";
+      if (clearSaved) sessionStorage.removeItem("mfg_result");
+      stepIndex = 0;
+      conversationHistory = [];
+      refs.officialList.textContent = "尚未產生推薦。";
+      refs.otherList.textContent = "尚未產生推薦。";
+      refs.officialCount.textContent = "0 筆";
+      refs.otherCount.textContent = "0 筆";
+      refs.summaryCard.classList.add("hidden");
+      askCurrentQuestion();
+    }
+
+    function normalizeOption(value, options) {
+      const text = safeStr(value).trim();
+      return options.find(option => option === text || text.includes(option) || option.includes(text)) || text;
+    }
+
+    function handleAnswer(value) {
+      const text = safeStr(value).trim();
+      if (!text) return;
+      if (stepIndex >= agentSteps.length) {
+        addMessage("assistant", "已完成條件整理，可直接按「產生推薦」，或重新規劃。");
+        return;
+      }
+      const step = agentSteps[stepIndex];
+      addMessage("user", text);
+      profile[step.key] = normalizeOption(text, step.options);
+      refs.agentInput.value = "";
+      stepIndex += 1;
+      updateProfilePreview();
+      if (stepIndex >= agentSteps.length) {
+        refs.agentOptions.innerHTML = "";
+        refs.agentProgress.textContent = "完成";
+        addMessage("assistant", "條件已整理完成。你可以產生官方推薦與其他候選方案。");
+        runExplore();
+        return;
+      }
+      askCurrentQuestion();
+    }
+
+    function solutionText(item) {
+      return [item.s, item.c, item.cat, item.d, item.iv, item.desc, item.feat, item.tags, item.scale, item.slogan, item.p]
+        .map(safeStr).join(" ").toLowerCase();
+    }
+
+    function extractedTerms() {
+      if (!extractedData) return [];
+      return [
+        extractedData.industry,
+        extractedData.size,
+        extractedData.digital_maturity,
+        extractedData.keyword,
+        ...(Array.isArray(extractedData.pain_points) ? extractedData.pain_points : []),
+      ].map(safeStr).map(term => term.trim()).filter(Boolean);
+    }
+
+    function scoreSolution(item) {
+      const text = solutionText(item);
+      let score = 0;
+      manufacturingTerms.forEach(term => { if (text.includes(term.toLowerCase())) score += 8; });
+      (issueTerms[profile.pain] || []).forEach(term => { if (text.includes(term.toLowerCase())) score += 18; });
+      extractedTerms().forEach(term => { if (text.includes(term.toLowerCase())) score += 12; });
+      if (safeStr(item.d).includes("製造") || safeStr(item.iv).includes("製造")) score += 35;
+      if (safeStr(item.scale).includes(profile.size.replace("人", ""))) score += 8;
+      if (item.ai) score += 8;
+      if (item.pr) score += 4;
+      return score;
+    }
+
+    function getRecommendations() {
+      const scored = allSolutions
+        .map((item, index) => ({ item, index, score: scoreSolution(item) }))
+        .filter(entry => entry.score > 0 || solutionText(entry.item).includes("製造"))
+        .sort((a, b) => b.score - a.score || a.index - b.index);
+      const official = scored
+        .filter(entry => officialPrograms.some(program => safeStr(entry.item.p).includes(program)))
+        .slice(0, 10)
+        .map(entry => entry.item);
+      const officialIds = new Set(official.map(item => item.id));
+      const others = scored
+        .filter(entry => !officialIds.has(entry.item.id))
+        .slice(0, 10)
+        .map(entry => entry.item);
+      return { official, others };
+    }
+
+    function renderList(container, items) {
+      if (!items.length) {
+        container.innerHTML = '<p class="text-sm text-slate-500">目前沒有符合條件的方案。</p>';
+        return;
+      }
+      container.innerHTML = items.map((item, index) => `
+        <article class="solution-card bg-white border border-slate-200 rounded-xl p-4" data-index="${index}" title="開啟策略智庫查看方案">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h4 class="font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h4>
+              <p class="text-xs text-slate-500 mt-1">${escapeHtml(item.c || "未提供業者")}</p>
+            </div>
+            <span class="text-xs font-black text-teal-700 font-mono shrink-0">${formatCurrency(item.pr)}</span>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span class="badge badge-muted">${escapeHtml(item.p || "未標示來源")}</span>
+            <span class="badge ${item.ai ? "badge-teal" : "badge-muted"}">${item.ai ? "AI 方案" : "一般方案"}</span>
+            ${item.cat ? `<span class="badge badge-muted">${escapeHtml(item.cat)}</span>` : ""}
+          </div>
+        </article>
+      `).join("");
+      container.querySelectorAll(".solution-card").forEach(card => {
+        card.addEventListener("click", () => openSolution(items[Number(card.dataset.index)]));
+      });
+    }
+
+    function renderResult(official, others, summary) {
+      refs.officialCount.textContent = `${official.length} 筆`;
+      refs.otherCount.textContent = `${others.length} 筆`;
+      renderList(refs.officialList, official);
+      renderList(refs.otherList, others);
+      if (summary) {
+        refs.summaryCard.classList.remove("hidden");
+        refs.summaryText.innerHTML = summary;
+      }
+    }
+
+    function solutionPriceText(item) {
+      if (item.pt) return item.pt;
+      if (item.pr) return formatCurrency(item.pr);
+      return "未揭露";
+    }
+
+    function reasonForSolution(item) {
+      const text = solutionText(item);
+      const reasons = [];
+      if (safeStr(item.d).includes("製造") || safeStr(item.iv).includes("製造") || text.includes("製造")) {
+        reasons.push("與製造業情境直接相關");
+      }
+      if ((issueTerms[profile.pain] || []).some(term => text.includes(term.toLowerCase()))) {
+        reasons.push(`可回應「${profile.pain}」需求`);
+      }
+      if (item.ai) {
+        reasons.push("具 AI 應用特性，適合評估自動化或智慧化導入");
+      }
+      if (safeStr(item.p)) {
+        reasons.push(`方案來源為 ${safeStr(item.p)}`);
+      }
+      return reasons.slice(0, 3);
+    }
+
+    function benefitForSolution(item) {
+      const benefits = [];
+      if (item.feat) benefits.push(safeStr(item.feat).split(/\n|；|;/).filter(Boolean)[0] || "可補足既有流程缺口");
+      if (item.desc) benefits.push(safeStr(item.desc).slice(0, 42));
+      if (!benefits.length) benefits.push("可作為初步候選方案，後續需確認導入範圍與報價");
+      return benefits.slice(0, 2);
+    }
+
+    function fitScore(item) {
+      const score = scoreSolution(item);
+      if (score >= 75) return "高";
+      if (score >= 45) return "中";
+      return "待確認";
+    }
+
+    function buildSummaryJson(official, others) {
+      const candidates = [...official, ...others].slice(0, 3);
+      return {
+        summary: `${profile.subIndustry || "製造業"}目前優先處理「${profile.pain || "主要痛點"}」，建議先從官方推薦方案確認補助適用性，再以其他候選方案補足功能缺口。`,
+        top3: candidates.map((item, index) => ({
+          rank: index + 1,
+          id: item.id || "",
+          name: item.s || "未命名方案",
+          vendor: item.c || "未提供業者",
+          price: solutionPriceText(item),
+          reasons: reasonForSolution(item),
+          benefits: benefitForSolution(item),
+          fit_score: fitScore(item),
+        })),
+        overall_advice: "建議先確認導入場域、資料可用性、預算與補助資格，再安排供應商訪談與報價比較。若已有需求文件，應把痛點、現況系統、預期效益與時程整理成送件附件。",
+      };
+    }
+
+    function renderSummaryFromJson(summaryJson) {
+      const top3 = summaryJson.top3 && summaryJson.top3.length
+        ? summaryJson.top3.map(item => `
+            <section class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h4 class="font-black text-slate-900">第 ${item.rank} 名：${escapeHtml(item.name)}（${escapeHtml(item.vendor)}）</h4>
+              <p class="mt-1 text-xs font-bold text-teal-700">費用：${escapeHtml(item.price)}</p>
+              <div class="mt-3">
+                <p class="font-black text-slate-700">推薦理由：</p>
+                <ul class="list-disc pl-5 mt-1">${(Array.isArray(item.reasons) ? item.reasons : []).map(reason => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>
+              </div>
+              <div class="mt-3">
+                <p class="font-black text-slate-700">導入效益：</p>
+                <ul class="list-disc pl-5 mt-1">${(Array.isArray(item.benefits) ? item.benefits : []).map(benefit => `<li>${escapeHtml(benefit)}</li>`).join("")}</ul>
+              </div>
+              <p class="mt-3 text-xs font-black text-slate-600">適配度：${escapeHtml(item.fit_score)}</p>
+            </section>
+          `).join("")
+        : '<p class="text-slate-500">目前沒有足夠候選方案可產生前三名摘要。</p>';
+      return `
+        <p>${escapeHtml(summaryJson.summary)}</p>
+        ${top3}
+        <p class="mt-4">${escapeHtml(summaryJson.overall_advice)}</p>
+      `;
+    }
+
+    function buildRecommendProfile() {
+      return {
+        industry: extractedData?.industry || profile.subIndustry || "製造業",
+        size: extractedData?.size || profile.size || "",
+        digital_maturity: extractedData?.digital_maturity || profile.maturity || "",
+        pain_points: extractedData?.pain_points && extractedData.pain_points.length
+          ? extractedData.pain_points
+          : [profile.pain].filter(Boolean),
+        budget: extractedData?.budget || profile.budget || null,
+        keyword: extractedData?.keyword || `${profile.subIndustry || ""} ${profile.pain || ""}`.trim(),
+      };
+    }
+
+    function compactRecommendSolutions(official, others) {
+      return [...official, ...others].slice(0, 20).map(item => ({
+        id: item.id || "",
+        name: item.s || "",
+        vendor: item.c || "",
+        price: item.pr ?? "",
+        description: item.desc || "",
+        features: item.feat || "",
+        program_type: item.p || item.pt || "",
+      }));
+    }
+
+    async function requestAiRecommendation(official, others) {
+      const res = await fetch("/api/manufacturing-recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: buildRecommendProfile(),
+          solutions: compactRecommendSolutions(official, others),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || `AI 推薦失敗 (${res.status})`);
+      }
+      return data;
+    }
+
+    async function generateSummary(official, others) {
+      refs.summaryCard.classList.remove("hidden");
+      refs.summaryText.innerHTML = '<p>AI 正在推薦最適合的方案...</p>';
+      let summaryJson;
+      try {
+        summaryJson = await requestAiRecommendation(official, others);
+      } catch (err) {
+        console.warn("Manufacturing recommendation fallback:", err);
+        summaryJson = buildSummaryJson(official, others);
+      }
+      const summary = renderSummaryFromJson(summaryJson);
+      refs.summaryText.innerHTML = summary;
+      saveResult(official, others, summary, summaryJson);
+      return summary;
+    }
+
+    async function runExplore() {
+      if (!allSolutions.length) return;
+      refs.loadingState.classList.remove("hidden");
+      refs.queryPreview.textContent = `製造業 ${profile.subIndustry || ""}｜${profile.size || ""}｜${profile.pain || ""}`;
+      const { official, others } = getRecommendations();
+      renderResult(official, others, "");
+      refs.loadingState.classList.add("hidden");
+      await generateSummary(official, others);
+    }
+
+    function detectUploadMediaType(file) {
+      const name = file.name.toLowerCase();
+      if (file.type === "application/pdf" || name.endsWith(".pdf")) return "application/pdf";
+      if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || name.endsWith(".docx")) {
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      }
+      if (/\.(txt|md)$/i.test(file.name)) return "text/plain";
+      return "";
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || "");
+          resolve(result.includes(",") ? result.split(",")[1] : result);
+        };
+        reader.onerror = () => reject(reader.error || new Error("檔案讀取失敗"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function applyExtractedProfile(extracted) {
+      if (!extracted) return;
+      const text = [
+        extracted.industry,
+        extracted.size,
+        extracted.digital_maturity,
+        ...(Array.isArray(extracted.pain_points) ? extracted.pain_points : []),
+        extracted.keyword,
+      ].map(safeStr).join(" ");
+      if (!profile.subIndustry && extracted.industry) {
+        profile.subIndustry = normalizeOption(extracted.industry, agentSteps[0].options);
+      }
+      if (!profile.size && extracted.size) {
+        profile.size = normalizeOption(extracted.size, agentSteps[1].options);
+      }
+      if (!profile.maturity && extracted.digital_maturity) {
+        profile.maturity = normalizeOption(extracted.digital_maturity, agentSteps[2].options);
+      }
+      if (!profile.pain) {
+        const matchedPain = agentSteps[3].options.find(option =>
+          text.includes(option) || (issueTerms[option] || []).some(term => text.includes(term))
+        );
+        if (matchedPain) profile.pain = matchedPain;
+      }
+    }
+
+    async function analyzeDocument(file, mediaType) {
+      refs.fileInfo.innerHTML = '<span class="text-teal-700 font-bold"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>AI 正在讀取文件內容...</span>';
+      addMessage("assistant", `AI 正在讀取 ${file.name}，完成後會把萃取結果納入推薦。`);
+      const fileBase64 = await fileToBase64(file);
+      const res = await fetch("/api/manufacturing-analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileBase64,
+          mediaType,
+          fileName: file.name,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || `文件解析失敗 (${res.status})`);
+      }
+      extractedData = data.extracted || null;
+      documentText = data.summary || "";
+      profile.documentNote = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+      applyExtractedProfile(extractedData);
+      refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(file.name)}`;
+      addMessage("assistant", data.agentMessage || "文件解析完成，我會把萃取結果納入推薦。");
+      updateProfilePreview();
+    }
+
+    async function handleFile(file) {
+      if (!file) return;
+      const mediaType = detectUploadMediaType(file);
+      if (!mediaType) {
+        refs.fileInfo.innerHTML = '<span class="text-red-500 font-bold">僅支援 PDF、DOCX、TXT、MD。</span>';
+        addMessage("assistant", "這個檔案格式目前不支援，請改用 PDF、DOCX、TXT 或 MD。");
+        return;
+      }
+      if (mediaType !== "text/plain") {
+        try {
+          await analyzeDocument(file, mediaType);
+        } catch (err) {
+          refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "文件解析失敗")}</span>`;
+          addMessage("assistant", `文件解析失敗：${err.message || "請稍後再試，或改用文字補充重點需求。"}`);
+        }
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = typeof reader.result === "string" ? reader.result.slice(0, 2000) : "";
+        documentText = text;
+        extractedData = { keyword: text.slice(0, 40), summary: text.slice(0, 200), pain_points: [] };
+        profile.documentNote = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+        refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已讀取文字文件：</span>${escapeHtml(file.name)}`;
+        addMessage("assistant", `已讀取文字文件前段內容。若內容正確，我會把它作為需求補充：${text.slice(0, 120)}...`);
+        updateProfilePreview();
+      };
+      reader.readAsText(file, "utf-8");
+    }
+
+    async function loadSolutions() {
+      refs.runBtn.disabled = true;
+      try {
+        const res = await fetch("/api/solutions");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        allSolutions = await res.json();
+        refs.dataStatus.textContent = `已載入 ${allSolutions.length.toLocaleString("zh-TW")} 筆方案`;
+        updateProfilePreview();
+      } catch (err) {
+        refs.dataStatus.textContent = "方案資料載入失敗，請稍後重試";
+        refs.dataStatus.className = "text-xs text-red-500";
+      }
+    }
+
+    refs.agentSendBtn.addEventListener("click", () => handleAnswer(refs.agentInput.value));
+    refs.agentInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") handleAnswer(refs.agentInput.value);
+    });
+    refs.restartBtn.addEventListener("click", () => resetAgent(true));
+    refs.runBtn.addEventListener("click", runExplore);
+    refs.fileInput.addEventListener("change", event => handleFile(event.target.files[0]));
+    ["dragenter", "dragover"].forEach(eventName => {
+      refs.dropzone.addEventListener(eventName, event => {
+        event.preventDefault();
+        refs.dropzone.classList.add("dragover");
+      });
+    });
+    ["dragleave", "drop"].forEach(eventName => {
+      refs.dropzone.addEventListener(eventName, event => {
+        event.preventDefault();
+        refs.dropzone.classList.remove("dragover");
+      });
+    });
+    refs.dropzone.addEventListener("drop", event => handleFile(event.dataTransfer.files[0]));
+    document.querySelectorAll(".accordion-toggle").forEach(button => {
+      button.addEventListener("click", () => {
+        button.closest(".accordion-item").classList.toggle("open");
+      });
+    });
+
+    resetAgent(false);
+    restoreResult();
+    loadSolutions();
+  </script>
+</body>
+</html>
