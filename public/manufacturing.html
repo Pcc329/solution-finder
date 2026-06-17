@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>製造業方案探索 | Solution Finder</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background: #f7faf9; color: #10253a; }
@@ -37,7 +38,17 @@
     .option-chip:hover { border-color: #0d9488; color: #0f766e; background: #f0fdfa; }
     .accordion-body { display: none; }
     .accordion-item.open .accordion-body { display: block; }
-    .solution-card { border-left: 4px solid #0d9488; }
+    .solution-card { border-left: 4px solid #0d9488; cursor: pointer; transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
+    .solution-card:hover { border-color: #14b8a6; box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
+    .markdown-body h1 { font-size: 1.25rem; }
+    .markdown-body h2 { font-size: 1.15rem; }
+    .markdown-body h3 { font-size: 1.05rem; }
+    .markdown-body ul, .markdown-body ol { margin: 0.5em 0 0.5em 1.25em; }
+    .markdown-body ul { list-style: disc; }
+    .markdown-body ol { list-style: decimal; }
+    .markdown-body p { margin: 0.45em 0; }
+    .markdown-body strong { font-weight: 900; color: #0f766e; }
     @media (max-width: 900px) {
       #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
       .global-nav-actions { width: 100%; justify-content: flex-start; }
@@ -131,7 +142,7 @@
 
         <section id="summaryCard" class="card p-5 hidden">
           <h3 class="text-base font-black text-slate-900 mb-2">AI 規劃摘要</h3>
-          <p id="summaryText" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line"></p>
+          <div id="summaryText" class="markdown-body text-sm text-slate-600 leading-relaxed"></div>
         </section>
 
         <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -246,10 +257,62 @@
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
+    function renderMarkdown(text) {
+      const raw = safeStr(text);
+      if (window.marked && typeof window.marked.parse === "function") {
+        return window.marked.parse(raw);
+      }
+      return `<p>${escapeHtml(raw)}</p>`;
+    }
+
     const formatCurrency = value => {
       const n = Number(value);
       return Number.isFinite(n) && n > 0 ? `NT$ ${n.toLocaleString("zh-TW")}` : "未提供";
     };
+
+    function openSolution(item) {
+      const id = item && item.id ? encodeURIComponent(item.id) : "";
+      const url = id ? `/strategy-guide.html?solution_id=${id}` : "/strategy-guide.html";
+      window.open(url, "_blank");
+    }
+
+    function saveResult(official, others, summary) {
+      try {
+        sessionStorage.setItem("mfg_result", JSON.stringify({
+          official,
+          others,
+          summary,
+          extractedData,
+          profile,
+          documentText,
+          timestamp: Date.now(),
+        }));
+      } catch (err) {
+        console.warn("Unable to save manufacturing result:", err);
+      }
+    }
+
+    function restoreResult() {
+      try {
+        const raw = sessionStorage.getItem("mfg_result");
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data.timestamp || Date.now() - data.timestamp > 2 * 60 * 60 * 1000) {
+          sessionStorage.removeItem("mfg_result");
+          return false;
+        }
+        profile = data.profile || profile;
+        extractedData = data.extractedData || null;
+        documentText = data.documentText || "";
+        renderResult(data.official || [], data.others || [], data.summary || "");
+        updateProfilePreview();
+        addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新規劃，請按「重新規劃」。");
+        return true;
+      } catch (err) {
+        sessionStorage.removeItem("mfg_result");
+        return false;
+      }
+    }
 
     function addMessage(role, content) {
       conversationHistory.push({ role, content });
@@ -292,11 +355,12 @@
       updateProfilePreview();
     }
 
-    function resetAgent() {
+    function resetAgent(clearSaved = true) {
       profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
       extractedData = null;
       documentText = "";
       refs.fileInfo.textContent = "";
+      if (clearSaved) sessionStorage.removeItem("mfg_result");
       stepIndex = 0;
       conversationHistory = [];
       refs.officialList.textContent = "尚未產生推薦。";
@@ -386,8 +450,8 @@
         container.innerHTML = '<p class="text-sm text-slate-500">目前沒有符合條件的方案。</p>';
         return;
       }
-      container.innerHTML = items.map(item => `
-        <article class="solution-card bg-white border border-slate-200 rounded-xl p-4">
+      container.innerHTML = items.map((item, index) => `
+        <article class="solution-card bg-white border border-slate-200 rounded-xl p-4" data-index="${index}" title="開啟策略智庫查看方案">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <h4 class="font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h4>
@@ -402,28 +466,46 @@
           </div>
         </article>
       `).join("");
+      container.querySelectorAll(".solution-card").forEach(card => {
+        card.addEventListener("click", () => openSolution(items[Number(card.dataset.index)]));
+      });
+    }
+
+    function renderResult(official, others, summary) {
+      refs.officialCount.textContent = `${official.length} 筆`;
+      refs.otherCount.textContent = `${others.length} 筆`;
+      renderList(refs.officialList, official);
+      renderList(refs.otherList, others);
+      if (summary) {
+        refs.summaryCard.classList.remove("hidden");
+        refs.summaryText.innerHTML = renderMarkdown(summary);
+      }
     }
 
     async function generateSummary(official, others) {
       refs.summaryCard.classList.remove("hidden");
-      refs.summaryText.textContent = "正在整理 AI 規劃摘要...";
+      refs.summaryText.innerHTML = '<p>正在整理 AI 規劃摘要...</p>';
       const fallback = `需求摘要：${profile.subIndustry}、${profile.size}、${profile.maturity || "成熟度未指定"}，優先處理「${profile.pain || "未指定"}」。建議先檢視官方推薦方案，再用其他候選方案補足功能缺口。`;
+      let summary = fallback;
       try {
         const res = await fetch("/api/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            question: `請以製造業數位顧問口吻，根據需求條件、文件萃取結果與候選方案產生簡短規劃摘要。需求：${JSON.stringify({ profile, extractedData, documentText: documentText.slice(0, 1200), conversationHistory })}。請包含：1. 需求判斷 2. 官方推薦優先順序 3. 其他候選方案用途 4. 補助申請提醒。`,
+            question: `請以製造業數位顧問口吻，根據需求條件、文件萃取結果與候選方案產生完整規劃摘要。需求：${JSON.stringify({ profile, extractedData, documentText: documentText.slice(0, 1200), conversationHistory })}。請用 Markdown 回覆，包含：1. 需求判斷 2. 官方推薦優先順序 3. 其他候選方案用途 4. 補助申請提醒。請避免過短，每個段落至少 2-3 點。`,
             solutions: [...official, ...others].slice(0, 20),
             searchQuery: `製造業 ${profile.subIndustry} ${profile.pain} ${extractedData?.keyword || ""}`,
           }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        refs.summaryText.textContent = data.answer || fallback;
+        summary = data.answer || fallback;
       } catch (err) {
-        refs.summaryText.textContent = fallback;
+        summary = fallback;
       }
+      refs.summaryText.innerHTML = renderMarkdown(summary);
+      saveResult(official, others, summary);
+      return summary;
     }
 
     async function runExplore() {
@@ -431,10 +513,7 @@
       refs.loadingState.classList.remove("hidden");
       refs.queryPreview.textContent = `製造業 ${profile.subIndustry || ""}｜${profile.size || ""}｜${profile.pain || ""}`;
       const { official, others } = getRecommendations();
-      refs.officialCount.textContent = `${official.length} 筆`;
-      refs.otherCount.textContent = `${others.length} 筆`;
-      renderList(refs.officialList, official);
-      renderList(refs.otherList, others);
+      renderResult(official, others, "");
       refs.loadingState.classList.add("hidden");
       await generateSummary(official, others);
     }
@@ -561,7 +640,7 @@
     refs.agentInput.addEventListener("keydown", event => {
       if (event.key === "Enter") handleAnswer(refs.agentInput.value);
     });
-    refs.restartBtn.addEventListener("click", resetAgent);
+    refs.restartBtn.addEventListener("click", () => resetAgent(true));
     refs.runBtn.addEventListener("click", runExplore);
     refs.fileInput.addEventListener("change", event => handleFile(event.target.files[0]));
     ["dragenter", "dragover"].forEach(eventName => {
@@ -583,7 +662,8 @@
       });
     });
 
-    resetAgent();
+    resetAgent(false);
+    restoreResult();
     loadSolutions();
   </script>
 </body>
