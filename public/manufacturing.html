@@ -342,12 +342,13 @@
       window.open(url, "_blank");
     }
 
-    function saveResult(official, others, summary) {
+    function saveResult(official, others, summary, recommendationJson) {
       try {
         sessionStorage.setItem("mfg_result", JSON.stringify({
           official,
           others,
           summary,
+          recommendationJson,
           extractedData,
           profile,
           documentText,
@@ -600,6 +601,7 @@
         summary: `${profile.subIndustry || "製造業"}目前優先處理「${profile.pain || "主要痛點"}」，建議先從官方推薦方案確認補助適用性，再以其他候選方案補足功能缺口。`,
         top3: candidates.map((item, index) => ({
           rank: index + 1,
+          id: item.id || "",
           name: item.s || "未命名方案",
           vendor: item.c || "未提供業者",
           price: solutionPriceText(item),
@@ -619,11 +621,11 @@
               <p class="mt-1 text-xs font-bold text-teal-700">費用：${escapeHtml(item.price)}</p>
               <div class="mt-3">
                 <p class="font-black text-slate-700">推薦理由：</p>
-                <ul class="list-disc pl-5 mt-1">${item.reasons.map(reason => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>
+                <ul class="list-disc pl-5 mt-1">${(Array.isArray(item.reasons) ? item.reasons : []).map(reason => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>
               </div>
               <div class="mt-3">
                 <p class="font-black text-slate-700">導入效益：</p>
-                <ul class="list-disc pl-5 mt-1">${item.benefits.map(benefit => `<li>${escapeHtml(benefit)}</li>`).join("")}</ul>
+                <ul class="list-disc pl-5 mt-1">${(Array.isArray(item.benefits) ? item.benefits : []).map(benefit => `<li>${escapeHtml(benefit)}</li>`).join("")}</ul>
               </div>
               <p class="mt-3 text-xs font-black text-slate-600">適配度：${escapeHtml(item.fit_score)}</p>
             </section>
@@ -636,13 +638,60 @@
       `;
     }
 
+    function buildRecommendProfile() {
+      return {
+        industry: extractedData?.industry || profile.subIndustry || "製造業",
+        size: extractedData?.size || profile.size || "",
+        digital_maturity: extractedData?.digital_maturity || profile.maturity || "",
+        pain_points: extractedData?.pain_points && extractedData.pain_points.length
+          ? extractedData.pain_points
+          : [profile.pain].filter(Boolean),
+        budget: extractedData?.budget || profile.budget || null,
+        keyword: extractedData?.keyword || `${profile.subIndustry || ""} ${profile.pain || ""}`.trim(),
+      };
+    }
+
+    function compactRecommendSolutions(official, others) {
+      return [...official, ...others].slice(0, 20).map(item => ({
+        id: item.id || "",
+        name: item.s || "",
+        vendor: item.c || "",
+        price: item.pr ?? "",
+        description: item.desc || "",
+        features: item.feat || "",
+        program_type: item.p || item.pt || "",
+      }));
+    }
+
+    async function requestAiRecommendation(official, others) {
+      const res = await fetch("/api/manufacturing-recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: buildRecommendProfile(),
+          solutions: compactRecommendSolutions(official, others),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || `AI 推薦失敗 (${res.status})`);
+      }
+      return data;
+    }
+
     async function generateSummary(official, others) {
       refs.summaryCard.classList.remove("hidden");
-      refs.summaryText.innerHTML = '<p>正在整理 AI 規劃摘要...</p>';
-      const summaryJson = buildSummaryJson(official, others);
+      refs.summaryText.innerHTML = '<p>AI 正在推薦最適合的方案...</p>';
+      let summaryJson;
+      try {
+        summaryJson = await requestAiRecommendation(official, others);
+      } catch (err) {
+        console.warn("Manufacturing recommendation fallback:", err);
+        summaryJson = buildSummaryJson(official, others);
+      }
       const summary = renderSummaryFromJson(summaryJson);
       refs.summaryText.innerHTML = summary;
-      saveResult(official, others, summary);
+      saveResult(official, others, summary, summaryJson);
       return summary;
     }
 
