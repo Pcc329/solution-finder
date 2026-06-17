@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/api/solutions", "destination": "/api/solutions" },
     { "source": "/api/stats", "destination": "/api/stats" },
-    { "source": "/api/ask", "destination": "/api/ask" }
+    { "source": "/api/ask", "destination": "/api/ask" },
+    { "source": "/api/manufacturing-analyze", "destination": "/api/manufacturing-analyze" },
+    { "source": "/api/manufacturing-recommend", "destination": "/api/manufacturing-recommend" }
   ]
 }
