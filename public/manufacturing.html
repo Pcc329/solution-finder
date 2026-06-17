@@ -71,9 +71,9 @@
     <div class="global-nav-actions">
       <a class="global-nav-link" href="/sources.html">資料來源</a>
       <a class="global-nav-link" href="/dashboard.html">戰情儀表板</a>
-      <a class="global-nav-link" href="/strategy-guide.html">策略智庫 ↗</a>
-      <a class="global-nav-link active" href="/manufacturing.html">製造業方案探索 ↗</a>
-      <a class="global-nav-link" href="/diagnosis.html">智能方案探索 ↗</a>
+      <a class="global-nav-link" href="/strategy-guide.html">策略智庫</a>
+      <a class="global-nav-link active" href="/manufacturing.html">製造業方案探索</a>
+      <a class="global-nav-link" href="/diagnosis.html">智能方案探索</a>
     </div>
   </nav>
 
@@ -94,14 +94,14 @@
         <section class="card p-5">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-black text-slate-900">需求文件</h2>
-            <span class="badge badge-blue">PDF / DOCX / TXT</span>
+            <span class="badge badge-blue">PDF</span>
           </div>
           <label id="dropzone" class="dropzone block" for="fileInput">
             <i class="fa-solid fa-cloud-arrow-up text-2xl text-teal-700 mb-2"></i>
-            <p class="font-black text-slate-700">拖曳或點選上傳製造業 AI 需求文件</p>
-            <p class="text-xs text-slate-500 mt-1">目前會讀取檔名與純文字內容，PDF/DOCX 可先作為需求附件紀錄。</p>
+            <p class="font-black text-slate-700">上傳 PDF 評量表</p>
+            <p class="text-xs text-slate-500 mt-1">請上傳 PDF 格式的製造業 AI 評量表，系統會讀取內容並納入推薦。</p>
           </label>
-          <input id="fileInput" type="file" class="hidden" accept=".pdf,.docx,.txt,.md">
+          <input id="fileInput" type="file" class="hidden" accept=".pdf">
           <div id="fileInfo" class="mt-3 text-xs text-slate-500"></div>
         </section>
 
@@ -708,10 +708,6 @@
     function detectUploadMediaType(file) {
       const name = file.name.toLowerCase();
       if (file.type === "application/pdf" || name.endsWith(".pdf")) return "application/pdf";
-      if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || name.endsWith(".docx")) {
-        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-      }
-      if (/\.(txt|md)$/i.test(file.name)) return "text/plain";
       return "";
     }
 
@@ -783,30 +779,16 @@
       if (!file) return;
       const mediaType = detectUploadMediaType(file);
       if (!mediaType) {
-        refs.fileInfo.innerHTML = '<span class="text-red-500 font-bold">僅支援 PDF、DOCX、TXT、MD。</span>';
-        addMessage("assistant", "這個檔案格式目前不支援，請改用 PDF、DOCX、TXT 或 MD。");
+        refs.fileInfo.innerHTML = '<span class="text-red-500 font-bold">僅支援 PDF 評量表。</span>';
+        addMessage("assistant", "這個檔案格式目前不支援，請上傳 PDF 評量表。");
         return;
       }
-      if (mediaType !== "text/plain") {
-        try {
-          await analyzeDocument(file, mediaType);
-        } catch (err) {
-          refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "文件解析失敗")}</span>`;
-          addMessage("assistant", `文件解析失敗：${err.message || "請稍後再試，或改用文字補充重點需求。"}`);
-        }
-        return;
+      try {
+        await analyzeDocument(file, mediaType);
+      } catch (err) {
+        refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "PDF 評量表解析失敗")}</span>`;
+        addMessage("assistant", `PDF 評量表解析失敗：${err.message || "請稍後再試。"}`);
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        const text = typeof reader.result === "string" ? reader.result.slice(0, 2000) : "";
-        documentText = text;
-        extractedData = { keyword: text.slice(0, 40), summary: text.slice(0, 200), pain_points: [] };
-        profile.documentNote = `${file.name} (${Math.round(file.size / 1024)} KB)`;
-        refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已讀取文字文件：</span>${escapeHtml(file.name)}`;
-        addMessage("assistant", `已讀取文字文件前段內容。若內容正確，我會把它作為需求補充：${text.slice(0, 120)}...`);
-        updateProfilePreview();
-      };
-      reader.readAsText(file, "utf-8");
     }
 
     async function loadSolutions() {
