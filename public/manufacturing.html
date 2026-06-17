@@ -49,6 +49,10 @@
     .markdown-body ol { list-style: decimal; }
     .markdown-body p { margin: 0.45em 0; }
     .markdown-body strong { font-weight: 900; color: #0f766e; }
+    .profile-tags { display: grid; gap: 8px; }
+    .profile-row { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; align-items: start; }
+    .profile-row .label { color: #64748b; font-weight: 900; white-space: nowrap; }
+    .profile-row .value { color: #0f172a; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
     @media (max-width: 900px) {
       #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
       .global-nav-actions { width: 100%; justify-content: flex-start; }
@@ -399,15 +403,22 @@
 
     function updateProfilePreview() {
       const items = [
-        profile.subIndustry ? `領域：${profile.subIndustry}` : null,
-        profile.size ? `規模：${profile.size}` : null,
-        profile.maturity ? `數位成熟度：${profile.maturity}` : null,
-        profile.pain ? `痛點：${profile.pain}` : null,
-        profile.budget ? `預算：${profile.budget}` : null,
-        profile.documentNote ? `文件：${profile.documentNote}` : null,
-        extractedData && extractedData.keyword ? `文件關鍵字：${extractedData.keyword}` : null,
+        profile.subIndustry ? ["產業", profile.subIndustry] : null,
+        profile.size ? ["規模", profile.size] : null,
+        profile.maturity ? ["數位成熟度", profile.maturity] : null,
+        profile.pain ? ["主要痛點", profile.pain] : null,
+        profile.budget ? ["預算", profile.budget] : null,
+        profile.documentNote ? ["需求文件", profile.documentNote] : null,
+        extractedData && extractedData.keyword ? ["文件關鍵字", extractedData.keyword] : null,
       ].filter(Boolean);
-      refs.profilePreview.textContent = items.length ? items.join("｜") : "尚未取得完整條件。";
+      refs.profilePreview.innerHTML = items.length
+        ? `<div class="profile-tags">${items.map(([label, value]) => `
+            <div class="profile-row">
+              <span class="label">${escapeHtml(label)}</span>
+              <span class="value">${escapeHtml(value)}</span>
+            </div>
+          `).join("")}</div>`
+        : "尚未取得完整條件。";
       refs.runBtn.disabled = !(profile.subIndustry && profile.size && profile.pain && allSolutions.length);
     }
 
@@ -540,32 +551,97 @@
       renderList(refs.otherList, others);
       if (summary) {
         refs.summaryCard.classList.remove("hidden");
-        refs.summaryText.innerHTML = renderMarkdown(summary);
+        refs.summaryText.innerHTML = summary;
       }
+    }
+
+    function solutionPriceText(item) {
+      if (item.pt) return item.pt;
+      if (item.pr) return formatCurrency(item.pr);
+      return "未揭露";
+    }
+
+    function reasonForSolution(item) {
+      const text = solutionText(item);
+      const reasons = [];
+      if (safeStr(item.d).includes("製造") || safeStr(item.iv).includes("製造") || text.includes("製造")) {
+        reasons.push("與製造業情境直接相關");
+      }
+      if ((issueTerms[profile.pain] || []).some(term => text.includes(term.toLowerCase()))) {
+        reasons.push(`可回應「${profile.pain}」需求`);
+      }
+      if (item.ai) {
+        reasons.push("具 AI 應用特性，適合評估自動化或智慧化導入");
+      }
+      if (safeStr(item.p)) {
+        reasons.push(`方案來源為 ${safeStr(item.p)}`);
+      }
+      return reasons.slice(0, 3);
+    }
+
+    function benefitForSolution(item) {
+      const benefits = [];
+      if (item.feat) benefits.push(safeStr(item.feat).split(/\n|；|;/).filter(Boolean)[0] || "可補足既有流程缺口");
+      if (item.desc) benefits.push(safeStr(item.desc).slice(0, 42));
+      if (!benefits.length) benefits.push("可作為初步候選方案，後續需確認導入範圍與報價");
+      return benefits.slice(0, 2);
+    }
+
+    function fitScore(item) {
+      const score = scoreSolution(item);
+      if (score >= 75) return "高";
+      if (score >= 45) return "中";
+      return "待確認";
+    }
+
+    function buildSummaryJson(official, others) {
+      const candidates = [...official, ...others].slice(0, 3);
+      return {
+        summary: `${profile.subIndustry || "製造業"}目前優先處理「${profile.pain || "主要痛點"}」，建議先從官方推薦方案確認補助適用性，再以其他候選方案補足功能缺口。`,
+        top3: candidates.map((item, index) => ({
+          rank: index + 1,
+          name: item.s || "未命名方案",
+          vendor: item.c || "未提供業者",
+          price: solutionPriceText(item),
+          reasons: reasonForSolution(item),
+          benefits: benefitForSolution(item),
+          fit_score: fitScore(item),
+        })),
+        overall_advice: "建議先確認導入場域、資料可用性、預算與補助資格，再安排供應商訪談與報價比較。若已有需求文件，應把痛點、現況系統、預期效益與時程整理成送件附件。",
+      };
+    }
+
+    function renderSummaryFromJson(summaryJson) {
+      const top3 = summaryJson.top3 && summaryJson.top3.length
+        ? summaryJson.top3.map(item => `
+            <section class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h4 class="font-black text-slate-900">第 ${item.rank} 名：${escapeHtml(item.name)}（${escapeHtml(item.vendor)}）</h4>
+              <p class="mt-1 text-xs font-bold text-teal-700">費用：${escapeHtml(item.price)}</p>
+              <div class="mt-3">
+                <p class="font-black text-slate-700">推薦理由：</p>
+                <ul class="list-disc pl-5 mt-1">${item.reasons.map(reason => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>
+              </div>
+              <div class="mt-3">
+                <p class="font-black text-slate-700">導入效益：</p>
+                <ul class="list-disc pl-5 mt-1">${item.benefits.map(benefit => `<li>${escapeHtml(benefit)}</li>`).join("")}</ul>
+              </div>
+              <p class="mt-3 text-xs font-black text-slate-600">適配度：${escapeHtml(item.fit_score)}</p>
+            </section>
+          `).join("")
+        : '<p class="text-slate-500">目前沒有足夠候選方案可產生前三名摘要。</p>';
+      return `
+        <p>${escapeHtml(summaryJson.summary)}</p>
+        ${top3}
+        <p class="mt-4">${escapeHtml(summaryJson.overall_advice)}</p>
+      `;
     }
 
     async function generateSummary(official, others) {
       refs.summaryCard.classList.remove("hidden");
       refs.summaryText.innerHTML = '<p>正在整理 AI 規劃摘要...</p>';
-      const fallback = `需求摘要：${profile.subIndustry}、${profile.size}、${profile.maturity || "成熟度未指定"}，優先處理「${profile.pain || "未指定"}」。建議先檢視官方推薦方案，再用其他候選方案補足功能缺口。`;
-      let summary = fallback;
-      try {
-        const res = await fetch("/api/ask", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            question: `請以製造業數位顧問口吻，根據需求條件、文件萃取結果與候選方案產生完整規劃摘要。需求：${JSON.stringify({ profile, extractedData, documentText: documentText.slice(0, 1200), conversationHistory })}。請用 Markdown 回覆，包含：1. 需求判斷 2. 官方推薦優先順序 3. 其他候選方案用途 4. 補助申請提醒。請避免過短，每個段落至少 2-3 點。`,
-            solutions: [...official, ...others].slice(0, 20),
-            searchQuery: `製造業 ${profile.subIndustry} ${profile.pain} ${extractedData?.keyword || ""}`,
-          }),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        summary = data.answer || fallback;
-      } catch (err) {
-        summary = fallback;
-      }
-      refs.summaryText.innerHTML = renderMarkdown(summary);
+      const summaryJson = buildSummaryJson(official, others);
+      const summary = renderSummaryFromJson(summaryJson);
+      refs.summaryText.innerHTML = summary;
       saveResult(official, others, summary);
       return summary;
     }
