@@ -601,8 +601,19 @@
       return "待確認";
     }
 
+    function pickTop3(official, others) {
+      const merged = [...official];
+      for (const item of others) {
+        if (merged.length >= 3) break;
+        if (!merged.some(existing => (existing.id || existing.s) === (item.id || item.s))) {
+          merged.push(item);
+        }
+      }
+      return merged.slice(0, 3);
+    }
+
     function buildSummaryJson(official, others) {
-      const candidates = [...official, ...others].slice(0, 3);
+      const candidates = pickTop3(official, others);
       return {
         summary: `${profile.subIndustry || "製造業"}目前優先處理「${profile.pain || "主要痛點"}」，建議先從官方推薦方案確認補助適用性，再以其他候選方案補足功能缺口。`,
         top3: candidates.map((item, index) => ({
@@ -670,12 +681,14 @@
     }
 
     async function requestAiRecommendation(official, others) {
+      const top3 = pickTop3(official, others);
       const res = await fetch("/api/manufacturing-recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profile: buildRecommendProfile(),
-          solutions: compactRecommendSolutions(official, others),
+          solutions: compactRecommendSolutions(top3, []),
+          lockOrder: true,
         }),
       });
       const data = await res.json().catch(() => ({}));
