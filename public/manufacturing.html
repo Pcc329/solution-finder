@@ -168,7 +168,6 @@
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
               <h2 class="text-xl font-black text-slate-900">分析結果</h2>
-              <p id="companyNameDisplay" class="text-base font-black text-slate-700 mt-1 hidden"></p>
               <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成左側問答後產生官方推薦與其他候選方案。</p>
             </div>
             <button id="runBtn" class="btn-primary" type="button" disabled>
@@ -234,7 +233,6 @@
       restartBtn: document.getElementById("restartBtn"),
       agentProgress: document.getElementById("agentProgress"),
       runBtn: document.getElementById("runBtn"),
-      companyNameDisplay: document.getElementById("companyNameDisplay"),
       queryPreview: document.getElementById("queryPreview"),
       profilePreview: document.getElementById("profilePreview"),
       loadingState: document.getElementById("loadingState"),
@@ -345,7 +343,6 @@
         uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
         refs.clearFilesBtn.classList.toggle("hidden", uploadedDocuments.length === 0);
         renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
-        updateCompanyNameDisplay();
         updateProfilePreview();
         addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新規劃，請按「重新規劃」。");
         return true;
@@ -378,6 +375,7 @@
 
     function updateProfilePreview() {
       const items = [
+        extractedData && extractedData.company_name ? ["公司名稱", extractedData.company_name] : null,
         profile.subIndustry ? ["產業", profile.subIndustry] : null,
         profile.size ? ["規模", profile.size] : null,
         profile.maturity ? ["數位成熟度", profile.maturity] : null,
@@ -395,17 +393,6 @@
           `).join("")}</div>`
         : "尚未取得完整條件。";
       refs.runBtn.disabled = !(profile.subIndustry && profile.size && profile.pain && allSolutions.length);
-    }
-
-    function updateCompanyNameDisplay() {
-      const name = extractedData?.company_name;
-      if (name) {
-        refs.companyNameDisplay.textContent = name;
-        refs.companyNameDisplay.classList.remove("hidden");
-      } else {
-        refs.companyNameDisplay.textContent = "";
-        refs.companyNameDisplay.classList.add("hidden");
-      }
     }
 
     function askCurrentQuestion() {
@@ -434,7 +421,6 @@
       refs.officialCount.textContent = "0 筆";
       refs.otherCount.textContent = "0 筆";
       refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>";
-      updateCompanyNameDisplay();
       askCurrentQuestion();
     }
 
@@ -787,7 +773,6 @@
       profile.documentNote = "";
       refs.fileInfo.textContent = "";
       refs.clearFilesBtn.classList.add("hidden");
-      updateCompanyNameDisplay();
       refs.profilePreview.innerHTML = "尚未整理需求條件。";
       refs.officialList.textContent = "尚未產生推薦。";
       refs.otherList.textContent = "尚未產生推薦。";
@@ -888,7 +873,6 @@
         documentText = [documentText, result.summary].filter(Boolean).join("\n\n").slice(0, 3000);
         updateDocumentNote(sourceLabel, file);
         applyExtractedProfile(extractedData);
-        updateCompanyNameDisplay();
         refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(profile.documentNote)}`;
         refs.clearFilesBtn.classList.remove("hidden");
         addMessage("assistant", result.agentMessage);
