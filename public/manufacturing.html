@@ -24,9 +24,14 @@
     .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 800; white-space: nowrap; }
     .badge-teal { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
     .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-indigo { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
     .badge-muted { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
     .dropzone { border: 2px dashed #99f6e4; background: #f0fdfa; border-radius: 16px; padding: 22px; text-align: center; cursor: pointer; transition: 0.16s; }
     .dropzone.dragover { border-color: #0d9488; background: #ccfbf1; }
+    #dropzoneAssessment { border-color: #2dd4bf; background: #f0fdfa; }
+    #dropzoneAssessment.dragover { border-color: #0d9488; background: #ccfbf1; }
+    .dropzone-indigo { border: 2px dashed #818cf8; background: #eef2ff; border-radius: 16px; padding: 22px; text-align: center; cursor: pointer; transition: 0.16s; }
+    .dropzone-indigo.dragover { border-color: #6366f1; background: #e0e7ff; }
     .chat-panel { min-height: 310px; max-height: 470px; overflow-y: auto; padding-right: 4px; }
     .chat-message { display: flex; margin-bottom: 12px; }
     .chat-message.assistant { justify-content: flex-start; }
@@ -97,17 +102,41 @@
             <span class="badge badge-blue">PDF</span>
           </div>
           <label id="dropzoneAssessment" class="dropzone block mb-3" for="fileInputAssessment">
-            <i class="fa-solid fa-cloud-arrow-up text-2xl text-teal-700 mb-2"></i>
-            <p class="font-black text-slate-700">評量表上傳</p>
+            <i class="fa-solid fa-cloud-arrow-up text-2xl text-teal-600 mb-2"></i>
+            <div class="flex items-center justify-center gap-2">
+              <p class="font-black text-slate-700">評量表上傳</p>
+              <span class="badge badge-teal">PDF</span>
+            </div>
             <p class="text-xs text-slate-500 mt-1">請上傳顧問實地訪談後的製造業 AI 評量表 PDF，系統會讀取內容並納入推薦。</p>
           </label>
           <input id="fileInputAssessment" type="file" class="hidden" accept=".pdf">
-          <label id="dropzoneDiagnosis" class="dropzone block" for="fileInputDiagnosis">
-            <i class="fa-solid fa-file-circle-check text-2xl text-teal-700 mb-2"></i>
-            <p class="font-black text-slate-700">診斷報告上傳</p>
+          <div id="progressAssessment" class="mt-3 mb-4 hidden">
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+              <span id="progressAssessmentLabel">讀取中...</span>
+              <span id="progressAssessmentPct">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5">
+              <div id="progressAssessmentBar" class="bg-teal-500 h-1.5 rounded-full transition-all duration-300" style="width:0%"></div>
+            </div>
+          </div>
+          <label id="dropzoneDiagnosis" class="dropzone-indigo block" for="fileInputDiagnosis">
+            <i class="fa-solid fa-file-circle-check text-2xl text-indigo-500 mb-2"></i>
+            <div class="flex items-center justify-center gap-2">
+              <p class="font-black text-slate-700">診斷報告上傳</p>
+              <span class="badge badge-indigo">PDF</span>
+            </div>
             <p class="text-xs text-slate-500 mt-1">請上傳顧問完成診斷後的報告或補充資料 PDF，系統會讀取內容並納入推薦。</p>
           </label>
           <input id="fileInputDiagnosis" type="file" class="hidden" accept=".pdf">
+          <div id="progressDiagnosis" class="mt-3 hidden">
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+              <span id="progressDiagnosisLabel">讀取中...</span>
+              <span id="progressDiagnosisPct">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5">
+              <div id="progressDiagnosisBar" class="bg-indigo-500 h-1.5 rounded-full transition-all duration-300" style="width:0%"></div>
+            </div>
+          </div>
           <div id="fileInfo" class="mt-3 text-xs text-slate-500"></div>
         </section>
 
@@ -247,6 +276,14 @@
       fileInputAssessment: document.getElementById("fileInputAssessment"),
       dropzoneDiagnosis: document.getElementById("dropzoneDiagnosis"),
       fileInputDiagnosis: document.getElementById("fileInputDiagnosis"),
+      progressAssessment: document.getElementById("progressAssessment"),
+      progressAssessmentLabel: document.getElementById("progressAssessmentLabel"),
+      progressAssessmentPct: document.getElementById("progressAssessmentPct"),
+      progressAssessmentBar: document.getElementById("progressAssessmentBar"),
+      progressDiagnosis: document.getElementById("progressDiagnosis"),
+      progressDiagnosisLabel: document.getElementById("progressDiagnosisLabel"),
+      progressDiagnosisPct: document.getElementById("progressDiagnosisPct"),
+      progressDiagnosisBar: document.getElementById("progressDiagnosisBar"),
       fileInfo: document.getElementById("fileInfo"),
       agentChat: document.getElementById("agentChat"),
       agentOptions: document.getElementById("agentOptions"),
@@ -286,6 +323,8 @@
     let allSolutions = [];
     let profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
     let extractedData = null;
+    let extractedDataAssessment = null;
+    let extractedDataDiagnosis = null;
     let documentText = "";
     let uploadedDocuments = [];
     let stepIndex = 0;
@@ -334,6 +373,8 @@
           conclusion,
           recommendationJson,
           extractedData,
+          extractedDataAssessment,
+          extractedDataDiagnosis,
           profile,
           documentText,
           uploadedDocuments,
@@ -355,6 +396,8 @@
         }
         profile = data.profile || profile;
         extractedData = data.extractedData || null;
+        extractedDataAssessment = data.extractedDataAssessment || null;
+        extractedDataDiagnosis = data.extractedDataDiagnosis || null;
         documentText = data.documentText || "";
         uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
         renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
@@ -418,6 +461,8 @@
     function resetAgent(clearSaved = true) {
       profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
       extractedData = null;
+      extractedDataAssessment = null;
+      extractedDataDiagnosis = null;
       documentText = "";
       uploadedDocuments = [];
       refs.fileInfo.textContent = "";
@@ -734,14 +779,21 @@
       }
     }
 
-    function mergeExtractedData(next) {
-      if (!next) return;
-      const previousPainPoints = Array.isArray(extractedData?.pain_points) ? extractedData.pain_points : [];
-      const nextPainPoints = Array.isArray(next.pain_points) ? next.pain_points : [];
-      extractedData = {
-        ...(extractedData || {}),
-        ...next,
-        pain_points: [...new Set([...previousPainPoints, ...nextPainPoints].filter(Boolean))],
+    function mergeExtractedData() {
+      const assessment = extractedDataAssessment || {};
+      const diagnosis = extractedDataDiagnosis || {};
+      const painPoints = [
+        ...(Array.isArray(diagnosis.pain_points) ? diagnosis.pain_points : []),
+        ...(Array.isArray(assessment.pain_points) ? assessment.pain_points : []),
+      ].filter((value, index, array) => value && array.indexOf(value) === index).slice(0, 5);
+      return {
+        industry: diagnosis.industry || assessment.industry || null,
+        size: diagnosis.size || assessment.size || null,
+        digital_maturity: diagnosis.digital_maturity || assessment.digital_maturity || null,
+        pain_points: painPoints,
+        budget: diagnosis.budget || assessment.budget || null,
+        keyword: [diagnosis.keyword, assessment.keyword].filter(Boolean).join(" ") || null,
+        source_files: [diagnosis.source_file, assessment.source_file].filter(Boolean),
       };
     }
 
@@ -767,16 +819,59 @@
       if (!res.ok || !data.success) {
         throw new Error(data.error || `文件解析失敗 (${res.status})`);
       }
-      mergeExtractedData(data.extracted || null);
-      documentText = [documentText, data.summary].filter(Boolean).join("\n\n").slice(0, 3000);
-      updateDocumentNote(sourceLabel, file);
-      applyExtractedProfile(extractedData);
-      refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(profile.documentNote)}`;
-      addMessage("assistant", data.agentMessage || "文件解析完成，我會把萃取結果納入推薦。");
-      updateProfilePreview();
+      return {
+        extracted: {
+          ...(data.extracted || {}),
+          source_file: file.name,
+        },
+        summary: data.summary || "",
+        agentMessage: data.agentMessage || "文件解析完成，我會把萃取結果納入推薦。",
+      };
     }
 
-    async function handleFile(file, sourceLabel) {
+    async function analyzeWithProgress(file, mediaType, type, sourceLabel) {
+      const key = type === "assessment" ? "Assessment" : "Diagnosis";
+      const progressEl = refs[`progress${key}`];
+      const barEl = refs[`progress${key}Bar`];
+      const labelEl = refs[`progress${key}Label`];
+      const pctEl = refs[`progress${key}Pct`];
+      const steps = [
+        { pct: 20, label: "讀取文件中..." },
+        { pct: 50, label: "轉換資料中..." },
+        { pct: 75, label: "AI 分析中..." },
+        { pct: 90, label: "整理結果中..." },
+      ];
+
+      progressEl.classList.remove("hidden");
+      barEl.style.width = "0%";
+      labelEl.textContent = "讀取中...";
+      pctEl.textContent = "0%";
+      let stepIndex = 0;
+      const timer = setInterval(() => {
+        if (stepIndex < steps.length) {
+          barEl.style.width = `${steps[stepIndex].pct}%`;
+          labelEl.textContent = steps[stepIndex].label;
+          pctEl.textContent = `${steps[stepIndex].pct}%`;
+          stepIndex += 1;
+        }
+      }, 600);
+
+      try {
+        const result = await analyzeDocument(file, mediaType, sourceLabel);
+        clearInterval(timer);
+        barEl.style.width = "100%";
+        labelEl.textContent = "讀取完成";
+        pctEl.textContent = "100%";
+        setTimeout(() => progressEl.classList.add("hidden"), 1500);
+        return result;
+      } catch (err) {
+        clearInterval(timer);
+        labelEl.textContent = "讀取失敗";
+        throw err;
+      }
+    }
+
+    async function handleFile(file, type, sourceLabel) {
       if (!file) return;
       const mediaType = detectUploadMediaType(file);
       if (!mediaType) {
@@ -785,7 +880,19 @@
         return;
       }
       try {
-        await analyzeDocument(file, mediaType, sourceLabel);
+        const result = await analyzeWithProgress(file, mediaType, type, sourceLabel);
+        if (type === "assessment") {
+          extractedDataAssessment = result.extracted;
+        } else {
+          extractedDataDiagnosis = result.extracted;
+        }
+        extractedData = mergeExtractedData();
+        documentText = [documentText, result.summary].filter(Boolean).join("\n\n").slice(0, 3000);
+        updateDocumentNote(sourceLabel, file);
+        applyExtractedProfile(extractedData);
+        refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(profile.documentNote)}`;
+        addMessage("assistant", result.agentMessage);
+        updateProfilePreview();
       } catch (err) {
         refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "PDF 檔案解析失敗")}</span>`;
         addMessage("assistant", `PDF 檔案解析失敗：${err.message || "請稍後再試。"}`);
@@ -812,8 +919,8 @@
     });
     refs.restartBtn.addEventListener("click", () => resetAgent(true));
     refs.runBtn.addEventListener("click", runExplore);
-    function bindUpload(dropzone, input, sourceLabel) {
-      input.addEventListener("change", event => handleFile(event.target.files[0], sourceLabel));
+    function bindUpload(dropzone, input, type, sourceLabel) {
+      input.addEventListener("change", event => handleFile(event.target.files[0], type, sourceLabel));
       ["dragenter", "dragover"].forEach(eventName => {
         dropzone.addEventListener(eventName, event => {
           event.preventDefault();
@@ -826,10 +933,10 @@
           dropzone.classList.remove("dragover");
         });
       });
-      dropzone.addEventListener("drop", event => handleFile(event.dataTransfer.files[0], sourceLabel));
+      dropzone.addEventListener("drop", event => handleFile(event.dataTransfer.files[0], type, sourceLabel));
     }
-    bindUpload(refs.dropzoneAssessment, refs.fileInputAssessment, "評量表");
-    bindUpload(refs.dropzoneDiagnosis, refs.fileInputDiagnosis, "診斷報告");
+    bindUpload(refs.dropzoneAssessment, refs.fileInputAssessment, "assessment", "評量表");
+    bindUpload(refs.dropzoneDiagnosis, refs.fileInputDiagnosis, "diagnosis", "診斷報告");
     document.querySelectorAll(".accordion-toggle").forEach(button => {
       button.addEventListener("click", () => {
         button.closest(".accordion-item").classList.toggle("open");
