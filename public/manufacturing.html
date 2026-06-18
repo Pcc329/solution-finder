@@ -165,6 +165,7 @@
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
               <h2 class="text-xl font-black text-slate-900">分析結果</h2>
+              <p id="companyNameDisplay" class="text-base font-black text-slate-700 mt-1 hidden"></p>
               <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成左側問答後產生官方推薦與其他候選方案。</p>
             </div>
             <button id="runBtn" class="btn-primary" type="button" disabled>
@@ -197,7 +198,7 @@
         </section>
 
         <section class="card p-5">
-          <h3 class="font-black text-slate-900 mb-4">結論建議</h3>
+          <h3 class="font-black text-slate-900 mb-4">製造業補助資訊</h3>
           <div class="space-y-3" id="accordion">
             <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden open">
               <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
@@ -255,14 +256,13 @@
                 <p>本頁資訊用於協助顧問快速判斷方向，不取代官方公告與正式申請規定。正式送件前仍需再次確認最新計畫內容。</p>
               </div>
             </article>
-            <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden">
-              <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
-                <span>AI 顧問結論</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
-              </button>
-              <div id="advisorConclusionContent" class="accordion-body markdown-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
-                <p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>
-              </div>
-            </article>
+          </div>
+        </section>
+
+        <section class="card p-5">
+          <h3 class="font-black text-slate-900 mb-4">結論建議</h3>
+          <div id="advisorConclusionContent" class="markdown-body text-sm text-slate-600 leading-relaxed">
+            <p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>
           </div>
         </section>
       </section>
@@ -292,6 +292,7 @@
       restartBtn: document.getElementById("restartBtn"),
       agentProgress: document.getElementById("agentProgress"),
       runBtn: document.getElementById("runBtn"),
+      companyNameDisplay: document.getElementById("companyNameDisplay"),
       queryPreview: document.getElementById("queryPreview"),
       profilePreview: document.getElementById("profilePreview"),
       loadingState: document.getElementById("loadingState"),
@@ -401,6 +402,7 @@
         documentText = data.documentText || "";
         uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
         renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
+        updateCompanyNameDisplay();
         updateProfilePreview();
         addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新規劃，請按「重新規劃」。");
         return true;
@@ -452,6 +454,17 @@
       refs.runBtn.disabled = !(profile.subIndustry && profile.size && profile.pain && allSolutions.length);
     }
 
+    function updateCompanyNameDisplay() {
+      const name = extractedData?.company_name;
+      if (name) {
+        refs.companyNameDisplay.textContent = name;
+        refs.companyNameDisplay.classList.remove("hidden");
+      } else {
+        refs.companyNameDisplay.textContent = "";
+        refs.companyNameDisplay.classList.add("hidden");
+      }
+    }
+
     function askCurrentQuestion() {
       addMessage("assistant", agentSteps[stepIndex].question);
       updateOptions();
@@ -474,6 +487,7 @@
       refs.officialCount.textContent = "0 筆";
       refs.otherCount.textContent = "0 筆";
       refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>";
+      updateCompanyNameDisplay();
       askCurrentQuestion();
     }
 
@@ -787,6 +801,7 @@
         ...(Array.isArray(assessment.pain_points) ? assessment.pain_points : []),
       ].filter((value, index, array) => value && array.indexOf(value) === index).slice(0, 5);
       return {
+        company_name: diagnosis.company_name || assessment.company_name || null,
         industry: diagnosis.industry || assessment.industry || null,
         size: diagnosis.size || assessment.size || null,
         digital_maturity: diagnosis.digital_maturity || assessment.digital_maturity || null,
@@ -890,6 +905,7 @@
         documentText = [documentText, result.summary].filter(Boolean).join("\n\n").slice(0, 3000);
         updateDocumentNote(sourceLabel, file);
         applyExtractedProfile(extractedData);
+        updateCompanyNameDisplay();
         refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(profile.documentNote)}`;
         addMessage("assistant", result.agentMessage);
         updateProfilePreview();
