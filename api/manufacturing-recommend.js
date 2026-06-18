@@ -16,6 +16,7 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const profile = body.profile && typeof body.profile === 'object' ? body.profile : {};
     const solutions = Array.isArray(body.solutions) ? body.solutions : [];
+    const lockOrder = body.lockOrder === true;
 
     if (!solutions.length) {
       return res.status(400).json({ success: false, error: '請提供候選方案' });
@@ -26,7 +27,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ success: false, error: 'ANTHROPIC_API_KEY not configured' });
     }
 
-    const compactSolutions = solutions.slice(0, 20).map(item => ({
+    const compactSolutions = solutions.slice(0, lockOrder ? 3 : 20).map(item => ({
       id: item.id || '',
       name: item.name || '',
       vendor: item.vendor || '',
@@ -36,8 +37,8 @@ export default async function handler(req, res) {
       program_type: item.program_type || '',
     }));
 
-    const systemPrompt = `你是一位製造業數位轉型顧問，負責從候選資服方案中挑選最適合的前三名。
-請根據企業條件與候選方案，產生簡潔、具體、能讓顧問直接使用的推薦結果。
+    const systemPrompt = `你是一位製造業數位轉型顧問。前端已依企業條件完成方案排序，請不要重新排序或替換方案。
+請依照輸入 solutions 的原始順序，補充每個方案的推薦理由與可帶來的效益。
 
 輸出規則：
 - 只回傳 JSON，不要有任何其他文字
@@ -47,6 +48,9 @@ export default async function handler(req, res) {
 - fit_score 只能是「高」「中」「待確認」
 - summary 20 個中文字以內
 - overall_advice 50 個中文字以內
+- top3 必須完全依照輸入 solutions 的順序輸出，不得重新排序、不得新增或替換方案
+- 每個 top3 的 id、name、vendor、price 必須沿用輸入資料，不得改寫
+- rank 必須依輸入順序從 1 開始
 
 JSON 格式：
 {
@@ -77,7 +81,7 @@ JSON 格式：
 候選方案清單（共 ${compactSolutions.length} 筆）：
 ${JSON.stringify(compactSolutions)}
 
-請選出最適合這家製造業企業的前三名方案，並回傳指定 JSON。`;
+請依照 solutions 陣列的原始順序，為每個方案補充 reasons 與 benefits，並回傳指定 JSON。`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -131,16 +135,25 @@ ${JSON.stringify(compactSolutions)}
       parsed = JSON.parse(match[0]);
     }
 
-    const top3 = Array.isArray(parsed.top3) ? parsed.top3.slice(0, 3).map((item, index) => ({
-      rank: Number(item.rank) || index + 1,
-      id: item.id || '',
-      name: item.name || '',
-      vendor: item.vendor || '',
-      price: item.price || '',
-      reasons: Array.isArray(item.reasons) ? item.reasons.slice(0, 3) : [],
-      benefits: Array.isArray(item.benefits) ? item.benefits.slice(0, 2) : [],
-      fit_score: ['高', '中', '待確認'].includes(item.fit_score) ? item.fit_score : '待確認',
-    })) : [];
+    const aiByKey = {};
+    (Array.isArray(parsed.top3) ? parsed.top3 : []).forEach(item => {
+      if (item.id) aiByKey[item.id] = item;
+      if (item.name) aiByKey[item.name] = item;
+    });
+
+    const top3 = compactSolutions.slice(0, 3).map((solution, index) => {
+      const ai = aiByKey[solution.id] || aiByKey[solution.name] || {};
+      return {
+        rank: index + 1,
+        id: solution.id || '',
+        name: solution.name || '',
+        vendor: solution.vendor || '',
+        price: solution.price || '',
+        reasons: Array.isArray(ai.reasons) ? ai.reasons.slice(0, 3) : [],
+        benefits: Array.isArray(ai.benefits) ? ai.benefits.slice(0, 2) : [],
+        fit_score: ['高', '中', '待確認'].includes(ai.fit_score) ? ai.fit_score : '待確認',
+      };
+    });
 
     return res.status(200).json({
       success: true,
