@@ -41,6 +41,22 @@
     .chat-message.user .chat-bubble { background: #0d9488; color: #ffffff; border-bottom-right-radius: 6px; }
     .option-chip { border: 1px solid #dbe3ea; border-radius: 999px; padding: 7px 10px; font-size: 12px; font-weight: 800; color: #334155; background: #ffffff; transition: 0.16s; }
     .option-chip:hover { border-color: #0d9488; color: #0f766e; background: #f0fdfa; }
+    .info-tip { position: relative; display: inline-flex; align-items: center; }
+    .info-tip > .info-icon { color: #94a3b8; cursor: pointer; font-size: 14px; transition: color .15s; }
+    .info-tip:hover > .info-icon,
+    .info-tip:focus-within > .info-icon { color: #0d9488; }
+    .info-tip > .info-bubble {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      width: 260px; background: #0f172a; color: #f8fafc;
+      font-size: 12px; line-height: 1.6; font-weight: 500;
+      padding: 10px 12px; border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(15,23,42,.25);
+      opacity: 0; visibility: hidden; transform: translateY(-4px);
+      transition: opacity .15s, transform .15s, visibility .15s;
+      z-index: 40; text-align: left;
+    }
+    .info-tip:hover > .info-bubble,
+    .info-tip:focus-within > .info-bubble { opacity: 1; visibility: visible; transform: translateY(0); }
     .solution-card { border-left: 4px solid #0d9488; cursor: pointer; transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
     .solution-card:hover { border-color: #14b8a6; box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
@@ -168,7 +184,6 @@
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
               <h2 class="text-xl font-black text-slate-900">分析結果</h2>
-              <p id="companyNameDisplay" class="text-base font-black text-slate-700 mt-1 hidden"></p>
               <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成左側問答後產生官方推薦與其他候選方案。</p>
             </div>
             <button id="runBtn" class="btn-primary" type="button" disabled>
@@ -186,14 +201,26 @@
         <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <div class="card p-5">
             <div class="flex items-center justify-between gap-3 mb-3">
-              <h3 class="font-black text-slate-900">AI工具庫(產發署)推薦方案</h3>
+              <div class="flex items-center gap-1.5">
+                <h3 class="font-black text-slate-900">AI工具庫(產發署)推薦方案</h3>
+                <span class="info-tip" tabindex="0" aria-label="排序說明">
+                  <i class="fa-solid fa-circle-info info-icon"></i>
+                  <span class="info-bubble">排序依據企業條件與方案內容的適配程度，優先考量主要痛點、產業場景、功能描述、AI 應用與官方來源等訊號。</span>
+                </span>
+              </div>
               <span id="officialCount" class="badge badge-teal">0 筆</span>
             </div>
             <div id="officialList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
           </div>
           <div class="card p-5">
             <div class="flex items-center justify-between gap-3 mb-3">
-              <h3 class="font-black text-slate-900">其他合適的解決方案</h3>
+              <div class="flex items-center gap-1.5">
+                <h3 class="font-black text-slate-900">其他合適的解決方案</h3>
+                <span class="info-tip" tabindex="0" aria-label="排序說明">
+                  <i class="fa-solid fa-circle-info info-icon"></i>
+                  <span class="info-bubble">排序依據企業條件與方案內容的適配程度，優先考量主要痛點、產業場景、功能描述、AI 應用與資料完整度等訊號。</span>
+                </span>
+              </div>
               <span id="otherCount" class="badge badge-muted">0 筆</span>
             </div>
             <div id="otherList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
@@ -234,7 +261,6 @@
       restartBtn: document.getElementById("restartBtn"),
       agentProgress: document.getElementById("agentProgress"),
       runBtn: document.getElementById("runBtn"),
-      companyNameDisplay: document.getElementById("companyNameDisplay"),
       queryPreview: document.getElementById("queryPreview"),
       profilePreview: document.getElementById("profilePreview"),
       loadingState: document.getElementById("loadingState"),
@@ -345,7 +371,6 @@
         uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
         refs.clearFilesBtn.classList.toggle("hidden", uploadedDocuments.length === 0);
         renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
-        updateCompanyNameDisplay();
         updateProfilePreview();
         addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新規劃，請按「重新規劃」。");
         return true;
@@ -378,6 +403,7 @@
 
     function updateProfilePreview() {
       const items = [
+        extractedData && extractedData.company_name ? ["公司名稱", extractedData.company_name] : null,
         profile.subIndustry ? ["產業", profile.subIndustry] : null,
         profile.size ? ["規模", profile.size] : null,
         profile.maturity ? ["數位成熟度", profile.maturity] : null,
@@ -395,17 +421,6 @@
           `).join("")}</div>`
         : "尚未取得完整條件。";
       refs.runBtn.disabled = !(profile.subIndustry && profile.size && profile.pain && allSolutions.length);
-    }
-
-    function updateCompanyNameDisplay() {
-      const name = extractedData?.company_name;
-      if (name) {
-        refs.companyNameDisplay.textContent = name;
-        refs.companyNameDisplay.classList.remove("hidden");
-      } else {
-        refs.companyNameDisplay.textContent = "";
-        refs.companyNameDisplay.classList.add("hidden");
-      }
     }
 
     function askCurrentQuestion() {
@@ -434,7 +449,6 @@
       refs.officialCount.textContent = "0 筆";
       refs.otherCount.textContent = "0 筆";
       refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>";
-      updateCompanyNameDisplay();
       askCurrentQuestion();
     }
 
@@ -587,8 +601,19 @@
       return "待確認";
     }
 
+    function pickTop3(official, others) {
+      const merged = [...official];
+      for (const item of others) {
+        if (merged.length >= 3) break;
+        if (!merged.some(existing => (existing.id || existing.s) === (item.id || item.s))) {
+          merged.push(item);
+        }
+      }
+      return merged.slice(0, 3);
+    }
+
     function buildSummaryJson(official, others) {
-      const candidates = [...official, ...others].slice(0, 3);
+      const candidates = pickTop3(official, others);
       return {
         summary: `${profile.subIndustry || "製造業"}目前優先處理「${profile.pain || "主要痛點"}」，建議先從官方推薦方案確認補助適用性，再以其他候選方案補足功能缺口。`,
         top3: candidates.map((item, index) => ({
@@ -656,12 +681,14 @@
     }
 
     async function requestAiRecommendation(official, others) {
+      const top3 = pickTop3(official, others);
       const res = await fetch("/api/manufacturing-recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profile: buildRecommendProfile(),
-          solutions: compactRecommendSolutions(official, others),
+          solutions: compactRecommendSolutions(top3, []),
+          lockOrder: true,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -787,7 +814,6 @@
       profile.documentNote = "";
       refs.fileInfo.textContent = "";
       refs.clearFilesBtn.classList.add("hidden");
-      updateCompanyNameDisplay();
       refs.profilePreview.innerHTML = "尚未整理需求條件。";
       refs.officialList.textContent = "尚未產生推薦。";
       refs.otherList.textContent = "尚未產生推薦。";
@@ -888,7 +914,6 @@
         documentText = [documentText, result.summary].filter(Boolean).join("\n\n").slice(0, 3000);
         updateDocumentNote(sourceLabel, file);
         applyExtractedProfile(extractedData);
-        updateCompanyNameDisplay();
         refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(profile.documentNote)}`;
         refs.clearFilesBtn.classList.remove("hidden");
         addMessage("assistant", result.agentMessage);
