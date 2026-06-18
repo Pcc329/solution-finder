@@ -41,8 +41,6 @@
     .chat-message.user .chat-bubble { background: #0d9488; color: #ffffff; border-bottom-right-radius: 6px; }
     .option-chip { border: 1px solid #dbe3ea; border-radius: 999px; padding: 7px 10px; font-size: 12px; font-weight: 800; color: #334155; background: #ffffff; transition: 0.16s; }
     .option-chip:hover { border-color: #0d9488; color: #0f766e; background: #f0fdfa; }
-    .accordion-body { display: none; }
-    .accordion-item.open .accordion-body { display: block; }
     .solution-card { border-left: 4px solid #0d9488; cursor: pointer; transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
     .solution-card:hover { border-color: #14b8a6; box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
@@ -194,68 +192,6 @@
               <span id="otherCount" class="badge badge-muted">0 筆</span>
             </div>
             <div id="otherList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
-          </div>
-        </section>
-
-        <section class="card p-5">
-          <h3 class="font-black text-slate-900 mb-4">製造業補助資訊</h3>
-          <div class="space-y-3" id="accordion">
-            <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden open">
-              <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
-                <span>補助資格</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
-              </button>
-              <div class="accordion-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
-                <p><strong>補助對象：</strong>以中小型製造業與具工廠登記、商業登記或公司登記的企業為主要對象，實際資格仍以主管機關公告為準。</p>
-                <p><strong>補助資訊整理：</strong></p>
-                <ol class="list-decimal pl-5 space-y-1 mt-2">
-                  <li>補助通常聚焦在雲端工具、AI 應用、資料整合、智慧製造與營運效率改善。</li>
-                  <li>建議先確認企業是否符合中小企業資格、產業別、登記狀態與導入場域。</li>
-                  <li>申請前需整理現況痛點、預計導入方案、預算、時程與預期效益。</li>
-                  <li>可優先檢視官方方案來源，例如雲市集工業館或 SME AI 平台，再搭配其他候選供應商。</li>
-                  <li>若方案需要顧問輔導、系統建置或教育訓練，應在申請資料中清楚列出。</li>
-                  <li>實際補助額度、比例與核銷方式需依各年度計畫公告與受理窗口規定辦理。</li>
-                </ol>
-              </div>
-            </article>
-            <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden">
-              <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
-                <span>受理期間</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
-              </button>
-              <div class="accordion-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
-                <p><strong>申請期間：</strong>請以官方公告為準。若公告載明截止時間，需在期限前完成線上申請與文件上傳。</p>
-                <br>
-                <p><strong>補助申請重點：</strong></p>
-                <ul class="list-disc pl-5 space-y-1 mt-2">
-                  <li>先確認企業基本資料、登記證明、負責人與聯絡窗口資訊是否完整。</li>
-                  <li>痛點描述應具體，例如品管人力不足、生產排程延誤、設備停機、庫存不透明或資料分散。</li>
-                  <li>方案內容需能對應痛點，避免只列軟體名稱但沒有說明導入後改善方式。</li>
-                  <li>補助金額、企業自籌款、導入期程與驗收方式應先估算清楚。</li>
-                  <li>若要導入 AI 方案，建議補充資料來源、資料品質、使用場景與預期指標。</li>
-                  <li>送件後仍可能需要補件，建議預留至少數個工作天處理文件修正。</li>
-                </ul>
-                <br>
-                <p><strong>官方資訊：</strong>以主管機關公告為準，可參考 <a class="text-teal-700 font-bold underline" href="https://keid.nat.gov.tw/cloud/Web/project_description_AI.aspx" target="_blank" rel="noopener">雲市集工業館 AI 應用服務說明</a>。</p>
-              </div>
-            </article>
-            <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden">
-              <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
-                <span>委託執行</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
-              </button>
-              <div class="accordion-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
-                <p><strong>主要窗口：</strong>經濟部相關計畫服務窗口或雲市集工業館計畫網站公告窗口。</p>
-                <p><strong>適合洽詢：</strong>補助資格、申請流程、方案適用性、文件補件、核銷與驗收規定。</p>
-                <br>
-                <p><strong>聯絡資訊整理：</strong></p>
-                <ul class="list-disc pl-5 space-y-1 mt-2">
-                  <li>地址、電話、傳真與承辦窗口請以最新官方公告為準。</li>
-                  <li>送件前可先備妥公司基本資料、需求摘要、預計導入方案與預算估算。</li>
-                  <li>若不確定是否適用補助，建議先以「製造業痛點 + 導入目標 + 預計方案」詢問窗口。</li>
-                  <li>官方說明頁：<a class="text-teal-700 font-bold underline" href="https://keid.nat.gov.tw/cloud/Web/project_description_AI.aspx" target="_blank" rel="noopener">https://keid.nat.gov.tw/cloud/Web/project_description_AI.aspx</a></li>
-                </ul>
-                <br>
-                <p>本頁資訊用於協助顧問快速判斷方向，不取代官方公告與正式申請規定。正式送件前仍需再次確認最新計畫內容。</p>
-              </div>
-            </article>
           </div>
         </section>
 
@@ -654,7 +590,7 @@
           benefits: benefitForSolution(item),
           fit_score: fitScore(item),
         })),
-        overall_advice: "建議先確認導入場域、資料可用性、預算與補助資格，再安排供應商訪談與報價比較。若已有需求文件，應把痛點、現況系統、預期效益與時程整理成送件附件。",
+        overall_advice: "建議先確認導入場域、資料可用性、預算與申請條件，再安排供應商訪談與報價比較。若已有需求文件，應把痛點、現況系統、預期效益與時程整理成送件附件。",
       };
     }
 
@@ -953,12 +889,6 @@
     }
     bindUpload(refs.dropzoneAssessment, refs.fileInputAssessment, "assessment", "評量表");
     bindUpload(refs.dropzoneDiagnosis, refs.fileInputDiagnosis, "diagnosis", "診斷報告");
-    document.querySelectorAll(".accordion-toggle").forEach(button => {
-      button.addEventListener("click", () => {
-        button.closest(".accordion-item").classList.toggle("open");
-      });
-    });
-
     resetAgent(false);
     restoreResult();
     loadSolutions();
