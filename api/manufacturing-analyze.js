@@ -43,6 +43,7 @@ export default async function handler(req, res) {
 
 JSON 格式：
 {
+  "company_name": "文件中出現的企業或公司名稱，若無法判斷則為 null",
   "industry": "製造業子產業或應用場景",
   "size": "企業或工廠規模",
   "digital_maturity": "數位成熟度，例如剛起步、已有 ERP/MES、有資料但未整合、已有 AI/IoT 專案",
@@ -117,6 +118,7 @@ JSON 格式：
     }
 
     const safeExtracted = {
+      company_name: extracted.company_name || null,
       industry: extracted.industry || null,
       size: extracted.size || null,
       digital_maturity: extracted.digital_maturity || null,
