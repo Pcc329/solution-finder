@@ -135,7 +135,12 @@
               <div id="progressDiagnosisBar" class="bg-indigo-500 h-1.5 rounded-full transition-all duration-300" style="width:0%"></div>
             </div>
           </div>
-          <div id="fileInfo" class="mt-3 text-xs text-slate-500"></div>
+          <div class="mt-3 flex items-center justify-between gap-2">
+            <div id="fileInfo" class="text-xs text-slate-500 flex-1 min-w-0"></div>
+            <button id="clearFilesBtn" class="hidden text-xs text-slate-400 hover:text-red-500 flex-shrink-0 flex items-center gap-1 transition-colors" type="button">
+              <i class="fa-solid fa-trash-can"></i> 清除文件
+            </button>
+          </div>
         </section>
 
         <section class="card p-5">
@@ -221,6 +226,7 @@
       progressDiagnosisPct: document.getElementById("progressDiagnosisPct"),
       progressDiagnosisBar: document.getElementById("progressDiagnosisBar"),
       fileInfo: document.getElementById("fileInfo"),
+      clearFilesBtn: document.getElementById("clearFilesBtn"),
       agentChat: document.getElementById("agentChat"),
       agentOptions: document.getElementById("agentOptions"),
       agentInput: document.getElementById("agentInput"),
@@ -337,6 +343,7 @@
         extractedDataDiagnosis = data.extractedDataDiagnosis || null;
         documentText = data.documentText || "";
         uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
+        refs.clearFilesBtn.classList.toggle("hidden", uploadedDocuments.length === 0);
         renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
         updateCompanyNameDisplay();
         updateProfilePreview();
@@ -415,6 +422,10 @@
       documentText = "";
       uploadedDocuments = [];
       refs.fileInfo.textContent = "";
+      refs.clearFilesBtn.classList.add("hidden");
+      refs.fileInputAssessment.value = "";
+      refs.fileInputDiagnosis.value = "";
+      resetUploadProgress();
       if (clearSaved) sessionStorage.removeItem("mfg_result");
       stepIndex = 0;
       conversationHistory = [];
@@ -753,6 +764,42 @@
       profile.documentNote = uploadedDocuments.join("；");
     }
 
+    function resetUploadProgress() {
+      [
+        [refs.progressAssessment, refs.progressAssessmentBar, refs.progressAssessmentLabel, refs.progressAssessmentPct],
+        [refs.progressDiagnosis, refs.progressDiagnosisBar, refs.progressDiagnosisLabel, refs.progressDiagnosisPct],
+      ].forEach(([progressEl, barEl, labelEl, pctEl]) => {
+        progressEl.classList.add("hidden");
+        barEl.style.width = "0%";
+        labelEl.textContent = "讀取中...";
+        pctEl.textContent = "0%";
+      });
+    }
+
+    function clearAllFiles() {
+      refs.fileInputAssessment.value = "";
+      refs.fileInputDiagnosis.value = "";
+      extractedData = null;
+      extractedDataAssessment = null;
+      extractedDataDiagnosis = null;
+      documentText = "";
+      uploadedDocuments = [];
+      profile.documentNote = "";
+      refs.fileInfo.textContent = "";
+      refs.clearFilesBtn.classList.add("hidden");
+      updateCompanyNameDisplay();
+      refs.profilePreview.innerHTML = "尚未整理需求條件。";
+      refs.officialList.textContent = "尚未產生推薦。";
+      refs.otherList.textContent = "尚未產生推薦。";
+      refs.officialCount.textContent = "0 筆";
+      refs.otherCount.textContent = "0 筆";
+      refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>";
+      refs.queryPreview.textContent = "完成左側問答後產生官方推薦與其他候選方案。";
+      refs.runBtn.disabled = true;
+      resetUploadProgress();
+      sessionStorage.removeItem("mfg_result");
+    }
+
     async function analyzeDocument(file, mediaType, sourceLabel) {
       refs.fileInfo.innerHTML = '<span class="text-teal-700 font-bold"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>AI 正在讀取文件內容...</span>';
       addMessage("assistant", `AI 正在讀取 ${sourceLabel}：${file.name}，完成後會把萃取結果納入推薦。`);
@@ -843,6 +890,7 @@
         applyExtractedProfile(extractedData);
         updateCompanyNameDisplay();
         refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(profile.documentNote)}`;
+        refs.clearFilesBtn.classList.remove("hidden");
         addMessage("assistant", result.agentMessage);
         updateProfilePreview();
       } catch (err) {
@@ -871,6 +919,7 @@
     });
     refs.restartBtn.addEventListener("click", () => resetAgent(true));
     refs.runBtn.addEventListener("click", runExplore);
+    refs.clearFilesBtn.addEventListener("click", clearAllFiles);
     function bindUpload(dropzone, input, type, sourceLabel) {
       input.addEventListener("change", event => handleFile(event.target.files[0], type, sourceLabel));
       ["dragenter", "dragover"].forEach(eventName => {
