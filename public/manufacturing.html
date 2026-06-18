@@ -24,9 +24,14 @@
     .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 800; white-space: nowrap; }
     .badge-teal { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
     .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-indigo { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
     .badge-muted { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
     .dropzone { border: 2px dashed #99f6e4; background: #f0fdfa; border-radius: 16px; padding: 22px; text-align: center; cursor: pointer; transition: 0.16s; }
     .dropzone.dragover { border-color: #0d9488; background: #ccfbf1; }
+    #dropzoneAssessment { border-color: #2dd4bf; background: #f0fdfa; }
+    #dropzoneAssessment.dragover { border-color: #0d9488; background: #ccfbf1; }
+    .dropzone-indigo { border: 2px dashed #818cf8; background: #eef2ff; border-radius: 16px; padding: 22px; text-align: center; cursor: pointer; transition: 0.16s; }
+    .dropzone-indigo.dragover { border-color: #6366f1; background: #e0e7ff; }
     .chat-panel { min-height: 310px; max-height: 470px; overflow-y: auto; padding-right: 4px; }
     .chat-message { display: flex; margin-bottom: 12px; }
     .chat-message.assistant { justify-content: flex-start; }
@@ -82,7 +87,7 @@
       <p class="text-xs tracking-[0.18em] uppercase text-teal-700 font-black mb-2">MANUFACTURING SOLUTION EXPLORER</p>
       <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
         <div>
-          <h1 class="text-3xl md:text-4xl font-black text-slate-900">製造業方案探索</h1>
+          <h1 class="text-3xl md:text-4xl font-black text-slate-900">AI分析 幫你找出適合方案</h1>
           <p class="text-sm text-slate-500 mt-2">上傳需求文件或逐步回答問題，快速找出製造業可用的 AI 與數位化方案。</p>
         </div>
         <div id="dataStatus" class="text-xs text-slate-400">正在讀取方案資料...</div>
@@ -96,12 +101,42 @@
             <h2 class="text-lg font-black text-slate-900">需求文件</h2>
             <span class="badge badge-blue">PDF</span>
           </div>
-          <label id="dropzone" class="dropzone block" for="fileInput">
-            <i class="fa-solid fa-cloud-arrow-up text-2xl text-teal-700 mb-2"></i>
-            <p class="font-black text-slate-700">上傳 PDF 評量表</p>
-            <p class="text-xs text-slate-500 mt-1">請上傳 PDF 格式的製造業 AI 評量表，系統會讀取內容並納入推薦。</p>
+          <label id="dropzoneAssessment" class="dropzone block mb-3" for="fileInputAssessment">
+            <i class="fa-solid fa-cloud-arrow-up text-2xl text-teal-600 mb-2"></i>
+            <div class="flex items-center justify-center gap-2">
+              <p class="font-black text-slate-700">評量表上傳</p>
+              <span class="badge badge-teal">PDF</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">請上傳顧問實地訪談後的製造業 AI 評量表 PDF，系統會讀取內容並納入推薦。</p>
           </label>
-          <input id="fileInput" type="file" class="hidden" accept=".pdf">
+          <input id="fileInputAssessment" type="file" class="hidden" accept=".pdf">
+          <div id="progressAssessment" class="mt-3 mb-4 hidden">
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+              <span id="progressAssessmentLabel">讀取中...</span>
+              <span id="progressAssessmentPct">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5">
+              <div id="progressAssessmentBar" class="bg-teal-500 h-1.5 rounded-full transition-all duration-300" style="width:0%"></div>
+            </div>
+          </div>
+          <label id="dropzoneDiagnosis" class="dropzone-indigo block" for="fileInputDiagnosis">
+            <i class="fa-solid fa-file-circle-check text-2xl text-indigo-500 mb-2"></i>
+            <div class="flex items-center justify-center gap-2">
+              <p class="font-black text-slate-700">診斷報告上傳</p>
+              <span class="badge badge-indigo">PDF</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">請上傳顧問完成診斷後的報告或補充資料 PDF，系統會讀取內容並納入推薦。</p>
+          </label>
+          <input id="fileInputDiagnosis" type="file" class="hidden" accept=".pdf">
+          <div id="progressDiagnosis" class="mt-3 hidden">
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+              <span id="progressDiagnosisLabel">讀取中...</span>
+              <span id="progressDiagnosisPct">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5">
+              <div id="progressDiagnosisBar" class="bg-indigo-500 h-1.5 rounded-full transition-all duration-300" style="width:0%"></div>
+            </div>
+          </div>
           <div id="fileInfo" class="mt-3 text-xs text-slate-500"></div>
         </section>
 
@@ -129,7 +164,7 @@
         <section class="card p-5">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <h2 class="text-xl font-black text-slate-900">製造業推薦清單</h2>
+              <h2 class="text-xl font-black text-slate-900">分析結果</h2>
               <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成左側問答後產生官方推薦與其他候選方案。</p>
             </div>
             <button id="runBtn" class="btn-primary" type="button" disabled>
@@ -144,22 +179,17 @@
           正在分析製造業需求並篩選方案...
         </section>
 
-        <section id="summaryCard" class="card p-5 hidden">
-          <h3 class="text-base font-black text-slate-900 mb-2">AI 規劃摘要</h3>
-          <div id="summaryText" class="markdown-body text-sm text-slate-600 leading-relaxed"></div>
-        </section>
-
         <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <div class="card p-5">
             <div class="flex items-center justify-between gap-3 mb-3">
-              <h3 class="font-black text-slate-900">官方推薦方案</h3>
+              <h3 class="font-black text-slate-900">AI工具庫(產發署)推薦方案</h3>
               <span id="officialCount" class="badge badge-teal">0 筆</span>
             </div>
             <div id="officialList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
           </div>
           <div class="card p-5">
             <div class="flex items-center justify-between gap-3 mb-3">
-              <h3 class="font-black text-slate-900">其他候選方案</h3>
+              <h3 class="font-black text-slate-900">其他合適的解決方案</h3>
               <span id="otherCount" class="badge badge-muted">0 筆</span>
             </div>
             <div id="otherList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
@@ -167,7 +197,7 @@
         </section>
 
         <section class="card p-5">
-          <h3 class="font-black text-slate-900 mb-4">製造業補助資訊</h3>
+          <h3 class="font-black text-slate-900 mb-4">結論建議</h3>
           <div class="space-y-3" id="accordion">
             <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden open">
               <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
@@ -227,29 +257,10 @@
             </article>
             <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden">
               <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
-                <span>補助申請須知</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
+                <span>AI 顧問結論</span><i class="fa-solid fa-chevron-down text-slate-400"></i>
               </button>
-              <div class="accordion-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
-                <p><strong>申請流程：</strong></p>
-                <ol class="list-decimal pl-5 space-y-1 mt-2">
-                  <li>確認補助資訊與企業資格。</li>
-                  <li>整理公司基本資料、工廠或營運場域、主要痛點與導入目標。</li>
-                  <li>挑選候選方案並確認供應商、報價、導入期程與驗收方式。</li>
-                  <li>填寫申請文件，附上必要證明與方案說明。</li>
-                  <li>送出申請後追蹤審查狀態，依通知完成補件。</li>
-                  <li>通過後依核定內容導入方案，保留合約、發票、成果紀錄與驗收資料。</li>
-                </ol>
-                <br>
-                <p><strong>常見準備文件：</strong></p>
-                <ul class="list-disc pl-5 space-y-1 mt-2">
-                  <li>公司或商業登記證明。</li>
-                  <li>工廠登記或營運場域相關資料。</li>
-                  <li>最近期財務或稅務資料，依計畫要求提供。</li>
-                  <li>導入方案報價單、規格書或服務建議書。</li>
-                  <li>需求說明、痛點描述、預期效益與導入時程。</li>
-                </ul>
-                <br>
-                <p><strong>提醒：</strong>本流程為顧問協助初步規劃用途。實際申請資料、格式、期限與審查標準仍以當年度公告為準。</p>
+              <div id="advisorConclusionContent" class="accordion-body markdown-body px-4 pb-4 text-sm text-slate-600 leading-relaxed">
+                <p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>
               </div>
             </article>
           </div>
@@ -261,8 +272,18 @@
   <script>
     const refs = {
       dataStatus: document.getElementById("dataStatus"),
-      dropzone: document.getElementById("dropzone"),
-      fileInput: document.getElementById("fileInput"),
+      dropzoneAssessment: document.getElementById("dropzoneAssessment"),
+      fileInputAssessment: document.getElementById("fileInputAssessment"),
+      dropzoneDiagnosis: document.getElementById("dropzoneDiagnosis"),
+      fileInputDiagnosis: document.getElementById("fileInputDiagnosis"),
+      progressAssessment: document.getElementById("progressAssessment"),
+      progressAssessmentLabel: document.getElementById("progressAssessmentLabel"),
+      progressAssessmentPct: document.getElementById("progressAssessmentPct"),
+      progressAssessmentBar: document.getElementById("progressAssessmentBar"),
+      progressDiagnosis: document.getElementById("progressDiagnosis"),
+      progressDiagnosisLabel: document.getElementById("progressDiagnosisLabel"),
+      progressDiagnosisPct: document.getElementById("progressDiagnosisPct"),
+      progressDiagnosisBar: document.getElementById("progressDiagnosisBar"),
       fileInfo: document.getElementById("fileInfo"),
       agentChat: document.getElementById("agentChat"),
       agentOptions: document.getElementById("agentOptions"),
@@ -274,8 +295,7 @@
       queryPreview: document.getElementById("queryPreview"),
       profilePreview: document.getElementById("profilePreview"),
       loadingState: document.getElementById("loadingState"),
-      summaryCard: document.getElementById("summaryCard"),
-      summaryText: document.getElementById("summaryText"),
+      advisorConclusionContent: document.getElementById("advisorConclusionContent"),
       officialList: document.getElementById("officialList"),
       otherList: document.getElementById("otherList"),
       officialCount: document.getElementById("officialCount"),
@@ -303,7 +323,10 @@
     let allSolutions = [];
     let profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
     let extractedData = null;
+    let extractedDataAssessment = null;
+    let extractedDataDiagnosis = null;
     let documentText = "";
+    let uploadedDocuments = [];
     let stepIndex = 0;
     let conversationHistory = [];
 
@@ -342,16 +365,19 @@
       window.open(url, "_blank");
     }
 
-    function saveResult(official, others, summary, recommendationJson) {
+    function saveResult(official, others, conclusion, recommendationJson) {
       try {
         sessionStorage.setItem("mfg_result", JSON.stringify({
           official,
           others,
-          summary,
+          conclusion,
           recommendationJson,
           extractedData,
+          extractedDataAssessment,
+          extractedDataDiagnosis,
           profile,
           documentText,
+          uploadedDocuments,
           timestamp: Date.now(),
         }));
       } catch (err) {
@@ -370,8 +396,11 @@
         }
         profile = data.profile || profile;
         extractedData = data.extractedData || null;
+        extractedDataAssessment = data.extractedDataAssessment || null;
+        extractedDataDiagnosis = data.extractedDataDiagnosis || null;
         documentText = data.documentText || "";
-        renderResult(data.official || [], data.others || [], data.summary || "");
+        uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
+        renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
         updateProfilePreview();
         addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新規劃，請按「重新規劃」。");
         return true;
@@ -432,7 +461,10 @@
     function resetAgent(clearSaved = true) {
       profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
       extractedData = null;
+      extractedDataAssessment = null;
+      extractedDataDiagnosis = null;
       documentText = "";
+      uploadedDocuments = [];
       refs.fileInfo.textContent = "";
       if (clearSaved) sessionStorage.removeItem("mfg_result");
       stepIndex = 0;
@@ -441,7 +473,7 @@
       refs.otherList.textContent = "尚未產生推薦。";
       refs.officialCount.textContent = "0 筆";
       refs.otherCount.textContent = "0 筆";
-      refs.summaryCard.classList.add("hidden");
+      refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>";
       askCurrentQuestion();
     }
 
@@ -509,12 +541,12 @@
         .sort((a, b) => b.score - a.score || a.index - b.index);
       const official = scored
         .filter(entry => officialPrograms.some(program => safeStr(entry.item.p).includes(program)))
-        .slice(0, 10)
+        .slice(0, 5)
         .map(entry => entry.item);
       const officialIds = new Set(official.map(item => item.id));
       const others = scored
         .filter(entry => !officialIds.has(entry.item.id))
-        .slice(0, 10)
+        .slice(0, 5)
         .map(entry => entry.item);
       return { official, others };
     }
@@ -545,14 +577,13 @@
       });
     }
 
-    function renderResult(official, others, summary) {
+    function renderResult(official, others, conclusion) {
       refs.officialCount.textContent = `${official.length} 筆`;
       refs.otherCount.textContent = `${others.length} 筆`;
       renderList(refs.officialList, official);
       renderList(refs.otherList, others);
-      if (summary) {
-        refs.summaryCard.classList.remove("hidden");
-        refs.summaryText.innerHTML = summary;
+      if (conclusion) {
+        refs.advisorConclusionContent.innerHTML = conclusion;
       }
     }
 
@@ -679,9 +710,8 @@
       return data;
     }
 
-    async function generateSummary(official, others) {
-      refs.summaryCard.classList.remove("hidden");
-      refs.summaryText.innerHTML = '<p>AI 正在推薦最適合的方案...</p>';
+    async function generateConclusion(official, others) {
+      refs.advisorConclusionContent.innerHTML = '<p>AI 正在整理顧問結論...</p>';
       let summaryJson;
       try {
         summaryJson = await requestAiRecommendation(official, others);
@@ -689,10 +719,10 @@
         console.warn("Manufacturing recommendation fallback:", err);
         summaryJson = buildSummaryJson(official, others);
       }
-      const summary = renderSummaryFromJson(summaryJson);
-      refs.summaryText.innerHTML = summary;
-      saveResult(official, others, summary, summaryJson);
-      return summary;
+      const conclusion = renderSummaryFromJson(summaryJson);
+      refs.advisorConclusionContent.innerHTML = conclusion;
+      saveResult(official, others, conclusion, summaryJson);
+      return conclusion;
     }
 
     async function runExplore() {
@@ -702,7 +732,7 @@
       const { official, others } = getRecommendations();
       renderResult(official, others, "");
       refs.loadingState.classList.add("hidden");
-      await generateSummary(official, others);
+      await generateConclusion(official, others);
     }
 
     function detectUploadMediaType(file) {
@@ -749,9 +779,32 @@
       }
     }
 
-    async function analyzeDocument(file, mediaType) {
+    function mergeExtractedData() {
+      const assessment = extractedDataAssessment || {};
+      const diagnosis = extractedDataDiagnosis || {};
+      const painPoints = [
+        ...(Array.isArray(diagnosis.pain_points) ? diagnosis.pain_points : []),
+        ...(Array.isArray(assessment.pain_points) ? assessment.pain_points : []),
+      ].filter((value, index, array) => value && array.indexOf(value) === index).slice(0, 5);
+      return {
+        industry: diagnosis.industry || assessment.industry || null,
+        size: diagnosis.size || assessment.size || null,
+        digital_maturity: diagnosis.digital_maturity || assessment.digital_maturity || null,
+        pain_points: painPoints,
+        budget: diagnosis.budget || assessment.budget || null,
+        keyword: [diagnosis.keyword, assessment.keyword].filter(Boolean).join(" ") || null,
+        source_files: [diagnosis.source_file, assessment.source_file].filter(Boolean),
+      };
+    }
+
+    function updateDocumentNote(sourceLabel, file) {
+      uploadedDocuments.push(`${sourceLabel}: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+      profile.documentNote = uploadedDocuments.join("；");
+    }
+
+    async function analyzeDocument(file, mediaType, sourceLabel) {
       refs.fileInfo.innerHTML = '<span class="text-teal-700 font-bold"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>AI 正在讀取文件內容...</span>';
-      addMessage("assistant", `AI 正在讀取 ${file.name}，完成後會把萃取結果納入推薦。`);
+      addMessage("assistant", `AI 正在讀取 ${sourceLabel}：${file.name}，完成後會把萃取結果納入推薦。`);
       const fileBase64 = await fileToBase64(file);
       const res = await fetch("/api/manufacturing-analyze", {
         method: "POST",
@@ -766,28 +819,83 @@
       if (!res.ok || !data.success) {
         throw new Error(data.error || `文件解析失敗 (${res.status})`);
       }
-      extractedData = data.extracted || null;
-      documentText = data.summary || "";
-      profile.documentNote = `${file.name} (${Math.round(file.size / 1024)} KB)`;
-      applyExtractedProfile(extractedData);
-      refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(file.name)}`;
-      addMessage("assistant", data.agentMessage || "文件解析完成，我會把萃取結果納入推薦。");
-      updateProfilePreview();
+      return {
+        extracted: {
+          ...(data.extracted || {}),
+          source_file: file.name,
+        },
+        summary: data.summary || "",
+        agentMessage: data.agentMessage || "文件解析完成，我會把萃取結果納入推薦。",
+      };
     }
 
-    async function handleFile(file) {
+    async function analyzeWithProgress(file, mediaType, type, sourceLabel) {
+      const key = type === "assessment" ? "Assessment" : "Diagnosis";
+      const progressEl = refs[`progress${key}`];
+      const barEl = refs[`progress${key}Bar`];
+      const labelEl = refs[`progress${key}Label`];
+      const pctEl = refs[`progress${key}Pct`];
+      const steps = [
+        { pct: 20, label: "讀取文件中..." },
+        { pct: 50, label: "轉換資料中..." },
+        { pct: 75, label: "AI 分析中..." },
+        { pct: 90, label: "整理結果中..." },
+      ];
+
+      progressEl.classList.remove("hidden");
+      barEl.style.width = "0%";
+      labelEl.textContent = "讀取中...";
+      pctEl.textContent = "0%";
+      let stepIndex = 0;
+      const timer = setInterval(() => {
+        if (stepIndex < steps.length) {
+          barEl.style.width = `${steps[stepIndex].pct}%`;
+          labelEl.textContent = steps[stepIndex].label;
+          pctEl.textContent = `${steps[stepIndex].pct}%`;
+          stepIndex += 1;
+        }
+      }, 600);
+
+      try {
+        const result = await analyzeDocument(file, mediaType, sourceLabel);
+        clearInterval(timer);
+        barEl.style.width = "100%";
+        labelEl.textContent = "讀取完成";
+        pctEl.textContent = "100%";
+        setTimeout(() => progressEl.classList.add("hidden"), 1500);
+        return result;
+      } catch (err) {
+        clearInterval(timer);
+        labelEl.textContent = "讀取失敗";
+        throw err;
+      }
+    }
+
+    async function handleFile(file, type, sourceLabel) {
       if (!file) return;
       const mediaType = detectUploadMediaType(file);
       if (!mediaType) {
-        refs.fileInfo.innerHTML = '<span class="text-red-500 font-bold">僅支援 PDF 評量表。</span>';
-        addMessage("assistant", "這個檔案格式目前不支援，請上傳 PDF 評量表。");
+        refs.fileInfo.innerHTML = '<span class="text-red-500 font-bold">僅支援 PDF 檔案。</span>';
+        addMessage("assistant", "這個檔案格式目前不支援，請上傳 PDF 檔案。");
         return;
       }
       try {
-        await analyzeDocument(file, mediaType);
+        const result = await analyzeWithProgress(file, mediaType, type, sourceLabel);
+        if (type === "assessment") {
+          extractedDataAssessment = result.extracted;
+        } else {
+          extractedDataDiagnosis = result.extracted;
+        }
+        extractedData = mergeExtractedData();
+        documentText = [documentText, result.summary].filter(Boolean).join("\n\n").slice(0, 3000);
+        updateDocumentNote(sourceLabel, file);
+        applyExtractedProfile(extractedData);
+        refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(profile.documentNote)}`;
+        addMessage("assistant", result.agentMessage);
+        updateProfilePreview();
       } catch (err) {
-        refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "PDF 評量表解析失敗")}</span>`;
-        addMessage("assistant", `PDF 評量表解析失敗：${err.message || "請稍後再試。"}`);
+        refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "PDF 檔案解析失敗")}</span>`;
+        addMessage("assistant", `PDF 檔案解析失敗：${err.message || "請稍後再試。"}`);
       }
     }
 
@@ -811,20 +919,24 @@
     });
     refs.restartBtn.addEventListener("click", () => resetAgent(true));
     refs.runBtn.addEventListener("click", runExplore);
-    refs.fileInput.addEventListener("change", event => handleFile(event.target.files[0]));
-    ["dragenter", "dragover"].forEach(eventName => {
-      refs.dropzone.addEventListener(eventName, event => {
-        event.preventDefault();
-        refs.dropzone.classList.add("dragover");
+    function bindUpload(dropzone, input, type, sourceLabel) {
+      input.addEventListener("change", event => handleFile(event.target.files[0], type, sourceLabel));
+      ["dragenter", "dragover"].forEach(eventName => {
+        dropzone.addEventListener(eventName, event => {
+          event.preventDefault();
+          dropzone.classList.add("dragover");
+        });
       });
-    });
-    ["dragleave", "drop"].forEach(eventName => {
-      refs.dropzone.addEventListener(eventName, event => {
-        event.preventDefault();
-        refs.dropzone.classList.remove("dragover");
+      ["dragleave", "drop"].forEach(eventName => {
+        dropzone.addEventListener(eventName, event => {
+          event.preventDefault();
+          dropzone.classList.remove("dragover");
+        });
       });
-    });
-    refs.dropzone.addEventListener("drop", event => handleFile(event.dataTransfer.files[0]));
+      dropzone.addEventListener("drop", event => handleFile(event.dataTransfer.files[0], type, sourceLabel));
+    }
+    bindUpload(refs.dropzoneAssessment, refs.fileInputAssessment, "assessment", "評量表");
+    bindUpload(refs.dropzoneDiagnosis, refs.fileInputDiagnosis, "diagnosis", "診斷報告");
     document.querySelectorAll(".accordion-toggle").forEach(button => {
       button.addEventListener("click", () => {
         button.closest(".accordion-item").classList.toggle("open");
