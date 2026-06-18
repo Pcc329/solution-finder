@@ -82,7 +82,7 @@
       <p class="text-xs tracking-[0.18em] uppercase text-teal-700 font-black mb-2">MANUFACTURING SOLUTION EXPLORER</p>
       <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
         <div>
-          <h1 class="text-3xl md:text-4xl font-black text-slate-900">AI推薦 找到最適合的方案</h1>
+          <h1 class="text-3xl md:text-4xl font-black text-slate-900">AI分析 幫你找出適合方案</h1>
           <p class="text-sm text-slate-500 mt-2">上傳需求文件或逐步回答問題，快速找出製造業可用的 AI 與數位化方案。</p>
         </div>
         <div id="dataStatus" class="text-xs text-slate-400">正在讀取方案資料...</div>
@@ -135,7 +135,7 @@
         <section class="card p-5">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <h2 class="text-xl font-black text-slate-900">推薦結果</h2>
+              <h2 class="text-xl font-black text-slate-900">分析結果</h2>
               <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成左側問答後產生官方推薦與其他候選方案。</p>
             </div>
             <button id="runBtn" class="btn-primary" type="button" disabled>
@@ -153,14 +153,14 @@
         <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <div class="card p-5">
             <div class="flex items-center justify-between gap-3 mb-3">
-              <h3 class="font-black text-slate-900">AI撰寫摘要與精選推薦方案</h3>
+              <h3 class="font-black text-slate-900">AI工具庫(產發署)推薦方案</h3>
               <span id="officialCount" class="badge badge-teal">0 筆</span>
             </div>
             <div id="officialList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
           </div>
           <div class="card p-5">
             <div class="flex items-center justify-between gap-3 mb-3">
-              <h3 class="font-black text-slate-900">其他可參考的候選方案</h3>
+              <h3 class="font-black text-slate-900">其他合適的解決方案</h3>
               <span id="otherCount" class="badge badge-muted">0 筆</span>
             </div>
             <div id="otherList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
@@ -168,7 +168,7 @@
         </section>
 
         <section class="card p-5">
-          <h3 class="font-black text-slate-900 mb-4">製造業補助資訊</h3>
+          <h3 class="font-black text-slate-900 mb-4">結論建議</h3>
           <div class="space-y-3" id="accordion">
             <article class="accordion-item border border-slate-200 rounded-xl overflow-hidden open">
               <button class="accordion-toggle w-full flex items-center justify-between px-4 py-3 text-left font-black text-slate-800">
