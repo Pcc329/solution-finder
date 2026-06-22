@@ -297,6 +297,7 @@
     let documentText = "";
     let uploadedDocuments = [];
     let companyNameConflictIgnored = false;
+    let uploadChatNoticeShown = false;
     let stepIndex = 0;
     let conversationHistory = [];
 
@@ -442,6 +443,7 @@
       documentText = "";
       uploadedDocuments = [];
       companyNameConflictIgnored = false;
+      uploadChatNoticeShown = false;
       refs.fileInfo.textContent = "";
       refs.clearFilesBtn.classList.add("hidden");
       refs.fileInputAssessment.value = "";
@@ -466,10 +468,13 @@
     function handleAnswer(value) {
       const text = safeStr(value).trim();
       if (!text) return;
-      const hasUpload = !!extractedData || uploadedDocuments.length > 0;
+      const hasUpload = !!extractedData || (Array.isArray(uploadedDocuments) && uploadedDocuments.length > 0);
       if (hasUpload) {
         addMessage("user", text);
-        addMessage("assistant", "已上傳文件，系統會優先使用文件解析結果，不會再用對話覆寫條件。請直接按「產生推薦」；若要重新填寫，請先按「清除文件」。");
+        if (!uploadChatNoticeShown) {
+          addMessage("assistant", "你已上傳文件，分析以文件內容為準，此對話不會修改條件。如需改用問答，請先按「清除文件」；文件無誤可直接按「產生推薦」。");
+          uploadChatNoticeShown = true;
+        }
         refs.agentInput.value = "";
         return;
       }
@@ -864,7 +869,10 @@
       documentText = "";
       uploadedDocuments = [];
       companyNameConflictIgnored = false;
-      profile.documentNote = "";
+      uploadChatNoticeShown = false;
+      profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
+      stepIndex = 0;
+      conversationHistory = [];
       refs.fileInfo.textContent = "";
       refs.clearFilesBtn.classList.add("hidden");
       refs.profilePreview.innerHTML = "尚未整理需求條件。";
@@ -876,35 +884,44 @@
       refs.queryPreview.textContent = "完成左側問答後產生官方推薦與其他候選方案。";
       refs.runBtn.disabled = true;
       resetUploadProgress();
-      refs.agentProgress.textContent = `${Math.min(stepIndex + 1, agentSteps.length)} / ${agentSteps.length}`;
       sessionStorage.removeItem("mfg_result");
+      refs.agentInput.disabled = false;
+      refs.agentSendBtn.disabled = false;
+      askCurrentQuestion();
     }
 
     async function analyzeDocument(file, mediaType, sourceLabel) {
       refs.fileInfo.innerHTML = '<span class="text-teal-700 font-bold"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>AI 正在讀取文件內容...</span>';
-      addMessage("assistant", `正在讀取 ${sourceLabel}：${file.name}\n文件解析需要一點時間，請稍候。`);
-      const fileBase64 = await fileToBase64(file);
-      const res = await fetch("/api/manufacturing-analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileBase64,
-          mediaType,
-          fileName: file.name,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || `文件解析失敗 (${res.status})`);
+      refs.agentInput.disabled = true;
+      refs.agentSendBtn.disabled = true;
+      addMessage("assistant", `📄 正在讀取 ${sourceLabel}：${file.name}\n文件分析期間，問答功能暫停，請稍候…`);
+      try {
+        const fileBase64 = await fileToBase64(file);
+        const res = await fetch("/api/manufacturing-analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileBase64,
+            mediaType,
+            fileName: file.name,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || `文件解析失敗 (${res.status})`);
+        }
+        return {
+          extracted: {
+            ...(data.extracted || {}),
+            source_file: file.name,
+          },
+          summary: data.summary || "",
+          agentMessage: data.agentMessage || "文件解析完成，我會把萃取結果納入推薦。",
+        };
+      } finally {
+        refs.agentInput.disabled = false;
+        refs.agentSendBtn.disabled = false;
       }
-      return {
-        extracted: {
-          ...(data.extracted || {}),
-          source_file: file.name,
-        },
-        summary: data.summary || "",
-        agentMessage: data.agentMessage || "文件解析完成，我會把萃取結果納入推薦。",
-      };
     }
 
     async function analyzeWithProgress(file, mediaType, type, sourceLabel) {
@@ -957,8 +974,6 @@
         addMessage("assistant", "這個檔案格式目前不支援，請上傳 PDF 檔案。");
         return;
       }
-      refs.agentInput.disabled = true;
-      refs.agentSendBtn.disabled = true;
       try {
         const result = await analyzeWithProgress(file, mediaType, type, sourceLabel);
         if (type === "assessment") {
@@ -973,14 +988,13 @@
         renderUploadStatus();
         refs.clearFilesBtn.classList.remove("hidden");
         refs.agentProgress.textContent = `已讀取 ${uploadedDocuments.length} 份文件`;
-        addMessage("assistant", `已成功讀取 ${uploadedDocuments.length} 份文件，並整理成推薦條件。請按「產生推薦」查看分析結果；如需重新提供資料，請先按「清除文件」。`);
+        uploadChatNoticeShown = false;
+        addMessage("assistant", result.agentMessage);
+        addMessage("assistant", "✅ 已讀取文件，分析將以文件內容為準。\n此對話不會修改文件條件；如需改用問答，請先按「清除文件」。");
         updateProfilePreview();
       } catch (err) {
         refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "PDF 檔案解析失敗")}</span>`;
         addMessage("assistant", `PDF 檔案解析失敗：${err.message || "請稍後再試。"}`);
-      } finally {
-        refs.agentInput.disabled = false;
-        refs.agentSendBtn.disabled = false;
       }
     }
 
