@@ -882,7 +882,7 @@
 
     async function analyzeDocument(file, mediaType, sourceLabel) {
       refs.fileInfo.innerHTML = '<span class="text-teal-700 font-bold"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>AI 正在讀取文件內容...</span>';
-      addMessage("assistant", `AI 正在讀取 ${sourceLabel}：${file.name}，完成後會把萃取結果納入推薦。`);
+      addMessage("assistant", `正在讀取 ${sourceLabel}：${file.name}\n文件解析需要一點時間，請稍候。`);
       const fileBase64 = await fileToBase64(file);
       const res = await fetch("/api/manufacturing-analyze", {
         method: "POST",
@@ -957,6 +957,8 @@
         addMessage("assistant", "這個檔案格式目前不支援，請上傳 PDF 檔案。");
         return;
       }
+      refs.agentInput.disabled = true;
+      refs.agentSendBtn.disabled = true;
       try {
         const result = await analyzeWithProgress(file, mediaType, type, sourceLabel);
         if (type === "assessment") {
@@ -971,11 +973,14 @@
         renderUploadStatus();
         refs.clearFilesBtn.classList.remove("hidden");
         refs.agentProgress.textContent = `已讀取 ${uploadedDocuments.length} 份文件`;
-        addMessage("assistant", result.agentMessage);
+        addMessage("assistant", `已成功讀取 ${uploadedDocuments.length} 份文件，並整理成推薦條件。請按「產生推薦」查看分析結果；如需重新提供資料，請先按「清除文件」。`);
         updateProfilePreview();
       } catch (err) {
         refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "PDF 檔案解析失敗")}</span>`;
         addMessage("assistant", `PDF 檔案解析失敗：${err.message || "請稍後再試。"}`);
+      } finally {
+        refs.agentInput.disabled = false;
+        refs.agentSendBtn.disabled = false;
       }
     }
 
