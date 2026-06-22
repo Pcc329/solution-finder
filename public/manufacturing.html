@@ -298,6 +298,8 @@
     let uploadedDocuments = [];
     let companyNameConflictIgnored = false;
     let uploadChatNoticeShown = false;
+    let hasGenerated = false;
+    let isGenerating = false;
     let stepIndex = 0;
     let conversationHistory = [];
 
@@ -371,6 +373,8 @@
         extractedDataDiagnosis = data.extractedDataDiagnosis || null;
         documentText = data.documentText || "";
         uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
+        hasGenerated = true;
+        isGenerating = false;
         refs.clearFilesBtn.classList.toggle("hidden", uploadedDocuments.length === 0);
         if (uploadedDocuments.length) {
           renderUploadStatus();
@@ -426,7 +430,17 @@
             </div>
           `).join("")}</div>`
         : "尚未取得完整條件。";
-      refs.runBtn.disabled = !(profile.subIndustry && profile.size && profile.pain && allSolutions.length);
+      const ready = !!(profile.subIndustry && profile.size && profile.pain && allSolutions.length);
+      if (isGenerating) {
+        refs.runBtn.disabled = true;
+        refs.runBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>生成中…';
+      } else if (hasGenerated) {
+        refs.runBtn.disabled = true;
+        refs.runBtn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>已產生推薦';
+      } else {
+        refs.runBtn.disabled = !ready;
+        refs.runBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart mr-2"></i>產生推薦';
+      }
     }
 
     function askCurrentQuestion() {
@@ -444,6 +458,8 @@
       uploadedDocuments = [];
       companyNameConflictIgnored = false;
       uploadChatNoticeShown = false;
+      hasGenerated = false;
+      isGenerating = false;
       refs.fileInfo.textContent = "";
       refs.clearFilesBtn.classList.add("hidden");
       refs.fileInputAssessment.value = "";
@@ -485,6 +501,7 @@
       const step = agentSteps[stepIndex];
       addMessage("user", text);
       profile[step.key] = normalizeOption(text, step.options);
+      hasGenerated = false;
       refs.agentInput.value = "";
       stepIndex += 1;
       updateProfilePreview();
@@ -733,12 +750,22 @@
 
     async function runExplore() {
       if (!allSolutions.length) return;
+      if (isGenerating || hasGenerated) return;
+      isGenerating = true;
+      updateProfilePreview();
       refs.loadingState.classList.remove("hidden");
       refs.queryPreview.textContent = `製造業 ${profile.subIndustry || ""}｜${profile.size || ""}｜${profile.pain || ""}`;
-      const { official, others } = getRecommendations();
-      renderResult(official, others, "");
-      refs.loadingState.classList.add("hidden");
-      await generateConclusion(official, others);
+      try {
+        const { official, others } = getRecommendations();
+        renderResult(official, others, "");
+        refs.loadingState.classList.add("hidden");
+        await generateConclusion(official, others);
+        hasGenerated = true;
+      } finally {
+        isGenerating = false;
+        refs.loadingState.classList.add("hidden");
+        updateProfilePreview();
+      }
     }
 
     function detectUploadMediaType(file) {
@@ -783,6 +810,7 @@
         );
         if (matchedPain) profile.pain = matchedPain;
       }
+      hasGenerated = false;
     }
 
     function mergeExtractedData() {
@@ -870,6 +898,8 @@
       uploadedDocuments = [];
       companyNameConflictIgnored = false;
       uploadChatNoticeShown = false;
+      hasGenerated = false;
+      isGenerating = false;
       profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
       stepIndex = 0;
       conversationHistory = [];
@@ -985,6 +1015,7 @@
         documentText = [documentText, result.summary].filter(Boolean).join("\n\n").slice(0, 3000);
         updateDocumentNote(sourceLabel, file);
         applyExtractedProfile(extractedData);
+        hasGenerated = false;
         renderUploadStatus();
         refs.clearFilesBtn.classList.remove("hidden");
         refs.agentProgress.textContent = `已讀取 ${uploadedDocuments.length} 份文件`;
