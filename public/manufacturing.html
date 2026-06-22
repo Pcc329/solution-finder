@@ -296,6 +296,7 @@
     let extractedDataDiagnosis = null;
     let documentText = "";
     let uploadedDocuments = [];
+    let companyNameConflictIgnored = false;
     let stepIndex = 0;
     let conversationHistory = [];
 
@@ -370,6 +371,10 @@
         documentText = data.documentText || "";
         uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
         refs.clearFilesBtn.classList.toggle("hidden", uploadedDocuments.length === 0);
+        if (uploadedDocuments.length) {
+          renderUploadStatus();
+          refs.agentProgress.textContent = `已讀取 ${uploadedDocuments.length} 份文件`;
+        }
         renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
         updateProfilePreview();
         addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新規劃，請按「重新規劃」。");
@@ -436,6 +441,7 @@
       extractedDataDiagnosis = null;
       documentText = "";
       uploadedDocuments = [];
+      companyNameConflictIgnored = false;
       refs.fileInfo.textContent = "";
       refs.clearFilesBtn.classList.add("hidden");
       refs.fileInputAssessment.value = "";
@@ -460,6 +466,13 @@
     function handleAnswer(value) {
       const text = safeStr(value).trim();
       if (!text) return;
+      const hasUpload = !!extractedData || uploadedDocuments.length > 0;
+      if (hasUpload) {
+        addMessage("user", text);
+        addMessage("assistant", "已上傳文件，系統會優先使用文件解析結果，不會再用對話覆寫條件。請直接按「產生推薦」；若要重新填寫，請先按「清除文件」。");
+        refs.agentInput.value = "";
+        return;
+      }
       if (stepIndex >= agentSteps.length) {
         addMessage("assistant", "已完成條件整理，可直接按「產生推薦」，或重新規劃。");
         return;
@@ -774,8 +787,9 @@
         ...(Array.isArray(diagnosis.pain_points) ? diagnosis.pain_points : []),
         ...(Array.isArray(assessment.pain_points) ? assessment.pain_points : []),
       ].filter((value, index, array) => value && array.indexOf(value) === index).slice(0, 5);
+      const conflict = getCompanyNameConflict();
       return {
-        company_name: diagnosis.company_name || assessment.company_name || null,
+        company_name: conflict ? null : (diagnosis.company_name || assessment.company_name || null),
         industry: diagnosis.industry || assessment.industry || null,
         size: diagnosis.size || assessment.size || null,
         digital_maturity: diagnosis.digital_maturity || assessment.digital_maturity || null,
@@ -789,6 +803,44 @@
     function updateDocumentNote(sourceLabel, file) {
       uploadedDocuments.push(`${sourceLabel}: ${file.name} (${Math.round(file.size / 1024)} KB)`);
       profile.documentNote = uploadedDocuments.join("；");
+    }
+
+    function normalizeCompanyName(name) {
+      return safeStr(name)
+        .replace(/\s+/g, "")
+        .replace(/股份有限公司|有限公司|公司/g, "")
+        .trim();
+    }
+
+    function getCompanyNameConflict() {
+      const assessmentName = extractedDataAssessment?.company_name || "";
+      const diagnosisName = extractedDataDiagnosis?.company_name || "";
+      if (!assessmentName || !diagnosisName) return null;
+      if (normalizeCompanyName(assessmentName) === normalizeCompanyName(diagnosisName)) return null;
+      return { assessmentName, diagnosisName };
+    }
+
+    function renderUploadStatus() {
+      const conflict = getCompanyNameConflict();
+      if (conflict && !companyNameConflictIgnored) {
+        refs.fileInfo.innerHTML = `
+          <div class="text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+            <div class="font-black">偵測到兩份文件的公司名稱不同</div>
+            <div class="mt-1">評量表：${escapeHtml(conflict.assessmentName)} / 診斷報告：${escapeHtml(conflict.diagnosisName)}</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <button id="ignoreCompanyConflictBtn" class="px-2 py-1 rounded-lg bg-white border border-amber-200 text-amber-700 font-bold" type="button">忽略差異繼續</button>
+              <button id="clearConflictFilesBtn" class="px-2 py-1 rounded-lg bg-white border border-red-200 text-red-500 font-bold" type="button">清除重上傳</button>
+            </div>
+          </div>
+        `;
+        document.getElementById("ignoreCompanyConflictBtn")?.addEventListener("click", () => {
+          companyNameConflictIgnored = true;
+          renderUploadStatus();
+        });
+        document.getElementById("clearConflictFilesBtn")?.addEventListener("click", clearAllFiles);
+        return;
+      }
+      refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(profile.documentNote)}`;
     }
 
     function resetUploadProgress() {
@@ -811,6 +863,7 @@
       extractedDataDiagnosis = null;
       documentText = "";
       uploadedDocuments = [];
+      companyNameConflictIgnored = false;
       profile.documentNote = "";
       refs.fileInfo.textContent = "";
       refs.clearFilesBtn.classList.add("hidden");
@@ -823,6 +876,7 @@
       refs.queryPreview.textContent = "完成左側問答後產生官方推薦與其他候選方案。";
       refs.runBtn.disabled = true;
       resetUploadProgress();
+      refs.agentProgress.textContent = `${Math.min(stepIndex + 1, agentSteps.length)} / ${agentSteps.length}`;
       sessionStorage.removeItem("mfg_result");
     }
 
@@ -914,8 +968,9 @@
         documentText = [documentText, result.summary].filter(Boolean).join("\n\n").slice(0, 3000);
         updateDocumentNote(sourceLabel, file);
         applyExtractedProfile(extractedData);
-        refs.fileInfo.innerHTML = `<span class="text-teal-700 font-bold">已完成 AI 文件解析：</span>${escapeHtml(profile.documentNote)}`;
+        renderUploadStatus();
         refs.clearFilesBtn.classList.remove("hidden");
+        refs.agentProgress.textContent = `已讀取 ${uploadedDocuments.length} 份文件`;
         addMessage("assistant", result.agentMessage);
         updateProfilePreview();
       } catch (err) {
