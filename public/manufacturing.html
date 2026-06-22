@@ -170,10 +170,7 @@
             <input id="agentInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-500" type="text" placeholder="也可以直接輸入回答...">
             <button id="agentSendBtn" class="btn-primary px-4" type="button"><i class="fa-solid fa-paper-plane"></i></button>
           </div>
-          <div class="flex items-center justify-between mt-4">
-            <button id="restartBtn" class="text-xs text-slate-500 hover:text-teal-700 font-bold" type="button">
-              <i class="fa-solid fa-rotate-left mr-1"></i>重新規劃
-            </button>
+          <div class="flex items-center justify-end mt-4">
             <span id="agentProgress" class="text-xs text-slate-400">1 / 5</span>
           </div>
         </section>
@@ -186,9 +183,14 @@
               <h2 class="text-xl font-black text-slate-900">分析結果</h2>
               <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成左側問答後產生官方推薦與其他候選方案。</p>
             </div>
-            <button id="runBtn" class="btn-primary" type="button" disabled>
-              <i class="fa-solid fa-magnifying-glass-chart mr-2"></i>產生推薦
-            </button>
+            <div class="flex items-center gap-3">
+              <button id="restartBtn" class="text-sm text-slate-600 font-bold border border-slate-300 rounded-xl px-3 py-2 hover:bg-slate-50 hover:border-teal-500 hover:text-teal-700 transition-colors flex items-center gap-1.5" type="button">
+                <i class="fa-solid fa-arrow-rotate-left"></i>重新分析
+              </button>
+              <button id="runBtn" class="btn-primary" type="button" disabled>
+                <i class="fa-solid fa-magnifying-glass-chart mr-2"></i>產生推薦
+              </button>
+            </div>
           </div>
           <div id="profilePreview" class="mt-4 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-3">尚未取得完整條件。</div>
         </section>
@@ -382,7 +384,7 @@
         }
         renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
         updateProfilePreview();
-        addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新規劃，請按「重新規劃」。");
+        addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新分析，請按「重新分析」。");
         return true;
       } catch (err) {
         sessionStorage.removeItem("mfg_result");
@@ -495,7 +497,7 @@
         return;
       }
       if (stepIndex >= agentSteps.length) {
-        addMessage("assistant", "已完成條件整理，可直接按「產生推薦」，或重新規劃。");
+        addMessage("assistant", "已完成條件整理，可直接按「產生推薦」，或重新分析。");
         return;
       }
       const step = agentSteps[stepIndex];
