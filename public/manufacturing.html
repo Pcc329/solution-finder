@@ -549,6 +549,7 @@
     function getRecommendations() {
       const scored = allSolutions
         .map((item, index) => ({ item, index, score: scoreSolution(item) }))
+        .filter(entry => safeStr(entry.item.c).trim() !== "")
         .filter(entry => entry.score > 0 || solutionText(entry.item).includes("製造"))
         .sort((a, b) => b.score - a.score || a.index - b.index);
       const official = scored
