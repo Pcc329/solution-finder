@@ -200,7 +200,7 @@
           正在分析製造業需求並篩選方案...
         </section>
 
-        <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <section class="grid grid-cols-1 gap-4">
           <div class="card p-5">
             <div class="flex items-center justify-between gap-3 mb-3">
               <div class="flex items-center gap-1.5">
@@ -273,7 +273,7 @@
       otherCount: document.getElementById("otherCount"),
     };
 
-    const officialPrograms = ["雲市集工業館", "SME AI平台"];
+    const officialPrograms = ["雲市集工業館"];
     const manufacturingTerms = ["製造", "工廠", "生產", "機台", "設備", "品管", "排程", "MES", "ERP", "WMS", "倉儲", "IoT", "AI"];
     const issueTerms = {
       "生產排程": ["排程", "生產", "工單", "產線", "製程"],
@@ -549,6 +549,7 @@
     function getRecommendations() {
       const scored = allSolutions
         .map((item, index) => ({ item, index, score: scoreSolution(item) }))
+        .filter(entry => safeStr(entry.item.c).trim() !== "")
         .filter(entry => entry.score > 0 || solutionText(entry.item).includes("製造"))
         .sort((a, b) => b.score - a.score || a.index - b.index);
       const official = scored
