@@ -16,7 +16,6 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const profile = body.profile && typeof body.profile === 'object' ? body.profile : {};
     const solutions = Array.isArray(body.solutions) ? body.solutions : [];
-    const lockOrder = body.lockOrder === true;
 
     if (!solutions.length) {
       return res.status(400).json({ success: false, error: '請提供候選方案' });
@@ -27,47 +26,31 @@ export default async function handler(req, res) {
       return res.status(500).json({ success: false, error: 'ANTHROPIC_API_KEY not configured' });
     }
 
-    const compactSolutions = solutions.slice(0, lockOrder ? 3 : 20).map(item => ({
+    const compactSolutions = solutions.slice(0, 5).map(item => ({
       id: item.id || '',
       name: item.name || '',
       vendor: item.vendor || '',
       price: item.price ?? '',
       description: String(item.description || '').slice(0, 260),
       features: String(item.features || '').slice(0, 260),
+      category: item.category || '',
       program_type: item.program_type || '',
     }));
 
-    const systemPrompt = `你是一位製造業數位轉型顧問。前端已依企業條件完成方案排序，請不要重新排序或替換方案。
-請依照輸入 solutions 的原始順序，補充每個方案的推薦理由與可帶來的效益。
+    const systemPrompt = `你是一位製造業數位轉型顧問。前端已依企業條件完成官方工具庫方案排序，請不要重新排序或替換方案。
+請針對輸入的官方工具庫候選方案做整體綜合評比，不要逐一剖析個別方案。
 
 輸出規則：
 - 只回傳 JSON，不要有任何其他文字
 - 不要使用 markdown code block，不要包含 \`\`\`
-- reasons 每筆至少 3 點，每點 15 個中文字以內，必須貼合製造業需求
-- benefits 每筆至少 2 點，每點 15 個中文字以內
-- fit_score 只能是「高」「中」「待確認」
-- summary 20 個中文字以內
-- overall_advice 50 個中文字以內
-- top3 必須完全依照輸入 solutions 的順序輸出，不得重新排序、不得新增或替換方案
-- 每個 top3 的 id、name、vendor、price 必須沿用輸入資料，不得改寫
-- rank 必須依輸入順序從 1 開始
+- summary 需使用繁體中文，約 150 到 250 個中文字
+- summary 需涵蓋：共通點、整體特色與優勢、共同限制或注意事項、企業條件輪廓對應的大方向建議
+- 不要輸出 top3、rank、reasons、benefits、fit_score
+- 不要列點逐一介紹方案
 
 JSON 格式：
 {
-  "summary": "...",
-  "top3": [
-    {
-      "rank": 1,
-      "id": "方案ID",
-      "name": "方案名稱",
-      "vendor": "業者名稱",
-      "price": "費用文字",
-      "reasons": ["理由1", "理由2", "理由3"],
-      "benefits": ["效益1", "效益2"],
-      "fit_score": "高"
-    }
-  ],
-  "overall_advice": "..."
+  "summary": "..."
 }`;
 
     const userPrompt = `企業資料：
@@ -81,7 +64,7 @@ JSON 格式：
 候選方案清單（共 ${compactSolutions.length} 筆）：
 ${JSON.stringify(compactSolutions)}
 
-請依照 solutions 陣列的原始順序，為每個方案補充 reasons 與 benefits，並回傳指定 JSON。`;
+請根據企業資料與候選方案清單，輸出整體綜合評比 JSON。`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -135,31 +118,9 @@ ${JSON.stringify(compactSolutions)}
       parsed = JSON.parse(match[0]);
     }
 
-    const aiByKey = {};
-    (Array.isArray(parsed.top3) ? parsed.top3 : []).forEach(item => {
-      if (item.id) aiByKey[item.id] = item;
-      if (item.name) aiByKey[item.name] = item;
-    });
-
-    const top3 = compactSolutions.slice(0, 3).map((solution, index) => {
-      const ai = aiByKey[solution.id] || aiByKey[solution.name] || {};
-      return {
-        rank: index + 1,
-        id: solution.id || '',
-        name: solution.name || '',
-        vendor: solution.vendor || '',
-        price: solution.price || '',
-        reasons: Array.isArray(ai.reasons) ? ai.reasons.slice(0, 3) : [],
-        benefits: Array.isArray(ai.benefits) ? ai.benefits.slice(0, 2) : [],
-        fit_score: ['高', '中', '待確認'].includes(ai.fit_score) ? ai.fit_score : '待確認',
-      };
-    });
-
     return res.status(200).json({
       success: true,
       summary: parsed.summary || '',
-      top3,
-      overall_advice: parsed.overall_advice || '',
     });
   } catch (err) {
     console.error('Manufacturing recommend server error:', err);

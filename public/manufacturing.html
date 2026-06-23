@@ -41,6 +41,9 @@
     .chat-message.user .chat-bubble { background: #0d9488; color: #ffffff; border-bottom-right-radius: 6px; }
     .option-chip { border: 1px solid #dbe3ea; border-radius: 999px; padding: 7px 10px; font-size: 12px; font-weight: 800; color: #334155; background: #ffffff; transition: 0.16s; }
     .option-chip:hover { border-color: #0d9488; color: #0f766e; background: #f0fdfa; }
+    .cat-tag { font-size: 13px; padding: 5px 14px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #475569; cursor: pointer; transition: all .12s; font-weight: 800; }
+    .cat-tag:hover { border-color: #14b8a6; }
+    .cat-tag.active { background: #0d9488; color: #fff; border-color: #0d9488; }
     .info-tip { position: relative; display: inline-flex; align-items: center; }
     .info-tip > .info-icon { color: #94a3b8; cursor: pointer; font-size: 14px; transition: color .15s; }
     .info-tip:hover > .info-icon,
@@ -200,6 +203,21 @@
           正在分析製造業需求並篩選方案...
         </section>
 
+        <section class="card p-5">
+          <h3 class="font-black text-slate-900 mb-4">AI分析結果</h3>
+          <div id="advisorConclusionContent" class="markdown-body text-sm text-slate-600 leading-relaxed">
+            <p>完成左側資料與推薦後，系統會在這裡產生 AI 分析結果。</p>
+          </div>
+        </section>
+
+        <section class="card p-5" id="categoryFilterCard" style="display:none">
+          <div class="flex items-center gap-2 mb-3">
+            <h3 class="font-black text-slate-900">分類篩選</h3>
+            <span class="text-xs text-slate-400">點類別只看該類方案，可多選</span>
+          </div>
+          <div id="categoryFilterTags" class="flex flex-wrap gap-2"></div>
+        </section>
+
         <section class="grid grid-cols-1 gap-4">
           <div class="card p-5">
             <div class="flex items-center justify-between gap-3 mb-3">
@@ -229,12 +247,6 @@
           </div>
         </section>
 
-        <section class="card p-5">
-          <h3 class="font-black text-slate-900 mb-4">結論建議</h3>
-          <div id="advisorConclusionContent" class="markdown-body text-sm text-slate-600 leading-relaxed">
-            <p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>
-          </div>
-        </section>
       </section>
     </section>
   </main>
@@ -267,6 +279,8 @@
       profilePreview: document.getElementById("profilePreview"),
       loadingState: document.getElementById("loadingState"),
       advisorConclusionContent: document.getElementById("advisorConclusionContent"),
+      categoryFilterCard: document.getElementById("categoryFilterCard"),
+      categoryFilterTags: document.getElementById("categoryFilterTags"),
       officialList: document.getElementById("officialList"),
       otherList: document.getElementById("otherList"),
       officialCount: document.getElementById("officialCount"),
@@ -302,6 +316,9 @@
     let uploadChatNoticeShown = false;
     let hasGenerated = false;
     let isGenerating = false;
+    let currentOfficial = [];
+    let currentOthers = [];
+    let selectedCategories = new Set();
     let stepIndex = 0;
     let conversationHistory = [];
 
@@ -474,7 +491,8 @@
       refs.otherList.textContent = "尚未產生推薦。";
       refs.officialCount.textContent = "0 筆";
       refs.otherCount.textContent = "0 筆";
-      refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>";
+      resetCategoryFilter();
+      refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 分析結果。</p>";
       askCurrentQuestion();
     }
 
@@ -590,11 +608,61 @@
       });
     }
 
-    function renderResult(official, others, conclusion) {
+    function resetCategoryFilter() {
+      selectedCategories.clear();
+      refs.categoryFilterCard.style.display = "none";
+      refs.categoryFilterTags.innerHTML = "";
+      currentOfficial = [];
+      currentOthers = [];
+    }
+
+    function buildCategoryFilter(official, others) {
+      currentOfficial = official;
+      currentOthers = others;
+      selectedCategories.clear();
+      const categories = [...new Set([...official, ...others]
+        .map(item => safeStr(item.cat).trim())
+        .filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "zh-Hant"));
+
+      if (categories.length <= 1) {
+        refs.categoryFilterCard.style.display = "none";
+        refs.categoryFilterTags.innerHTML = "";
+        return;
+      }
+
+      refs.categoryFilterCard.style.display = "";
+      refs.categoryFilterTags.innerHTML = categories.map(category =>
+        `<button class="cat-tag" data-cat="${escapeHtml(category)}" type="button">${escapeHtml(category)}</button>`
+      ).join("");
+      refs.categoryFilterTags.querySelectorAll("[data-cat]").forEach(button => {
+        button.addEventListener("click", () => {
+          const category = button.dataset.cat;
+          if (selectedCategories.has(category)) {
+            selectedCategories.delete(category);
+            button.classList.remove("active");
+          } else {
+            selectedCategories.add(category);
+            button.classList.add("active");
+          }
+          applyCategoryFilter();
+        });
+      });
+    }
+
+    function applyCategoryFilter() {
+      const pass = item => selectedCategories.size === 0 || selectedCategories.has(safeStr(item.cat).trim());
+      const official = currentOfficial.filter(pass);
+      const others = currentOthers.filter(pass);
       refs.officialCount.textContent = `${official.length} 筆`;
       refs.otherCount.textContent = `${others.length} 筆`;
       renderList(refs.officialList, official);
       renderList(refs.otherList, others);
+    }
+
+    function renderResult(official, others, conclusion) {
+      buildCategoryFilter(official, others);
+      applyCategoryFilter();
       if (conclusion) {
         refs.advisorConclusionContent.innerHTML = conclusion;
       }
@@ -606,90 +674,15 @@
       return "未揭露";
     }
 
-    function reasonForSolution(item) {
-      const text = solutionText(item);
-      const reasons = [];
-      if (safeStr(item.d).includes("製造") || safeStr(item.iv).includes("製造") || text.includes("製造")) {
-        reasons.push("與製造業情境直接相關");
-      }
-      if ((issueTerms[profile.pain] || []).some(term => text.includes(term.toLowerCase()))) {
-        reasons.push(`可回應「${profile.pain}」需求`);
-      }
-      if (item.ai) {
-        reasons.push("具 AI 應用特性，適合評估自動化或智慧化導入");
-      }
-      if (safeStr(item.p)) {
-        reasons.push(`方案來源為 ${safeStr(item.p)}`);
-      }
-      return reasons.slice(0, 3);
-    }
-
-    function benefitForSolution(item) {
-      const benefits = [];
-      if (item.feat) benefits.push(safeStr(item.feat).split(/\n|；|;/).filter(Boolean)[0] || "可補足既有流程缺口");
-      if (item.desc) benefits.push(safeStr(item.desc).slice(0, 42));
-      if (!benefits.length) benefits.push("可作為初步候選方案，後續需確認導入範圍與報價");
-      return benefits.slice(0, 2);
-    }
-
-    function fitScore(item) {
-      const score = scoreSolution(item);
-      if (score >= 75) return "高";
-      if (score >= 45) return "中";
-      return "待確認";
-    }
-
-    function pickTop3(official, others) {
-      const merged = [...official];
-      for (const item of others) {
-        if (merged.length >= 3) break;
-        if (!merged.some(existing => (existing.id || existing.s) === (item.id || item.s))) {
-          merged.push(item);
-        }
-      }
-      return merged.slice(0, 3);
-    }
-
     function buildSummaryJson(official, others) {
-      const candidates = pickTop3(official, others);
       return {
-        summary: `${profile.subIndustry || "製造業"}目前優先處理「${profile.pain || "主要痛點"}」，建議先從官方推薦方案確認補助適用性，再以其他候選方案補足功能缺口。`,
-        top3: candidates.map((item, index) => ({
-          rank: index + 1,
-          id: item.id || "",
-          name: item.s || "未命名方案",
-          vendor: item.c || "未提供業者",
-          price: solutionPriceText(item),
-          reasons: reasonForSolution(item),
-          benefits: benefitForSolution(item),
-          fit_score: fitScore(item),
-        })),
-        overall_advice: "建議先確認導入場域、資料可用性、預算與申請條件，再安排供應商訪談與報價比較。若已有需求文件，應把痛點、現況系統、預期效益與時程整理成送件附件。",
+        summary: `${profile.subIndustry || "製造業"}目前優先處理「${profile.pain || "主要痛點"}」。官方推薦方案多半可作為工具庫導入候選，建議先確認導入場域、既有資料可用性、預算與申請條件，再安排供應商訪談與報價比較。其他候選方案可作為功能補強或替代評估。`,
       };
     }
 
     function renderSummaryFromJson(summaryJson) {
-      const top3 = summaryJson.top3 && summaryJson.top3.length
-        ? summaryJson.top3.map(item => `
-            <section class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <h4 class="font-black text-slate-900">第 ${item.rank} 名：${escapeHtml(item.name)}（${escapeHtml(item.vendor)}）</h4>
-              <p class="mt-1 text-xs font-bold text-teal-700">費用：${escapeHtml(item.price)}</p>
-              <div class="mt-3">
-                <p class="font-black text-slate-700">推薦理由：</p>
-                <ul class="list-disc pl-5 mt-1">${(Array.isArray(item.reasons) ? item.reasons : []).map(reason => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>
-              </div>
-              <div class="mt-3">
-                <p class="font-black text-slate-700">導入效益：</p>
-                <ul class="list-disc pl-5 mt-1">${(Array.isArray(item.benefits) ? item.benefits : []).map(benefit => `<li>${escapeHtml(benefit)}</li>`).join("")}</ul>
-              </div>
-              <p class="mt-3 text-xs font-black text-slate-600">適配度：${escapeHtml(item.fit_score)}</p>
-            </section>
-          `).join("")
-        : '<p class="text-slate-500">目前沒有足夠候選方案可產生前三名摘要。</p>';
       return `
-        <p>${escapeHtml(summaryJson.summary)}</p>
-        ${top3}
-        <p class="mt-4">${escapeHtml(summaryJson.overall_advice)}</p>
+        <p>${escapeHtml(summaryJson.summary || "目前沒有足夠資訊可產生 AI 分析結果。")}</p>
       `;
     }
 
@@ -714,19 +707,18 @@
         price: item.pr ?? "",
         description: item.desc || "",
         features: item.feat || "",
+        category: item.cat || "",
         program_type: item.p || item.pt || "",
       }));
     }
 
     async function requestAiRecommendation(official, others) {
-      const top3 = pickTop3(official, others);
       const res = await fetch("/api/manufacturing-recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profile: buildRecommendProfile(),
-          solutions: compactRecommendSolutions(top3, []),
-          lockOrder: true,
+          solutions: compactRecommendSolutions(official.slice(0, 5), []),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -737,7 +729,7 @@
     }
 
     async function generateConclusion(official, others) {
-      refs.advisorConclusionContent.innerHTML = '<p>AI 正在整理顧問結論...</p>';
+      refs.advisorConclusionContent.innerHTML = '<p>AI 正在整理分析結果...</p>';
       let summaryJson;
       try {
         summaryJson = await requestAiRecommendation(official, others);
@@ -913,7 +905,8 @@
       refs.otherList.textContent = "尚未產生推薦。";
       refs.officialCount.textContent = "0 筆";
       refs.otherCount.textContent = "0 筆";
-      refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 顧問結論。</p>";
+      resetCategoryFilter();
+      refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 分析結果。</p>";
       refs.queryPreview.textContent = "完成左側問答後產生官方推薦與其他候選方案。";
       refs.runBtn.disabled = true;
       resetUploadProgress();
