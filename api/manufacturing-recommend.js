@@ -43,14 +43,20 @@ export default async function handler(req, res) {
 輸出規則：
 - 只回傳 JSON，不要有任何其他文字
 - 不要使用 markdown code block，不要包含 \`\`\`
-- summary 需使用繁體中文，約 150 到 250 個中文字
-- summary 需涵蓋：共通點、整體特色與優勢、共同限制或注意事項、企業條件輪廓對應的大方向建議
+- 全部使用繁體中文，不輸出 markdown，不輸出多餘欄位
+- overview：1 到 2 句，說明這批方案的整體定位
+- strengths：3 到 5 項，每項一句，條列這批方案的共同優勢
+- considerations：1 到 3 項，每項一句，說明導入前需注意事項
+- recommendation：1 句，給企業具體可執行的建議行動
 - 不要輸出 top3、rank、reasons、benefits、fit_score
 - 不要列點逐一介紹方案
 
 JSON 格式：
 {
-  "summary": "..."
+  "overview": "1–2句整體評語",
+  "strengths": ["優點1", "優點2", "優點3"],
+  "considerations": ["注意事項1", "注意事項2"],
+  "recommendation": "1句建議行動"
 }`;
 
     const userPrompt = `企業資料：
@@ -120,7 +126,14 @@ ${JSON.stringify(compactSolutions)}
 
     return res.status(200).json({
       success: true,
-      summary: parsed.summary || '',
+      overview: typeof parsed.overview === 'string' ? parsed.overview : '',
+      strengths: Array.isArray(parsed.strengths)
+        ? parsed.strengths.filter(item => typeof item === 'string' && item.trim())
+        : [],
+      considerations: Array.isArray(parsed.considerations)
+        ? parsed.considerations.filter(item => typeof item === 'string' && item.trim())
+        : [],
+      recommendation: typeof parsed.recommendation === 'string' ? parsed.recommendation : '',
     });
   } catch (err) {
     console.error('Manufacturing recommend server error:', err);
