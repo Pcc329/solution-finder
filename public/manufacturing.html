@@ -60,8 +60,10 @@
     }
     .info-tip:hover > .info-bubble,
     .info-tip:focus-within > .info-bubble { opacity: 1; visibility: visible; transform: translateY(0); }
-    .solution-card { border-left: 4px solid #0d9488; cursor: pointer; transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
-    .solution-card:hover { border-color: #14b8a6; box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
+    .solution-card { border-radius: 0 0.75rem 0.75rem 0; cursor: pointer; transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
+    .solution-card-official { border-left: 3px solid #1D9E75 !important; }
+    .solution-card-other { border-left: 3px solid #EF9F27 !important; }
+    .solution-card:hover { box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
     .markdown-body h1 { font-size: 1.25rem; }
     .markdown-body h2 { font-size: 1.15rem; }
@@ -424,22 +426,18 @@
             ${vendor ? `<p class="text-base text-slate-600 font-semibold mt-2">${escapeHtml(vendor)}</p>` : ""}
           </section>
 
-          ${hasPrice || hasMonthlyPrice ? `
-            <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              ${hasPrice ? `
-                <div class="card p-5">
-                  <p class="text-xs text-slate-400 mb-1">方案總費用</p>
-                  <p class="text-2xl font-black text-teal-700 font-mono">${formatCurrency(price)}</p>
-                </div>
-              ` : ""}
+          <section class="grid grid-cols-1 ${hasMonthlyPrice ? "sm:grid-cols-2" : ""} gap-4">
+            <div class="card p-5">
+              <p class="text-xs text-slate-400 mb-1">方案總費用</p>
+              <p class="text-2xl font-black text-teal-700 font-mono">${hasPrice ? formatCurrency(price) : "📞 洽詢報價"}</p>
+            </div>
               ${hasMonthlyPrice ? `
                 <div class="card p-5">
                   <p class="text-xs text-slate-400 mb-1">月費</p>
                   <p class="text-2xl font-black text-slate-700 font-mono">${formatCurrency(monthlyPrice)}</p>
                 </div>
               ` : ""}
-            </section>
-          ` : ""}
+          </section>
 
           ${descriptionLines.length ? `
             <section class="card p-6">
@@ -756,19 +754,20 @@
       return { official, others };
     }
 
-    function renderList(container, items) {
+    function renderList(container, items, variant) {
       if (!items.length) {
         container.innerHTML = '<p class="text-sm text-slate-500">目前沒有符合條件的方案。</p>';
         return;
       }
+      const variantClass = variant === "official" ? "solution-card-official" : "solution-card-other";
       container.innerHTML = items.map((item, index) => `
-        <article class="solution-card bg-white border border-slate-200 rounded-xl p-4" data-index="${index}" title="查看方案詳細">
+        <article class="solution-card ${variantClass} bg-white border border-slate-200 p-4" data-index="${index}" title="查看方案詳細">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <h4 class="font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h4>
               <p class="text-xs text-slate-500 mt-1">${escapeHtml(item.c || "未提供業者")}</p>
             </div>
-            <span class="text-xs font-black text-teal-700 font-mono shrink-0">${formatCurrency(item.pr)}</span>
+            <span class="text-xs font-black text-teal-700 font-mono shrink-0">${Number.isFinite(Number(item.pr)) && Number(item.pr) > 0 ? formatCurrency(item.pr) : "📞 洽詢報價"}</span>
           </div>
           <div class="mt-3 flex flex-wrap gap-2">
             <span class="badge badge-muted">${escapeHtml(item.p || "未標示來源")}</span>
@@ -830,8 +829,8 @@
       const others = currentOthers.filter(pass);
       refs.officialCount.textContent = `${official.length} 筆`;
       refs.otherCount.textContent = `${others.length} 筆`;
-      renderList(refs.officialList, official);
-      renderList(refs.otherList, others);
+      renderList(refs.officialList, official, "official");
+      renderList(refs.otherList, others, "other");
     }
 
     function renderResult(official, others, conclusion) {
