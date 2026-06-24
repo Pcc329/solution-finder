@@ -676,13 +676,54 @@
 
     function buildSummaryJson(official, others) {
       return {
-        summary: `${profile.subIndustry || "製造業"}目前優先處理「${profile.pain || "主要痛點"}」。官方推薦方案多半可作為工具庫導入候選，建議先確認導入場域、既有資料可用性、預算與申請條件，再安排供應商訪談與報價比較。其他候選方案可作為功能補強或替代評估。`,
+        overview: `${profile.subIndustry || "製造業"}目前優先處理「${profile.pain || "主要痛點"}」，官方推薦方案可作為工具庫導入候選。`,
+        strengths: [
+          "候選方案聚焦企業目前提出的數位轉型需求。",
+          "可搭配其他候選方案進行功能與費用比較。",
+          "具備進一步安排供應商訪談與導入評估的基礎。",
+        ],
+        considerations: [
+          "導入前需確認實際應用場域、既有資料可用性與預算。",
+          "方案價格與申請條件仍應向供應商確認。",
+        ],
+        recommendation: "建議先選出二至三個方案進行供應商訪談、功能展示與報價比較。",
       };
     }
 
     function renderSummaryFromJson(summaryJson) {
+      const data = summaryJson && typeof summaryJson === "object" ? summaryJson : {};
+      const overview = safeStr(data.overview || data.summary).trim();
+      const strengths = Array.isArray(data.strengths)
+        ? data.strengths.map(item => safeStr(item).trim()).filter(Boolean)
+        : [];
+      const considerations = Array.isArray(data.considerations)
+        ? data.considerations.map(item => safeStr(item).trim()).filter(Boolean)
+        : [];
+      const recommendation = safeStr(data.recommendation).trim();
+      const listSection = (title, items) => items.length ? `
+        <div>
+          <p class="font-bold text-slate-800 mb-2">${title}</p>
+          <ul class="list-disc pl-5 space-y-1">
+            ${items.map(item => `<li>${escapeHtml(item)}</li>`).join("")}
+          </ul>
+        </div>
+      ` : "";
+
       return `
-        <p>${escapeHtml(summaryJson.summary || "目前沒有足夠資訊可產生 AI 分析結果。")}</p>
+        <div class="space-y-4 text-sm text-slate-600 leading-relaxed">
+          <div>
+            <p class="font-bold text-slate-800 mb-2">【整體評語】</p>
+            <p>${escapeHtml(overview || "目前沒有足夠資訊可產生 AI 分析結果。")}</p>
+          </div>
+          ${listSection("✅ 共同優勢", strengths)}
+          ${listSection("⚠️ 注意事項", considerations)}
+          ${recommendation ? `
+            <div>
+              <p class="font-bold text-slate-800 mb-2">💡 建議行動</p>
+              <p>${escapeHtml(recommendation)}</p>
+            </div>
+          ` : ""}
+        </div>
       `;
     }
 
