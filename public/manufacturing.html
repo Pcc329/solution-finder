@@ -499,13 +499,19 @@
       currentView = "detail";
       renderDetail();
       updateView();
+      if (location.hash !== "#detail") {
+        history.pushState({ view: "detail" }, "", "#detail");
+      }
       window.scrollTo(0, 0);
     }
 
-    function backToResult() {
+    function backToResult(fromPopstate = false) {
       currentView = "result";
       selectedSolution = null;
       updateView();
+      if (!fromPopstate && location.hash === "#detail") {
+        history.replaceState({ view: "result" }, "", location.pathname);
+      }
       window.scrollTo(0, 0);
     }
 
@@ -1263,6 +1269,14 @@
     }
     bindUpload(refs.dropzoneAssessment, refs.fileInputAssessment, "assessment", "評量表");
     bindUpload(refs.dropzoneDiagnosis, refs.fileInputDiagnosis, "diagnosis", "診斷報告");
+    if (location.hash === "#detail") {
+      history.replaceState({}, "", location.pathname);
+    }
+    window.addEventListener("popstate", () => {
+      if (currentView === "detail") {
+        backToResult(true);
+      }
+    });
     resetAgent(false);
     restoreResult();
     loadSolutions();
