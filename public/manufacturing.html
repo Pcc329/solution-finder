@@ -179,7 +179,7 @@
         </section>
       </aside>
 
-      <section class="space-y-4">
+      <section id="resultView" class="space-y-4">
         <section class="card p-5">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
@@ -248,6 +248,7 @@
         </section>
 
       </section>
+      <section id="detailView" class="hidden"></section>
     </section>
   </main>
 
@@ -285,6 +286,8 @@
       otherList: document.getElementById("otherList"),
       officialCount: document.getElementById("officialCount"),
       otherCount: document.getElementById("otherCount"),
+      resultView: document.getElementById("resultView"),
+      detailView: document.getElementById("detailView"),
     };
 
     const officialPrograms = ["雲市集工業館"];
@@ -319,6 +322,8 @@
     let currentOfficial = [];
     let currentOthers = [];
     let selectedCategories = new Set();
+    let currentView = "result";
+    let selectedSolution = null;
     let stepIndex = 0;
     let conversationHistory = [];
 
@@ -348,13 +353,166 @@
       return Number.isFinite(n) && n > 0 ? `NT$ ${n.toLocaleString("zh-TW")}` : "未提供";
     };
 
-    function openSolution(item) {
-      const id = item && item.id ? encodeURIComponent(item.id) : "";
-      if (id) {
-        sessionStorage.setItem("highlight_solution", id);
+    function updateView() {
+      const showingDetail = currentView === "detail" && selectedSolution;
+      refs.resultView.classList.toggle("hidden", !!showingDetail);
+      refs.detailView.classList.toggle("hidden", !showingDetail);
+    }
+
+    function solutionField(item, shortName, fullName) {
+      return item?.[shortName] ?? item?.[fullName] ?? "";
+    }
+
+    function renderDetail() {
+      const item = selectedSolution;
+      if (!item) {
+        refs.detailView.innerHTML = "";
+        return;
       }
-      const url = id ? `/strategy-guide.html#solution-${id}` : "/strategy-guide.html";
-      window.open(url, "_blank");
+
+      const name = solutionField(item, "s", "name");
+      const vendor = solutionField(item, "c", "vendor");
+      const programType = solutionField(item, "p", "program_type");
+      const category = solutionField(item, "cat", "category");
+      const price = solutionField(item, "pr", "price");
+      const monthlyPrice = solutionField(item, "mo", "monthly_price");
+      const description = solutionField(item, "desc", "description");
+      const features = solutionField(item, "feat", "features");
+      const targetIndustry = solutionField(item, "d", "target_industry");
+      const scale = solutionField(item, "scale", "scale");
+      const region = solutionField(item, "r", "region");
+      const city = solutionField(item, "city", "city");
+      const isAi = item.ai === true || item.is_ai === true || item.is_ai === "有";
+      const featureLines = safeStr(features)
+        .split(/\n|；|;/)
+        .map(line => line.trim())
+        .filter(Boolean);
+      const visibleFeatureLines = featureLines.slice(0, 5);
+      const descriptionLines = safeStr(description)
+        .split(/[。；;\n]+/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .slice(0, 4)
+        .map(line => line.length > 40 ? `${line.slice(0, 40)}…` : line);
+      const hasPrice = Number.isFinite(Number(price)) && Number(price) > 0;
+      const hasMonthlyPrice = Number.isFinite(Number(monthlyPrice)) && Number(monthlyPrice) > 0;
+      const location = [region, city].map(value => safeStr(value).trim()).filter(Boolean).join(" · ");
+      const propertyItems = [
+        ["服務類別", category],
+        ["適用產業", targetIndustry],
+        ["適用規模", scale],
+      ].filter(([, value]) => safeStr(value).trim());
+
+      refs.detailView.innerHTML = `
+        <div class="max-w-3xl mx-auto space-y-4">
+          <button id="backToResultBtn" class="flex items-center gap-2 text-sm text-slate-500 hover:text-teal-700 transition-colors" type="button">
+            <i class="fa-solid fa-arrow-left"></i> 返回分析結果
+          </button>
+
+          <section class="card p-6">
+            <div class="flex flex-wrap gap-2 mb-4">
+              ${programType ? `<span class="badge badge-muted">${escapeHtml(programType)}</span>` : ""}
+              ${location ? `<span class="badge badge-muted"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(location)}</span>` : ""}
+              ${scale ? `<span class="badge badge-muted">${escapeHtml(scale)}</span>` : ""}
+              ${isAi ? '<span class="badge badge-teal"><i class="fa-solid fa-bolt mr-1"></i>AI 方案</span>' : ""}
+            </div>
+            <h1 class="text-2xl font-black text-slate-900">${escapeHtml(name || "未命名方案")}</h1>
+            ${vendor ? `<p class="text-base text-slate-600 font-semibold mt-2">${escapeHtml(vendor)}</p>` : ""}
+          </section>
+
+          ${hasPrice || hasMonthlyPrice ? `
+            <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              ${hasPrice ? `
+                <div class="card p-5">
+                  <p class="text-xs text-slate-400 mb-1">方案總費用</p>
+                  <p class="text-2xl font-black text-teal-700 font-mono">${formatCurrency(price)}</p>
+                </div>
+              ` : ""}
+              ${hasMonthlyPrice ? `
+                <div class="card p-5">
+                  <p class="text-xs text-slate-400 mb-1">月費</p>
+                  <p class="text-2xl font-black text-slate-700 font-mono">${formatCurrency(monthlyPrice)}</p>
+                </div>
+              ` : ""}
+            </section>
+          ` : ""}
+
+          ${descriptionLines.length ? `
+            <section class="card p-6">
+              <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                <i class="fa-regular fa-file-lines text-slate-400"></i> 方案介紹
+              </h2>
+              <ul class="space-y-2">
+                ${descriptionLines.map(line => `
+                  <li class="flex items-start gap-2 text-sm text-slate-600 leading-relaxed">
+                    <i class="fa-solid fa-circle text-teal-500 text-[6px] mt-2 shrink-0"></i>
+                    <span>${escapeHtml(line)}</span>
+                  </li>
+                `).join("")}
+              </ul>
+            </section>
+          ` : ""}
+
+          ${featureLines.length ? `
+            <section class="card p-6">
+              <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-slate-400"></i> 功能清單
+                <span class="text-[10px] text-slate-400 font-normal bg-slate-100 px-2 py-0.5 rounded-md">${featureLines.length} 項</span>
+              </h2>
+              <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                ${visibleFeatureLines.map(line => `
+                  <li class="flex items-start gap-2 text-sm text-slate-600 py-1">
+                    <i class="fa-solid fa-check text-teal-500 text-[10px] mt-1.5 shrink-0"></i>
+                    <span>${escapeHtml(line)}</span>
+                  </li>
+                `).join("")}
+              </ul>
+              ${featureLines.length > 5 ? `
+                <p class="text-xs text-slate-400 mt-3">＋ 共 ${featureLines.length} 項功能</p>
+              ` : ""}
+            </section>
+          ` : ""}
+
+          ${propertyItems.length ? `
+            <section class="card p-6">
+              <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-tags text-slate-400"></i> 方案屬性
+              </h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                ${propertyItems.map(([label, value]) => `
+                  <div>
+                    <p class="text-xs text-slate-400 mb-1">${label}</p>
+                    <p class="text-sm text-slate-700 font-medium">${escapeHtml(value)}</p>
+                  </div>
+                `).join("")}
+              </div>
+            </section>
+          ` : ""}
+        </div>
+      `;
+      document.getElementById("backToResultBtn")?.addEventListener("click", backToResult);
+    }
+
+    function openDetail(item) {
+      if (!item) return;
+      selectedSolution = item;
+      currentView = "detail";
+      renderDetail();
+      updateView();
+      if (location.hash !== "#detail") {
+        history.pushState({ view: "detail" }, "", "#detail");
+      }
+      window.scrollTo(0, 0);
+    }
+
+    function backToResult(fromPopstate = false) {
+      currentView = "result";
+      selectedSolution = null;
+      updateView();
+      if (!fromPopstate && location.hash === "#detail") {
+        history.replaceState({ view: "result" }, "", location.pathname);
+      }
+      window.scrollTo(0, 0);
     }
 
     function saveResult(official, others, conclusion, recommendationJson) {
@@ -479,6 +637,9 @@
       uploadChatNoticeShown = false;
       hasGenerated = false;
       isGenerating = false;
+      currentView = "result";
+      selectedSolution = null;
+      updateView();
       refs.fileInfo.textContent = "";
       refs.clearFilesBtn.classList.add("hidden");
       refs.fileInputAssessment.value = "";
@@ -588,7 +749,7 @@
         return;
       }
       container.innerHTML = items.map((item, index) => `
-        <article class="solution-card bg-white border border-slate-200 rounded-xl p-4" data-index="${index}" title="開啟策略智庫查看方案">
+        <article class="solution-card bg-white border border-slate-200 rounded-xl p-4" data-index="${index}" title="查看方案詳細">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <h4 class="font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h4>
@@ -604,7 +765,7 @@
         </article>
       `).join("");
       container.querySelectorAll(".solution-card").forEach(card => {
-        card.addEventListener("click", () => openSolution(items[Number(card.dataset.index)]));
+        card.addEventListener("click", () => openDetail(items[Number(card.dataset.index)]));
       });
     }
 
@@ -936,6 +1097,9 @@
       uploadChatNoticeShown = false;
       hasGenerated = false;
       isGenerating = false;
+      currentView = "result";
+      selectedSolution = null;
+      updateView();
       profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
       stepIndex = 0;
       conversationHistory = [];
@@ -1105,6 +1269,14 @@
     }
     bindUpload(refs.dropzoneAssessment, refs.fileInputAssessment, "assessment", "評量表");
     bindUpload(refs.dropzoneDiagnosis, refs.fileInputDiagnosis, "diagnosis", "診斷報告");
+    if (location.hash === "#detail") {
+      history.replaceState({}, "", location.pathname);
+    }
+    window.addEventListener("popstate", () => {
+      if (currentView === "detail") {
+        backToResult(true);
+      }
+    });
     resetAgent(false);
     restoreResult();
     loadSolutions();
