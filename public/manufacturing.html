@@ -394,12 +394,8 @@
         .map(line => line.trim())
         .filter(Boolean);
       const visibleFeatureLines = featureLines.slice(0, 5);
-      const descriptionLines = safeStr(description)
-        .split(/[。；;\n]+/)
-        .map(line => line.trim())
-        .filter(Boolean)
-        .slice(0, 4)
-        .map(line => line.length > 40 ? `${line.slice(0, 40)}…` : line);
+      const desc = safeStr(description).trim();
+      const shortDesc = desc.length > 100 ? `${desc.slice(0, 100)}…` : desc;
       const hasPrice = Number.isFinite(Number(price)) && Number(price) > 0;
       const hasMonthlyPrice = Number.isFinite(Number(monthlyPrice)) && Number(monthlyPrice) > 0;
       const location = [region, city].map(value => safeStr(value).trim()).filter(Boolean).join(" · ");
@@ -441,19 +437,12 @@
               ` : ""}
           </section>
 
-          ${descriptionLines.length ? `
+          ${shortDesc ? `
             <section class="card p-6">
               <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                 <i class="fa-regular fa-file-lines text-slate-400"></i> 方案介紹
               </h2>
-              <ul class="space-y-2">
-                ${descriptionLines.map(line => `
-                  <li class="flex items-start gap-2 text-sm text-slate-600 leading-relaxed">
-                    <i class="fa-solid fa-circle text-teal-500 text-[6px] mt-2 shrink-0"></i>
-                    <span>${escapeHtml(line)}</span>
-                  </li>
-                `).join("")}
-              </ul>
+              <p class="text-sm text-slate-600 leading-relaxed">${escapeHtml(shortDesc)}</p>
             </section>
           ` : ""}
 
