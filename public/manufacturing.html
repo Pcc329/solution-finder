@@ -315,6 +315,10 @@
     let extractedDataDiagnosis = null;
     let documentText = "";
     let uploadedDocuments = [];
+    let isDocumentMode = false;
+    let isDocumentParsing = false;
+    let activeDocumentName = "";
+    let activeDocumentNames = new Set();
     let companyNameConflictIgnored = false;
     let uploadChatNoticeShown = false;
     let hasGenerated = false;
@@ -550,6 +554,10 @@
         extractedDataDiagnosis = data.extractedDataDiagnosis || null;
         documentText = data.documentText || "";
         uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
+        isDocumentMode = !!extractedData || uploadedDocuments.length > 0;
+        isDocumentParsing = false;
+        activeDocumentName = "";
+        activeDocumentNames.clear();
         hasGenerated = true;
         isGenerating = false;
         refs.clearFilesBtn.classList.toggle("hidden", uploadedDocuments.length === 0);
@@ -633,6 +641,10 @@
       extractedDataDiagnosis = null;
       documentText = "";
       uploadedDocuments = [];
+      isDocumentMode = false;
+      isDocumentParsing = false;
+      activeDocumentName = "";
+      activeDocumentNames.clear();
       companyNameConflictIgnored = false;
       uploadChatNoticeShown = false;
       hasGenerated = false;
@@ -665,11 +677,12 @@
     function handleAnswer(value) {
       const text = safeStr(value).trim();
       if (!text) return;
-      const hasUpload = !!extractedData || (Array.isArray(uploadedDocuments) && uploadedDocuments.length > 0);
-      if (hasUpload) {
+      if (isDocumentMode) {
         addMessage("user", text);
-        if (!uploadChatNoticeShown) {
-          addMessage("assistant", "你已上傳文件，分析以文件內容為準，此對話不會修改條件。如需改用問答，請先按「清除文件」；文件無誤可直接按「產生推薦」。");
+        if (isDocumentParsing) {
+          addMessage("assistant", `📄 正在讀取 ${activeDocumentName || "文件"} 文件分析期間，問答功能暫停，請稍候…`);
+        } else {
+          addMessage("assistant", "📄 已載入文件分析模式，問答功能暫停。如需使用問答，請先按「清除文件」。");
           uploadChatNoticeShown = true;
         }
         refs.agentInput.value = "";
@@ -1093,6 +1106,10 @@
       extractedDataDiagnosis = null;
       documentText = "";
       uploadedDocuments = [];
+      isDocumentMode = false;
+      isDocumentParsing = false;
+      activeDocumentName = "";
+      activeDocumentNames.clear();
       companyNameConflictIgnored = false;
       uploadChatNoticeShown = false;
       hasGenerated = false;
@@ -1205,6 +1222,10 @@
         addMessage("assistant", "這個檔案格式目前不支援，請上傳 PDF 檔案。");
         return;
       }
+      activeDocumentNames.add(file.name);
+      isDocumentMode = true;
+      isDocumentParsing = true;
+      activeDocumentName = [...activeDocumentNames].join("、");
       try {
         const result = await analyzeWithProgress(file, mediaType, type, sourceLabel);
         if (type === "assessment") {
@@ -1227,6 +1248,11 @@
       } catch (err) {
         refs.fileInfo.innerHTML = `<span class="text-red-500 font-bold">${escapeHtml(err.message || "PDF 檔案解析失敗")}</span>`;
         addMessage("assistant", `PDF 檔案解析失敗：${err.message || "請稍後再試。"}`);
+      } finally {
+        activeDocumentNames.delete(file.name);
+        isDocumentParsing = activeDocumentNames.size > 0;
+        activeDocumentName = [...activeDocumentNames].join("、");
+        isDocumentMode = isDocumentParsing || !!extractedData || uploadedDocuments.length > 0;
       }
     }
 
