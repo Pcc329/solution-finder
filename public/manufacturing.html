@@ -474,7 +474,7 @@
               <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                 <i class="fa-regular fa-file-lines text-slate-400"></i> 方案介紹
               </h2>
-              <p class="text-sm text-slate-600 leading-relaxed">${escapeHtml(shortDesc)}</p>
+              <p class="text-sm text-slate-600" style="word-break: break-word; overflow-wrap: anywhere; line-height: 1.75;">${escapeHtml(shortDesc)}</p>
             </section>
           ` : ""}
 
@@ -482,7 +482,6 @@
             <section class="card p-6">
               <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                 <i class="fa-solid fa-list-check text-slate-400"></i> 功能清單
-                <span class="text-[10px] text-slate-400 font-normal bg-slate-100 px-2 py-0.5 rounded-md">${featureLines.length} 項</span>
               </h2>
               <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                 ${visibleFeatureLines.map(line => `
@@ -492,9 +491,6 @@
                   </li>
                 `).join("")}
               </ul>
-              ${featureLines.length > 5 ? `
-                <p class="text-xs text-slate-400 mt-3">＋ 共 ${featureLines.length} 項功能</p>
-              ` : ""}
             </section>
           ` : ""}
 
