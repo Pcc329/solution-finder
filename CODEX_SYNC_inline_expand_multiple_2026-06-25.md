@@ -1,9 +1,9 @@
 # CODEX SYNC：製造業方案複數行內展開
 
-日期：2026-06-25  
-Branch：`feature/inline-expand-multiple-solutions`  
-Base：`main`  
-功能 Commit：`1a8187e` (`feat: support multiple inline-expanded solution cards`)  
+日期：2026-06-25
+Branch：`feature/inline-expand-multiple-solutions`
+Base：`main`
+功能 Commit：`1a8187e` (`feat: support multiple inline-expanded solution cards`)
 PR：https://github.com/Pcc329/solution-finder/pull/81
 
 ## 修改檔案
@@ -218,4 +218,3 @@ function collapseAllDetails() {
 - PR：https://github.com/Pcc329/solution-finder/pull/81
 - PR 標題：`feat: support multiple inline-expanded solution cards`
 - PR 尚未 merge
-
