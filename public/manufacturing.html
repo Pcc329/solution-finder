@@ -32,6 +32,25 @@
     #dropzoneAssessment.dragover { border-color: #0d9488; background: #ccfbf1; }
     .dropzone-indigo { border: 2px dashed #818cf8; background: #eef2ff; border-radius: 16px; padding: 22px; text-align: center; cursor: pointer; transition: 0.16s; }
     .dropzone-indigo.dragover { border-color: #6366f1; background: #e0e7ff; }
+    .upload-zone-wrap { position: relative; }
+    .upload-zone-wrap.upload-locked > label { opacity: 0.45; }
+    .upload-lock-overlay {
+      position: absolute; inset: 0; z-index: 20; display: none;
+      align-items: center; justify-content: center; padding: 16px;
+      border-radius: 16px; background: rgba(248, 250, 252, 0.58);
+      cursor: not-allowed;
+    }
+    .upload-zone-wrap.upload-locked .upload-lock-overlay { display: flex; }
+    .upload-lock-message {
+      opacity: 0; transform: translateY(4px);
+      max-width: 290px; padding: 9px 12px; border-radius: 10px;
+      background: #0f172a; color: #f8fafc;
+      font-size: 12px; line-height: 1.55; font-weight: 700; text-align: center;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.22);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      pointer-events: none;
+    }
+    .upload-lock-message.show { opacity: 1; transform: translateY(0); }
     .chat-panel { min-height: 310px; max-height: 470px; overflow-y: auto; padding-right: 4px; }
     .chat-message { display: flex; margin-bottom: 12px; }
     .chat-message.assistant { justify-content: flex-start; }
@@ -120,15 +139,20 @@
             <h2 class="text-lg font-black text-slate-900">需求文件</h2>
             <span class="badge badge-blue">PDF</span>
           </div>
-          <label id="dropzoneAssessment" class="dropzone block mb-3" for="fileInputAssessment">
-            <i class="fa-solid fa-cloud-arrow-up text-2xl text-teal-600 mb-2"></i>
-            <div class="flex items-center justify-center gap-2">
-              <p class="font-black text-slate-700">評量表上傳</p>
-              <span class="badge badge-teal">PDF</span>
+          <div id="assessmentUploadWrap" class="upload-zone-wrap mb-3">
+            <label id="dropzoneAssessment" class="dropzone block" for="fileInputAssessment">
+              <i class="fa-solid fa-cloud-arrow-up text-2xl text-teal-600 mb-2"></i>
+              <div class="flex items-center justify-center gap-2">
+                <p class="font-black text-slate-700">評量表上傳</p>
+                <span class="badge badge-teal">PDF</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">請上傳顧問實地訪談後的製造業 AI 評量表 PDF，系統會讀取內容並納入推薦。</p>
+            </label>
+            <input id="fileInputAssessment" type="file" class="hidden" accept=".pdf">
+            <div class="upload-lock-overlay" data-upload-lock>
+              <div class="upload-lock-message">💬 已有問答紀錄，請先按「重新分析」清除後再使用文件上傳</div>
             </div>
-            <p class="text-xs text-slate-500 mt-1">請上傳顧問實地訪談後的製造業 AI 評量表 PDF，系統會讀取內容並納入推薦。</p>
-          </label>
-          <input id="fileInputAssessment" type="file" class="hidden" accept=".pdf">
+          </div>
           <div id="progressAssessment" class="mt-3 mb-4 hidden">
             <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
               <span id="progressAssessmentLabel">讀取中...</span>
@@ -138,15 +162,20 @@
               <div id="progressAssessmentBar" class="bg-teal-500 h-1.5 rounded-full transition-all duration-300" style="width:0%"></div>
             </div>
           </div>
-          <label id="dropzoneDiagnosis" class="dropzone-indigo block" for="fileInputDiagnosis">
-            <i class="fa-solid fa-file-circle-check text-2xl text-indigo-500 mb-2"></i>
-            <div class="flex items-center justify-center gap-2">
-              <p class="font-black text-slate-700">診斷報告上傳</p>
-              <span class="badge badge-indigo">PDF</span>
+          <div id="diagnosisUploadWrap" class="upload-zone-wrap">
+            <label id="dropzoneDiagnosis" class="dropzone-indigo block" for="fileInputDiagnosis">
+              <i class="fa-solid fa-file-circle-check text-2xl text-indigo-500 mb-2"></i>
+              <div class="flex items-center justify-center gap-2">
+                <p class="font-black text-slate-700">診斷報告上傳</p>
+                <span class="badge badge-indigo">PDF</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">請上傳顧問完成診斷後的報告或補充資料 PDF，系統會讀取內容並納入推薦。</p>
+            </label>
+            <input id="fileInputDiagnosis" type="file" class="hidden" accept=".pdf">
+            <div class="upload-lock-overlay" data-upload-lock>
+              <div class="upload-lock-message">💬 已有問答紀錄，請先按「重新分析」清除後再使用文件上傳</div>
             </div>
-            <p class="text-xs text-slate-500 mt-1">請上傳顧問完成診斷後的報告或補充資料 PDF，系統會讀取內容並納入推薦。</p>
-          </label>
-          <input id="fileInputDiagnosis" type="file" class="hidden" accept=".pdf">
+          </div>
           <div id="progressDiagnosis" class="mt-3 hidden">
             <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
               <span id="progressDiagnosisLabel">讀取中...</span>
@@ -259,8 +288,10 @@
       dataStatus: document.getElementById("dataStatus"),
       dropzoneAssessment: document.getElementById("dropzoneAssessment"),
       fileInputAssessment: document.getElementById("fileInputAssessment"),
+      assessmentUploadWrap: document.getElementById("assessmentUploadWrap"),
       dropzoneDiagnosis: document.getElementById("dropzoneDiagnosis"),
       fileInputDiagnosis: document.getElementById("fileInputDiagnosis"),
+      diagnosisUploadWrap: document.getElementById("diagnosisUploadWrap"),
       progressAssessment: document.getElementById("progressAssessment"),
       progressAssessmentLabel: document.getElementById("progressAssessmentLabel"),
       progressAssessmentPct: document.getElementById("progressAssessmentPct"),
@@ -317,6 +348,7 @@
     let extractedDataDiagnosis = null;
     let documentText = "";
     let uploadedDocuments = [];
+    let isAgentMode = false;
     let isDocumentMode = false;
     let isDocumentParsing = false;
     let activeDocumentName = "";
@@ -394,12 +426,8 @@
         .map(line => line.trim())
         .filter(Boolean);
       const visibleFeatureLines = featureLines.slice(0, 5);
-      const descriptionLines = safeStr(description)
-        .split(/[。；;\n]+/)
-        .map(line => line.trim())
-        .filter(Boolean)
-        .slice(0, 4)
-        .map(line => line.length > 40 ? `${line.slice(0, 40)}…` : line);
+      const desc = safeStr(description).trim();
+      const shortDesc = desc.length > 100 ? `${desc.slice(0, 100)}…` : desc;
       const hasPrice = Number.isFinite(Number(price)) && Number(price) > 0;
       const hasMonthlyPrice = Number.isFinite(Number(monthlyPrice)) && Number(monthlyPrice) > 0;
       const location = [region, city].map(value => safeStr(value).trim()).filter(Boolean).join(" · ");
@@ -441,19 +469,12 @@
               ` : ""}
           </section>
 
-          ${descriptionLines.length ? `
+          ${shortDesc ? `
             <section class="card p-6">
               <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                 <i class="fa-regular fa-file-lines text-slate-400"></i> 方案介紹
               </h2>
-              <ul class="space-y-2">
-                ${descriptionLines.map(line => `
-                  <li class="flex items-start gap-2 text-sm text-slate-600 leading-relaxed">
-                    <i class="fa-solid fa-circle text-teal-500 text-[6px] mt-2 shrink-0"></i>
-                    <span>${escapeHtml(line)}</span>
-                  </li>
-                `).join("")}
-              </ul>
+              <p class="text-sm text-slate-600 leading-relaxed">${escapeHtml(shortDesc)}</p>
             </section>
           ` : ""}
 
@@ -532,6 +553,7 @@
           profile,
           documentText,
           uploadedDocuments,
+          isAgentMode,
           timestamp: Date.now(),
         }));
       } catch (err) {
@@ -555,11 +577,16 @@
         documentText = data.documentText || "";
         uploadedDocuments = Array.isArray(data.uploadedDocuments) ? data.uploadedDocuments : [];
         isDocumentMode = !!extractedData || uploadedDocuments.length > 0;
+        isAgentMode = !isDocumentMode && (
+          data.isAgentMode === true ||
+          !!(profile.subIndustry || profile.size || profile.maturity || profile.pain || profile.budget)
+        );
         isDocumentParsing = false;
         activeDocumentName = "";
         activeDocumentNames.clear();
         hasGenerated = true;
         isGenerating = false;
+        updateUploadLock();
         refs.clearFilesBtn.classList.toggle("hidden", uploadedDocuments.length === 0);
         if (uploadedDocuments.length) {
           renderUploadStatus();
@@ -583,6 +610,24 @@
         </div>
       `).join("");
       refs.agentChat.scrollTop = refs.agentChat.scrollHeight;
+    }
+
+    function showUploadLockMessage(overlay) {
+      const message = overlay.querySelector(".upload-lock-message");
+      if (!message) return;
+      message.classList.add("show");
+      clearTimeout(overlay._messageTimer);
+      overlay._messageTimer = setTimeout(() => message.classList.remove("show"), 2500);
+    }
+
+    function updateUploadLock() {
+      [refs.assessmentUploadWrap, refs.diagnosisUploadWrap].forEach(wrapper => {
+        wrapper.classList.toggle("upload-locked", isAgentMode);
+        const message = wrapper.querySelector(".upload-lock-message");
+        if (!isAgentMode && message) message.classList.remove("show");
+      });
+      refs.fileInputAssessment.disabled = isAgentMode;
+      refs.fileInputDiagnosis.disabled = isAgentMode;
     }
 
     function updateOptions() {
@@ -641,6 +686,7 @@
       extractedDataDiagnosis = null;
       documentText = "";
       uploadedDocuments = [];
+      isAgentMode = false;
       isDocumentMode = false;
       isDocumentParsing = false;
       activeDocumentName = "";
@@ -652,6 +698,7 @@
       currentView = "result";
       selectedSolution = null;
       updateView();
+      updateUploadLock();
       refs.fileInfo.textContent = "";
       refs.clearFilesBtn.classList.add("hidden");
       refs.fileInputAssessment.value = "";
@@ -694,6 +741,10 @@
       }
       const step = agentSteps[stepIndex];
       addMessage("user", text);
+      if (!isAgentMode) {
+        isAgentMode = true;
+        updateUploadLock();
+      }
       profile[step.key] = normalizeOption(text, step.options);
       hasGenerated = false;
       refs.agentInput.value = "";
@@ -1109,6 +1160,7 @@
       extractedDataDiagnosis = null;
       documentText = "";
       uploadedDocuments = [];
+      isAgentMode = false;
       isDocumentMode = false;
       isDocumentParsing = false;
       activeDocumentName = "";
@@ -1120,6 +1172,7 @@
       currentView = "result";
       selectedSolution = null;
       updateView();
+      updateUploadLock();
       profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
       stepIndex = 0;
       conversationHistory = [];
@@ -1219,6 +1272,7 @@
 
     async function handleFile(file, type, sourceLabel) {
       if (!file) return;
+      if (isAgentMode) return;
       const mediaType = detectUploadMediaType(file);
       if (!mediaType) {
         refs.fileInfo.innerHTML = '<span class="text-red-500 font-bold">僅支援 PDF 檔案。</span>';
@@ -1280,6 +1334,9 @@
     refs.restartBtn.addEventListener("click", () => resetAgent(true));
     refs.runBtn.addEventListener("click", runExplore);
     refs.clearFilesBtn.addEventListener("click", clearAllFiles);
+    document.querySelectorAll("[data-upload-lock]").forEach(overlay => {
+      overlay.addEventListener("click", () => showUploadLockMessage(overlay));
+    });
     function bindUpload(dropzone, input, type, sourceLabel) {
       input.addEventListener("change", event => handleFile(event.target.files[0], type, sourceLabel));
       ["dragenter", "dragover"].forEach(eventName => {
