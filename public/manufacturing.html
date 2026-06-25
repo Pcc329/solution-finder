@@ -83,6 +83,23 @@
     .solution-card-official { border-left: 3px solid #1D9E75 !important; }
     .solution-card-other { border-left: 3px solid #EF9F27 !important; }
     .solution-card:hover { box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
+    .solution-card.is-expanded { border-color: #1D9E75; box-shadow: 0 8px 24px rgba(29, 158, 117, 0.08); }
+    .inline-detail {
+      margin-top: 12px; padding: 20px; border-radius: 16px;
+      border: 1px solid #dbe7ef; background: #f8fffc;
+      animation: inlineDetailIn 160ms ease-out;
+    }
+    .inline-detail.no-animation { animation: none; }
+    .inline-detail,
+    .inline-detail p,
+    .inline-detail li {
+      line-height: 1.7; white-space: normal;
+      overflow-wrap: break-word; word-break: break-word;
+    }
+    @keyframes inlineDetailIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
     .markdown-body h1 { font-size: 1.25rem; }
     .markdown-body h2 { font-size: 1.15rem; }
@@ -95,7 +112,7 @@
     .profile-tags { display: grid; gap: 8px; }
     .profile-row { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; align-items: start; }
     .profile-row .label { color: #64748b; font-weight: 900; white-space: nowrap; }
-    .profile-row .value { color: #0f172a; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+    .profile-row .value { color: #0f172a; font-weight: 700; min-width: 0; overflow-wrap: break-word; word-break: break-word; }
     @media (max-width: 900px) {
       #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
       .global-nav-actions { width: 100%; justify-content: flex-start; }
@@ -249,6 +266,16 @@
           <div id="categoryFilterTags" class="flex flex-wrap gap-2"></div>
         </section>
 
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h3 class="text-sm font-black text-slate-800">推薦方案</h3>
+          <div class="flex items-center gap-3">
+            <span id="expandedStatus" class="text-xs font-bold text-slate-500">已展開 0 / 3</span>
+            <button id="collapseAllBtn" class="text-xs font-bold text-teal-700 border border-teal-200 rounded-lg px-3 py-1.5 hover:bg-teal-50 disabled:opacity-40 disabled:cursor-not-allowed" type="button" disabled>
+              全部收合
+            </button>
+          </div>
+        </div>
+
         <section class="grid grid-cols-1 gap-4">
           <div class="card p-5">
             <div class="flex items-center justify-between gap-3 mb-3">
@@ -319,6 +346,8 @@
       otherList: document.getElementById("otherList"),
       officialCount: document.getElementById("officialCount"),
       otherCount: document.getElementById("otherCount"),
+      expandedStatus: document.getElementById("expandedStatus"),
+      collapseAllBtn: document.getElementById("collapseAllBtn"),
       resultView: document.getElementById("resultView"),
       detailView: document.getElementById("detailView"),
     };
@@ -360,6 +389,10 @@
     let currentOfficial = [];
     let currentOthers = [];
     let selectedCategories = new Set();
+    let expandedIds = [];
+    let lastToggledId = null;
+    const DESKTOP_MAX_EXPANDED = 3;
+    const MOBILE_MAX_EXPANDED = 1;
     let currentView = "result";
     let selectedSolution = null;
     let stepIndex = 0;
@@ -399,6 +432,90 @@
 
     function solutionField(item, shortName, fullName) {
       return item?.[shortName] ?? item?.[fullName] ?? "";
+    }
+
+    function getInlineDetailHtml(item, shouldAnimate) {
+      const price = solutionField(item, "pr", "price");
+      const monthlyPrice = solutionField(item, "mo", "monthly_price");
+      const description = solutionField(item, "desc", "description");
+      const features = solutionField(item, "feat", "features");
+      const category = solutionField(item, "cat", "category");
+      const targetIndustry = solutionField(item, "d", "target_industry");
+      const scale = solutionField(item, "scale", "scale");
+      const featureLines = safeStr(features)
+        .split(/\n|；|;/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .slice(0, 5);
+      const desc = safeStr(description).trim();
+      const shortDesc = desc.length > 100 ? `${desc.slice(0, 100)}…` : desc;
+      const hasPrice = Number.isFinite(Number(price)) && Number(price) > 0;
+      const hasMonthlyPrice = Number.isFinite(Number(monthlyPrice)) && Number(monthlyPrice) > 0;
+      const propertyItems = [
+        ["服務類別", category],
+        ["適用產業", targetIndustry],
+        ["適用規模", scale],
+      ].filter(([, value]) => safeStr(value).trim());
+
+      return `
+        <div class="inline-detail ${shouldAnimate ? "" : "no-animation"}">
+          <section class="grid grid-cols-1 ${hasMonthlyPrice ? "sm:grid-cols-2" : ""} gap-3">
+            <div class="bg-white border border-slate-200 rounded-xl p-4">
+              <p class="text-xs text-slate-400 mb-1">方案總費用</p>
+              ${hasPrice
+                ? `<p class="text-xl font-black text-teal-700 font-mono">${formatCurrency(price)}</p>`
+                : `<p class="text-lg font-black text-teal-700" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">📞 洽詢報價</p>`}
+            </div>
+            ${hasMonthlyPrice ? `
+              <div class="bg-white border border-slate-200 rounded-xl p-4">
+                <p class="text-xs text-slate-400 mb-1">月費</p>
+                <p class="text-xl font-black text-slate-700 font-mono">${formatCurrency(monthlyPrice)}</p>
+              </div>
+            ` : ""}
+          </section>
+
+          ${shortDesc ? `
+            <section class="mt-4">
+              <h5 class="text-sm font-black text-slate-800 mb-2 flex items-center gap-2">
+                <i class="fa-regular fa-file-lines text-slate-400"></i> 方案介紹
+              </h5>
+              <p class="text-sm text-slate-600">${escapeHtml(shortDesc)}</p>
+            </section>
+          ` : ""}
+
+          ${featureLines.length ? `
+            <section class="mt-4">
+              <h5 class="text-sm font-black text-slate-800 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-slate-400"></i> 功能清單
+              </h5>
+              <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                ${featureLines.map(line => `
+                  <li class="flex items-start gap-2 text-sm text-slate-600">
+                    <i class="fa-solid fa-check text-teal-500 text-[10px] mt-1.5 shrink-0"></i>
+                    <span>${escapeHtml(line)}</span>
+                  </li>
+                `).join("")}
+              </ul>
+            </section>
+          ` : ""}
+
+          ${propertyItems.length ? `
+            <section class="mt-4">
+              <h5 class="text-sm font-black text-slate-800 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-tags text-slate-400"></i> 方案屬性
+              </h5>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                ${propertyItems.map(([label, value]) => `
+                  <div>
+                    <p class="text-xs text-slate-400 mb-1">${label}</p>
+                    <p class="text-sm text-slate-700 font-medium">${escapeHtml(value)}</p>
+                  </div>
+                `).join("")}
+              </div>
+            </section>
+          ` : ""}
+        </div>
+      `;
     }
 
     function renderDetail() {
@@ -474,7 +591,7 @@
               <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                 <i class="fa-regular fa-file-lines text-slate-400"></i> 方案介紹
               </h2>
-              <p class="text-sm text-slate-600" style="word-break: break-word; overflow-wrap: anywhere; line-height: 1.75;">${escapeHtml(shortDesc)}</p>
+              <p class="text-sm text-slate-600" style="word-break: break-word; overflow-wrap: break-word; line-height: 1.75;">${escapeHtml(shortDesc)}</p>
             </section>
           ` : ""}
 
@@ -485,7 +602,7 @@
               </h2>
               <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                 ${visibleFeatureLines.map(line => `
-                  <li class="flex items-start gap-2 text-sm text-slate-600 py-1" style="word-break: break-word; overflow-wrap: anywhere;">
+                  <li class="flex items-start gap-2 text-sm text-slate-600 py-1" style="word-break: break-word; overflow-wrap: break-word;">
                     <i class="fa-solid fa-check text-teal-500 text-[10px] mt-1.5 shrink-0"></i>
                     <span>${escapeHtml(line)}</span>
                   </li>
@@ -803,37 +920,89 @@
       return { official, others };
     }
 
+    function getMaxExpanded() {
+      return window.innerWidth < 768 ? MOBILE_MAX_EXPANDED : DESKTOP_MAX_EXPANDED;
+    }
+
+    function updateExpandedControls() {
+      refs.expandedStatus.textContent = `已展開 ${expandedIds.length} / ${getMaxExpanded()}`;
+      refs.collapseAllBtn.disabled = expandedIds.length === 0;
+    }
+
+    function syncExpandedIdsWithVisibleItems(visibleItems) {
+      const visibleIds = new Set(visibleItems.map(item => safeStr(item.id)).filter(Boolean));
+      expandedIds = expandedIds.filter(id => visibleIds.has(id));
+    }
+
+    function toggleInlineDetail(item) {
+      const itemId = safeStr(item?.id);
+      if (!itemId) return;
+      const index = expandedIds.indexOf(itemId);
+      lastToggledId = itemId;
+
+      if (index >= 0) {
+        expandedIds.splice(index, 1);
+      } else {
+        expandedIds.push(itemId);
+        if (expandedIds.length > getMaxExpanded()) {
+          expandedIds.shift();
+        }
+      }
+
+      renderCurrentLists();
+    }
+
+    function collapseAllDetails() {
+      expandedIds = [];
+      lastToggledId = null;
+      renderCurrentLists();
+    }
+
     function renderList(container, items, variant) {
       if (!items.length) {
         container.innerHTML = '<p class="text-sm text-slate-500">目前沒有符合條件的方案。</p>';
         return;
       }
       const variantClass = variant === "official" ? "solution-card-official" : "solution-card-other";
-      container.innerHTML = items.map((item, index) => `
-        <article class="solution-card ${variantClass} bg-white border border-slate-200 p-4" data-index="${index}" title="查看方案詳細">
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0">
-              <h4 class="font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h4>
-              <p class="text-xs text-slate-500 mt-1">${escapeHtml(item.c || "未提供業者")}</p>
-            </div>
-            ${Number.isFinite(Number(item.pr)) && Number(item.pr) > 0
-              ? `<span class="text-xs font-black text-teal-700 font-mono shrink-0">${formatCurrency(item.pr)}</span>`
-              : `<span class="text-xs font-black text-teal-700 shrink-0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">📞 洽詢報價</span>`}
+      container.innerHTML = items.map((item, index) => {
+        const itemId = safeStr(item.id);
+        const isExpanded = expandedIds.includes(itemId);
+        const shouldAnimate = isExpanded && itemId === lastToggledId;
+        return `
+          <div class="solution-result-item">
+            <article class="solution-card ${variantClass} ${isExpanded ? "is-expanded" : ""} bg-white border border-slate-200 p-4" data-index="${index}" title="${isExpanded ? "收合方案詳細" : "展開方案詳細"}" aria-expanded="${isExpanded}">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <h4 class="font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h4>
+                  <p class="text-xs text-slate-500 mt-1">${escapeHtml(item.c || "未提供業者")}</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  ${Number.isFinite(Number(item.pr)) && Number(item.pr) > 0
+                    ? `<span class="text-xs font-black text-teal-700 font-mono">${formatCurrency(item.pr)}</span>`
+                    : `<span class="text-xs font-black text-teal-700" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">📞 洽詢報價</span>`}
+                  <i class="fa-solid fa-chevron-${isExpanded ? "up" : "down"} text-xs text-slate-400"></i>
+                </div>
+              </div>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <span class="badge badge-muted">${escapeHtml(item.p || "未標示來源")}</span>
+                <span class="badge ${item.ai ? "badge-teal" : "badge-muted"}">${item.ai ? "AI 方案" : "一般方案"}</span>
+                ${item.cat ? `<span class="badge badge-muted">${escapeHtml(item.cat)}</span>` : ""}
+              </div>
+            </article>
+            ${isExpanded ? getInlineDetailHtml(item, shouldAnimate) : ""}
           </div>
-          <div class="mt-3 flex flex-wrap gap-2">
-            <span class="badge badge-muted">${escapeHtml(item.p || "未標示來源")}</span>
-            <span class="badge ${item.ai ? "badge-teal" : "badge-muted"}">${item.ai ? "AI 方案" : "一般方案"}</span>
-            ${item.cat ? `<span class="badge badge-muted">${escapeHtml(item.cat)}</span>` : ""}
-          </div>
-        </article>
-      `).join("");
+        `;
+      }).join("");
       container.querySelectorAll(".solution-card").forEach(card => {
-        card.addEventListener("click", () => openDetail(items[Number(card.dataset.index)]));
+        card.addEventListener("click", () => toggleInlineDetail(items[Number(card.dataset.index)]));
       });
     }
 
     function resetCategoryFilter() {
       selectedCategories.clear();
+      expandedIds = [];
+      lastToggledId = null;
+      updateExpandedControls();
       refs.categoryFilterCard.style.display = "none";
       refs.categoryFilterTags.innerHTML = "";
       currentOfficial = [];
@@ -874,14 +1043,22 @@
       });
     }
 
-    function applyCategoryFilter() {
+    function renderCurrentLists() {
       const pass = item => selectedCategories.size === 0 || selectedCategories.has(safeStr(item.cat).trim());
       const official = currentOfficial.filter(pass);
       const others = currentOthers.filter(pass);
+      syncExpandedIdsWithVisibleItems([...official, ...others]);
       refs.officialCount.textContent = `${official.length} 筆`;
       refs.otherCount.textContent = `${others.length} 筆`;
       renderList(refs.officialList, official, "official");
       renderList(refs.otherList, others, "other");
+      updateExpandedControls();
+      lastToggledId = null;
+    }
+
+    function applyCategoryFilter() {
+      lastToggledId = null;
+      renderCurrentLists();
     }
 
     function renderResult(official, others, conclusion) {
@@ -1330,8 +1507,27 @@
     refs.restartBtn.addEventListener("click", () => resetAgent(true));
     refs.runBtn.addEventListener("click", runExplore);
     refs.clearFilesBtn.addEventListener("click", clearAllFiles);
+    refs.collapseAllBtn.addEventListener("click", collapseAllDetails);
     document.querySelectorAll("[data-upload-lock]").forEach(overlay => {
       overlay.addEventListener("click", () => showUploadLockMessage(overlay));
+    });
+    let expandedResizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(expandedResizeTimer);
+      expandedResizeTimer = setTimeout(() => {
+        const maxExpanded = getMaxExpanded();
+        let changed = false;
+        while (expandedIds.length > maxExpanded) {
+          expandedIds.shift();
+          changed = true;
+        }
+        lastToggledId = null;
+        if (changed) {
+          renderCurrentLists();
+        } else {
+          updateExpandedControls();
+        }
+      }, 120);
     });
     function bindUpload(dropzone, input, type, sourceLabel) {
       input.addEventListener("change", event => handleFile(event.target.files[0], type, sourceLabel));
