@@ -464,11 +464,14 @@
     let currentOthers = [];
     let selectedCategories = new Set();
     let selectedReferenceCaseIndustry = "全部";
-    let expandedReferenceCaseTitle = "";
+    let expandedReferenceCaseTitles = [];
+    let lastToggledCaseTitle = null;
     let expandedIds = [];
     let lastToggledId = null;
     const DESKTOP_MAX_EXPANDED = 3;
     const MOBILE_MAX_EXPANDED = 1;
+    const CASE_DESKTOP_MAX = 3;
+    const CASE_MOBILE_MAX = 1;
     let currentView = "result";
     let selectedSolution = null;
     let stepIndex = 0;
@@ -1005,6 +1008,10 @@
       return window.innerWidth < 768 ? MOBILE_MAX_EXPANDED : DESKTOP_MAX_EXPANDED;
     }
 
+    function getCaseMaxExpanded() {
+      return window.innerWidth < 768 ? CASE_MOBILE_MAX : CASE_DESKTOP_MAX;
+    }
+
     function updateExpandedControls() {
       refs.expandedStatus.textContent = `已展開 ${expandedIds.length} / ${getMaxExpanded()}`;
       refs.collapseAllBtn.disabled = expandedIds.length === 0;
@@ -1013,6 +1020,11 @@
     function syncExpandedIdsWithVisibleItems(visibleItems) {
       const visibleIds = new Set(visibleItems.map(item => safeStr(item.id)).filter(Boolean));
       expandedIds = expandedIds.filter(id => visibleIds.has(id));
+    }
+
+    function syncExpandedReferenceCaseTitles(visibleCases) {
+      const visibleTitles = new Set(visibleCases.map(item => item.title));
+      expandedReferenceCaseTitles = expandedReferenceCaseTitles.filter(title => visibleTitles.has(title));
     }
 
     function toggleInlineDetail(item) {
@@ -1037,6 +1049,25 @@
       expandedIds = [];
       lastToggledId = null;
       renderCurrentLists();
+    }
+
+    function toggleReferenceCase(item) {
+      const title = item?.title;
+      if (!title) return;
+      const index = expandedReferenceCaseTitles.indexOf(title);
+
+      if (index >= 0) {
+        expandedReferenceCaseTitles.splice(index, 1);
+        lastToggledCaseTitle = null;
+      } else {
+        expandedReferenceCaseTitles.push(title);
+        lastToggledCaseTitle = title;
+        while (expandedReferenceCaseTitles.length > getCaseMaxExpanded()) {
+          expandedReferenceCaseTitles.shift();
+        }
+      }
+
+      renderReferenceCases();
     }
 
     function renderList(container, items, variant) {
@@ -1144,14 +1175,15 @@
 
     function hideReferenceCases() {
       selectedReferenceCaseIndustry = "全部";
-      expandedReferenceCaseTitle = "";
+      expandedReferenceCaseTitles = [];
+      lastToggledCaseTitle = null;
       refs.referenceCasesCard.style.display = "none";
       refs.referenceCaseList.innerHTML = "";
       refs.referenceCaseFilters.innerHTML = "";
       refs.referenceCaseCount.textContent = "0 筆";
     }
 
-    function getReferenceCaseDetailHtml(item) {
+    function getReferenceCaseDetailHtml(item, shouldAnimate) {
       const detailItems = [
         ["📋", "ref-case-icon-diag", "顧問診斷結論", item.diagnosis],
         ["⚠️", "ref-case-icon-resist", "推動阻力", item.resistance],
@@ -1160,7 +1192,7 @@
       ];
 
       return `
-        <div class="ref-case-detail">
+        <div class="ref-case-detail ${shouldAnimate ? "" : "no-animation"}">
           ${detailItems.map(([icon, iconClass, label, value], index) => `
             <div class="ref-case-detail-row ${index === detailItems.length - 1 ? "ref-case-detail-row-last" : ""}">
               <div class="ref-case-detail-icon ${iconClass}" aria-hidden="true">${icon}</div>
@@ -1178,9 +1210,7 @@
       const visibleCases = selectedReferenceCaseIndustry === "全部"
         ? referenceCases
         : referenceCases.filter(item => item.industry === selectedReferenceCaseIndustry);
-      if (!visibleCases.some(item => item.title === expandedReferenceCaseTitle)) {
-        expandedReferenceCaseTitle = "";
-      }
+      syncExpandedReferenceCaseTitles(visibleCases);
 
       refs.referenceCasesCard.style.display = "";
       refs.referenceCaseCount.textContent = `${visibleCases.length} 筆`;
@@ -1190,7 +1220,8 @@
         </button>
       `).join("");
       refs.referenceCaseList.innerHTML = visibleCases.length ? visibleCases.map((item, index) => {
-        const isExpanded = item.title === expandedReferenceCaseTitle;
+        const isExpanded = expandedReferenceCaseTitles.includes(item.title);
+        const shouldAnimate = isExpanded && item.title === lastToggledCaseTitle;
         return `
           <div class="reference-case-item">
             <article class="reference-case-card ${isExpanded ? "is-expanded" : ""} border border-slate-200 p-4" data-reference-case-index="${index}" aria-expanded="${isExpanded}">
@@ -1219,7 +1250,7 @@
                 </div>
               </div>
             </article>
-            ${isExpanded ? getReferenceCaseDetailHtml(item) : ""}
+            ${isExpanded ? getReferenceCaseDetailHtml(item, shouldAnimate) : ""}
           </div>
         `;
       }).join("") : `
@@ -1230,16 +1261,17 @@
       refs.referenceCaseList.querySelectorAll("[data-reference-case-index]").forEach(card => {
         card.addEventListener("click", () => {
           const item = visibleCases[Number(card.dataset.referenceCaseIndex)];
-          expandedReferenceCaseTitle = expandedReferenceCaseTitle === item.title ? "" : item.title;
-          renderReferenceCases();
+          toggleReferenceCase(item);
         });
       });
       refs.referenceCaseFilters.querySelectorAll("[data-reference-case-filter]").forEach(button => {
         button.addEventListener("click", () => {
           selectedReferenceCaseIndustry = button.dataset.referenceCaseFilter || "全部";
+          lastToggledCaseTitle = null;
           renderReferenceCases();
         });
       });
+      lastToggledCaseTitle = null;
     }
 
     function renderResult(official, others, conclusion) {
@@ -1710,6 +1742,16 @@
           renderCurrentLists();
         } else {
           updateExpandedControls();
+        }
+        const maxCaseExpanded = getCaseMaxExpanded();
+        let caseChanged = false;
+        while (expandedReferenceCaseTitles.length > maxCaseExpanded) {
+          expandedReferenceCaseTitles.shift();
+          caseChanged = true;
+        }
+        if (caseChanged) {
+          lastToggledCaseTitle = null;
+          renderReferenceCases();
         }
       }, 120);
     });
