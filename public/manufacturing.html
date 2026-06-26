@@ -86,9 +86,10 @@
     .solution-card.is-expanded { border-color: #1D9E75; box-shadow: 0 8px 24px rgba(29, 158, 117, 0.08); }
     .reference-case-card { border-left: 3px solid #185FA5; border-radius: 0 14px 14px 0; background: #ffffff; }
     .reference-case-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 900; }
-    .reference-case-chip.industry { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-    .reference-case-chip.solution { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
-    .reference-case-chip.size { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+    .reference-case-chip.industry { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+    .reference-case-chip.solution { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .reference-case-chip.size { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+    .reference-case-result-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 900; color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; }
     .reference-case-filter { font-size: 13px; padding: 5px 13px; border-radius: 999px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 900; transition: all .12s; }
     .reference-case-filter:hover { border-color: #185FA5; color: #185FA5; background: #eff6ff; }
     .reference-case-filter.active { background: #185FA5; color: #ffffff; border-color: #185FA5; }
@@ -274,20 +275,6 @@
           <div id="categoryFilterTags" class="flex flex-wrap gap-2"></div>
         </section>
 
-        <section class="card p-5" id="referenceCasesCard" style="display:none">
-          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="font-black text-slate-900">參考案例</h3>
-                <span id="referenceCaseCount" class="badge badge-blue">0 筆</span>
-              </div>
-              <p class="text-xs text-slate-400 mt-1">以下案例為內部測試資料，用於輔助判斷導入方向。</p>
-            </div>
-            <div id="referenceCaseFilters" class="flex flex-wrap gap-2"></div>
-          </div>
-          <div id="referenceCaseList" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
-        </section>
-
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h3 class="text-sm font-black text-slate-800">推薦方案</h3>
           <div class="flex items-center gap-3">
@@ -325,6 +312,20 @@
             </div>
             <div id="otherList" class="space-y-3 text-sm text-slate-500">尚未產生推薦。</div>
           </div>
+        </section>
+
+        <section class="card p-5" id="referenceCasesCard" style="display:none">
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-black text-slate-900">參考案例</h3>
+                <span id="referenceCaseCount" class="badge badge-blue">0 筆</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">以下案例為內部測試資料，用於輔助判斷導入方向。</p>
+            </div>
+            <div id="referenceCaseFilters" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div id="referenceCaseList" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
         </section>
 
       </section>
@@ -397,35 +398,38 @@
     ];
 
     const referenceCases = [
-      {
-        title: "中型金屬加工廠導入 AI 排程與報工",
-        industry: "製造業",
-        size: "50-200人",
-        solutionType: "AI",
-        pain: "生產排程依賴人工經驗，現場報工延遲，主管難以及時掌握工單狀態。",
-        result: "排程時間由 3 小時縮短至 30 分鐘，報工資料完整度提升約 60%。",
-        visibility: "內部案例"
-      },
-      {
-        title: "連鎖零售業導入 CRM 與會員分眾",
-        industry: "零售",
-        size: "10-50人",
-        solutionType: "CRM",
-        pain: "會員資料分散於多個通路，行銷活動無法依顧客行為分群，回購追蹤效率偏低。",
-        result: "活動轉換率提升約 35%，回購率由 8% 提升至 12%，行銷作業時間降低約 28%。",
-        visibility: "內部案例"
-      },
-      {
-        title: "小型餐飲業導入 POS 與庫存管理",
-        industry: "餐飲",
-        size: "10-50人",
-        solutionType: "POS",
-        pain: "庫存盤點與叫貨以人工處理，熱門品項缺貨與耗損難以及時追蹤。",
-        result: "每日結帳與盤點時間由 8 小時降至 1 小時，庫存異常可於當日發現。",
-        visibility: "公開"
-      }
+      { title: "中部金屬加工廠 AI 排程導入案", industry: "製造", size: "50–200人", solutionType: "AI", pain: "生產排程完全依賴師傅經驗，無法快速應對急件插單；訂單交期頻繁延誤，客戶投訴增加。", result: "排程時間從每日 3 小時縮短至 30 分鐘；急件插單處理時間降低 60%。", visibility: "內部可看" },
+      { title: "北部連鎖診所 CRM 導入案", industry: "醫療", size: "10–50人", solutionType: "CRM", pain: "病患回診提醒完全靠人工電話，漏失率高；各診所病患資料無法共用；行銷活動無法精準觸達。", result: "回診漏失率從 35% 降至 12%；行銷簡訊開信率達 28%。", visibility: "內部可看" },
+      { title: "南部零售商 POS 升級與庫存整合案", industry: "零售", size: "10–50人", solutionType: "AI", pain: "實體門市與網路訂單庫存分開管理，超賣狀況頻繁；每月盤點需耗費 2 天人力。", result: "超賣從每月 8 次降至 1 次以下；月度盤點時間縮短至半天。", visibility: "公開" },
+      { title: "北部食品加工廠品質檢測導入案", industry: "製造", size: "50–200人", solutionType: "AI", pain: "人工目視檢測漏失率高達 8%；夜班人員疲勞導致品質不穩定；客訴率影響大客戶續約。", result: "漏失率從 8% 降至 1.5%；客訴率下降 70%；大客戶續約成功。", visibility: "內部可看" },
+      { title: "中部傳統製造業 MES 導入案", industry: "製造", size: "200人以上", solutionType: "MES", pain: "生產資料碎片化，各部門各自為政；管理層無法即時掌握產線狀況；異常發生後才知道。", result: "異常反應時間從 2 小時縮短至 15 分鐘；生產效率提升 18%。", visibility: "內部可看" },
+      { title: "南部物流公司車隊管理導入案", industry: "物流", size: "50–200人", solutionType: "AI", pain: "司機排班完全靠電話協調；油耗異常無法即時發現；客戶詢問貨物位置時無法即時回應。", result: "油耗降低 12%；客戶滿意度提升；司機遲到率從 15% 降至 3%。", visibility: "內部可看" },
+      { title: "北部建設公司工程進度管理導入案", industry: "建築營造", size: "10–50人", solutionType: "AI", pain: "工程進度靠 Line 群組回報，資料難以追蹤；跨工地協調效率低；發包異常無法即時掌握。", result: "工程進度掌握度從 60% 提升至 95%；跨工地協調時間減少 40%。", visibility: "公開" },
+      { title: "東部農業合作社電商導入案", industry: "零售", size: "10人以下", solutionType: "AI", pain: "農產品只能透過中盤商銷售，利潤被壓縮；沒有自己的銷售通路；消費者不知道產品來源。", result: "直銷營收從零成長至每月 15 萬；中盤商依賴度從 100% 降至 60%。", visibility: "公開" },
+      { title: "台北連鎖餐廳數位點餐導入案", industry: "餐飲", size: "10–50人", solutionType: "AI", pain: "尖峰時段點餐等待時間長，客訴多；人工點餐錯誤率高；無法累積顧客消費資料。", result: "點餐等待時間從 8 分鐘縮短至 2 分鐘；客訴減少 65%；累積會員 3,000 人。", visibility: "內部可看" },
+      { title: "高雄製造業碳排管理導入案", industry: "製造", size: "200人以上", solutionType: "AI", pain: "大客戶要求提供碳排數據報告但企業無法提供；碳盤查靠人工估算誤差大；ESG 報告耗費大量人力。", result: "碳排數據誤差從 30% 降至 5%；ESG 報告製作時間從 2 週縮短至 2 天。", visibility: "公開" },
+      { title: "新竹科技製造業 ERP 升級案", industry: "製造", size: "200人以上", solutionType: "ERP", pain: "舊 ERP 系統無法支援多廠區管理；跨部門資料不互通；財務報表需人工整理耗時 3 天。", result: "財務結帳時間從 3 天縮短至 4 小時；庫存準確率從 85% 提升至 98%。", visibility: "內部可看" },
+      { title: "台中傳統批發商數位化轉型案", industry: "零售", size: "10–50人", solutionType: "CRM", pain: "訂單靠傳真與電話接收，時常漏單；應收帳款管理混亂；無法掌握哪些客戶是高價值客戶。", result: "漏單率從 5% 降至 0.2%；應收帳款催收時間縮短 50%；識別出 Top 20 高價值客戶。", visibility: "公開" },
+      { title: "台北人力仲介公司 HR 系統導入案", industry: "服務業", size: "10–50人", solutionType: "AI", pain: "履歷篩選全靠人工，每週耗費 20 小時；面試安排靠 Line，時常失誤；無法追蹤求職者狀態。", result: "履歷篩選時間從 20 小時降至 5 小時；面試失誤率從 12% 降至 1%。", visibility: "內部可看" },
+      { title: "彰化傳統製造業品牌電商轉型案", industry: "製造", size: "50–200人", solutionType: "AI", pain: "產品品質好但只靠 OEM，毛利薄；想做自有品牌但不知從何開始；缺乏電商操作人才。", result: "首年自有品牌營收達 500 萬；毛利率從 8% 提升至 22%；建立 Instagram 粉絲 5,000 人。", visibility: "公開" },
+      { title: "台南教育機構線上課程平台導入案", industry: "教育", size: "10–50人", solutionType: "AI", pain: "疫情後學生減少但固定成本不變；想發展線上課程但不知如何開始；教師不熟悉線上教學工具。", result: "線上課程學員 6 個月達 200 人；整體營收衰退趨勢止穩；開拓外縣市學員。", visibility: "內部可看" },
+      { title: "高雄旅遊業訂房系統整合案", industry: "旅遊住宿", size: "10–50人", solutionType: "AI", pain: "各訂房平台庫存各自管理，時常超訂；人工確認訂單耗費大量時間；無法掌握各通路收益差異。", result: "超訂事件從每月 3 次降至 0 次；訂單處理時間從 2 小時縮短至 20 分鐘。", visibility: "公開" },
+      { title: "台北醫美診所顧客管理系統案", industry: "醫療", size: "10–50人", solutionType: "CRM", pain: "顧客回訪率低，療程結束後缺乏追蹤；諮詢預約靠 Line，時常衝突；無法分析哪些療程最受歡迎。", result: "顧客回訪率從 30% 提升至 55%；諮詢預約衝突從每月 5 次降至 0。", visibility: "內部可看" },
+      { title: "新北電商公司倉庫管理系統導入案", industry: "電商", size: "10–50人", solutionType: "AI", pain: "訂單量成長但出貨錯誤率也跟著上升；庫存盤點耗時且準確率低；旺季時人力嚴重不足。", result: "出貨錯誤率從 3% 降至 0.3%；庫存準確率從 80% 提升至 97%；旺季人力需求降低 20%。", visibility: "公開" },
+      { title: "台中汽車保養廠數位化升級案", industry: "服務業", size: "10–50人", solutionType: "AI", pain: "預約排班靠電話與白板，時常衝突；客戶等待時間不透明導致客訴；無法分析哪些服務最賺錢。", result: "預約衝突從每週 3 次降至 0；客戶等待滿意度提升；識別出毛利最高的 5 項服務。", visibility: "公開" },
+      { title: "台北金融保險公司業務管理導入案", industry: "金融", size: "50–200人", solutionType: "CRM", pain: "業務員拜訪紀錄靠紙本，主管無法掌握業績進度；客戶資料分散；業務員離職帶走客戶。", result: "離職業務員客戶流失率從 60% 降至 10%；主管業績預測準確率提升至 85%。", visibility: "內部可看" },
+      { title: "屏東農產品冷鏈管理導入案", industry: "物流", size: "10–50人", solutionType: "AI", pain: "農產品運輸過程溫度無法監控，到貨品質不穩定；客訴率高影響與超市的合作關係。", result: "到貨品質客訴降低 80%；超市合作訂單增加 30%；取得大型連鎖超市供應商資格。", visibility: "公開" },
+      { title: "台北連鎖健身房會員管理系統案", industry: "服務業", size: "10–50人", solutionType: "AI", pain: "會員資料分散在各分店，總部無法統一管理；課程預約靠電話，時常超訂；會員流失原因無法分析。", result: "會員續約率從 40% 提升至 62%；課程超訂事件從每月 10 次降至 0。", visibility: "內部可看" },
+      { title: "桃園電子製造業智慧倉儲案", industry: "製造", size: "200人以上", solutionType: "AI", pain: "原物料入庫錯誤率高；揀料時間過長影響生產排程；倉庫空間利用率低。", result: "入庫錯誤率從 2% 降至 0.1%；揀料時間縮短 35%；倉庫空間利用率提升 20%。", visibility: "內部可看" },
+      { title: "台南傳統市場攤商電商轉型案", industry: "零售", size: "10人以下", solutionType: "AI", pain: "攤位生意受天氣影響大；缺乏穩定客源；沒有線上銷售通路。", result: "線上營收首月達 3 萬元；建立 300 位固定回購客群。", visibility: "公開" },
+      { title: "台北軟體新創公司 OKR 管理工具導入案", industry: "服務業", size: "10–50人", solutionType: "AI", pain: "團隊目標不清晰，各部門各做各的；專案進度靠 Slack 追蹤，容易漏失；績效評估主觀。", result: "部門目標對齊度從 40% 提升至 85%；專案延誤率降低 30%。", visibility: "公開" },
+      { title: "苗栗觀光工廠數位行銷導入案", industry: "旅遊住宿", size: "10–50人", solutionType: "AI", pain: "遊客量逐年下滑；行銷完全靠口碑，沒有主動觸及新客戶；無法掌握哪個通路帶來最多遊客。", result: "Google 搜尋曝光增加 5 倍；預約量提升 40%；建立 Instagram 帳號粉絲 2,000 人。", visibility: "公開" },
+      { title: "台北醫院藥品庫存管理導入案", industry: "醫療", size: "200人以上", solutionType: "AI", pain: "藥品過期浪費每年損失超過 100 萬；緊急用藥時找不到庫存；各病房藥品各自管理無法調撥。", result: "藥品過期損失降低 75%；緊急用藥找到率從 70% 提升至 99%；庫存準確率達 98%。", visibility: "內部可看" },
+      { title: "台中連鎖美髮沙龍預約管理案", industry: "服務業", size: "10–50人", solutionType: "AI", pain: "顧客爽約率高，空白時段損失大；設計師排班靠白板，時常衝突；無法分析哪位設計師業績最好。", result: "爽約率從 15% 降至 3%；排班衝突歸零；識別出業績前 20% 的設計師。", visibility: "公開" },
+      { title: "雲林農業合作社精準農業導入案", industry: "製造", size: "10人以下", solutionType: "AI", pain: "施肥與灌溉全靠老農經驗，成本高且效果不穩定；氣候變遷導致病蟲害預測困難。", result: "肥料成本降低 25%；用水量降低 30%；病蟲害損失降低 40%。", visibility: "公開" },
+      { title: "基隆漁業公司漁獲追蹤系統案", industry: "製造", size: "10–50人", solutionType: "AI", pain: "漁獲來源無法追溯，大型超市拒絕合作；人工記錄漁獲資料錯誤多；無法通過食品安全認證。", result: "取得 CAS 認證；進入 2 家大型連鎖超市；漁獲追溯率達 95%。", visibility: "內部可看" }
     ];
-    const referenceCaseFilterOptions = ["全部", "製造業", "零售", "餐飲"];
+    const referenceCaseFilterOptions = ["全部", ...new Set(referenceCases.map(item => item.industry))];
 
     let allSolutions = [];
     let profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
@@ -1144,11 +1148,13 @@
           ${escapeHtml(option)}
         </button>
       `).join("");
-      refs.referenceCaseList.innerHTML = visibleCases.map(item => `
+      refs.referenceCaseList.innerHTML = visibleCases.length ? visibleCases.map(item => `
         <article class="reference-case-card border border-slate-200 p-4">
           <div class="flex items-start justify-between gap-3 mb-3">
             <h4 class="font-black text-slate-900 text-sm leading-snug">${escapeHtml(item.title)}</h4>
-            <span class="badge ${item.visibility === "公開" ? "badge-teal" : "badge-muted"}">${escapeHtml(item.visibility)}</span>
+            <span class="badge ${item.visibility === "公開" ? "badge-teal" : "badge-muted"}">
+              <i class="fa-solid ${item.visibility === "公開" ? "fa-globe" : "fa-lock"} mr-1"></i>${escapeHtml(item.visibility)}
+            </span>
           </div>
           <div class="flex flex-wrap gap-2 mb-3">
             <span class="reference-case-chip industry">${escapeHtml(item.industry)}</span>
@@ -1161,12 +1167,16 @@
               <p>${escapeHtml(item.pain)}</p>
             </div>
             <div>
-              <p class="font-black text-slate-700 mb-1">導入成果</p>
+              <span class="reference-case-result-badge mb-1"><i class="fa-solid fa-chart-line"></i>導入成果</span>
               <p>${escapeHtml(item.result)}</p>
             </div>
           </div>
         </article>
-      `).join("");
+      `).join("") : `
+        <div class="md:col-span-3 text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-4">
+          目前無此產業的參考案例
+        </div>
+      `;
       refs.referenceCaseFilters.querySelectorAll("[data-reference-case-filter]").forEach(button => {
         button.addEventListener("click", () => {
           selectedReferenceCaseIndustry = button.dataset.referenceCaseFilter || "全部";
