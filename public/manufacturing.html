@@ -437,7 +437,7 @@
     function getInlineDetailHtml(item, shouldAnimate) {
       const price = solutionField(item, "pr", "price");
       const monthlyPrice = solutionField(item, "mo", "monthly_price");
-      const descriptionShort = solutionField(item, "description_short", "description_short");
+      const descriptionShort = solutionField(item, "ds", "description_short");
       const description = solutionField(item, "desc", "description");
       const features = solutionField(item, "feat", "features");
       const category = solutionField(item, "cat", "category");
@@ -533,7 +533,7 @@
       const category = solutionField(item, "cat", "category");
       const price = solutionField(item, "pr", "price");
       const monthlyPrice = solutionField(item, "mo", "monthly_price");
-      const descriptionShort = solutionField(item, "description_short", "description_short");
+      const descriptionShort = solutionField(item, "ds", "description_short");
       const description = solutionField(item, "desc", "description");
       const features = solutionField(item, "feat", "features");
       const targetIndustry = solutionField(item, "d", "target_industry");
@@ -1151,7 +1151,7 @@
         name: item.s || "",
         vendor: item.c || "",
         price: item.pr ?? "",
-        description_short: item.description_short || "",
+        description_short: item.ds || item.description_short || "",
         description: item.desc || "",
         features: item.feat || "",
         category: item.cat || "",
