@@ -31,6 +31,7 @@ export default async function handler(req, res) {
       name: item.name || '',
       vendor: item.vendor || '',
       price: item.price ?? '',
+      description_short: String(item.description_short || '').slice(0, 200),
       description: String(item.description || '').slice(0, 260),
       features: String(item.features || '').slice(0, 260),
       category: item.category || '',
