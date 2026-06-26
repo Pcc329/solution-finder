@@ -84,6 +84,14 @@
     .solution-card-other { border-left: 3px solid #EF9F27 !important; }
     .solution-card:hover { box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
     .solution-card.is-expanded { border-color: #1D9E75; box-shadow: 0 8px 24px rgba(29, 158, 117, 0.08); }
+    .reference-case-card { border-left: 3px solid #185FA5; border-radius: 0 14px 14px 0; background: #ffffff; }
+    .reference-case-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 900; }
+    .reference-case-chip.industry { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .reference-case-chip.solution { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+    .reference-case-chip.size { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+    .reference-case-filter { font-size: 13px; padding: 5px 13px; border-radius: 999px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 900; transition: all .12s; }
+    .reference-case-filter:hover { border-color: #185FA5; color: #185FA5; background: #eff6ff; }
+    .reference-case-filter.active { background: #185FA5; color: #ffffff; border-color: #185FA5; }
     .inline-detail {
       margin-top: 12px; padding: 20px; border-radius: 16px;
       border: 1px solid #dbe7ef; background: #f8fffc;
@@ -266,6 +274,20 @@
           <div id="categoryFilterTags" class="flex flex-wrap gap-2"></div>
         </section>
 
+        <section class="card p-5" id="referenceCasesCard" style="display:none">
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-black text-slate-900">參考案例</h3>
+                <span id="referenceCaseCount" class="badge badge-blue">0 筆</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">以下案例為內部測試資料，用於輔助判斷導入方向。</p>
+            </div>
+            <div id="referenceCaseFilters" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div id="referenceCaseList" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+        </section>
+
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h3 class="text-sm font-black text-slate-800">推薦方案</h3>
           <div class="flex items-center gap-3">
@@ -342,6 +364,10 @@
       advisorConclusionContent: document.getElementById("advisorConclusionContent"),
       categoryFilterCard: document.getElementById("categoryFilterCard"),
       categoryFilterTags: document.getElementById("categoryFilterTags"),
+      referenceCasesCard: document.getElementById("referenceCasesCard"),
+      referenceCaseFilters: document.getElementById("referenceCaseFilters"),
+      referenceCaseList: document.getElementById("referenceCaseList"),
+      referenceCaseCount: document.getElementById("referenceCaseCount"),
       officialList: document.getElementById("officialList"),
       otherList: document.getElementById("otherList"),
       officialCount: document.getElementById("officialCount"),
@@ -370,6 +396,37 @@
       { key: "budget", question: "預算或導入規模大約在哪裡？", options: ["30萬以下", "30-100萬", "100萬以上", "尚未確定"] },
     ];
 
+    const referenceCases = [
+      {
+        title: "中型金屬加工廠導入 AI 排程與報工",
+        industry: "製造業",
+        size: "50-200人",
+        solutionType: "AI",
+        pain: "生產排程依賴人工經驗，現場報工延遲，主管難以及時掌握工單狀態。",
+        result: "排程時間由 3 小時縮短至 30 分鐘，報工資料完整度提升約 60%。",
+        visibility: "內部案例"
+      },
+      {
+        title: "連鎖零售業導入 CRM 與會員分眾",
+        industry: "零售",
+        size: "10-50人",
+        solutionType: "CRM",
+        pain: "會員資料分散於多個通路，行銷活動無法依顧客行為分群，回購追蹤效率偏低。",
+        result: "活動轉換率提升約 35%，回購率由 8% 提升至 12%，行銷作業時間降低約 28%。",
+        visibility: "內部案例"
+      },
+      {
+        title: "小型餐飲業導入 POS 與庫存管理",
+        industry: "餐飲",
+        size: "10-50人",
+        solutionType: "POS",
+        pain: "庫存盤點與叫貨以人工處理，熱門品項缺貨與耗損難以及時追蹤。",
+        result: "每日結帳與盤點時間由 8 小時降至 1 小時，庫存異常可於當日發現。",
+        visibility: "公開"
+      }
+    ];
+    const referenceCaseFilterOptions = ["全部", "製造業", "零售", "餐飲"];
+
     let allSolutions = [];
     let profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
     let extractedData = null;
@@ -389,6 +446,7 @@
     let currentOfficial = [];
     let currentOthers = [];
     let selectedCategories = new Set();
+    let selectedReferenceCaseIndustry = "全部";
     let expandedIds = [];
     let lastToggledId = null;
     const DESKTOP_MAX_EXPANDED = 3;
@@ -829,6 +887,7 @@
       refs.officialCount.textContent = "0 筆";
       refs.otherCount.textContent = "0 筆";
       resetCategoryFilter();
+      hideReferenceCases();
       refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 分析結果。</p>";
       askCurrentQuestion();
     }
@@ -1065,9 +1124,61 @@
       renderCurrentLists();
     }
 
+    function hideReferenceCases() {
+      selectedReferenceCaseIndustry = "全部";
+      refs.referenceCasesCard.style.display = "none";
+      refs.referenceCaseList.innerHTML = "";
+      refs.referenceCaseFilters.innerHTML = "";
+      refs.referenceCaseCount.textContent = "0 筆";
+    }
+
+    function renderReferenceCases() {
+      const visibleCases = selectedReferenceCaseIndustry === "全部"
+        ? referenceCases
+        : referenceCases.filter(item => item.industry === selectedReferenceCaseIndustry);
+
+      refs.referenceCasesCard.style.display = "";
+      refs.referenceCaseCount.textContent = `${visibleCases.length} 筆`;
+      refs.referenceCaseFilters.innerHTML = referenceCaseFilterOptions.map(option => `
+        <button class="reference-case-filter ${option === selectedReferenceCaseIndustry ? "active" : ""}" data-reference-case-filter="${escapeHtml(option)}" type="button">
+          ${escapeHtml(option)}
+        </button>
+      `).join("");
+      refs.referenceCaseList.innerHTML = visibleCases.map(item => `
+        <article class="reference-case-card border border-slate-200 p-4">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <h4 class="font-black text-slate-900 text-sm leading-snug">${escapeHtml(item.title)}</h4>
+            <span class="badge ${item.visibility === "公開" ? "badge-teal" : "badge-muted"}">${escapeHtml(item.visibility)}</span>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="reference-case-chip industry">${escapeHtml(item.industry)}</span>
+            <span class="reference-case-chip solution">${escapeHtml(item.solutionType)}</span>
+            <span class="reference-case-chip size">${escapeHtml(item.size)}</span>
+          </div>
+          <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+            <div>
+              <p class="font-black text-slate-700 mb-1">導入痛點</p>
+              <p>${escapeHtml(item.pain)}</p>
+            </div>
+            <div>
+              <p class="font-black text-slate-700 mb-1">導入成果</p>
+              <p>${escapeHtml(item.result)}</p>
+            </div>
+          </div>
+        </article>
+      `).join("");
+      refs.referenceCaseFilters.querySelectorAll("[data-reference-case-filter]").forEach(button => {
+        button.addEventListener("click", () => {
+          selectedReferenceCaseIndustry = button.dataset.referenceCaseFilter || "全部";
+          renderReferenceCases();
+        });
+      });
+    }
+
     function renderResult(official, others, conclusion) {
       buildCategoryFilter(official, others);
       applyCategoryFilter();
+      renderReferenceCases();
       if (conclusion) {
         refs.advisorConclusionContent.innerHTML = conclusion;
       }
@@ -1362,6 +1473,7 @@
       refs.officialCount.textContent = "0 筆";
       refs.otherCount.textContent = "0 筆";
       resetCategoryFilter();
+      hideReferenceCases();
       refs.advisorConclusionContent.innerHTML = "<p>完成左側資料與推薦後，系統會在這裡產生 AI 分析結果。</p>";
       refs.queryPreview.textContent = "完成左側問答後產生官方推薦與其他候選方案。";
       refs.runBtn.disabled = true;
