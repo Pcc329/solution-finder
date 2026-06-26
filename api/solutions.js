@@ -101,6 +101,7 @@ export default async function handler(req, res) {
         r: co.region || '',
         st: co.is_startup || false,
         city: co.city || '',
+        ds: f['description_short'] || '',
         desc: f['description'] || '',
         feat: f['features_list'] || '',
         tags: co.tech_tags || '',
