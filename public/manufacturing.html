@@ -95,6 +95,17 @@
     .reference-case-filter { font-size: 13px; padding: 5px 13px; border-radius: 999px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 900; transition: all .12s; }
     .reference-case-filter:hover { border-color: #185FA5; color: #185FA5; background: #eff6ff; }
     .reference-case-filter.active { background: #185FA5; color: #ffffff; border-color: #185FA5; }
+    .ref-case-detail { border: 0.5px solid var(--border, #e5e7eb); border-radius: 12px; margin-top: 8px; overflow: hidden; animation: inlineDetailIn 160ms ease-out; background: #ffffff; }
+    .ref-case-detail.no-animation { animation: none; }
+    .ref-case-detail-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border, #e5e7eb); }
+    .ref-case-detail-row-last { border-bottom: none; }
+    .ref-case-detail-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+    .ref-case-icon-diag { background: #E6F1FB; color: #185FA5; }
+    .ref-case-icon-resist { background: #FAEEDA; color: #633806; }
+    .ref-case-icon-resolve { background: #EAF3DE; color: #27500A; }
+    .ref-case-icon-replic { background: #EEEDFE; color: #3C3489; }
+    .ref-case-detail-label { font-size: 11px; font-weight: 500; color: var(--text-muted, #888780); margin-bottom: 3px; }
+    .ref-case-detail-text { font-size: 13px; color: var(--text-secondary, #5f5e5a); line-height: 1.65; word-break: break-word; overflow-wrap: break-word; }
     .inline-detail {
       margin-top: 12px; padding: 20px; border-radius: 16px;
       border: 1px solid #dbe7ef; background: #f8fffc;
@@ -1142,24 +1153,23 @@
 
     function getReferenceCaseDetailHtml(item) {
       const detailItems = [
-        ["fa-regular fa-clipboard", "顧問診斷結論", item.diagnosis],
-        ["fa-solid fa-triangle-exclamation", "推動阻力", item.resistance],
-        ["fa-solid fa-circle-check", "化解方法", item.resolution],
-        ["fa-solid fa-repeat", "可複製條件", item.replicable],
+        ["📋", "ref-case-icon-diag", "顧問診斷結論", item.diagnosis],
+        ["⚠️", "ref-case-icon-resist", "推動阻力", item.resistance],
+        ["✅", "ref-case-icon-resolve", "化解方法", item.resolution],
+        ["🔁", "ref-case-icon-replic", "可複製條件", item.replicable],
       ];
 
       return `
-        <div class="inline-detail">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            ${detailItems.map(([icon, label, value]) => `
-              <section>
-                <h5 class="text-sm font-black text-slate-800 mb-2 flex items-center gap-2">
-                  <i class="${icon} text-slate-400"></i>${label}
-                </h5>
-                <p class="text-sm text-slate-600">${escapeHtml(value)}</p>
-              </section>
-            `).join("")}
-          </div>
+        <div class="ref-case-detail">
+          ${detailItems.map(([icon, iconClass, label, value], index) => `
+            <div class="ref-case-detail-row ${index === detailItems.length - 1 ? "ref-case-detail-row-last" : ""}">
+              <div class="ref-case-detail-icon ${iconClass}" aria-hidden="true">${icon}</div>
+              <div class="ref-case-detail-content">
+                <div class="ref-case-detail-label">${label}</div>
+                <div class="ref-case-detail-text">${escapeHtml(value)}</div>
+              </div>
+            </div>
+          `).join("")}
         </div>
       `;
     }
