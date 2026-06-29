@@ -20,7 +20,7 @@
     .field-label { display: block; font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 8px; }
     .control { width: 100%; border: 1px solid #dbe3ea; border-radius: 12px; padding: 11px 12px; background: #fff; font-size: 14px; color: #0f172a; outline: none; }
     .control:focus { border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12); }
-    .control:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; opacity: 0.58; }
+    .control:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; opacity: 0.5; }
     .pain-option { display: flex; gap: 9px; align-items: center; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 11px; font-size: 13px; color: #334155; cursor: pointer; background: #fff; }
     .pain-option:has(input:checked) { border-color: #0d9488; background: #f0fdfa; color: #0f766e; font-weight: 800; }
     .btn-primary { background: #0d9488; color: white; border-radius: 12px; font-weight: 900; padding: 12px 16px; transition: 0.18s; }
@@ -343,6 +343,10 @@
       refs.agentSendBtn.disabled = disabled;
       refs.agentInput.disabled = disabled;
       refs.agentInput.placeholder = complete ? "分析已完成，請點選『產生推薦』" : "也可以直接輸入回答...";
+      refs.agentInput.classList.toggle("opacity-50", disabled);
+      refs.agentInput.classList.toggle("cursor-not-allowed", disabled);
+      refs.agentInput.setAttribute("aria-disabled", String(disabled));
+      refs.agentSendBtn.setAttribute("aria-disabled", String(disabled));
     }
 
     function normalizeOption(value, options) {
