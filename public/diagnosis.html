@@ -20,6 +20,7 @@
     .field-label { display: block; font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 8px; }
     .control { width: 100%; border: 1px solid #dbe3ea; border-radius: 12px; padding: 11px 12px; background: #fff; font-size: 14px; color: #0f172a; outline: none; }
     .control:focus { border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12); }
+    .control:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; opacity: 0.58; }
     .pain-option { display: flex; gap: 9px; align-items: center; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 11px; font-size: 13px; color: #334155; cursor: pointer; background: #fff; }
     .pain-option:has(input:checked) { border-color: #0d9488; background: #f0fdfa; color: #0f766e; font-weight: 800; }
     .btn-primary { background: #0d9488; color: white; border-radius: 12px; font-weight: 900; padding: 12px 16px; transition: 0.18s; }
@@ -332,6 +333,18 @@
       refs.profilePreview.textContent = items.length ? items.join("｜") : "尚未取得企業條件。";
     }
 
+    function isAgentComplete() {
+      return agentStepIndex >= agentSteps.length;
+    }
+
+    function updateAgentInputState(loading = false) {
+      const complete = isAgentComplete();
+      const disabled = loading || allSolutions.length === 0 || complete;
+      refs.agentSendBtn.disabled = disabled;
+      refs.agentInput.disabled = disabled;
+      refs.agentInput.placeholder = complete ? "分析已完成，請點選『產生推薦』" : "也可以直接輸入回答...";
+    }
+
     function normalizeOption(value, options) {
       const text = safeStr(value).trim();
       if (!text) return "";
@@ -371,6 +384,7 @@
       refs.queryPreview.textContent = "完成 AI 助手對話後產生推薦清單。";
       updateCompareBar();
       askCurrentQuestion();
+      updateAgentInputState();
     }
 
     async function handleAgentInput(value) {
@@ -413,6 +427,7 @@
         refs.agentOptions.innerHTML = "";
         refs.agentProgress.textContent = "完成";
         addMessage("assistant", "條件已整理完成。我會先做需求解析，再從資料庫篩出候選方案。");
+        updateAgentInputState();
         await runDiagnosis({ ...diagnosisProfile });
         return;
       }
@@ -541,8 +556,7 @@
     }
 
     function setLoading(loading) {
-      refs.agentSendBtn.disabled = loading || allSolutions.length === 0;
-      refs.agentInput.disabled = loading || allSolutions.length === 0;
+      updateAgentInputState(loading);
       refs.loadingState.classList.toggle("hidden", !loading);
     }
 
@@ -676,18 +690,17 @@
     }
 
     async function loadSolutions() {
-      refs.agentSendBtn.disabled = true;
-      refs.agentInput.disabled = true;
+      updateAgentInputState(true);
       try {
         const res = await fetch("/api/solutions");
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         allSolutions = await res.json();
         refs.dataStatus.textContent = `已載入 ${allSolutions.length.toLocaleString("zh-TW")} 筆方案`;
-        refs.agentSendBtn.disabled = false;
-        refs.agentInput.disabled = false;
+        updateAgentInputState(false);
       } catch (err) {
         refs.dataStatus.textContent = "方案資料載入失敗，請稍後重試";
         refs.dataStatus.className = "text-xs text-red-500";
+        updateAgentInputState(false);
       }
     }
 
