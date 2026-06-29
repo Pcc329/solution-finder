@@ -1060,11 +1060,8 @@
         expandedReferenceCaseTitles.splice(index, 1);
         lastToggledCaseTitle = null;
       } else {
-        expandedReferenceCaseTitles.push(title);
+        expandedReferenceCaseTitles = [title];
         lastToggledCaseTitle = title;
-        while (expandedReferenceCaseTitles.length > getCaseMaxExpanded()) {
-          expandedReferenceCaseTitles.shift();
-        }
       }
 
       renderReferenceCases();
@@ -1228,9 +1225,6 @@
               <div class="flex items-start justify-between gap-3 mb-3">
                 <h4 class="font-black text-slate-900 text-sm leading-snug">${escapeHtml(item.title)}</h4>
                 <div class="flex items-center gap-2 shrink-0">
-                  <span class="badge ${item.visibility === "公開" ? "badge-teal" : "badge-muted"}">
-                    <i class="fa-solid ${item.visibility === "公開" ? "fa-globe" : "fa-lock"} mr-1"></i>${escapeHtml(item.visibility)}
-                  </span>
                   <i class="fa-solid fa-chevron-${isExpanded ? "up" : "down"} text-xs text-slate-400"></i>
                 </div>
               </div>
