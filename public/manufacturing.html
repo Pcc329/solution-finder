@@ -21,6 +21,7 @@
     .btn-primary { background: #0d9488; color: white; border-radius: 12px; font-weight: 900; padding: 11px 15px; transition: 0.16s; }
     .btn-primary:hover { background: #0f766e; }
     .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+    #agentInput:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; opacity: 0.5; }
     .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 800; white-space: nowrap; }
     .badge-teal { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
     .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
@@ -155,7 +156,6 @@
       <a class="global-nav-link" href="/dashboard.html">戰情儀表板</a>
       <a class="global-nav-link" href="/strategy-guide.html">策略智庫</a>
       <a class="global-nav-link active" href="/manufacturing.html">製造業方案探索</a>
-      <a class="global-nav-link" href="/diagnosis.html">智能方案探索</a>
     </div>
   </nav>
 
@@ -875,6 +875,33 @@
       updateProfilePreview();
     }
 
+    function hardLockAgentInput(reason = "completed") {
+      refs.agentInput.dataset.inputLocked = "true";
+      refs.agentInput.disabled = true;
+      refs.agentSendBtn.disabled = true;
+      refs.agentInput.placeholder = "分析已完成，請點選『產生推薦』";
+      refs.agentInput.classList.add("opacity-50", "cursor-not-allowed");
+      refs.agentInput.setAttribute("aria-disabled", "true");
+      refs.agentSendBtn.setAttribute("aria-disabled", "true");
+      console.log("[mfg-input-lock:hard-lock]", {
+        reason,
+        inputElement: refs.agentInput ? `${refs.agentInput.tagName.toLowerCase()}#${refs.agentInput.id}` : null,
+        sendButtonElement: refs.agentSendBtn ? `${refs.agentSendBtn.tagName.toLowerCase()}#${refs.agentSendBtn.id}` : null,
+        actualInputDisabled: refs.agentInput?.disabled,
+        actualSendDisabled: refs.agentSendBtn?.disabled,
+      });
+    }
+
+    function unlockAgentInput() {
+      delete refs.agentInput.dataset.inputLocked;
+      refs.agentInput.disabled = false;
+      refs.agentSendBtn.disabled = false;
+      refs.agentInput.placeholder = "也可以直接輸入回答...";
+      refs.agentInput.classList.remove("opacity-50", "cursor-not-allowed");
+      refs.agentInput.setAttribute("aria-disabled", "false");
+      refs.agentSendBtn.setAttribute("aria-disabled", "false");
+    }
+
     function resetAgent(clearSaved = true) {
       profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
       extractedData = null;
@@ -933,6 +960,7 @@
         return;
       }
       if (stepIndex >= agentSteps.length) {
+        hardLockAgentInput("already-complete-submit");
         addMessage("assistant", "已完成條件整理，可直接按「產生推薦」，或重新分析。");
         return;
       }
@@ -951,7 +979,9 @@
         refs.agentOptions.innerHTML = "";
         refs.agentProgress.textContent = "完成";
         addMessage("assistant", "條件已整理完成。你可以產生官方推薦與其他候選方案。");
+        hardLockAgentInput("completion-message");
         runExplore();
+        hardLockAgentInput("after-runExplore");
         return;
       }
       askCurrentQuestion();
@@ -1572,8 +1602,7 @@
       refs.runBtn.disabled = true;
       resetUploadProgress();
       sessionStorage.removeItem("mfg_result");
-      refs.agentInput.disabled = false;
-      refs.agentSendBtn.disabled = false;
+      unlockAgentInput();
       askCurrentQuestion();
     }
 
@@ -1606,8 +1635,12 @@
           agentMessage: data.agentMessage || "文件解析完成，我會把萃取結果納入推薦。",
         };
       } finally {
-        refs.agentInput.disabled = false;
-        refs.agentSendBtn.disabled = false;
+        if (refs.agentInput.dataset.inputLocked === "true") {
+          hardLockAgentInput("after-document-analysis");
+        } else {
+          refs.agentInput.disabled = false;
+          refs.agentSendBtn.disabled = false;
+        }
       }
     }
 
