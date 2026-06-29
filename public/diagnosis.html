@@ -347,6 +347,17 @@
       refs.agentInput.classList.toggle("cursor-not-allowed", disabled);
       refs.agentInput.setAttribute("aria-disabled", String(disabled));
       refs.agentSendBtn.setAttribute("aria-disabled", String(disabled));
+      console.log("[diagnosis-input-lock]", {
+        inputElement: refs.agentInput ? `${refs.agentInput.tagName.toLowerCase()}#${refs.agentInput.id}` : null,
+        sendButtonElement: refs.agentSendBtn ? `${refs.agentSendBtn.tagName.toLowerCase()}#${refs.agentSendBtn.id}` : null,
+        agentStepIndex,
+        totalSteps: agentSteps.length,
+        loading,
+        complete,
+        disabled,
+        actualInputDisabled: refs.agentInput?.disabled,
+        actualSendDisabled: refs.agentSendBtn?.disabled,
+      });
     }
 
     function normalizeOption(value, options) {
@@ -393,6 +404,7 @@
 
     async function handleAgentInput(value) {
       if (agentStepIndex >= agentSteps.length) {
+        updateAgentInputState();
         addMessage("assistant", "本次規劃已完成。若要重新整理需求，請按「重新規劃」。");
         return;
       }
@@ -433,6 +445,7 @@
         addMessage("assistant", "條件已整理完成。我會先做需求解析，再從資料庫篩出候選方案。");
         updateAgentInputState();
         await runDiagnosis({ ...diagnosisProfile });
+        updateAgentInputState();
         return;
       }
       askCurrentQuestion();
