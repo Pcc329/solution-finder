@@ -1251,15 +1251,16 @@
       const visibleCases = selectedReferenceCaseIndustry === "全部"
         ? referenceCases
         : referenceCases.filter(item => item.industry === selectedReferenceCaseIndustry);
-      syncExpandedReferenceCaseTitles(visibleCases);
+      const displayCases = visibleCases.slice(0, 5);
+      syncExpandedReferenceCaseTitles(displayCases);
 
-      refs.referenceCaseCount.textContent = `${visibleCases.length} 筆`;
+      refs.referenceCaseCount.textContent = `顯示 ${displayCases.length} / 共 ${visibleCases.length} 筆`;
       refs.referenceCaseFilters.innerHTML = referenceCaseFilterOptions.map(option => `
         <button class="reference-case-filter ${option === selectedReferenceCaseIndustry ? "active" : ""}" data-reference-case-filter="${escapeHtml(option)}" type="button">
           ${escapeHtml(option)}
         </button>
       `).join("");
-      refs.referenceCaseList.innerHTML = visibleCases.length ? visibleCases.map((item, index) => {
+      refs.referenceCaseList.innerHTML = displayCases.length ? displayCases.map((item, index) => {
         const isExpanded = expandedReferenceCaseTitles.includes(item.title);
         const shouldAnimate = isExpanded && item.title === lastToggledCaseTitle;
         return `
@@ -1297,7 +1298,7 @@
       `;
       refs.referenceCaseList.querySelectorAll("[data-reference-case-index]").forEach(card => {
         card.addEventListener("click", () => {
-          const item = visibleCases[Number(card.dataset.referenceCaseIndex)];
+          const item = displayCases[Number(card.dataset.referenceCaseIndex)];
           toggleReferenceCase(item);
         });
       });
