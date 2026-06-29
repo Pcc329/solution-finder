@@ -75,5 +75,5 @@ Added rewrite:
 
 ## Commit / PR
 
-- Commit: pending
+- Implementation commit: `afe8d8f`
 - PR: pending
