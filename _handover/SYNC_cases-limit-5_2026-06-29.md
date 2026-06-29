@@ -74,5 +74,5 @@ Not changed:
 
 ## Commit / PR
 
-- Commit: pending
+- Implementation commit: `23732bf`
 - PR: existing branch PR / pending update
