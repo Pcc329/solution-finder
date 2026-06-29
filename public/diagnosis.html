@@ -337,8 +337,25 @@
       return agentStepIndex >= agentSteps.length;
     }
 
+    function hardLockAgentInput(reason = "completed") {
+      refs.agentInput.dataset.inputLocked = "true";
+      refs.agentInput.disabled = true;
+      refs.agentSendBtn.disabled = true;
+      refs.agentInput.placeholder = "分析已完成，請點選『產生推薦』";
+      refs.agentInput.classList.add("opacity-50", "cursor-not-allowed");
+      refs.agentInput.setAttribute("aria-disabled", "true");
+      refs.agentSendBtn.setAttribute("aria-disabled", "true");
+      console.log("[diagnosis-input-lock:hard-lock]", {
+        reason,
+        inputElement: refs.agentInput ? `${refs.agentInput.tagName.toLowerCase()}#${refs.agentInput.id}` : null,
+        sendButtonElement: refs.agentSendBtn ? `${refs.agentSendBtn.tagName.toLowerCase()}#${refs.agentSendBtn.id}` : null,
+        actualInputDisabled: refs.agentInput?.disabled,
+        actualSendDisabled: refs.agentSendBtn?.disabled,
+      });
+    }
+
     function updateAgentInputState(loading = false) {
-      const complete = isAgentComplete();
+      const complete = refs.agentInput.dataset.inputLocked === "true" || isAgentComplete();
       const disabled = loading || allSolutions.length === 0 || complete;
       refs.agentSendBtn.disabled = disabled;
       refs.agentInput.disabled = disabled;
@@ -350,6 +367,7 @@
       console.log("[diagnosis-input-lock]", {
         inputElement: refs.agentInput ? `${refs.agentInput.tagName.toLowerCase()}#${refs.agentInput.id}` : null,
         sendButtonElement: refs.agentSendBtn ? `${refs.agentSendBtn.tagName.toLowerCase()}#${refs.agentSendBtn.id}` : null,
+        hardLocked: refs.agentInput.dataset.inputLocked === "true",
         agentStepIndex,
         totalSteps: agentSteps.length,
         loading,
@@ -390,6 +408,7 @@
       conversationHistory = [];
       currentResults = [];
       selectedItems = [];
+      delete refs.agentInput.dataset.inputLocked;
       refs.resultsList.innerHTML = "";
       refs.resultCount.textContent = "0";
       refs.parsedPreview.classList.add("hidden");
@@ -404,6 +423,7 @@
 
     async function handleAgentInput(value) {
       if (agentStepIndex >= agentSteps.length) {
+        hardLockAgentInput("already-complete-submit");
         updateAgentInputState();
         addMessage("assistant", "本次規劃已完成。若要重新整理需求，請按「重新規劃」。");
         return;
@@ -443,9 +463,9 @@
         refs.agentOptions.innerHTML = "";
         refs.agentProgress.textContent = "完成";
         addMessage("assistant", "條件已整理完成。我會先做需求解析，再從資料庫篩出候選方案。");
-        updateAgentInputState();
+        hardLockAgentInput("completion-message");
         await runDiagnosis({ ...diagnosisProfile });
-        updateAgentInputState();
+        hardLockAgentInput("after-runDiagnosis");
         return;
       }
       askCurrentQuestion();
