@@ -410,39 +410,10 @@
       { key: "budget", question: "預算或導入規模大約在哪裡？", options: ["30萬以下", "30-100萬", "100萬以上", "尚未確定"] },
     ];
 
-    const referenceCases = [
-      {"title": "中部金屬加工廠 AI 排程導入案", "industry": "製造", "size": "50–200人", "solutionType": "AI", "pain": "生產排程完全依賴師傅經驗，無法快速應對急件插單；訂單交期頻繁延誤，客戶投訴增加；產能與人力分配不透明。", "result": "排程時間從每日 3 小時縮短至 30 分鐘；急件插單處理時間降低 60%。", "visibility": "內部可看", "diagnosis": "企業具備基礎 ERP 但資料分散，師傅經驗無法數位化導致排程脆弱；核心問題是資料治理而非技術能力不足。", "resistance": "預算有限且老闆對 ROI 存疑；現場師傅擔心被取代而抵制。", "resolution": "先以小規模 PoC 降低風險；安排師傅親自操作並擔任 AI 校正員角色。", "replicable": "適合有 ERP 但排程仍靠人工的中型製造業；老闆願意給 3 個月試行期。"},
-      {"title": "北部連鎖診所 CRM 導入案", "industry": "醫療", "size": "10–50人", "solutionType": "CRM", "pain": "病患回診提醒完全靠人工電話，漏失率高；各診所病患資料無法共用；行銷活動無法精準觸達特定族群。", "result": "回診漏失率從 35% 降至 12%；行銷簡訊開信率達 28%。", "visibility": "內部可看", "diagnosis": "診所已有掛號系統但資料孤島問題嚴重；IT 能力薄弱；真正痛點是病患黏著度低。", "resistance": "院長擔心病患個資外洩；行政人員學習意願低；IT 無專職人員。", "resolution": "強調系統符合個資法；與院長一對一說明資安機制；行政人員納入系統設計討論。", "replicable": "適合有 2 間以上分院的連鎖診所；院長重視病患體驗且願意投資數位化。"},
-      {"title": "南部零售商 POS 升級與庫存整合案", "industry": "零售", "size": "10–50人", "solutionType": "AI", "pain": "實體門市與網路訂單庫存分開管理，超賣狀況頻繁；每月盤點需耗費 2 天人力；無法即時掌握暢銷品與滯銷品。", "result": "超賣從每月 8 次降至 1 次以下；月度盤點時間縮短至半天。", "visibility": "公開", "diagnosis": "老闆對數位轉型概念模糊；真正需求是庫存可視化；現有 POS 無 API 介面導致整合成本偏高。", "resistance": "老闆擔心費用過高；員工習慣手寫盤點；現有 POS 廠商配合意願低。", "resolution": "協助老闆試算 ROI；先從網路訂單平台整合入手，不動現有 POS；員工培訓採一對一帶領。", "replicable": "適合有實體加網路雙通路的中小型零售業；現有系統願意開放 API 或更換 POS。"},
-      {"title": "北部食品加工廠品質檢測導入案", "industry": "製造", "size": "50–200人", "solutionType": "AI", "pain": "人工目視檢測漏失率高達 8%；夜班人員疲勞導致品質不穩定；客訴率居高不下影響大客戶續約。", "result": "漏失率從 8% 降至 1.5%；客訴率下降 70%；大客戶續約成功。", "visibility": "內部可看", "diagnosis": "品質問題根因是人工檢測依賴經驗且標準不一；設備老舊無法安裝感測器；需分階段導入。", "resistance": "設備廠商不願配合；工人擔心被取代；老闆希望立即見效但預算有限。", "resolution": "先導入輕量 AI 視覺方案，不改現有產線；以試點產線降低阻力；用數據說明效益。", "replicable": "適合食品、電子零組件等對品質要求高的中型製造業。"},
-      {"title": "中部傳統製造業 MES 導入案", "industry": "製造", "size": "200人以上", "solutionType": "MES", "pain": "生產資料碎片化，各部門用不同系統各自為政；管理層無法即時掌握產線狀況；異常發生後才知道而非預防。", "result": "異常反應時間從 2 小時縮短至 15 分鐘；生產效率提升 18%。", "visibility": "內部可看", "diagnosis": "企業已有 ERP 但缺乏製造端資料；MES 是補足 ERP 盲點的關鍵；需先做資料盤點再選系統。", "resistance": "ERP 廠商不願配合串接；IT 人員不足；導入期間不能停線。", "resolution": "選擇可與現有 ERP 串接的 MES；採滾動式導入，不停線；IT 人員兼任系統管理員。", "replicable": "適合已有 ERP 且產線複雜的中大型製造業。"},
-      {"title": "南部物流公司車隊管理導入案", "industry": "物流", "size": "50–200人", "solutionType": "AI", "pain": "司機排班完全靠電話協調，效率低落；油耗異常無法即時發現；客戶詢問貨物位置時無法即時回應。", "result": "油耗降低 12%；客戶滿意度評分提升；司機遲到率從 15% 降至 3%。", "visibility": "內部可看", "diagnosis": "車隊管理核心問題是資料即時性不足；現有系統為人工記錄；需導入 GPS 與排班系統。", "resistance": "司機擔心被監控；管理層擔心導入成本；現有紙本流程難以數位化。", "resolution": "強調 GPS 系統保護司機安全而非監控；從油耗節省角度說明 ROI；先導入 5 輛試行。", "replicable": "適合有 20 輛以上車輛的物流或運輸業。"},
-      {"title": "北部建設公司工程進度管理導入案", "industry": "建築營造", "size": "10–50人", "solutionType": "AI", "pain": "工程進度靠 Line 群組回報，資料難以追蹤；跨工地協調效率低；發包異常時無法即時掌握。", "result": "工程進度掌握度從 60% 提升至 95%；跨工地協調時間減少 40%。", "visibility": "公開", "diagnosis": "建設公司數位化程度低，習慣口頭溝通；導入系統需從最簡單的進度回報開始；不能太複雜。", "resistance": "工地主任不願意學新系統；老闆預算有限；工人識字率參差不齊。", "resolution": "選擇手機操作的簡單 App；工地主任先試用一週再推廣；老闆親自帶頭使用。", "replicable": "適合有多個工地同時施工的中小型建設公司。"},
-      {"title": "東部農業合作社電商導入案", "industry": "零售", "size": "10人以下", "solutionType": "AI", "pain": "農產品只能透過中盤商銷售，利潤被壓縮；沒有自己的銷售通路；消費者不知道產品來源。", "result": "直銷營收從零成長至每月 15 萬；中盤商依賴度從 100% 降至 60%。", "visibility": "公開", "diagnosis": "農業合作社缺乏數位化人才；需從最簡單的電商平台開始；關鍵是建立品牌故事。", "resistance": "農民不會用電腦；物流成本高；競爭者多。", "resolution": "選擇操作簡單的電商平台；請年輕返鄉農民協助管理；與在地物流合作降低成本。", "replicable": "適合有特色農產品且有年輕成員的農業合作社。"},
-      {"title": "台北連鎖餐廳數位點餐導入案", "industry": "餐飲", "size": "10–50人", "solutionType": "AI", "pain": "尖峰時段點餐等待時間長，客訴多；人工點餐錯誤率高；無法累積顧客消費資料。", "result": "點餐等待時間從 8 分鐘縮短至 2 分鐘；客訴減少 65%；累積會員 3,000 人。", "visibility": "內部可看", "diagnosis": "餐廳的核心問題是流程效率而非技術；數位點餐可同時解決效率與資料問題；需先評估座位配置。", "resistance": "外場人員擔心減少工時；老闆擔心客人不會用；設備安裝需停業。", "resolution": "利用公休日安裝；外場人員轉為服務引導員；提供老年顧客人工協助。", "replicable": "適合座位數 30 個以上、有穩定客流的連鎖餐廳。"},
-      {"title": "高雄製造業碳排管理導入案", "industry": "製造", "size": "200人以上", "solutionType": "AI", "pain": "大客戶要求提供碳排數據報告但企業無法提供；碳盤查靠人工估算誤差大；ESG 報告耗費大量人力。", "result": "碳排數據誤差從 30% 降至 5%；ESG 報告製作時間從 2 週縮短至 2 天。", "visibility": "公開", "diagnosis": "製造業碳排管理需先從能源監控開始；導入智慧電表可自動收集數據；再接碳盤查系統。", "resistance": "碳管理概念陌生；導入費用高；不確定法規要求。", "resolution": "先辦碳管理研習釐清法規；選擇補助方案降低費用；從電費最高的設備開始監控。", "replicable": "適合已有大客戶要求 ESG 報告的製造業。"},
-      {"title": "新竹科技製造業 ERP 升級案", "industry": "製造", "size": "200人以上", "solutionType": "ERP", "pain": "舊 ERP 系統無法支援多廠區管理；跨部門資料不互通；財務報表需人工整理耗時 3 天。", "result": "財務結帳時間從 3 天縮短至 4 小時；庫存準確率從 85% 提升至 98%。", "visibility": "內部可看", "diagnosis": "企業規模擴張後舊 ERP 已不堪負荷；需全面升級但不能停機；資料遷移是最大風險。", "resistance": "資料遷移風險大；導入期間業務不能停；各部門需求不一致。", "resolution": "採平行運行策略，新舊系統同時運作 3 個月；關鍵使用者提前 2 個月培訓。", "replicable": "適合已有舊 ERP 且規模擴張的中大型製造業。"},
-      {"title": "台中傳統批發商數位化轉型案", "industry": "零售", "size": "10–50人", "solutionType": "CRM", "pain": "訂單靠傳真與電話接收，時常漏單；應收帳款管理混亂；無法掌握哪些客戶是高價值客戶。", "result": "漏單率從 5% 降至 0.2%；應收帳款催收時間縮短 50%；識別出 Top 20 高價值客戶。", "visibility": "公開", "diagnosis": "批發商的痛點是訂單流程而非庫存；先從訂單數位化開始，再做客戶分析；選擇簡單工具。", "resistance": "老闆年紀大不願改變；業務員擔心被監控；客戶習慣傳真下單。", "resolution": "協助老闆找一位年輕員工負責系統；客戶保留傳真選項，由員工轉入系統；業務員看到資料後主動接受。", "replicable": "適合年營收 3,000 萬以上的傳統批發業。"},
-      {"title": "台北人力仲介公司 HR 系統導入案", "industry": "服務業", "size": "10–50人", "solutionType": "AI", "pain": "履歷篩選全靠人工，每週耗費 20 小時；面試安排靠 Line，時常失誤；無法追蹤求職者狀態。", "result": "履歷篩選時間從 20 小時降至 5 小時；面試失誤率從 12% 降至 1%。", "visibility": "內部可看", "diagnosis": "HR 流程痛點在於時間管理而非人員能力；導入 ATS 系統可大幅降低人工成本；關鍵是選擇好上手的工具。", "resistance": "業務員擔心系統取代人工判斷；老闆對 SaaS 月費有疑慮；資料匯入複雜。", "resolution": "選擇有免費試用期的 ATS；業務員參與系統設定；從現有資料中選 100 筆試跑。", "replicable": "適合每月招募需求超過 30 人的仲介或企業 HR 部門。"},
-      {"title": "彰化傳統製造業品牌電商轉型案", "industry": "製造", "size": "50–200人", "solutionType": "AI", "pain": "產品品質好但只靠 OEM，毛利薄；想做自有品牌但不知從何開始；缺乏電商操作人才。", "result": "首年自有品牌營收達 500 萬；毛利率從 8% 提升至 22%；建立 Instagram 粉絲 5,000 人。", "visibility": "公開", "diagnosis": "製造業轉型自有品牌關鍵是找到差異化定位；電商平台選擇比自建網站更快；人才是最大瓶頸。", "resistance": "老闆害怕得罪現有 OEM 客戶；缺乏電商人才；不知如何定價。", "resolution": "建議先在平台試水溫，不影響 OEM 業務；協助招募兼職電商人員；定價策略從競品分析開始。", "replicable": "適合產品品質穩定且有獨特性的中型製造業。"},
-      {"title": "台南教育機構線上課程平台導入案", "industry": "教育", "size": "10–50人", "solutionType": "AI", "pain": "疫情後學生減少但固定成本不變；想發展線上課程但不知如何開始；教師不熟悉線上教學工具。", "result": "線上課程學員 6 個月達 200 人；整體營收衰退趨勢止穩；開拓外縣市學員。", "visibility": "內部可看", "diagnosis": "教育機構的危機是商業模式問題而非教學品質；線上課程是補充而非替代；關鍵是找對受眾。", "resistance": "教師抵制線上教學；學生家長信任度不足；技術門檻高。", "resolution": "先從 1 位意願高的教師開始試行；邀請現有學生家長試聽並收集回饋；選擇操作簡單的平台。", "replicable": "適合有特色課程且教師願意嘗試的中小型補習班或教育機構。"},
-      {"title": "高雄旅遊業訂房系統整合案", "industry": "旅遊住宿", "size": "10–50人", "solutionType": "AI", "pain": "各訂房平台庫存各自管理，時常超訂；人工確認訂單耗費大量時間；無法掌握各通路收益差異。", "result": "超訂事件從每月 3 次降至 0 次；訂單處理時間從 2 小時縮短至 20 分鐘。", "visibility": "公開", "diagnosis": "旅館業超訂問題根因是 Channel Manager 缺失；導入後可自動同步庫存；關鍵是選擇相容的系統。", "resistance": "老闆不確定哪個系統適合；平台手續費高；員工需要培訓。", "resolution": "先分析各平台訂單比例選擇優先整合對象；試用期間保留人工確認機制；員工分批培訓。", "replicable": "適合同時使用 3 個以上訂房平台的民宿或小型旅館。"},
-      {"title": "台北醫美診所顧客管理系統案", "industry": "醫療", "size": "10–50人", "solutionType": "CRM", "pain": "顧客回訪率低，療程結束後缺乏追蹤；諮詢預約靠 Line，時常衝突；無法分析哪些療程最受歡迎。", "result": "顧客回訪率從 30% 提升至 55%；諮詢預約衝突從每月 5 次降至 0；識別出高消費顧客群。", "visibility": "內部可看", "diagnosis": "醫美診所的核心競爭力是顧客關係管理；導入 CRM 可系統化追蹤顧客旅程；關鍵是個資合規。", "resistance": "院長擔心個資問題；諮詢師不願意填寫系統；客戶習慣 Line 溝通。", "resolution": "選擇符合醫療個資規範的 CRM；諮詢師從最常用功能開始學習；保留 Line 入口但自動匯入系統。", "replicable": "適合有固定客群的醫美、牙科或皮膚科診所。"},
-      {"title": "新北電商公司倉庫管理系統導入案", "industry": "電商", "size": "10–50人", "solutionType": "AI", "pain": "訂單量成長但出貨錯誤率也跟著上升；庫存盤點耗時且準確率低；旺季時人力嚴重不足。", "result": "出貨錯誤率從 3% 降至 0.3%；庫存準確率從 80% 提升至 97%；旺季人力需求降低 20%。", "visibility": "公開", "diagnosis": "電商倉管問題在於流程而非人力；WMS 可解決揀貨錯誤與庫存追蹤；需先做倉庫動線優化。", "resistance": "倉管人員抵制學習新系統；導入期間不能影響出貨；費用超出預算。", "resolution": "選擇輕量 WMS 且有中文介面；導入在淡季進行；倉管人員參與系統設計。", "replicable": "適合每月出貨量超過 5,000 件的電商或倉儲業者。"},
-      {"title": "台中汽車保養廠數位化升級案", "industry": "服務業", "size": "10–50人", "solutionType": "AI", "pain": "預約排班靠電話與白板，時常衝突；客戶等待時間不透明導致客訴；無法分析哪些服務最賺錢。", "result": "預約衝突從每週 3 次降至 0；客戶等待滿意度提升；識別出毛利最高的 5 項服務。", "visibility": "公開", "diagnosis": "保養廠的問題是流程管理而非技術；預約系統可解決排班衝突；關鍵是要讓師傅也願意用。", "resistance": "老技師不願意用系統；老闆認為客人習慣電話預約；硬體設備老舊。", "resolution": "選擇手機操作的預約系統；保留電話預約由員工轉入；老技師只需看排班不需自己操作。", "replicable": "適合有 3 位以上技師的汽車保養廠或維修廠。"},
-      {"title": "台北金融保險公司業務管理導入案", "industry": "金融", "size": "50–200人", "solutionType": "CRM", "pain": "業務員拜訪紀錄靠紙本，主管無法掌握業績進度；客戶資料分散在各業務員手中；業務員離職帶走客戶。", "result": "離職業務員客戶流失率從 60% 降至 10%；主管業績預測準確率提升至 85%。", "visibility": "內部可看", "diagnosis": "保險業的客戶資料是核心資產；CRM 可解決資料外流問題；關鍵是業務員願意輸入資料。", "resistance": "業務員擔心客戶被公司掌控；主管推動力道不足；資料匯入複雜。", "resolution": "強調 CRM 保護業務員自己的客戶資料；從績效最好的業務員開始試行；主管率先使用。", "replicable": "適合業務員超過 20 人且流動率偏高的保險或金融服務業。"},
-      {"title": "屏東農產品冷鏈管理導入案", "industry": "物流", "size": "10–50人", "solutionType": "AI", "pain": "農產品運輸過程溫度無法監控，到貨品質不穩定；客訴率高影響與超市的合作關係；人工記錄溫度不可信。", "result": "到貨品質客訴降低 80%；超市合作訂單增加 30%；取得大型連鎖超市供應商資格。", "visibility": "公開", "diagnosis": "冷鏈問題根因是溫度數據缺失；IoT 溫度感測器可自動記錄；關鍵是找到低成本方案。", "resistance": "感測器費用超出預算；農民對科技不信任；網路訊號不穩定。", "resolution": "選擇低功耗感測器降低費用；先在 1 輛冷藏車試行；使用 4G 備援解決訊號問題。", "replicable": "適合有冷藏運輸需求且有大型零售通路合作意願的農產品業者。"},
-      {"title": "台北連鎖健身房會員管理系統案", "industry": "服務業", "size": "10–50人", "solutionType": "AI", "pain": "會員資料分散在各分店，總部無法統一管理；課程預約靠電話，時常超訂；會員流失原因無法分析。", "result": "會員續約率從 40% 提升至 62%；課程超訂事件從每月 10 次降至 0；識別出高流失風險會員。", "visibility": "內部可看", "diagnosis": "健身房的核心是會員黏著度；整合預約與會員系統可提升體驗；關鍵是要與門禁整合。", "resistance": "各分店系統不相容；教練不願意學新系統；導入費用偏高。", "resolution": "選擇有 API 的系統方便整合；教練只需管理自己的課程；從最大分店先導入。", "replicable": "適合有 2 間以上分店的連鎖健身房或瑜珈教室。"},
-      {"title": "桃園電子製造業智慧倉儲案", "industry": "製造", "size": "200人以上", "solutionType": "AI", "pain": "原物料入庫錯誤率高；揀料時間過長影響生產排程；倉庫空間利用率低。", "result": "入庫錯誤率從 2% 降至 0.1%；揀料時間縮短 35%；倉庫空間利用率提升 20%。", "visibility": "內部可看", "diagnosis": "倉儲問題與生產排程緊密連結；WMS 需與 MES 整合；關鍵是條碼或 RFID 基礎建設。", "resistance": "RFID 建置費用高；系統整合複雜；倉管人員需大量培訓。", "resolution": "先用條碼取代 RFID 降低費用；WMS 與 MES 分階段整合；倉管人員全程參與設計。", "replicable": "適合原物料種類超過 500 項的中大型製造業。"},
-      {"title": "台南傳統市場攤商電商轉型案", "industry": "零售", "size": "10人以下", "solutionType": "AI", "pain": "攤位生意受天氣影響大；缺乏穩定客源；沒有線上銷售通路。", "result": "線上營收首月達 3 萬元；天氣影響降低；建立 300 位固定回購客群。", "visibility": "公開", "diagnosis": "傳統市場攤商轉型關鍵是找到對的線上平台；需要有人協助操作；品牌故事是差異化關鍵。", "resistance": "攤商不會用手機購物平台；物流包裝成本高；不知道如何拍照。", "resolution": "協助攤商選擇適合的平台；幫助拍攝產品照片；找在地物流降低成本。", "replicable": "適合有特色在地食材或手作產品的傳統市場攤商。"},
-      {"title": "台北軟體新創公司 OKR 管理工具導入案", "industry": "服務業", "size": "10–50人", "solutionType": "AI", "pain": "團隊目標不清晰，各部門各做各的；專案進度靠 Slack 追蹤，容易漏失；績效評估主觀，員工不服氣。", "result": "部門目標對齊度從 40% 提升至 85%；專案延誤率降低 30%；員工對績效評估滿意度提升。", "visibility": "公開", "diagnosis": "新創公司的問題是成長速度超過管理能力；OKR 工具可結構化目標管理；關鍵是 CEO 率先使用。", "resistance": "工程師覺得填 OKR 浪費時間；工具太多員工疲乏；目標設定不會寫。", "resolution": "CEO 親自帶領第一季 OKR 設定；工程師的 OKR 由 PM 協助撰寫；每週 15 分鐘檢視會議。", "replicable": "適合員工 15 人以上且正在快速成長的新創公司。"},
-      {"title": "苗栗觀光工廠數位行銷導入案", "industry": "旅遊住宿", "size": "10–50人", "solutionType": "AI", "pain": "遊客量逐年下滑；行銷完全靠口碑，沒有主動觸及新客戶；無法掌握哪個通路帶來最多遊客。", "result": "Google 搜尋曝光增加 5 倍；預約量提升 40%；建立 Instagram 帳號粉絲 2,000 人。", "visibility": "公開", "diagnosis": "觀光工廠的問題是能見度不足而非體驗品質；數位行銷可低成本觸及新客戶；關鍵是找對平台。", "resistance": "老闆對數位行銷不信任；沒有行銷人才；預算有限。", "resolution": "從 Google 我的商家開始，零費用提升能見度；協助拍攝短影片吸引年輕族群；試行 3 個月評估效果。", "replicable": "適合位於觀光區且體驗品質穩定的中小型觀光工廠或農場。"},
-      {"title": "台北醫院藥品庫存管理導入案", "industry": "醫療", "size": "200人以上", "solutionType": "AI", "pain": "藥品過期浪費每年損失超過 100 萬；緊急用藥時找不到庫存；各病房藥品各自管理無法調撥。", "result": "藥品過期損失降低 75%；緊急用藥找到率從 70% 提升至 99%；庫存準確率達 98%。", "visibility": "內部可看", "diagnosis": "醫院藥品管理問題在於缺乏統一系統；RFID 可解決追蹤問題但費用高；先從高價藥品開始。", "resistance": "醫師習慣自行囤藥；RFID 導入費用高；系統需與 HIS 整合。", "resolution": "先針對高價藥品導入管理，降低投資規模；與 HIS 廠商協商 API 串接；醫師參與系統設計。", "replicable": "適合床位超過 100 床且藥品種類超過 500 項的區域醫院。"},
-      {"title": "台中連鎖美髮沙龍預約管理案", "industry": "服務業", "size": "10–50人", "solutionType": "AI", "pain": "顧客爽約率高，空白時段損失大；設計師排班靠白板，時常衝突；無法分析哪位設計師業績最好。", "result": "爽約率從 15% 降至 3%；排班衝突歸零；識別出業績前 20% 的設計師並給予獎勵。", "visibility": "公開", "diagnosis": "美髮沙龍的痛點是時間管理效率；預約系統可解決爽約與排班問題；關鍵是讓顧客願意用 App。", "resistance": "設計師擔心業績被監控；顧客年齡層偏大不習慣 App；導入費用高。", "resolution": "選擇有 Line 預約功能的系統降低學習門檻；設計師可自行設定可預約時段；爽約收取訂金。", "replicable": "適合設計師 5 人以上的連鎖美髮沙龍或美容院。"},
-      {"title": "雲林農業合作社精準農業導入案", "industry": "製造", "size": "10人以下", "solutionType": "AI", "pain": "施肥與灌溉全靠老農經驗，成本高且效果不穩定；氣候變遷導致病蟲害預測困難；找不到年輕接班人。", "result": "肥料成本降低 25%；用水量降低 30%；病蟲害損失降低 40%。", "visibility": "公開", "diagnosis": "農業數位化關鍵是讓老農看到數據效益；先從土壤感測器開始，投資小且效果明顯；人才問題需靠農委會資源。", "resistance": "老農不信任科技；感測器費用超出預算；訊號覆蓋率不足。", "resolution": "申請農委會補助降低費用；由年輕農民操作設備，老農只看報告；先在一塊試驗田導入。", "replicable": "適合有年輕成員且願意申請補助的中小型農場。"},
-      {"title": "基隆漁業公司漁獲追蹤系統案", "industry": "製造", "size": "10–50人", "solutionType": "AI", "pain": "漁獲來源無法追溯，大型超市拒絕合作；人工記錄漁獲資料錯誤多；無法通過食品安全認證。", "result": "取得 CAS 認證；進入 2 家大型連鎖超市；漁獲追溯率達 95%。", "visibility": "內部可看", "diagnosis": "漁業追溯問題根因是缺乏數位記錄；QR Code 追溯系統可低成本實現；關鍵是碼頭作業人員配合。", "resistance": "碼頭工人識字率低；海上網路訊號不穩；認證費用高。", "resolution": "使用圖示化介面降低識字門檻；採用離線記錄後同步的架構；先取得台灣 CAS 認證再考慮更高規格。", "replicable": "適合想進入大型零售通路且有穩定漁獲來源的中小型漁業公司。"}
-    ];
-    const referenceCaseFilterOptions = ["全部", ...new Set(referenceCases.map(item => item.industry))];
+    let referenceCases = [];
+    let referenceCaseFilterOptions = ["全部"];
+    let referenceCasesLoadError = "";
+    let referenceCasesLoading = false;
 
     let allSolutions = [];
     let profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
@@ -489,6 +460,25 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
+
+    function sortReferenceCases(cases) {
+      return [...cases].map((item, index) => ({ item, index }))
+        .sort((a, b) => {
+          const realDiff = Number(b.item.isReal === true) - Number(a.item.isReal === true);
+          return realDiff || a.index - b.index;
+        })
+        .map(entry => entry.item);
+    }
+
+    function updateReferenceCaseFilterOptions() {
+      const industries = [...new Set(referenceCases
+        .map(item => safeStr(item.industry).trim())
+        .filter(Boolean))];
+      referenceCaseFilterOptions = ["全部", ...industries];
+      if (!referenceCaseFilterOptions.includes(selectedReferenceCaseIndustry)) {
+        selectedReferenceCaseIndustry = "全部";
+      }
+    }
 
     function renderMarkdown(text) {
       const raw = safeStr(text);
@@ -1234,12 +1224,35 @@
     }
 
     function renderReferenceCases() {
+      refs.referenceCasesCard.style.display = "";
+
+      if (referenceCasesLoading) {
+        refs.referenceCaseCount.textContent = "載入中";
+        refs.referenceCaseFilters.innerHTML = "";
+        refs.referenceCaseList.innerHTML = `
+          <div class="md:col-span-3 text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-4">
+            參考案例載入中...
+          </div>
+        `;
+        return;
+      }
+
+      if (referenceCasesLoadError) {
+        refs.referenceCaseCount.textContent = "0 筆";
+        refs.referenceCaseFilters.innerHTML = "";
+        refs.referenceCaseList.innerHTML = `
+          <div class="md:col-span-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl p-4">
+            案例載入失敗，請稍後再試。
+          </div>
+        `;
+        return;
+      }
+
       const visibleCases = selectedReferenceCaseIndustry === "全部"
         ? referenceCases
         : referenceCases.filter(item => item.industry === selectedReferenceCaseIndustry);
       syncExpandedReferenceCaseTitles(visibleCases);
 
-      refs.referenceCasesCard.style.display = "";
       refs.referenceCaseCount.textContent = `${visibleCases.length} 筆`;
       refs.referenceCaseFilters.innerHTML = referenceCaseFilterOptions.map(option => `
         <button class="reference-case-filter ${option === selectedReferenceCaseIndustry ? "active" : ""}" data-reference-case-filter="${escapeHtml(option)}" type="button">
@@ -1743,6 +1756,34 @@
       }
     }
 
+    async function loadCases() {
+      referenceCasesLoading = true;
+      referenceCasesLoadError = "";
+      if (refs.referenceCasesCard.style.display !== "none") {
+        renderReferenceCases();
+      }
+
+      try {
+        const res = await fetch("/api/cases");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        referenceCases = sortReferenceCases(Array.isArray(data) ? data : []);
+        updateReferenceCaseFilterOptions();
+      } catch (err) {
+        console.error("Cases load error:", err);
+        referenceCases = [];
+        referenceCaseFilterOptions = ["全部"];
+        selectedReferenceCaseIndustry = "全部";
+        referenceCasesLoadError = err.message || "案例載入失敗";
+      } finally {
+        referenceCasesLoading = false;
+      }
+
+      if (refs.referenceCasesCard.style.display !== "none") {
+        renderReferenceCases();
+      }
+    }
+
     refs.agentSendBtn.addEventListener("click", () => handleAnswer(refs.agentInput.value));
     refs.agentInput.addEventListener("keydown", event => {
       if (event.key === "Enter") handleAnswer(refs.agentInput.value);
@@ -1811,6 +1852,7 @@
     resetAgent(false);
     restoreResult();
     loadSolutions();
+    loadCases();
   </script>
 </body>
 </html>
