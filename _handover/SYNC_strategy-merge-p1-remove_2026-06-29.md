@@ -86,5 +86,5 @@ Remaining anchor-nav links:
 
 ## Commit / PR
 
-- Commit: pending
+- Implementation commit: `73c9c2d`
 - PR: pending
