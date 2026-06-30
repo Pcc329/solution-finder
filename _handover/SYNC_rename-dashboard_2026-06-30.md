@@ -50,5 +50,6 @@ Only display text was changed. Dashboard route remains `/dashboard.html`.
 
 ## Commit / PR
 
-- Commit: pending
-- PR: pending
+- Implementation Commit: ddef0fb
+- SYNC Commit: see latest branch commit after this file update
+- PR: https://github.com/Pcc329/solution-finder/compare/main...feat-strategy-merge-p2-import
