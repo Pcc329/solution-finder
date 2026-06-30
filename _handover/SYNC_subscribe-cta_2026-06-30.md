@@ -89,6 +89,27 @@ Observed results:
 - `<script>` tag audit: PASS, inline script remains `<script>` with no added attributes
 - `git diff --check`: PASS, line-ending warning only if present
 
+## Bug Follow-up: CTA Not Visible on Vercel Preview
+
+Issue reported on 2026-06-30:
+
+- Vercel Preview with real Airtable data did not show `訂閱看更多` for a non-37-41 case.
+- Example case: `北部建設公司工程進度管理導入案`.
+
+Root cause:
+
+- The implementation commit `d32fdf3` existed only in the local worktree.
+- The branch was still ahead of `origin/feat-strategy-merge-p2-import` by 1 commit.
+- Because the commit had not been pushed, Vercel Preview was still running the previous remote branch state, which did not contain the CTA code.
+- The local logic itself was rechecked and the CTA is appended by `getReferenceCaseDetailHtml(item, shouldAnimate)` when `shouldShowReferenceCaseSubscribeCta(item)` returns `true`.
+
+Real-data implication:
+
+- Once `d32fdf3` and this SYNC update are pushed, Vercel should rebuild the preview from the branch containing the CTA code.
+- After preview rebuild, retest at least:
+  - 3 non-37-41 real cases: CTA should appear after expansion.
+  - 1 case 37-41 real case: CTA should not appear; image preview should still work.
+
 ## Git
 
-- Commit: pending at time of writing; update after commit if needed.
+- Commit: `d32fdf3` (`feat: add subscribe CTA for reference cases`)
