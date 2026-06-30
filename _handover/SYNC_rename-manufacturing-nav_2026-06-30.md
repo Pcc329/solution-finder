@@ -55,5 +55,6 @@ The route remains `/manufacturing.html`.
 
 ## Commit / PR
 
-- Commit: pending
-- PR: pending
+- Implementation Commit: d3c358b
+- SYNC Commit: see latest branch commit after this file update
+- PR: https://github.com/Pcc329/solution-finder/compare/main...feat-strategy-merge-p2-import
