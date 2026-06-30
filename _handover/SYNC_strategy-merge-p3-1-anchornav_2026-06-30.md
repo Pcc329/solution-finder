@@ -2,7 +2,8 @@
 
 Date: 2026-06-30
 Branch: feat-strategy-merge-p2-import
-Commit: fbce807
+Implementation Commit: 28e996f
+SYNC Commit: see latest branch commit after this file update
 
 ## Scope
 
