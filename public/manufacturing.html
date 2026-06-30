@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
@@ -96,6 +96,52 @@
     .reference-case-filter { font-size: 13px; padding: 5px 13px; border-radius: 999px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 900; transition: all .12s; }
     .reference-case-filter:hover { border-color: #185FA5; color: #185FA5; background: #eff6ff; }
     .reference-case-filter.active { background: #185FA5; color: #ffffff; border-color: #185FA5; }
+    .reference-case-media { position: relative; }
+    .reference-case-media-trigger {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid #bfdbfe; border-radius: 999px;
+      background: #eff6ff; color: #1d4ed8;
+      padding: 5px 9px; font-size: 11px; font-weight: 900;
+      cursor: pointer; transition: border-color .15s, background .15s, color .15s;
+    }
+    .reference-case-media-trigger:hover,
+    .reference-case-media.open .reference-case-media-trigger {
+      border-color: #185FA5; background: #dbeafe; color: #185FA5;
+    }
+    .reference-case-media-panel {
+      position: absolute; right: 0; bottom: calc(100% + 8px);
+      width: min(420px, calc(100vw - 48px));
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+      padding: 10px; border: 1px solid #dbeafe; border-radius: 14px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18);
+      opacity: 0; visibility: hidden; transform: translateY(4px);
+      transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
+      z-index: 80; pointer-events: none;
+    }
+    .reference-case-media:hover .reference-case-media-panel,
+    .reference-case-media:focus-within .reference-case-media-panel,
+    .reference-case-media.open .reference-case-media-panel {
+      opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
+    }
+    .reference-case-media-frame {
+      position: relative; overflow: hidden; border-radius: 10px;
+      background: #f1f5f9; aspect-ratio: 4 / 3;
+      border: 1px solid #e2e8f0;
+    }
+    .reference-case-media-frame img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .reference-case-media-badge {
+      position: absolute; top: 6px; left: 6px;
+      border-radius: 999px; padding: 3px 7px;
+      background: rgba(15, 23, 42, 0.78); color: #ffffff;
+      font-size: 10px; font-weight: 900; line-height: 1;
+    }
+    .reference-case-media-caption {
+      grid-column: 1 / -1; color: #64748b;
+      font-size: 11px; font-weight: 700; line-height: 1.45;
+    }
     .ref-case-detail { border: 0.5px solid var(--border, #e5e7eb); border-radius: 12px; margin-top: 8px; overflow: hidden; animation: inlineDetailIn 160ms ease-out; background: #ffffff; }
     .ref-case-detail.no-animation { animation: none; }
     .ref-case-detail-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border, #e5e7eb); }
@@ -122,6 +168,13 @@
     @keyframes inlineDetailIn {
       from { opacity: 0; transform: translateY(-4px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 767px) {
+      .reference-case-media-panel {
+        position: fixed; left: 16px; right: 16px; top: 82px; bottom: auto;
+        width: auto; max-height: calc(100vh - 120px);
+        overflow-y: auto;
+      }
     }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
     .markdown-body h1 { font-size: 1.25rem; }
@@ -413,7 +466,40 @@
     let referenceCaseFilterOptions = ["全部"];
     let referenceCasesLoadError = "";
     let referenceCasesLoading = false;
-
+    const referenceCaseImageMap = {
+      37: [
+        { src: "case-images/case37_zhentian_01.jpg", illustrative: true },
+        { src: "case-images/case37_zhentian_02.jpg", illustrative: true },
+        { src: "case-images/case37_zhentian_03.jpg", illustrative: true },
+      ],
+      38: [
+        { src: "case-images/case38_taichungseiki_01.jpg", illustrative: false },
+        { src: "case-images/case38_taichungseiki_02.jpg", illustrative: false },
+        { src: "case-images/case38_taichungseiki_03.jpg", illustrative: false },
+      ],
+      39: [
+        { src: "case-images/case39_chimei_01.jpg", illustrative: false },
+        { src: "case-images/case39_chimei_02.jpg", illustrative: false },
+        { src: "case-images/case39_chimei_03.jpg", illustrative: false },
+      ],
+      40: [
+        { src: "case-images/case40_shude_01.jpg", illustrative: false },
+        { src: "case-images/case40_shude_02.jpg", illustrative: true },
+        { src: "case-images/case40_shude_03.jpg", illustrative: true },
+      ],
+      41: [
+        { src: "case-images/case41_mengchuang_01.jpg", illustrative: false },
+        { src: "case-images/case41_mengchuang_02.jpg", illustrative: false },
+        { src: "case-images/case41_mengchuang_03.jpg", illustrative: true },
+      ],
+    };
+    const referenceCaseTitleToImageId = new Map([
+      ["振添股份", 37],
+      ["台中精機", 38],
+      ["奇美食品", 39],
+      ["樹德企業", 40],
+      ["盟創科技", 41],
+    ]);
     let allSolutions = [];
     let profile = { subIndustry: "", size: "", maturity: "", pain: "", budget: "", documentNote: "" };
     let extractedData = null;
@@ -1222,6 +1308,44 @@
       `;
     }
 
+    function getReferenceCaseImageId(item) {
+      const rawId = item?.case_id ?? item?.caseId ?? item?.id ?? item?.record_id ?? "";
+      const numericId = Number(String(rawId).replace(/[^\d]/g, ""));
+      if (referenceCaseImageMap[numericId]) return numericId;
+      const title = safeStr(item?.title);
+      for (const [keyword, imageId] of referenceCaseTitleToImageId.entries()) {
+        if (title.includes(keyword)) return imageId;
+      }
+      return null;
+    }
+
+    function getReferenceCaseImages(item) {
+      const imageId = getReferenceCaseImageId(item);
+      return imageId ? referenceCaseImageMap[imageId] || [] : [];
+    }
+
+    function getReferenceCaseMediaHtml(item) {
+      const images = getReferenceCaseImages(item);
+      if (!images.length) return "";
+      return `
+        <div class="reference-case-media" data-reference-case-media>
+          <button class="reference-case-media-trigger" type="button" aria-label="查看案例圖片">
+            <i class="fa-regular fa-images"></i>
+            圖片
+          </button>
+          <div class="reference-case-media-panel" role="group" aria-label="案例圖片展示區">
+            ${images.map((image, index) => `
+              <figure class="reference-case-media-frame">
+                <img src="${escapeHtml(image.src)}" alt="${escapeHtml(item.title)} 圖片 ${index + 1}" loading="lazy">
+                ${image.illustrative ? '<span class="reference-case-media-badge">示意圖</span>' : ""}
+              </figure>
+            `).join("")}
+            <div class="reference-case-media-caption">圖片僅供案例脈絡輔助判讀；標示「示意圖」者非真實案場照片。</div>
+          </div>
+        </div>
+      `;
+    }
+
     function renderReferenceCases() {
       refs.referenceCasesCard.style.display = "";
 
@@ -1262,12 +1386,14 @@
       refs.referenceCaseList.innerHTML = displayCases.length ? displayCases.map((item, index) => {
         const isExpanded = expandedReferenceCaseTitles.includes(item.title);
         const shouldAnimate = isExpanded && item.title === lastToggledCaseTitle;
+        const mediaHtml = getReferenceCaseMediaHtml(item);
         return `
           <div class="reference-case-item">
             <article class="reference-case-card ${isExpanded ? "is-expanded" : ""} border border-slate-200 p-4" data-reference-case-index="${index}" aria-expanded="${isExpanded}">
               <div class="flex items-start justify-between gap-3 mb-3">
                 <h4 class="font-black text-slate-900 text-sm leading-snug">${escapeHtml(item.title)}</h4>
                 <div class="flex items-center gap-2 shrink-0">
+                  ${mediaHtml}
                   <i class="fa-solid fa-chevron-${isExpanded ? "up" : "down"} text-xs text-slate-400"></i>
                 </div>
               </div>
@@ -1299,6 +1425,21 @@
         card.addEventListener("click", () => {
           const item = displayCases[Number(card.dataset.referenceCaseIndex)];
           toggleReferenceCase(item);
+        });
+      });
+      refs.referenceCaseList.querySelectorAll("[data-reference-case-media]").forEach(media => {
+        media.addEventListener("click", event => {
+          event.stopPropagation();
+          const isOpen = media.classList.contains("open");
+          refs.referenceCaseList.querySelectorAll("[data-reference-case-media].open").forEach(openMedia => {
+            if (openMedia !== media) openMedia.classList.remove("open");
+          });
+          media.classList.toggle("open", !isOpen);
+        });
+        media.addEventListener("keydown", event => {
+          if (event.key === "Escape") {
+            media.classList.remove("open");
+          }
         });
       });
       refs.referenceCaseFilters.querySelectorAll("[data-reference-case-filter]").forEach(button => {
