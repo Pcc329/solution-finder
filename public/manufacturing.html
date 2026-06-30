@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>製造業方案探索 | Solution Finder</title>
+  <title>方案探索 | Solution Finder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -154,7 +154,7 @@
     <div class="global-nav-actions">
       <a class="global-nav-link" href="/sources.html">資料來源</a>
       <a class="global-nav-link" href="/dashboard.html">戰情室</a>
-      <a class="global-nav-link active" href="/manufacturing.html">製造業方案探索</a>
+      <a class="global-nav-link active" href="/manufacturing.html">方案探索</a>
     </div>
   </nav>
 
@@ -779,7 +779,7 @@
         }
         renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
         updateProfilePreview();
-        addMessage("assistant", "已還原上一輪製造業方案探索結果。若要重新分析，請按「重新分析」。");
+        addMessage("assistant", "已還原上一輪方案探索結果。若要重新分析，請按「重新分析」。");
         return true;
       } catch (err) {
         sessionStorage.removeItem("mfg_result");
