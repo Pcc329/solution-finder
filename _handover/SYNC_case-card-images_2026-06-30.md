@@ -116,5 +116,6 @@ I did capture a local page-load screenshot only:
 
 ## Commit / PR
 
-- Commit: pending
-- PR: pending
+- Implementation Commit: 27967d4
+- SYNC Commit: see latest branch commit after this file update
+- PR: https://github.com/Pcc329/solution-finder/compare/main...feat-strategy-merge-p2-import
