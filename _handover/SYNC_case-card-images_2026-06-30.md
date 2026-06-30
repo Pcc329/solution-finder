@@ -187,3 +187,60 @@ Expected filenames:
 - `case41_mengchuang_01.jpg`
 - `case41_mengchuang_02.jpg`
 - `case41_mengchuang_03.jpg`
+
+## Supplemental Verification Completed: 2026-06-30
+
+### Main Merge / Image Assets
+
+- Merged latest `origin/main` into `feat-strategy-merge-p2-import`.
+- Resolved `public/manufacturing.html` conflict by keeping main's dynamic `/api/cases` Airtable loading flow and preserving the case image mapping for cases 37-41.
+- Confirmed `public/case-images/` contains the expected 15 image files:
+  - `case37_zhentian_01.jpg`
+  - `case37_zhentian_02.jpg`
+  - `case37_zhentian_03.jpg`
+  - `case38_taichungseiki_01.jpg`
+  - `case38_taichungseiki_02.jpg`
+  - `case38_taichungseiki_03.jpg`
+  - `case39_chimei_01.jpg`
+  - `case39_chimei_02.jpg`
+  - `case39_chimei_03.jpg`
+  - `case40_shude_01.jpg`
+  - `case40_shude_02.jpg`
+  - `case40_shude_03.jpg`
+  - `case41_mengchuang_01.jpg`
+  - `case41_mengchuang_02.jpg`
+  - `case41_mengchuang_03.jpg`
+
+### Browser Validation
+
+Validation used a local stub server for `/api/cases` so the image UI could be tested without requiring Airtable credentials. The stub data included:
+
+- case 38 `台中精機` as a real-image case.
+- case 37 `振添股份` as an illustrative-image case.
+- case 42 `無圖片案例` as a no-image control case.
+
+Screenshot artifacts:
+
+- `_handover/SYNC_case-images_case38_real_2026-06-30.png`
+- `_handover/SYNC_case-images_case37_illustrative_2026-06-30.png`
+- `_handover/SYNC_case-images_no-image_2026-06-30.png`
+
+Observed results:
+
+- case 38 `台中精機`: 3 images loaded successfully; all had non-zero `naturalWidth`; `示意圖` badge count was `0`.
+- case 37 `振添股份`: 3 images loaded successfully; all had non-zero `naturalWidth`; `示意圖` badge count was `3`.
+- case 42 `無圖片案例`: no image trigger, no image elements, no open image panel.
+- Browser console: no `case-images` 404 / failed-load messages observed.
+
+### Verification Commands
+
+- `node --check api/cases.js`: PASS
+- inline script syntax check for `public/manufacturing.html`: PASS
+- `git diff --check`: PASS, with line-ending warning only for `public/manufacturing.html`
+
+### Supplemental Acceptance Status
+
+- [x] True/reference image case screenshot: PASS.
+- [x] Illustrative image case screenshot: PASS.
+- [x] No-image case screenshot: PASS.
+- [x] Console no image 404 confirmation: PASS.

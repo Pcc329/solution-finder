@@ -667,9 +667,6 @@
       <div class="quick-links">
         <a class="btn" href="#services">服務分類 ↓</a>
         <a class="btn" href="#companies">公司圖譜 ↓</a>
-        <a class="btn" href="#ai">AI 推薦 ↓</a>
-        <a class="btn" href="#market">市場現況 ↓</a>
-        <a class="btn" href="#gap">缺口分析 ↓</a>
         <a class="btn" href="#competition">競爭態勢 ↓</a>
       </div>
     </header>
@@ -680,9 +677,6 @@
       <a href="#top">Overview</a>
       <a href="#services">服務分類</a>
       <a href="#companies">公司圖譜</a>
-      <a href="#ai">AI 推薦</a>
-      <a href="#market">市場現況</a>
-      <a href="#gap">缺口分析</a>
       <a href="#competition">競爭態勢</a>
     </div>
   </nav>
@@ -715,74 +709,6 @@
       </div>
       <div class="bubble-stage" id="bubbleStage" aria-label="公司氣泡圖"></div>
       <div class="company-card hidden" id="companyCard"></div>
-    </section>
-
-    <section id="ai">
-      <div class="section-head">
-        <div>
-          <h2>AI 推薦</h2>
-          <p class="section-note">輸入顧問情境，取得可討論的初步方案建議。</p>
-        </div>
-      </div>
-      <div class="chips" id="scenarioChips"></div>
-      <div style="height:12px"></div>
-      <textarea id="aiInput" placeholder="描述客戶產業、規模、痛點與預算限制..."></textarea>
-      <div class="actions" style="margin-top:10px">
-        <button class="btn primary" id="askBtn">取得 AI 推薦</button>
-        <span class="error" id="askError"></span>
-      </div>
-      <div class="result-box hidden" id="askResult">
-        <strong>Claude 推薦結果</strong>
-        <div class="result-content" id="askContent"></div>
-        <div id="scoreRef"></div>
-      </div>
-    </section>
-
-    <section id="market">
-      <div class="section-head">
-        <div>
-          <h2>市場現況</h2>
-          <p class="section-note">從方案來源、地區與更新狀態快速掌握資料庫供給結構。</p>
-        </div>
-      </div>
-      <div class="kpis" aria-label="市場現況 KPI">
-        <div class="kpi"><span class="kpi-value" id="marketTotal">—</span><span class="kpi-label">總方案</span></div>
-        <div class="kpi"><span class="kpi-value" id="marketCompanies">—</span><span class="kpi-label">業者數</span></div>
-        <div class="kpi"><span class="kpi-value" id="marketWeek">—</span><span class="kpi-label">本週新增</span></div>
-      </div>
-      <div class="market-grid">
-        <div class="chart-box">
-          <h3>方案來源分布</h3>
-          <div id="sourceChart" class="bar-chart"></div>
-        </div>
-        <div class="chart-box">
-          <h3>主要城市分布</h3>
-          <div id="cityChart" class="bar-chart"></div>
-        </div>
-      </div>
-      <p class="quality-note">資料品質提示：城市欄位已在統計 API 正規化「臺」為「台」；空值不納入城市分布。</p>
-    </section>
-
-    <section id="gap">
-      <div class="section-head">
-        <div>
-          <h2>產業數位需求覆蓋矩陣</h2>
-          <p class="section-note">根據 Round 06 模擬測試，快速辨識不同產業需求的方案覆蓋缺口。</p>
-        </div>
-      </div>
-      <div class="gap-legend" aria-label="覆蓋等級圖例">
-        <span><span class="cell-suf">充足</span> ≥200 筆</span>
-        <span><span class="cell-mid">中等</span> 50–199 筆</span>
-        <span><span class="cell-low">不足</span> &lt;50 筆</span>
-      </div>
-      <div class="gap-table-wrap" aria-label="產業數位需求覆蓋矩陣">
-        <table class="gap-table">
-          <thead id="gapMatrixHead"></thead>
-          <tbody id="gapMatrixBody"></tbody>
-        </table>
-      </div>
-      <div class="gap-summary-grid" id="gapSummaryCards" aria-label="缺口分析摘要"></div>
-      <p class="quality-note">資料來源：Round 06 模擬測試（2026-06-03）。矩陣為靜態驗證資料，共 10 個需求 × 10 個產業。</p>
     </section>
 
     <section id="competition">
@@ -877,30 +803,6 @@
       }
     };
 
-    const scenarios = [
-      ['餐飲 × 人力短缺', '餐飲業想要解決人力短缺，預算有限'],
-      ['製造 × 資安', '製造業想要加強資訊安全，規模中小型'],
-      ['零售 × 開發客戶', '零售業想要接觸新客戶，希望有AI工具'],
-      ['醫療 × 效率提升', '醫療診所想要提升辦公室效率，預算10萬以下'],
-      ['物流 × 數位入門', '物流業想要數位轉型入門，不知道從哪裡開始'],
-      ['金融 × 淨零', '金融業想要淨零碳排，尋找永續相關方案'],
-    ];
-
-    const INDUSTRIES = ['餐飲', '製造', '零售', '醫療', '物流', '建築', '金融', '教育', '旅遊', '電商'];
-
-    const GAP_DATA = [
-      { need: '數位轉型入門', counts: [608, 608, 608, 608, 608, 608, 608, 608, 608, 608] },
-      { need: '接觸新客戶', counts: [400, 400, 400, 400, 400, 400, 400, 400, 400, 400] },
-      { need: '改善客戶體驗', counts: [249, 249, 249, 249, 249, 249, 249, 249, 249, 249] },
-      { need: '提升辦公效率', counts: [97, 97, 97, 97, 97, 97, 97, 97, 97, 97] },
-      { need: '淨零碳排', counts: [96, 96, 96, 96, 96, 96, 96, 96, 96, 96] },
-      { need: '加強資訊安全', counts: [91, 91, 91, 91, 91, 91, 91, 91, 91, 91] },
-      { need: '簡化供應鏈', counts: [58, 58, 58, 58, 58, 58, 58, 58, 58, 58] },
-      { need: '解決人力短缺', counts: [38, 38, 38, 38, 38, 38, 38, 38, 38, 38] },
-      { need: '吸引人才', counts: [38, 38, 38, 38, 38, 38, 38, 38, 38, 38] },
-      { need: '簡化現金流', counts: [10, 10, 10, 10, 58, 10, 10, 10, 75, 10] },
-    ];
-
     const COMPETITION_DATA = [
       { label: '銷售管理', sol: 651, co: 307, zone: 'leader' },
       { label: '行銷推廣', sol: 397, co: 178, zone: 'leader' },
@@ -955,83 +857,6 @@
         .filter(([, value]) => Number(value) > 0)
         .sort((a, b) => Number(b[1]) - Number(a[1]))
         .slice(0, limit);
-    }
-
-    function toChartEntries(source, limit = 8) {
-      const rows = Array.isArray(source)
-        ? source.map(item => [
-            item.name ?? item.label ?? item.key ?? item.category ?? item.city ?? '未分類',
-            item.value ?? item.count ?? item.total ?? 0,
-          ])
-        : Object.entries(source || {});
-      return rows
-        .map(([key, value]) => [String(key || '未分類'), Number(value) || 0])
-        .filter(([, value]) => value > 0)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, limit);
-    }
-
-    function getLevel(n) {
-      if (n >= 200) return { cls: 'suf', label: '充足' };
-      if (n >= 50) return { cls: 'mid', label: '中等' };
-      return { cls: 'low', label: '不足' };
-    }
-
-    function avgCount(row) {
-      return Math.round(row.counts.reduce((sum, value) => sum + value, 0) / row.counts.length);
-    }
-
-    function renderGapMatrix() {
-      const head = document.getElementById('gapMatrixHead');
-      const body = document.getElementById('gapMatrixBody');
-      const cards = document.getElementById('gapSummaryCards');
-      if (!head || !body || !cards) return;
-
-      head.innerHTML = `
-        <tr>
-          <th>需求名稱</th>
-          ${INDUSTRIES.map(name => `<th>${escapeHtml(name)}</th>`).join('')}
-          <th>平均</th>
-        </tr>
-      `;
-      body.innerHTML = GAP_DATA.map(row => {
-        const avg = avgCount(row);
-        const avgLevel = getLevel(avg);
-        return `
-          <tr>
-            <td>${escapeHtml(row.need)}</td>
-            ${row.counts.map(count => {
-              const level = getLevel(count);
-              return `<td><span class="cell-${level.cls}" title="${level.label}">${fmt.format(count)}</span></td>`;
-            }).join('')}
-            <td><span class="cell-${avgLevel.cls}" title="${avgLevel.label}">${fmt.format(avg)}</span></td>
-          </tr>
-        `;
-      }).join('');
-
-      const summaryGroups = [
-        {
-          cls: 'suf',
-          title: '充足覆蓋 - 3 個需求',
-          items: ['接觸新客戶 400筆', '改善客戶體驗 249筆', '數位轉型入門 608筆'],
-        },
-        {
-          cls: 'mid',
-          title: '中等覆蓋 - 4 個需求',
-          items: ['提升辦公效率 97筆', '加強資訊安全 91筆', '淨零碳排 96筆', '簡化供應鏈 58筆'],
-        },
-        {
-          cls: 'low',
-          title: '高優先缺口 - 3 個需求',
-          items: ['解決人力短缺 38筆', '吸引人才 38筆', '簡化現金流 21筆（平均）'],
-        },
-      ];
-      cards.innerHTML = summaryGroups.map(group => `
-        <div class="gap-summary-card ${group.cls}">
-          <h3>${escapeHtml(group.title)}</h3>
-          <ul>${group.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
-        </div>
-      `).join('');
     }
 
     const quadrantPlugin = {
@@ -1243,26 +1068,6 @@
       });
     }
 
-    function renderBarChart(containerId, entries, color = '#10b981') {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      if (!entries || entries.length === 0) {
-        container.innerHTML = '<div class="bar-chart-empty">暫無可顯示資料</div>';
-        return;
-      }
-
-      const max = Math.max(...entries.map(([, value]) => value));
-      container.innerHTML = entries.map(([name, value]) => `
-        <div class="bar-chart-row">
-          <span class="bar-chart-label" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
-          <div class="bar-chart-track">
-            <div class="bar-chart-fill" style="background:${color};width:${(value / max * 100).toFixed(1)}%;"></div>
-          </div>
-          <span class="bar-chart-value">${fmt.format(value)}</span>
-        </div>
-      `).join('');
-    }
-
     function colorFor(company) {
       if (company.is_startup && company.has_award) return { bg: '#FAECE7', border: '#993C1D', text: '#712B13' };
       if (company.has_award) return { bg: '#FAEEDA', border: '#BA7517', text: '#633806' };
@@ -1369,25 +1174,11 @@
         document.getElementById('kpiSolutions').textContent = fmt.format(data.total ?? 0);
         document.getElementById('kpiCompanies').textContent = fmt.format(data.totalCompanies ?? data.companyTotal ?? 0);
         document.getElementById('kpiWeek').textContent = fmt.format(data.newThisWeek ?? 0);
-        document.getElementById('marketTotal').textContent = fmt.format(data.total ?? 0);
-        document.getElementById('marketCompanies').textContent = fmt.format(data.totalCompanies ?? data.companyTotal ?? 0);
-        document.getElementById('marketWeek').textContent = fmt.format(data.newThisWeek ?? 0);
-        renderMarketCharts(data);
       } catch {
         document.getElementById('kpiSolutions').textContent = '—';
         document.getElementById('kpiCompanies').textContent = '—';
         document.getElementById('kpiWeek').textContent = '—';
-        document.getElementById('marketTotal').textContent = '—';
-        document.getElementById('marketCompanies').textContent = '—';
-        document.getElementById('marketWeek').textContent = '—';
       }
-    }
-
-    function renderMarketCharts(data) {
-      const sourceEntries = toChartEntries(data.bySource || data.byProgramType, 7);
-      const cityEntries = toChartEntries(data.byCity, 8);
-      renderBarChart('sourceChart', sourceEntries, '#10b981');
-      renderBarChart('cityChart', cityEntries, '#3b82f6');
     }
 
     async function loadCompanies() {
@@ -1549,94 +1340,9 @@
       });
     }
 
-    function renderScenarios() {
-      document.getElementById('scenarioChips').innerHTML = scenarios.map(([label, text]) => `
-        <button class="chip" data-scenario="${text}">${label}</button>
-      `).join('');
-      document.querySelectorAll('[data-scenario]').forEach(button => {
-        button.addEventListener('click', () => {
-          document.getElementById('aiInput').value = button.dataset.scenario;
-        });
-      });
-    }
-
-    function relevance(item, query) {
-      const q = query.toLowerCase();
-      const text = [item.s, item.c, item.cat, item.desc, item.feat, item.tags, item.slogan].join(' ').toLowerCase();
-      return q.split(/\s|，|,|、|想要|希望|，|。/).filter(Boolean).reduce((score, token) => {
-        return score + (text.includes(token) ? 1 : 0);
-      }, 0);
-    }
-
-    async function loadCandidateSolutions(query) {
-      const res = await fetch('/api/solutions');
-      if (!res.ok) throw new Error('solutions failed');
-      const data = await res.json();
-      return data
-        .map(item => ({ item, score: relevance(item, query) }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 50)
-        .map(entry => entry.item);
-    }
-
-    function renderScoreRef(items) {
-      if (!items.length) return '';
-      return `
-        <div class="score-ref-card">
-          <strong>評分參考（前 3 個候選方案）</strong>
-          ${items.map(item => `
-            <div class="score-ref-row">
-              <div>
-                <strong>${escapeHtml(item.s || '未命名方案')}</strong>
-                <div class="muted">${escapeHtml(item.c || '')}</div>
-              </div>
-              <div>${renderStars(item.so)}</div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
-
-    async function submitAsk() {
-      const input = document.getElementById('aiInput');
-      const button = document.getElementById('askBtn');
-      const error = document.getElementById('askError');
-      const result = document.getElementById('askResult');
-      const content = document.getElementById('askContent');
-      const scoreRef = document.getElementById('scoreRef');
-      const question = input.value.trim();
-      if (!question) return;
-      button.disabled = true;
-      button.textContent = '分析中...';
-      error.textContent = '';
-      scoreRef.innerHTML = '';
-      result.classList.add('hidden');
-      try {
-        const solutions = await loadCandidateSolutions(question);
-        const res = await fetch('/api/ask', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, searchQuery: question, solutions }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'ask failed');
-        content.textContent = data.answer || '';
-        scoreRef.innerHTML = renderScoreRef(solutions.slice(0, 3));
-        result.classList.remove('hidden');
-      } catch {
-        error.textContent = 'API 連線失敗，請確認 Vercel 服務正常';
-      } finally {
-        button.disabled = false;
-        button.textContent = '取得 AI 推薦';
-      }
-    }
-
-    document.getElementById('askBtn').addEventListener('click', submitAsk);
     window.addEventListener('resize', () => renderBubbles());
 
     renderCategories();
-    renderScenarios();
-    renderGapMatrix();
     renderCompetitionGrid();
     loadStats();
     loadCompanies();
