@@ -119,3 +119,71 @@ I did capture a local page-load screenshot only:
 - Implementation Commit: 27967d4
 - SYNC Commit: see latest branch commit after this file update
 - PR: https://github.com/Pcc329/solution-finder/compare/main...feat-strategy-merge-p2-import
+
+## Supplemental Verification Attempt: 2026-06-30
+
+Requested follow-up:
+
+- Pull latest `feat-strategy-merge-p2-import`.
+- Confirm `public/case-images/` contains 15 uploaded case images.
+- Capture 3 validation screenshots:
+  - real/reference image case
+  - illustrative image case
+  - no-image case
+- Confirm no console image 404 errors.
+
+### Pull Result
+
+- Command: `git pull --ff-only origin feat-strategy-merge-p2-import`
+- Result: `Already up to date.`
+
+### Image File Check
+
+The expected image directory is still missing from the branch.
+
+- Command: `Test-Path -LiteralPath 'public/case-images'`
+- Result: `False`
+
+Tracked-file checks:
+
+- Command: `git ls-tree -r --name-only origin/feat-strategy-merge-p2-import | Select-String -Pattern 'case-images|case37|case38|case39|case40|case41'`
+- Result: only `_handover/SYNC_case-images-page-load_2026-06-30.png`
+
+- Command: `git ls-tree -r --name-only HEAD | Select-String -Pattern 'case-images|case37|case38|case39|case40|case41'`
+- Result: only `_handover/SYNC_case-images-page-load_2026-06-30.png`
+
+Workspace filename search:
+
+- Command: `rg --files -g 'case37_zhentian_01.jpg' -g 'case38_taichungseiki_01.jpg' -g 'case39_chimei_01.jpg' -g 'case40_shude_01.jpg' -g 'case41_mengchuang_01.jpg'`
+- Result: no matches.
+
+### Supplemental Acceptance Status
+
+- [ ] True/reference image case screenshot: BLOCKED, image files not present.
+- [ ] Illustrative image case screenshot: BLOCKED, image files not present.
+- [ ] No-image case screenshot: BLOCKED for full UI comparison because the image-enabled cases are not available.
+- [ ] Console no image 404 confirmation: BLOCKED, because there are no image files/case cards available to load from `public/case-images/`.
+
+### Current Conclusion
+
+The previous implementation remains in place, but the requested follow-up validation cannot be completed until the 15 files are actually committed/pushed under:
+
+`public/case-images/`
+
+Expected filenames:
+
+- `case37_zhentian_01.jpg`
+- `case37_zhentian_02.jpg`
+- `case37_zhentian_03.jpg`
+- `case38_taichungseiki_01.jpg`
+- `case38_taichungseiki_02.jpg`
+- `case38_taichungseiki_03.jpg`
+- `case39_chimei_01.jpg`
+- `case39_chimei_02.jpg`
+- `case39_chimei_03.jpg`
+- `case40_shude_01.jpg`
+- `case40_shude_02.jpg`
+- `case40_shude_03.jpg`
+- `case41_mengchuang_01.jpg`
+- `case41_mengchuang_02.jpg`
+- `case41_mengchuang_03.jpg`
