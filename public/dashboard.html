@@ -52,6 +52,43 @@
     .global-nav-link { padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; color: #374151; text-decoration: none; background: #fff; font-weight: 600; }
     .global-nav-link.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
+    .dashboard-anchor-nav {
+      position: sticky;
+      top: 64px;
+      z-index: 30;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: -6px 0 18px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 8px 20px rgba(16, 37, 58, 0.06);
+      backdrop-filter: blur(10px);
+    }
+
+    .dashboard-anchor-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 8px 12px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: #F3F7F6;
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .dashboard-anchor-nav a:hover {
+      border-color: #CDE9E3;
+      background: #E6F4F1;
+    }
+
     main {
       width: min(1180px, calc(100% - 40px));
       margin: 0 auto;
@@ -776,6 +813,17 @@
         display: block;
       }
 
+      .dashboard-anchor-nav {
+        top: 112px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: thin;
+      }
+
+      .dashboard-anchor-nav a {
+        flex: 0 0 auto;
+      }
+
       .status {
         margin-top: 10px;
         text-align: left;
@@ -854,6 +902,18 @@
       </div>
       <div id="status" class="status">loading...</div>
     </div>
+
+    <nav class="dashboard-anchor-nav" aria-label="儀表板錨點">
+      <a href="#overview">Overview</a>
+      <a href="#kpis">KPI</a>
+      <a href="#recent">近期更新</a>
+      <a href="#charts">資料概覽</a>
+      <a href="#map">地圖分布</a>
+      <a href="#cross">交叉分析</a>
+      <a href="#services">服務分類</a>
+      <a href="#companies">公司圖譜</a>
+      <a href="#competition">競爭態勢</a>
+    </nav>
 
     <p id="error" class="error"></p>
 
