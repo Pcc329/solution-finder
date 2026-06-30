@@ -82,5 +82,5 @@ Preserved existing fetch behavior:
 
 ## Commit / PR
 
-- Commit: pending
+- Implementation commit: `6b62540`
 - PR: pending
