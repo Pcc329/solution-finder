@@ -124,5 +124,5 @@ Final dashboard section order:
 
 ## Commit / PR
 
-- Commit: pending
+- Implementation commit: `4591d6e`
 - PR: existing branch / pending update
