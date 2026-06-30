@@ -52,6 +52,65 @@
     .global-nav-link { padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; color: #374151; text-decoration: none; background: #fff; font-weight: 600; }
     .global-nav-link.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
+    .dashboard-quick-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .dashboard-quick-links a,
+    .dashboard-anchor-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .dashboard-quick-links a {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .dashboard-quick-links a:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.48);
+    }
+
+    .dashboard-anchor-nav {
+      position: sticky;
+      top: 61px;
+      z-index: 20;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: -6px 0 18px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 8px 20px rgba(16, 37, 58, 0.06);
+      backdrop-filter: blur(10px);
+    }
+
+    .dashboard-anchor-nav a {
+      border: 1px solid transparent;
+      color: var(--primary-dark);
+      background: #F3F7F6;
+    }
+
+    .dashboard-anchor-nav a:hover {
+      border-color: #CDE9E3;
+      background: #E6F4F1;
+    }
+
     main {
       width: min(1180px, calc(100% - 40px));
       margin: 0 auto;
@@ -455,6 +514,310 @@
       font-weight: 700;
     }
 
+    .strategy-section {
+      margin-top: 18px;
+      padding: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .section-note,
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+      gap: 12px;
+    }
+
+    .category-card {
+      padding: 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .category-card:hover,
+    .category-card.active {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 26px rgba(16, 37, 58, 0.1);
+    }
+
+    .category-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .category-title {
+      margin: 12px 0 4px;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .category-count {
+      color: var(--primary-dark);
+      font-weight: 800;
+    }
+
+    .category-desc {
+      margin: 8px 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .category-bar {
+      height: 6px;
+      overflow: hidden;
+      background: #E6F4F1;
+      border-radius: 999px;
+    }
+
+    .category-bar span {
+      display: block;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .panel,
+    .company-card {
+      margin-top: 14px;
+      padding: 18px;
+    }
+
+    .panel.hidden,
+    .company-card.hidden {
+      display: none;
+    }
+
+    .panel-grid,
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--primary-dark);
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .tag,
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      background: #ffffff;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .detail-block {
+      margin-top: 14px;
+    }
+
+    .detail-label {
+      display: block;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .detail-text,
+    .detail-pitch {
+      margin: 0;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #ffffff;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 8px 12px;
+    }
+
+    .chip.active {
+      border-color: var(--primary);
+      background: #E6F4F1;
+      color: var(--primary-dark);
+    }
+
+    .shown-count {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .bubble-stage {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      overflow: hidden;
+    }
+
+    .bubble {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      user-select: none;
+      transition: opacity 0.16s ease, transform 0.16s ease;
+    }
+
+    .bubble.selected {
+      transform: scale(1.08);
+    }
+
+    .bubble.dimmed {
+      opacity: 0.22;
+    }
+
+    .company-head {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .company-head h3 {
+      margin: 0 0 4px;
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .company-meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .stars {
+      color: #d97706;
+      letter-spacing: 1px;
+    }
+
+    .empty-stars {
+      color: #cbd5e1;
+      letter-spacing: 1px;
+    }
+
+    .competition-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      background: #ffffff;
+    }
+
+    .competition-chart-wrap {
+      position: relative;
+      height: 460px;
+      min-height: 360px;
+    }
+
+    .competition-chart-wrap canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .competition-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .competition-legend span {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: #ffffff;
+    }
+
+    .quality-note {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
     .error {
       display: none;
       margin: 0 0 18px;
@@ -468,6 +831,7 @@
     @media (max-width: 900px) {
       #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
       .global-nav-actions { width: 100%; justify-content: flex-start; }
+      .dashboard-anchor-nav { position: static; }
       .page-head {
         display: block;
       }
@@ -507,6 +871,22 @@
       .control-group select {
         width: 100%;
       }
+
+      .section-head,
+      .toolbar,
+      .company-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .panel-grid,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .competition-chart-wrap {
+        height: 420px;
+      }
     }
   </style>
 </head>
@@ -527,18 +907,40 @@
     </div>
   </nav>
   <main>
-    <div class="page-head">
+    <div class="page-head" id="overview">
       <div>
         <h1> 資服業產業資料庫 戰情儀表板</h1>
         <a class="header-link" href="/">← 返回搜尋</a>
         <p class="source-note">資料來源：Airtable，每次載入即時更新</p>
+        <div class="dashboard-quick-links" aria-label="快速跳轉">
+          <a href="#kpis">KPI</a>
+          <a href="#recent">近期更新</a>
+          <a href="#charts">資料概覽</a>
+          <a href="#map">地圖分布</a>
+          <a href="#cross">交叉分析</a>
+          <a href="#services">服務分類</a>
+          <a href="#companies">公司圖譜</a>
+          <a href="#competition">競爭態勢</a>
+        </div>
       </div>
       <div id="status" class="status">loading...</div>
     </div>
 
+    <nav class="dashboard-anchor-nav" aria-label="儀表板錨點">
+      <a href="#overview">Overview</a>
+      <a href="#kpis">KPI</a>
+      <a href="#recent">近期更新</a>
+      <a href="#charts">資料概覽</a>
+      <a href="#map">地圖分布</a>
+      <a href="#cross">交叉分析</a>
+      <a href="#services">服務分類</a>
+      <a href="#companies">公司圖譜</a>
+      <a href="#competition">競爭態勢</a>
+    </nav>
+
     <p id="error" class="error"></p>
 
-    <section class="kpis" aria-label="KPI">
+    <section class="kpis" id="kpis" aria-label="KPI">
       <article class="card kpi-card">
         <p class="kpi-label">總方案數</p>
         <p id="total" class="kpi-value kpi-neutral">--</p>
@@ -559,7 +961,7 @@
       </article>
     </section>
 
-    <section class="card update-card" aria-label="近期更新">
+    <section class="card update-card" id="recent" aria-label="近期更新">
       <div class="update-head">
         <h2>近期更新</h2>
         <span class="update-dot">● 即時</span>
@@ -577,7 +979,7 @@
       <div class="update-list" id="latest5List"></div>
     </section>
 
-    <section class="charts" aria-label="圖表">
+    <section class="charts" id="charts" aria-label="圖表">
       <article class="card chart-card">
         <h2>方案類別 Top 8</h2>
         <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
@@ -596,7 +998,7 @@
       </article>
     </section>
 
-    <section class="card map-card" aria-label="業者地區分布地圖">
+    <section class="card map-card" id="map" aria-label="業者地區分布地圖">
       <h2>業者地區分布地圖</h2>
       <div class="map-wrap">
         <svg id="taiwanMap" role="img" aria-label="台灣縣市業者密度地圖"></svg>
@@ -610,7 +1012,7 @@
         </div>
       </div>
     </section>
-    <section class="card cross-card" aria-label="交叉分析">
+    <section class="card cross-card" id="cross" aria-label="交叉分析">
       <div class="cross-head">
         <div>
           <h2>交叉分析</h2>
@@ -641,6 +1043,56 @@
       <p id="crossLoading" class="cross-loading">交叉分析資料載入中...</p>
       <div class="cross-chart-wrap"><canvas id="crossChart"></canvas></div>
     </section>
+
+    <section class="card strategy-section" id="services" aria-label="服務分類">
+      <div class="section-head">
+        <div>
+          <h2>服務分類</h2>
+          <p class="section-note">以計畫來源理解方案定位與顧問溝通語境。</p>
+        </div>
+      </div>
+      <div class="category-grid" id="categoryGrid"></div>
+      <div class="panel hidden" id="categoryPanel"></div>
+    </section>
+
+    <section class="card strategy-section" id="companies" aria-label="公司圖譜">
+      <div class="section-head">
+        <div>
+          <h2>公司圖譜</h2>
+          <p class="section-note">依業者屬性、方案數與服務標籤觀察供給端樣貌。</p>
+        </div>
+        <span class="shown-count" id="companyCount">載入中</span>
+      </div>
+      <div class="toolbar">
+        <div>
+          <div class="chip-group" id="typeFilters"></div>
+          <div class="chip-group" id="serviceFilters"></div>
+        </div>
+      </div>
+      <div class="bubble-stage" id="bubbleStage" aria-label="公司氣泡圖"></div>
+      <div class="company-card hidden" id="companyCard"></div>
+    </section>
+
+    <section class="card strategy-section" id="competition" aria-label="競爭態勢">
+      <div class="section-head">
+        <div>
+          <h2>競爭態勢</h2>
+          <p class="section-note">以 G2 Grid 風格觀察市場規模、競爭密度與各類別策略位置。</p>
+        </div>
+      </div>
+      <div class="competition-card">
+        <div class="competition-chart-wrap">
+          <canvas id="competitionGrid" aria-label="方案競爭態勢氣泡圖"></canvas>
+        </div>
+        <div class="competition-legend" aria-label="競爭態勢圖例">
+          <span>🔴 主戰場領導者</span>
+          <span>🟡 成長競爭者</span>
+          <span>🟣 利基深耕者</span>
+          <span>🔵 藍海探索者</span>
+        </div>
+        <p class="quality-note">氣泡越大 = 方案數越多｜競爭密度 = 公司數÷方案數。資料來源：Solutions CSV 分析（2026-06-05）。</p>
+      </div>
+    </section>
   </main>
 
   <script>
@@ -650,6 +1102,98 @@
     ];
     const TEAL = '#0BA08C';
     const MAP_NO_DATA = '#EFF2F3';
+    const COMPANY_DISPLAY_LIMIT = 200;
+    const COMPETITION_X_MID = 150;
+    const COMPETITION_Y_MID = 0.47;
+
+    const categories = [
+      { name: '雲市集', icon: '☁️', count: 1078, source: '數位部', desc: '政府補助雲端服務採購，涵蓋 SaaS／IaaS／PaaS', tags: ['政府補助', '雲端服務', '資格審查', '採購型'] },
+      { name: '產業數位化升級', icon: '🚀', count: 329, source: '產業署', desc: '特定產業導入數位工具，補助比例高', tags: ['補助比例高', '產業別限制', '輔導配套', '升級導向'] },
+      { name: '中小企業數位轉型', icon: '🏪', count: 279, source: '中企署', desc: '中小企業入門級數位轉型，門檻較低', tags: ['中小企業', '入門友善', '輔導服務', '低門檻'] },
+      { name: '領域型調查(攻頂PO)', icon: '🔭', count: 133, source: '自有', desc: '深度產業調查與痛點分析，顧問諮詢用', tags: ['深度調查', '顧問工具', '痛點分析', '研究導向'] },
+      { name: '新創嚴選', icon: '⭐', count: 132, source: '自有', desc: '嚴選具創新能量的新創解決方案', tags: ['新創廠商', '創新能量', '快速迭代', '風險較高'] },
+      { name: '商服業AI解決方案', icon: '🤖', count: 117, source: '商業署', desc: '商服業導入 AI，聚焦應用落地', tags: ['AI應用', '商服業', '政府推動', '場景化'] },
+      { name: '政府採購', icon: '📋', count: 100, source: '採購網', desc: '軟體採購網收錄項目，公部門適用', tags: ['公開採購', '公部門適用', '規格公開', '價格透明'] },
+    ];
+
+    const catDetail = {
+      '雲市集': {
+        target: '已具備明確採購需求、希望快速導入雲端服務的中小企業與公協會。',
+        pain: '預算有限、需要合規供應商清單、採購流程希望降低試錯成本。',
+        talk: '先鎖定可立即採購的 SaaS 類型，再依資安、維運、資料匯出條件篩選。',
+        risk: '方案成熟但差異度高，需確認功能邊界、續約費用與資料主權。',
+        pitch: '適合作為「短期可落地」方案池。'
+      },
+      '產業數位化升級': {
+        target: '製造、商業服務、醫療等已有流程痛點、需要產業場景解法的業者。',
+        pain: '流程跨部門、導入成本較高、需要補助或顧問協助降低阻力。',
+        talk: '以痛點場景切入，例如排程、庫存、客服、資安或營運儀表板。',
+        risk: '需確認客戶是否已有資料基礎，否則導入週期會被資料整理拖慢。',
+        pitch: '適合作為「產業專案型」顧問提案來源。'
+      },
+      '中小企業數位轉型': {
+        target: '第一次導入數位工具或只需輕量系統的中小企業。',
+        pain: '缺 IT 人力、需求描述不清、希望低成本測試。',
+        talk: '先用低門檻工具建立資料留存，再逐步擴充整合。',
+        risk: '客戶期待可能過度發散，需明確定義第一階段範圍。',
+        pitch: '適合作為「數位入門」輔導清單。'
+      },
+      '領域型調查(攻頂PO)': {
+        target: '需要先理解產業痛點、再設計解方組合的顧問情境。',
+        pain: '資料分散、需求不明、需要用研究證據支持建議。',
+        talk: '把痛點、利害關係人與可量化效益先拆清楚，再對接方案。',
+        risk: '不一定能直接採購，需轉換成具體導入規格。',
+        pitch: '適合作為「策略盤點與需求診斷」材料。'
+      },
+      '新創嚴選': {
+        target: '願意嘗試新技術、重視差異化與速度的企業。',
+        pain: '想導入 AI、資料應用或創新服務，但擔心供應商成熟度。',
+        talk: '先確認 PoC 成功條件、資料介接、維運能力與資安責任。',
+        risk: '創新度高但交付穩定性需評估，建議從小範圍試點開始。',
+        pitch: '適合作為「高差異化候選方案」來源。'
+      },
+      '商服業AI解決方案': {
+        target: '客服、銷售、行銷、營運等商服流程需要 AI 協助的業者。',
+        pain: '人工作業量大、回覆品質不穩、資料沉澱不足。',
+        talk: '用明確任務切入，例如客服摘要、銷售推薦、文件處理或預測分析。',
+        risk: '需檢查資料品質、模型輸出責任與人機協作流程。',
+        pitch: '適合作為「AI 落地場景」快速比對。'
+      },
+      '政府採購': {
+        target: '需要公開採購資訊、規格與價格參考的公部門或大型組織。',
+        pain: '採購規格難寫、比價基準不足、需要既有標案參照。',
+        talk: '用既有採購項目作為規格參考，再回推市場可供應方案。',
+        risk: '採購資料不等於最新產品能力，需再向供應商確認。',
+        pitch: '適合作為「採購規格與價格校準」資料源。'
+      }
+    };
+
+    const COMPETITION_DATA = [
+      { label: '銷售管理', sol: 651, co: 307, zone: 'leader' },
+      { label: '行銷推廣', sol: 397, co: 178, zone: 'leader' },
+      { label: '生產物流', sol: 258, co: 124, zone: 'leader' },
+      { label: '協作辦公', sol: 157, co: 94, zone: 'leader' },
+      { label: '人力資源', sol: 143, co: 78, zone: 'contender' },
+      { label: '暫無法分類', sol: 172, co: 31, zone: 'niche' },
+      { label: '資安合規', sol: 63, co: 44, zone: 'blue' },
+      { label: '研發創新', sol: 61, co: 48, zone: 'blue' },
+      { label: '醫療照護', sol: 28, co: 20, zone: 'blue' },
+    ];
+
+    const ZONE_COLOR = {
+      leader: { bg: 'rgba(220,38,38,0.18)', bd: '#dc2626' },
+      contender: { bg: 'rgba(245,158,11,0.18)', bd: '#f59e0b' },
+      niche: { bg: 'rgba(124,58,237,0.18)', bd: '#7c3aed' },
+      blue: { bg: 'rgba(37,99,235,0.18)', bd: '#2563eb' },
+    };
+
+    let activeCategory = null;
+    let allCompanies = [];
+    let activeType = 'all';
+    let activeService = null;
+    let selectedCompany = null;
+    let dimTimer = null;
+    let competitionChart = null;
 
     function formatNumber(value) {
       return new Intl.NumberFormat('zh-TW').format(value || 0);
@@ -722,6 +1266,89 @@
       }).join('');
     }
 
+    function renderStars(score) {
+      const value = Number(score);
+      if (!Number.isFinite(value)) return '<span class="empty-stars">☆☆☆☆☆</span><span class="muted"> 評分建置中</span>';
+      const bounded = Math.max(0, Math.min(5, value));
+      const full = Math.floor(bounded);
+      const half = bounded - full >= 0.5 ? 1 : 0;
+      const empty = Math.max(0, 5 - full - half);
+      return `<span class="stars">${'★'.repeat(full)}${half ? '⯨' : ''}</span><span class="empty-stars">${'★'.repeat(empty)}</span><span class="muted"> ${bounded.toFixed(1)}</span>`;
+    }
+
+    function renderCategories() {
+      const max = Math.max(...categories.map(item => item.count));
+      const grid = document.getElementById('categoryGrid');
+      if (!grid) return;
+      grid.innerHTML = categories.map((item, index) => `
+        <button class="card category-card ${activeCategory === index ? 'active' : ''}" data-index="${index}" type="button">
+          <span class="category-icon">${item.icon}</span>
+          <div class="category-title">${escapeHtml(item.name)}</div>
+          <div class="category-count">${formatNumber(item.count)} 筆</div>
+          <p class="category-desc">${escapeHtml(item.desc)}</p>
+          <div class="category-bar"><span style="width:${Math.round(item.count / max * 100)}%"></span></div>
+        </button>
+      `).join('');
+      grid.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => toggleCategory(Number(button.dataset.index)));
+      });
+    }
+
+    function toggleCategory(index) {
+      activeCategory = activeCategory === index ? null : index;
+      renderCategories();
+      renderCategoryPanel();
+    }
+
+    function renderCategoryPanel() {
+      const panel = document.getElementById('categoryPanel');
+      if (!panel) return;
+      if (activeCategory === null) {
+        panel.classList.add('hidden');
+        panel.innerHTML = '';
+        return;
+      }
+
+      const item = categories[activeCategory];
+      const detail = catDetail[item.name] || {};
+      const total = categories.reduce((sum, entry) => sum + entry.count, 0);
+      const pct = (item.count / total * 100).toFixed(1);
+      panel.classList.remove('hidden');
+      panel.innerHTML = `
+        <div class="section-head">
+          <div>
+            <h2>${item.icon} ${escapeHtml(item.name)}</h2>
+            <p class="section-note">來源機構：${escapeHtml(item.source)} · 方案占比 ${pct}%</p>
+          </div>
+          <button class="chip" id="closeCategory" type="button">關閉</button>
+        </div>
+        <div class="panel-grid">
+          <div class="metric"><strong>${formatNumber(item.count)}</strong><span>方案數</span></div>
+          <div class="metric"><strong>${escapeHtml(item.source)}</strong><span>來源</span></div>
+          <div class="metric"><strong>${pct}%</strong><span>占比</span></div>
+        </div>
+        <div class="tags">${item.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}</div>
+        <div class="detail-block">
+          <span class="detail-label">適用對象</span>
+          <p class="detail-text">${escapeHtml(detail.target || '依實際產業需求判斷。')}</p>
+        </div>
+        <div class="detail-block">
+          <span class="detail-label">常見痛點</span>
+          <p class="detail-text">${escapeHtml(detail.pain || '需求仍需訪談確認。')}</p>
+        </div>
+        <div class="detail-block">
+          <span class="detail-label">顧問溝通切入點</span>
+          <p class="detail-text">${escapeHtml(detail.talk || '先確認流程、資料與預算，再篩選方案。')}</p>
+        </div>
+        <div class="detail-block">
+          <span class="detail-label">風險提醒</span>
+          <p class="detail-text">${escapeHtml(detail.risk || '需確認供應商維運能力與導入條件。')}</p>
+        </div>
+        <p class="detail-pitch">${escapeHtml(detail.pitch || item.desc)}</p>
+      `;
+      document.getElementById('closeCategory').addEventListener('click', () => toggleCategory(activeCategory));
+    }
+
     function renderBar(canvasId, entries, options = {}) {
       const labels = entries.map(item => item[0]);
       const values = entries.map(item => item[1]);
@@ -779,6 +1406,202 @@
             tooltip: { callbacks: { label: context => `${context.label}: ${formatNumber(context.parsed)}` } },
           },
         },
+      });
+    }
+
+    function colorFor(company) {
+      if (company.is_startup && company.has_award) return { bg: '#FAECE7', border: '#993C1D', text: '#712B13' };
+      if (company.has_award) return { bg: '#FAEEDA', border: '#BA7517', text: '#633806' };
+      if (company.is_startup) return { bg: '#E1F5EE', border: '#0F6E56', text: '#085041' };
+      return { bg: '#E6F1FB', border: '#185FA5', text: '#0C447C' };
+    }
+
+    function fallbackCompanies() {
+      const industries = ['資訊服務', 'AI工具', 'ERP', '資安', '零售電商', '醫療照護', '物流服務'];
+      return Array.from({ length: 50 }, (_, index) => {
+        const n = index + 1;
+        return {
+          id: `fallback-${n}`,
+          name: `示範科技${String(n).padStart(2, '0')}股份有限公司`,
+          is_startup: n % 5 === 0,
+          has_award: n % 7 === 0,
+          award_count: n % 7 === 0 ? (n % 3) + 1 : 0,
+          solution_count: 2 + (n * 3) % 24,
+          contact_count: n % 4,
+          avg_score: n % 3 === 0 ? null : Number((3.4 + (n % 12) / 10).toFixed(1)),
+          industry: industries[n % industries.length],
+          city: ['台北', '新北', '台中', '高雄', '桃園'][n % 5],
+          est_year: 2010 + (n % 14),
+          tags: [industries[n % industries.length]].filter(Boolean),
+        };
+      });
+    }
+
+    async function loadCompanies() {
+      try {
+        const res = await fetch('/api/companies');
+        if (!res.ok) throw new Error('companies failed');
+        const data = await res.json();
+        allCompanies = Array.isArray(data) && data.length ? data : fallbackCompanies();
+      } catch {
+        allCompanies = fallbackCompanies();
+      }
+      renderFilters();
+      renderBubbles();
+    }
+
+    function renderFilters() {
+      const typeItems = [['all', '全部'], ['startup', '新創'], ['award', '得獎'], ['large', '規模前30']];
+      const serviceItems = [['ai', 'AI工具'], ['erp', 'ERP'], ['sec', '資安']];
+      const typeFilters = document.getElementById('typeFilters');
+      const serviceFilters = document.getElementById('serviceFilters');
+      if (!typeFilters || !serviceFilters) return;
+
+      typeFilters.innerHTML = typeItems.map(([key, label]) => `
+        <button class="chip ${activeType === key ? 'active' : ''}" data-type="${key}" type="button">${label}</button>
+      `).join('');
+      serviceFilters.innerHTML = serviceItems.map(([key, label]) => `
+        <button class="chip ${activeService === key ? 'active' : ''}" data-service="${key}" type="button">${label}</button>
+      `).join('');
+      document.querySelectorAll('[data-type]').forEach(button => {
+        button.addEventListener('click', () => {
+          activeType = button.dataset.type;
+          selectedCompany = null;
+          renderFilters();
+          renderBubbles();
+        });
+      });
+      document.querySelectorAll('[data-service]').forEach(button => {
+        button.addEventListener('click', () => {
+          activeService = activeService === button.dataset.service ? null : button.dataset.service;
+          selectedCompany = null;
+          renderFilters();
+          renderBubbles();
+        });
+      });
+    }
+
+    function filteredCompanies() {
+      return allCompanies.filter(company => {
+        if (activeType === 'startup' && !company.is_startup) return false;
+        if (activeType === 'award' && !company.has_award) return false;
+        if (activeType === 'large' && Number(company.solution_count || 0) < 15) return false;
+        if (activeService) {
+          const wanted = activeService === 'ai' ? 'AI工具' : activeService === 'erp' ? 'ERP' : '資安';
+          if (!Array.isArray(company.tags) || !company.tags.includes(wanted)) return false;
+        }
+        return true;
+      });
+    }
+
+    function placeBubbles(items, width, height) {
+      const placed = [];
+      items.forEach((company, index) => {
+        const radius = Math.max(18, Math.min(48, 14 + Number(company.solution_count || 0) * 1.1));
+        let x = radius + 8;
+        let y = radius + 8;
+        let ok = false;
+        for (let attempt = 0; attempt < 260 && !ok; attempt += 1) {
+          const seed = (index + 1) * (attempt + 3);
+          x = radius + 8 + ((Math.sin(seed * 12.9898) * 43758.5453) % 1 + 1) % 1 * Math.max(1, width - radius * 2 - 16);
+          y = radius + 8 + ((Math.sin(seed * 78.233) * 24634.6345) % 1 + 1) % 1 * Math.max(1, height - radius * 2 - 16);
+          ok = placed.every(item => Math.hypot(item.x - x, item.y - y) > item.radius + radius + 8);
+        }
+        placed.push({ company, radius, x, y });
+      });
+      return placed;
+    }
+
+    function renderBubbles() {
+      const stage = document.getElementById('bubbleStage');
+      const card = document.getElementById('companyCard');
+      if (!stage || !card) return;
+      const filtered = filteredCompanies().sort((a, b) => Number(b.solution_count || 0) - Number(a.solution_count || 0));
+      const filteredCount = filtered.length;
+      const displayCount = Math.min(filteredCount, COMPANY_DISPLAY_LIMIT);
+      const items = filtered.slice(0, COMPANY_DISPLAY_LIMIT);
+      document.getElementById('companyCount').textContent = `目前顯示 ${displayCount} / 統計 ${filteredCount}`;
+      card.classList.toggle('hidden', !selectedCompany);
+      const width = stage.clientWidth || 860;
+      const height = stage.clientHeight || 440;
+      const placed = placeBubbles(items, width, height);
+      stage.innerHTML = placed.map(({ company, radius, x, y }) => {
+        const color = colorFor(company);
+        const showText = radius >= 30;
+        const name = String(company.name || '未命名業者');
+        const label = name.length > 4 ? `${name.slice(0, 4)}…` : name;
+        const selected = selectedCompany && selectedCompany.id === company.id;
+        const dimmed = selectedCompany && !selected;
+        return `
+          <button class="bubble ${selected ? 'selected' : ''} ${dimmed ? 'dimmed' : ''}"
+            data-id="${escapeHtml(company.id)}"
+            title="${escapeHtml(name)} · ${formatNumber(company.solution_count || 0)} 個方案"
+            style="width:${radius * 2}px;height:${radius * 2}px;left:${x - radius}px;top:${y - radius}px;background:${color.bg};border-color:${color.border};color:${color.text};">
+            ${showText ? escapeHtml(label) : ''}
+          </button>
+        `;
+      }).join('');
+      stage.querySelectorAll('.bubble').forEach(button => {
+        button.addEventListener('click', () => {
+          selectedCompany = items.find(item => String(item.id) === button.dataset.id);
+          renderBubbles();
+          renderCompanyCard();
+          clearTimeout(dimTimer);
+          dimTimer = setTimeout(() => {
+            if (selectedCompany) {
+              selectedCompany = null;
+              renderBubbles();
+              renderCompanyCard();
+            }
+          }, 3000);
+        });
+      });
+      renderCompanyCard();
+    }
+
+    function renderCompanyCard() {
+      const card = document.getElementById('companyCard');
+      if (!card) return;
+      if (!selectedCompany) {
+        card.classList.add('hidden');
+        card.innerHTML = '';
+        return;
+      }
+
+      const company = selectedCompany;
+      const color = colorFor(company);
+      const typeText = company.is_startup ? '新創' : '一般業者';
+      const name = String(company.name || '未命名業者');
+      card.classList.remove('hidden');
+      card.innerHTML = `
+        <div class="section-head">
+          <div class="company-head">
+            <div class="avatar" style="background:${color.bg};border-color:${color.border};color:${color.text};">${escapeHtml(name.slice(0, 2))}</div>
+            <div>
+              <h3>${escapeHtml(name)}</h3>
+              <p class="company-meta">${escapeHtml(company.industry || '資訊服務')} / ${escapeHtml(company.city || '未填城市')} / ${escapeHtml(company.est_year || '未填年份')} / ${typeText}</p>
+            </div>
+          </div>
+          <button class="chip" id="closeCompany" type="button">關閉</button>
+        </div>
+        <div class="tags">
+          ${company.is_startup ? '<span class="badge">新創</span>' : ''}
+          ${company.has_award ? `<span class="badge">得獎 ${formatNumber(company.award_count || 0)} 項</span>` : ''}
+          ${(company.tags || []).map(tag => `<span class="badge">${escapeHtml(tag)}</span>`).join('')}
+        </div>
+        <div class="metric-grid">
+          <div class="metric"><strong>${formatNumber(company.solution_count || 0)}</strong><span>收錄方案數</span></div>
+          <div class="metric"><strong>${formatNumber(company.contact_count || 0)}</strong><span>聯絡人數</span></div>
+          <div class="metric"><strong>${formatNumber(company.award_count || 0)}</strong><span>得獎紀錄</span></div>
+        </div>
+        ${company.avg_score !== null && company.avg_score !== undefined
+          ? `<div class="avg-score-row"><strong>旗下方案平均評分：</strong>${renderStars(company.avg_score)} <span class="muted">（共 ${formatNumber(company.solution_count || 0)} 筆）</span></div>`
+          : '<div class="avg-score-row muted">評分建置中</div>'}
+      `;
+      document.getElementById('closeCompany').addEventListener('click', () => {
+        selectedCompany = null;
+        clearTimeout(dimTimer);
+        renderBubbles();
       });
     }
 
@@ -924,6 +1747,219 @@
       }
     }
 
+    const quadrantPlugin = {
+      id: 'competitionQuadrants',
+      beforeDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea || !scales.x || !scales.y) return;
+        const { left, right, top, bottom } = chartArea;
+        const xMid = scales.x.getPixelForValue(COMPETITION_X_MID);
+        const yMid = scales.y.getPixelForValue(COMPETITION_Y_MID);
+        ctx.save();
+        ctx.fillStyle = 'rgba(220,38,38,0.06)';
+        ctx.fillRect(xMid, top, right - xMid, yMid - top);
+        ctx.fillStyle = 'rgba(245,158,11,0.06)';
+        ctx.fillRect(left, top, xMid - left, yMid - top);
+        ctx.fillStyle = 'rgba(124,58,237,0.06)';
+        ctx.fillRect(xMid, yMid, right - xMid, bottom - yMid);
+        ctx.fillStyle = 'rgba(37,99,235,0.06)';
+        ctx.fillRect(left, yMid, xMid - left, bottom - yMid);
+        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = 'rgba(0,0,0,0.24)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(xMid, top);
+        ctx.lineTo(xMid, bottom);
+        ctx.moveTo(left, yMid);
+        ctx.lineTo(right, yMid);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(16,37,58,0.62)';
+        ctx.font = '600 12px system-ui, -apple-system, sans-serif';
+        ctx.textBaseline = 'top';
+        ctx.fillText('成長競爭者', left + 10, top + 10);
+        ctx.fillText('主戰場領導者', xMid + 10, top + 10);
+        ctx.fillText('藍海探索者', left + 10, yMid + 10);
+        ctx.fillText('利基深耕者', xMid + 10, yMid + 10);
+        ctx.restore();
+      },
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea } = chart;
+        ctx.save();
+        ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+        ctx.textBaseline = 'middle';
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+          const point = chart.getDatasetMeta(datasetIndex).data[0];
+          if (!point) return;
+          const props = point.getProps(['x', 'y', 'options'], true);
+          const labelX = Math.min(props.x + (props.options.radius || 8) + 6, chartArea.right - 58);
+          const labelY = Math.max(chartArea.top + 8, Math.min(props.y, chartArea.bottom - 8));
+          ctx.fillStyle = dataset.borderColor;
+          ctx.fillText(dataset.label, labelX, labelY);
+        });
+        ctx.restore();
+      },
+    };
+
+    function drawCompetitionFallback(canvas) {
+      const box = canvas.parentElement.getBoundingClientRect();
+      const width = Math.max(680, Math.floor(box.width || 900));
+      const height = Math.max(360, Math.floor(box.height || 460));
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      const padding = { top: 46, right: 70, bottom: 56, left: 58 };
+      const area = {
+        left: padding.left,
+        right: width - padding.right,
+        top: padding.top,
+        bottom: height - padding.bottom,
+      };
+      const xFor = value => area.left + (value / 720) * (area.right - area.left);
+      const yFor = value => area.bottom - (value / 0.85) * (area.bottom - area.top);
+      const xMid = xFor(COMPETITION_X_MID);
+      const yMid = yFor(COMPETITION_Y_MID);
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = 'rgba(220,38,38,0.06)';
+      ctx.fillRect(xMid, area.top, area.right - xMid, yMid - area.top);
+      ctx.fillStyle = 'rgba(245,158,11,0.06)';
+      ctx.fillRect(area.left, area.top, xMid - area.left, yMid - area.top);
+      ctx.fillStyle = 'rgba(124,58,237,0.06)';
+      ctx.fillRect(xMid, yMid, area.right - xMid, area.bottom - yMid);
+      ctx.fillStyle = 'rgba(37,99,235,0.06)';
+      ctx.fillRect(area.left, yMid, xMid - area.left, area.bottom - yMid);
+
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= 720; x += 120) {
+        const px = xFor(x);
+        ctx.beginPath();
+        ctx.moveTo(px, area.top);
+        ctx.lineTo(px, area.bottom);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= 0.8; y += 0.2) {
+        const py = yFor(y);
+        ctx.beginPath();
+        ctx.moveTo(area.left, py);
+        ctx.lineTo(area.right, py);
+        ctx.stroke();
+      }
+
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = 'rgba(0,0,0,0.24)';
+      ctx.beginPath();
+      ctx.moveTo(xMid, area.top);
+      ctx.lineTo(xMid, area.bottom);
+      ctx.moveTo(area.left, yMid);
+      ctx.lineTo(area.right, yMid);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = 'rgba(16,37,58,0.62)';
+      ctx.font = '600 12px system-ui, -apple-system, sans-serif';
+      ctx.textBaseline = 'top';
+      ctx.fillText('成長競爭者', area.left + 10, area.top + 10);
+      ctx.fillText('主戰場領導者', xMid + 10, area.top + 10);
+      ctx.fillText('藍海探索者', area.left + 10, yMid + 10);
+      ctx.fillText('利基深耕者', xMid + 10, yMid + 10);
+
+      ctx.font = '11px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = '#667085';
+      ctx.textAlign = 'center';
+      ctx.fillText('市場規模（方案數）', (area.left + area.right) / 2, height - 16);
+      ctx.save();
+      ctx.translate(18, (area.top + area.bottom) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('競爭密度 ↑', 0, 0);
+      ctx.restore();
+
+      COMPETITION_DATA.forEach(item => {
+        const color = ZONE_COLOR[item.zone] || ZONE_COLOR.blue;
+        const x = xFor(item.sol);
+        const y = yFor(item.co / item.sol);
+        const radius = Math.max(8, Math.min(28, item.sol / 28));
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color.bg;
+        ctx.strokeStyle = color.bd;
+        ctx.lineWidth = 2;
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = color.bd;
+        ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(item.label, Math.min(x + radius + 6, area.right - 58), Math.max(area.top + 8, Math.min(y, area.bottom - 8)));
+      });
+    }
+
+    function renderCompetitionGrid() {
+      const canvas = document.getElementById('competitionGrid');
+      if (!canvas) return;
+      if (typeof Chart === 'undefined') {
+        drawCompetitionFallback(canvas);
+        return;
+      }
+      if (competitionChart) {
+        competitionChart.destroy();
+      }
+      const datasets = COMPETITION_DATA.map(item => {
+        const color = ZONE_COLOR[item.zone] || ZONE_COLOR.blue;
+        return {
+          label: item.label,
+          data: [{ x: item.sol, y: item.co / item.sol, r: Math.max(8, Math.min(28, item.sol / 28)) }],
+          backgroundColor: color.bg,
+          borderColor: color.bd,
+          borderWidth: 2,
+          hoverBorderWidth: 3,
+          _sol: item.sol,
+          _co: item.co,
+        };
+      });
+      competitionChart = new Chart(canvas, {
+        type: 'bubble',
+        data: { datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { top: 30, right: 40, bottom: 10, left: 10 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: ctx => [ctx[0].dataset.label],
+                label: ctx => [
+                  `方案數：${formatNumber(ctx.dataset._sol)} 筆`,
+                  `公司數：${formatNumber(ctx.dataset._co)} 家`,
+                  `競爭密度：${(ctx.dataset._co / ctx.dataset._sol * 100).toFixed(0)}%`,
+                ],
+              },
+            },
+          },
+          scales: {
+            x: {
+              min: 0,
+              max: 720,
+              title: { display: true, text: '市場規模（方案數）', font: { size: 11 } },
+              grid: { color: 'rgba(0,0,0,0.08)' },
+            },
+            y: {
+              min: 0,
+              max: 0.85,
+              title: { display: true, text: '競爭密度 ↑', font: { size: 11 } },
+              ticks: { callback: value => `${(value * 100).toFixed(0)}%` },
+              grid: { color: 'rgba(0,0,0,0.08)' },
+            },
+          },
+        },
+        plugins: [quadrantPlugin],
+      });
+    }
+
     const cityNameMap = {
       'Taipei City': '台北市',
       'New Taipei City': '新北市',
@@ -1030,6 +2066,9 @@
       const status = document.getElementById('status');
       const error = document.getElementById('error');
       try {
+        renderCategories();
+        renderCompetitionGrid();
+        await loadCompanies();
         const response = await fetch('/api/stats');
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
@@ -1049,6 +2088,7 @@
       }
     }
 
+    window.addEventListener('resize', () => renderBubbles());
     loadDashboard();
   </script>
 </body>
