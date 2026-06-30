@@ -78,5 +78,5 @@ Updated dashboard H1:
 
 ## Commit / PR
 
-- Commit: pending
+- Implementation commit: `12a2c90`
 - PR: existing branch / pending update
