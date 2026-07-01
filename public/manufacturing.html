@@ -284,7 +284,9 @@
         display: flex;
         gap: 24px;
         height: calc(100vh - 61px - 80px);
-        overflow: hidden;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
         align-items: stretch;
       }
       .diagnosis-input-panel {
