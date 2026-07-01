@@ -96,40 +96,30 @@
     .reference-case-filter { font-size: 13px; padding: 5px 13px; border-radius: 999px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 900; transition: all .12s; }
     .reference-case-filter:hover { border-color: #185FA5; color: #185FA5; background: #eff6ff; }
     .reference-case-filter.active { background: #185FA5; color: #ffffff; border-color: #185FA5; }
-    .reference-case-media { position: relative; }
-    .reference-case-media-trigger {
-      display: inline-flex; align-items: center; gap: 6px;
-      border: 1px solid #bfdbfe; border-radius: 999px;
-      background: #eff6ff; color: #1d4ed8;
-      padding: 5px 9px; font-size: 11px; font-weight: 900;
-      cursor: pointer; transition: border-color .15s, background .15s, color .15s;
+    .reference-case-media {
+      --case-thumb-size: 72px;
+      --case-thumb-gap: 8px;
+      position: relative; display: inline-block; width: max-content;
+      margin: 0 0 12px;
     }
-    .reference-case-media-trigger:hover,
-    .reference-case-media.open .reference-case-media-trigger {
-      border-color: #185FA5; background: #dbeafe; color: #185FA5;
+    .reference-case-media-thumbs {
+      display: grid; grid-template-columns: repeat(3, var(--case-thumb-size));
+      gap: var(--case-thumb-gap); align-items: start;
     }
-    .reference-case-media-panel {
-      position: absolute; right: 0; bottom: calc(100% + 8px);
-      width: min(420px, calc(100vw - 48px));
-      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
-      padding: 10px; border: 1px solid #dbeafe; border-radius: 14px;
-      background: rgba(255, 255, 255, 0.98);
-      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18);
-      opacity: 0; visibility: hidden; transform: translateY(4px);
-      transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
-      z-index: 80; pointer-events: none;
-    }
-    .reference-case-media:hover .reference-case-media-panel,
-    .reference-case-media:focus-within .reference-case-media-panel,
-    .reference-case-media.open .reference-case-media-panel {
-      opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
-    }
-    .reference-case-media-frame {
+    .reference-case-media-thumb {
       position: relative; overflow: hidden; border-radius: 10px;
-      background: #f1f5f9; aspect-ratio: 4 / 3;
+      width: var(--case-thumb-size); height: var(--case-thumb-size);
+      padding: 0; cursor: pointer;
+      background: #f1f5f9;
       border: 1px solid #e2e8f0;
+      transition: border-color .14s ease, box-shadow .14s ease, transform .14s ease;
     }
-    .reference-case-media-frame img {
+    .reference-case-media-thumb:hover,
+    .reference-case-media-thumb:focus-visible {
+      border-color: #185FA5; box-shadow: 0 8px 18px rgba(24, 95, 165, 0.16);
+      transform: translateY(-1px); outline: none;
+    }
+    .reference-case-media-thumb img {
       width: 100%; height: 100%; object-fit: cover; display: block;
     }
     .reference-case-media-badge {
@@ -139,9 +129,35 @@
       font-size: 10px; font-weight: 900; line-height: 1;
     }
     .reference-case-media-caption {
-      grid-column: 1 / -1; color: #64748b;
+      color: #64748b; margin-top: 6px;
       font-size: 11px; font-weight: 700; line-height: 1.45;
     }
+    .reference-case-media-preview {
+      position: absolute;
+      top: 0;
+      left: calc((var(--case-thumb-size) * 3) + (var(--case-thumb-gap) * 2) + 12px);
+      width: 280px; height: 280px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px; border: 1px solid #dbeafe; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 20px 46px rgba(15, 23, 42, 0.2);
+      opacity: 0; visibility: hidden; transform: translateY(4px);
+      transition: opacity .12s ease, transform .12s ease, visibility .12s ease;
+      z-index: 80; pointer-events: none;
+    }
+    .reference-case-media.preview-open .reference-case-media-preview {
+      opacity: 1; visibility: visible; transform: translateY(0);
+    }
+    .reference-case-media-preview img {
+      width: 100%; height: 100%; object-fit: contain; display: block;
+    }
+    .reference-case-media-preview-badge {
+      position: absolute; left: 14px; bottom: 14px;
+      border-radius: 999px; padding: 4px 9px;
+      background: rgba(15, 23, 42, 0.78); color: #ffffff;
+      font-size: 11px; font-weight: 900; line-height: 1;
+    }
+    .reference-case-media-preview-badge.hidden { display: none; }
     .ref-case-detail { border: 0.5px solid var(--border, #e5e7eb); border-radius: 12px; margin-top: 8px; overflow: hidden; animation: inlineDetailIn 160ms ease-out; background: #ffffff; }
     .ref-case-detail.no-animation { animation: none; }
     .ref-case-detail-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border, #e5e7eb); }
@@ -209,10 +225,10 @@
       to { opacity: 1; transform: translateY(0); }
     }
     @media (max-width: 767px) {
-      .reference-case-media-panel {
-        position: fixed; left: 16px; right: 16px; top: 82px; bottom: auto;
-        width: auto; max-height: calc(100vh - 120px);
-        overflow-y: auto;
+      .reference-case-media { width: 100%; }
+      .reference-case-media-preview {
+        left: 0; top: calc(var(--case-thumb-size) + 12px);
+        width: min(280px, 100%); height: 280px;
       }
     }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
@@ -1422,21 +1438,22 @@
     function getReferenceCaseMediaHtml(item) {
       const images = getReferenceCaseImages(item);
       if (!images.length) return "";
+      const firstImage = images[0];
       return `
         <div class="reference-case-media" data-reference-case-media>
-          <button class="reference-case-media-trigger" type="button" aria-label="查看案例圖片">
-            <i class="fa-regular fa-images"></i>
-            圖片
-          </button>
-          <div class="reference-case-media-panel" role="group" aria-label="案例圖片展示區">
+          <div class="reference-case-media-thumbs" aria-label="案例圖片縮圖列">
             ${images.map((image, index) => `
-              <figure class="reference-case-media-frame">
+              <button class="reference-case-media-thumb" type="button" data-reference-case-media-thumb data-preview-src="${escapeHtml(image.src)}" data-preview-alt="${escapeHtml(item.title)} 圖片 ${index + 1}" data-preview-illustrative="${image.illustrative ? "true" : "false"}" aria-label="預覽 ${escapeHtml(item.title)} 圖片 ${index + 1}">
                 <img src="${escapeHtml(image.src)}" alt="${escapeHtml(item.title)} 圖片 ${index + 1}" loading="lazy">
                 ${image.illustrative ? '<span class="reference-case-media-badge">示意圖</span>' : ""}
-              </figure>
+              </button>
             `).join("")}
-            <div class="reference-case-media-caption">圖片僅供案例脈絡輔助判讀；標示「示意圖」者非真實案場照片。</div>
           </div>
+          <div class="reference-case-media-preview" data-reference-case-media-preview role="img" aria-label="案例圖片大圖預覽">
+            <img data-reference-case-preview-img src="${escapeHtml(firstImage.src)}" alt="${escapeHtml(item.title)} 圖片 1">
+            <span class="reference-case-media-preview-badge ${firstImage.illustrative ? "" : "hidden"}" data-reference-case-preview-badge>示意圖</span>
+          </div>
+          <div class="reference-case-media-caption">圖片僅供案例脈絡輔助判讀；標示「示意圖」者非真實案場照片。</div>
         </div>
       `;
     }
@@ -1488,7 +1505,6 @@
               <div class="flex items-start justify-between gap-3 mb-3">
                 <h4 class="font-black text-slate-900 text-sm leading-snug">${escapeHtml(item.title)}</h4>
                 <div class="flex items-center gap-2 shrink-0">
-                  ${mediaHtml}
                   <i class="fa-solid fa-chevron-${isExpanded ? "up" : "down"} text-xs text-slate-400"></i>
                 </div>
               </div>
@@ -1497,6 +1513,7 @@
                 <span class="reference-case-chip solution">${escapeHtml(item.solutionType)}</span>
                 <span class="reference-case-chip size">${escapeHtml(item.size)}</span>
               </div>
+              ${mediaHtml}
               <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
                 <div>
                   <p class="font-black text-slate-700 mb-1">導入痛點</p>
@@ -1523,17 +1540,35 @@
         });
       });
       refs.referenceCaseList.querySelectorAll("[data-reference-case-media]").forEach(media => {
+        const previewImg = media.querySelector("[data-reference-case-preview-img]");
+        const previewBadge = media.querySelector("[data-reference-case-preview-badge]");
+        const showPreview = thumb => {
+          if (!previewImg || !previewBadge) return;
+          previewImg.src = thumb.dataset.previewSrc || "";
+          previewImg.alt = thumb.dataset.previewAlt || "";
+          previewBadge.classList.toggle("hidden", thumb.dataset.previewIllustrative !== "true");
+          media.classList.add("preview-open");
+        };
+        const hidePreview = () => {
+          media.classList.remove("preview-open");
+        };
+        media.querySelectorAll("[data-reference-case-media-thumb]").forEach(thumb => {
+          thumb.addEventListener("mouseenter", () => showPreview(thumb));
+          thumb.addEventListener("mouseleave", hidePreview);
+          thumb.addEventListener("focus", () => showPreview(thumb));
+          thumb.addEventListener("blur", hidePreview);
+          thumb.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            showPreview(thumb);
+          });
+        });
         media.addEventListener("click", event => {
           event.stopPropagation();
-          const isOpen = media.classList.contains("open");
-          refs.referenceCaseList.querySelectorAll("[data-reference-case-media].open").forEach(openMedia => {
-            if (openMedia !== media) openMedia.classList.remove("open");
-          });
-          media.classList.toggle("open", !isOpen);
         });
         media.addEventListener("keydown", event => {
           if (event.key === "Escape") {
-            media.classList.remove("open");
+            hidePreview();
           }
         });
       });
