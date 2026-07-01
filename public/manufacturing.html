@@ -54,6 +54,7 @@
     .upload-lock-message.show { opacity: 1; transform: translateY(0); }
     .agent-card { display: flex; flex-direction: column; }
     .agent-card-fixed { flex-shrink: 0; }
+    .diagnosis-workspace { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
     .chat-panel {
       min-height: 220px;
       max-height: min(360px, calc(100vh - 430px));
@@ -273,22 +274,53 @@
       .reference-case-lightbox-next { right: calc(50% - 54px); }
     }
     @media (min-width: 1024px) {
+      .diagnosis-workspace {
+        display: flex;
+        gap: 24px;
+        height: calc(100vh - 160px);
+        overflow: hidden;
+        align-items: stretch;
+      }
       .diagnosis-input-panel {
-        position: sticky;
-        top: 88px;
-        align-self: start;
-        max-height: calc(100vh - 104px);
-        overflow: visible;
-        padding-right: 2px;
+        display: flex;
+        flex-direction: column;
+        width: 390px;
+        height: 100%;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .diagnosis-upload-card {
+        flex-shrink: 0;
+        padding: 14px;
+      }
+      .diagnosis-upload-card .dropzone,
+      .diagnosis-upload-card .dropzone-indigo {
+        padding: 10px;
+      }
+      .diagnosis-upload-card .dropzone > i,
+      .diagnosis-upload-card .dropzone-indigo > i {
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+      .diagnosis-upload-card label .text-xs {
+        display: none;
       }
       .agent-card {
-        max-height: calc(100vh - 430px);
+        flex: 1;
+        min-height: 0;
         overflow: hidden;
       }
       .agent-card .chat-panel {
         flex: 1;
         min-height: 0;
         max-height: none;
+      }
+      .diagnosis-results-panel {
+        flex: 1;
+        height: 100%;
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: 4px;
       }
     }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
@@ -338,9 +370,9 @@
       </div>
     </header>
 
-    <section class="grid grid-cols-1 lg:grid-cols-[390px_1fr] gap-6 items-start">
+    <section class="diagnosis-workspace">
       <aside class="space-y-4 diagnosis-input-panel">
-        <section class="card p-5">
+        <section class="card p-5 diagnosis-upload-card">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-black text-slate-900">需求文件</h2>
             <span class="badge badge-blue">PDF</span>
@@ -416,7 +448,7 @@
         </section>
       </aside>
 
-      <section id="resultView" class="space-y-4">
+      <section id="resultView" class="space-y-4 diagnosis-results-panel">
         <section class="card p-5">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
