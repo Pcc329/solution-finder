@@ -52,7 +52,14 @@
       pointer-events: none;
     }
     .upload-lock-message.show { opacity: 1; transform: translateY(0); }
-    .chat-panel { min-height: 310px; max-height: 470px; overflow-y: auto; padding-right: 4px; }
+    .agent-card { display: flex; flex-direction: column; }
+    .agent-card-fixed { flex-shrink: 0; }
+    .chat-panel {
+      min-height: 220px;
+      max-height: min(360px, calc(100vh - 430px));
+      overflow-y: auto;
+      padding-right: 4px;
+    }
     .chat-message { display: flex; margin-bottom: 12px; }
     .chat-message.assistant { justify-content: flex-start; }
     .chat-message.user { justify-content: flex-end; }
@@ -271,8 +278,17 @@
         top: 88px;
         align-self: start;
         max-height: calc(100vh - 104px);
-        overflow-y: auto;
+        overflow: visible;
         padding-right: 2px;
+      }
+      .agent-card {
+        max-height: calc(100vh - 430px);
+        overflow: hidden;
+      }
+      .agent-card .chat-panel {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
       }
     }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
@@ -383,18 +399,18 @@
           </div>
         </section>
 
-        <section class="card p-5">
-          <div class="flex items-center justify-between mb-4">
+        <section class="card p-5 agent-card">
+          <div class="agent-card-fixed flex items-center justify-between mb-4">
             <h2 class="text-lg font-black text-slate-900">AI Agent 問答</h2>
             <span class="badge badge-teal">Haiku flow</span>
           </div>
           <div id="agentChat" class="chat-panel mb-4" aria-live="polite"></div>
-          <div id="agentOptions" class="flex flex-wrap gap-2 mb-4"></div>
-          <div class="flex gap-2">
+          <div id="agentOptions" class="agent-card-fixed flex flex-wrap gap-2 mb-4"></div>
+          <div class="agent-card-fixed flex gap-2">
             <input id="agentInput" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-500" type="text" placeholder="也可以直接輸入回答...">
             <button id="agentSendBtn" class="btn-primary px-4" type="button"><i class="fa-solid fa-paper-plane"></i></button>
           </div>
-          <div class="flex items-center justify-end mt-4">
+          <div class="agent-card-fixed flex items-center justify-end mt-4">
             <span id="agentProgress" class="text-xs text-slate-400">1 / 5</span>
           </div>
         </section>
