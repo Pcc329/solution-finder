@@ -55,6 +55,12 @@
     .agent-card { display: flex; flex-direction: column; }
     .agent-card-fixed { flex-shrink: 0; }
     .diagnosis-workspace { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
+    .analysis-result-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--surface-2, #ffffff);
+    }
     .chat-panel {
       min-height: 220px;
       max-height: min(360px, calc(100vh - 430px));
@@ -449,7 +455,7 @@
       </aside>
 
       <section id="resultView" class="space-y-4 diagnosis-results-panel">
-        <section class="card p-5">
+        <section class="card p-5 analysis-result-sticky">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
               <h2 class="text-xl font-black text-slate-900">分析結果</h2>
