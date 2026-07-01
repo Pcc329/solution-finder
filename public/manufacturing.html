@@ -126,12 +126,6 @@
     .reference-case-media-thumb img {
       width: 100%; height: 100%; object-fit: cover; display: block;
     }
-    .reference-case-media-badge {
-      position: absolute; top: 6px; left: 6px;
-      border-radius: 999px; padding: 3px 7px;
-      background: rgba(15, 23, 42, 0.78); color: #ffffff;
-      font-size: 10px; font-weight: 900; line-height: 1;
-    }
     .reference-case-media-caption {
       color: #64748b; margin-top: 6px;
       font-size: 11px; font-weight: 700; line-height: 1.45;
@@ -161,13 +155,6 @@
       width: 100%; height: 100%; object-fit: contain; display: block;
       padding: 16px;
     }
-    .reference-case-lightbox-badge {
-      position: absolute; left: 16px; bottom: 16px;
-      border-radius: 999px; padding: 4px 9px;
-      background: rgba(15, 23, 42, 0.78); color: #ffffff;
-      font-size: 11px; font-weight: 900; line-height: 1;
-    }
-    .reference-case-lightbox-badge.hidden { display: none; }
     .reference-case-lightbox-close {
       position: fixed; top: 16px; right: 16px;
       width: 40px; height: 40px; border-radius: 999px; border: none;
@@ -199,9 +186,6 @@
     .reference-case-lightbox-thumb.is-active { border-color: #1D9E75; }
     .reference-case-lightbox-thumb img {
       width: 100%; height: 100%; object-fit: cover; display: block;
-    }
-    .reference-case-lightbox-thumb .reference-case-media-badge {
-      top: auto; left: 5px; bottom: 5px; padding: 2px 5px; font-size: 9px;
     }
     .ref-case-detail { border: 0.5px solid var(--border, #e5e7eb); border-radius: 12px; margin-top: 8px; overflow: hidden; animation: inlineDetailIn 160ms ease-out; background: #ffffff; }
     .ref-case-detail.no-animation { animation: none; }
@@ -518,7 +502,6 @@
     <div class="reference-case-lightbox-panel">
       <div class="reference-case-lightbox-image-wrap">
         <img id="referenceCaseLightboxImage" class="reference-case-lightbox-image" src="" alt="">
-        <span id="referenceCaseLightboxBadge" class="reference-case-lightbox-badge hidden">示意圖</span>
       </div>
       <div id="referenceCaseLightboxStrip" class="reference-case-lightbox-strip" aria-label="案例圖片縮圖切換"></div>
     </div>
@@ -578,7 +561,6 @@
       referenceCaseLightboxPrev: document.getElementById("referenceCaseLightboxPrev"),
       referenceCaseLightboxNext: document.getElementById("referenceCaseLightboxNext"),
       referenceCaseLightboxImage: document.getElementById("referenceCaseLightboxImage"),
-      referenceCaseLightboxBadge: document.getElementById("referenceCaseLightboxBadge"),
       referenceCaseLightboxStrip: document.getElementById("referenceCaseLightboxStrip"),
     };
 
@@ -1517,11 +1499,10 @@
             ${images.map((image, index) => `
               <button class="reference-case-media-thumb ${index === 0 ? "primary" : ""}" type="button" data-reference-case-media-thumb data-reference-case-media-image-index="${index}" aria-label="放大檢視 ${escapeHtml(item.title)} 圖片 ${index + 1}">
                 <img src="${escapeHtml(image.src)}" alt="${escapeHtml(item.title)} 圖片 ${index + 1}" loading="lazy">
-                ${image.illustrative ? '<span class="reference-case-media-badge">示意圖</span>' : ""}
               </button>
             `).join("")}
           </div>
-          <div class="reference-case-media-caption">圖片僅供案例脈絡輔助判讀；標示「示意圖」者非真實案場照片。</div>
+          <div class="reference-case-media-caption">圖片僅供案例脈絡輔助判讀。</div>
         </div>
       `;
     }
@@ -1531,11 +1512,9 @@
       if (!image) return;
       refs.referenceCaseLightboxImage.src = image.src;
       refs.referenceCaseLightboxImage.alt = `${referenceCaseLightboxTitle} 圖片 ${referenceCaseLightboxIndex + 1}`;
-      refs.referenceCaseLightboxBadge.classList.toggle("hidden", !image.illustrative);
       refs.referenceCaseLightboxStrip.innerHTML = referenceCaseLightboxImages.map((thumb, index) => `
         <button class="reference-case-lightbox-thumb ${index === referenceCaseLightboxIndex ? "is-active" : ""}" type="button" data-reference-case-lightbox-thumb="${index}" aria-label="切換到圖片 ${index + 1}">
           <img src="${escapeHtml(thumb.src)}" alt="${escapeHtml(referenceCaseLightboxTitle)} 圖片 ${index + 1}">
-          ${thumb.illustrative ? '<span class="reference-case-media-badge">示意圖</span>' : ""}
         </button>
       `).join("");
       refs.referenceCaseLightboxStrip.querySelectorAll("[data-reference-case-lightbox-thumb]").forEach(button => {
