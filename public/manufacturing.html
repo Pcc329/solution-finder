@@ -292,7 +292,9 @@
         flex-direction: column;
         width: 390px;
         height: 100%;
-        overflow: hidden;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
         flex-shrink: 0;
       }
       .diagnosis-upload-card {
@@ -319,11 +321,11 @@
         flex-direction: column;
         flex: 1;
         min-height: 0;
-        overflow: hidden;
+        overflow-y: auto;
       }
       .agent-card .chat-panel {
         flex: 1 1 auto;
-        min-height: 80px;
+        min-height: 0;
         max-height: none;
         overflow-y: auto;
       }
