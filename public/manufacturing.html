@@ -299,12 +299,13 @@
         flex-shrink: 0;
         padding: 10px 14px;
       }
+      .diagnosis-upload-card h2 {
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
       .diagnosis-upload-card .dropzone,
       .diagnosis-upload-card .dropzone-indigo {
         padding: 8px 10px;
-        .diagnosis-upload-card h2 {
-        font-size: 13px;
-        margin-bottom: 6px;
       }
       .diagnosis-upload-card .dropzone > i,
       .diagnosis-upload-card .dropzone-indigo > i {
@@ -314,14 +315,17 @@
         display: none;
       }
       .agent-card {
+        display: flex;
+        flex-direction: column;
         flex: 1;
         min-height: 0;
         overflow: hidden;
       }
       .agent-card .chat-panel {
-        flex: 1;
-        min-height: 0;
+        flex: 1 1 auto;
+        min-height: 80px;
         max-height: none;
+        overflow-y: auto;
       }
       .diagnosis-results-panel {
         flex: 1;
