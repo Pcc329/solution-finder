@@ -85,6 +85,12 @@
     .solution-card-other { border-left: 3px solid #EF9F27 !important; }
     .solution-card:hover { box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
     .solution-card.is-expanded { border-color: #1D9E75; box-shadow: 0 8px 24px rgba(29, 158, 117, 0.08); }
+    .run-btn-pulse { animation: runBtnPulse 0.72s ease-out 3; }
+    @keyframes runBtnPulse {
+      0% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.48); transform: scale(1); }
+      48% { box-shadow: 0 0 0 10px rgba(13, 148, 136, 0.12); transform: scale(1.03); }
+      100% { box-shadow: 0 0 0 16px rgba(13, 148, 136, 0); transform: scale(1); }
+    }
     .reference-case-card { border-left: 3px solid #185FA5; border-radius: 0 14px 14px 0; background: #ffffff; cursor: pointer; transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
     .reference-case-card:hover { box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12); transform: translateY(-2px); }
     .reference-case-card.is-expanded { border-color: #185FA5; box-shadow: 0 8px 24px rgba(24, 95, 165, 0.12); }
@@ -259,6 +265,16 @@
       .reference-case-lightbox-prev { left: calc(50% - 54px); }
       .reference-case-lightbox-next { right: calc(50% - 54px); }
     }
+    @media (min-width: 1024px) {
+      .diagnosis-input-panel {
+        position: sticky;
+        top: 88px;
+        align-self: start;
+        max-height: calc(100vh - 104px);
+        overflow-y: auto;
+        padding-right: 2px;
+      }
+    }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 900; margin: 0.75em 0 0.35em; }
     .markdown-body h1 { font-size: 1.25rem; }
     .markdown-body h2 { font-size: 1.15rem; }
@@ -307,7 +323,7 @@
     </header>
 
     <section class="grid grid-cols-1 lg:grid-cols-[390px_1fr] gap-6 items-start">
-      <aside class="space-y-4">
+      <aside class="space-y-4 diagnosis-input-panel">
         <section class="card p-5">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-black text-slate-900">需求文件</h2>
@@ -648,7 +664,8 @@
     let expandedIds = [];
     let lastToggledId = null;
     let subscriptionToastTimer = null;
-    const DESKTOP_MAX_EXPANDED = 3;
+    let runBtnWasReady = false;
+    const DESKTOP_MAX_EXPANDED = 1;
     const MOBILE_MAX_EXPANDED = 1;
     const CASE_DESKTOP_MAX = 3;
     const CASE_MOBILE_MAX = 1;
@@ -1066,6 +1083,16 @@
         refs.runBtn.disabled = !ready;
         refs.runBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart mr-2"></i>產生推薦';
       }
+      const runBtnReady = ready && !isGenerating && !hasGenerated;
+      if (runBtnReady && !runBtnWasReady) {
+        refs.runBtn.classList.remove("run-btn-pulse");
+        void refs.runBtn.offsetWidth;
+        refs.runBtn.classList.add("run-btn-pulse");
+      }
+      if (!runBtnReady) {
+        refs.runBtn.classList.remove("run-btn-pulse");
+      }
+      runBtnWasReady = runBtnReady;
     }
 
     function askCurrentQuestion() {
@@ -1179,8 +1206,6 @@
         refs.agentProgress.textContent = "完成";
         addMessage("assistant", "條件已整理完成。你可以產生官方推薦與其他候選方案。");
         hardLockAgentInput("completion-message");
-        runExplore();
-        hardLockAgentInput("after-runExplore");
         return;
       }
       askCurrentQuestion();
@@ -1265,10 +1290,7 @@
       if (index >= 0) {
         expandedIds.splice(index, 1);
       } else {
-        expandedIds.push(itemId);
-        if (expandedIds.length > getMaxExpanded()) {
-          expandedIds.shift();
-        }
+        expandedIds = [itemId];
       }
 
       renderCurrentLists();
@@ -2134,6 +2156,11 @@
     });
     refs.restartBtn.addEventListener("click", () => resetAgent(true));
     refs.runBtn.addEventListener("click", runExplore);
+    refs.runBtn.addEventListener("animationend", event => {
+      if (event.animationName === "runBtnPulse") {
+        refs.runBtn.classList.remove("run-btn-pulse");
+      }
+    });
     refs.clearFilesBtn.addEventListener("click", clearAllFiles);
     refs.collapseAllBtn.addEventListener("click", collapseAllDetails);
     refs.subscriptionToastClose.addEventListener("click", () => {
