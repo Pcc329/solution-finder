@@ -170,3 +170,96 @@ const converted = records
 - Commit: 本 SYNC 所在 commit（以 `git log -1 --oneline` 為準）
 - PR 建立頁：`https://github.com/Pcc329/solution-finder/pull/new/feat-cases-frontend-v1`
 - 備註：本機未安裝 `gh`，瀏覽器開啟 PR 建立頁時導向 GitHub 登入頁，因此尚未能直接建立 PR。
+
+---
+
+## v2 更新：案例前端移入 dashboard.html
+
+### 本次需求
+- 繼續使用分支：`feat-cases-frontend-v1`
+- 將案例知識庫前端從 `public/strategy-guide.html` 移到 `public/dashboard.html`
+- `public/strategy-guide.html` 恢復為 `origin/main` 版本
+- `api/cases.js` confidentiality 白名單邏輯保持不變
+- `public/manufacturing.html` 的 `normalizeReferenceCase` 相容層保持不變
+- `public/sources.html` 新增「產業案例知識庫」靜態來源說明
+
+### 實際改動檔案
+- `public/dashboard.html`
+  - 在 anchor nav 的「服務分類」後、「公司圖譜」前加入「案例知識庫」
+  - 在服務分類區塊下方加入 `#cases` 區塊
+  - 新增 3 個篩選器：`case_type`、`industry_category`、`pain_point_domain`
+  - 新增 `loadCases()`、`renderCases()`、`getCaseBadge()`、`setupCaseLazyLoad()`
+  - `/api/cases` 採 lazy-load：點擊 `#cases` 或滾動接近案例區塊才載入，不在 `loadDashboard()` 初始流程載入
+- `public/sources.html`
+  - 在「各來源詳細說明」的 detail grid 內新增「產業案例知識庫」卡片
+  - 靜態顯示：59 筆、實績案例 14 筆／輔導規劃 15 筆／AI 模擬示範 30 筆
+- `public/strategy-guide.html`
+  - 已恢復為 `origin/main` 版本；`git diff origin/main -- public/strategy-guide.html` 無輸出
+
+### badge / fallback 邏輯
+`public/dashboard.html` 的 `getCaseBadge(item)`：
+
+```js
+if (item.outcome_status === '預期成效') {
+  return '<span class="case-badge expected">預期成效</span>';
+}
+if (item.outcome_status === '實際成效') {
+  return '<span class="case-badge actual">實績</span>';
+}
+if (item.case_type === 'AI模擬示範') {
+  return '<span class="case-badge simulated">AI模擬示範</span>';
+}
+if (!item.case_type && !item.outcome_status && item.is_real !== true) {
+  return '<span class="case-badge simulated">AI模擬示範</span>';
+}
+return '';
+```
+
+說明：
+- `outcome_status = '模擬數據'` 不會直接產生 outcome badge
+- 若同筆資料 `case_type = 'AI模擬示範'`，AI 模擬示範標章由 `case_type` 產生
+- 舊資料 fallback：`case_type` 空、`outcome_status` 空、`is_real !== true` 時顯示 `AI模擬示範`
+
+### confidentiality 白名單實作片段
+`api/cases.js` 維持只回傳 `內部可看`、`公開`：
+
+```js
+const ALLOWED_CONFIDENTIALITY = new Set(['內部可看', '公開']);
+
+const converted = records
+  .filter(rec => {
+    const confidentiality = String(rec.fields?.confidentiality || '').trim();
+    return ALLOWED_CONFIDENTIALITY.has(confidentiality);
+  })
+  .map(rec => {
+    const fields = rec.fields || {};
+    return CASE_FIELD_WHITELIST.reduce((safeFields, fieldName) => {
+      if (EXCLUDED_FIELDS.has(fieldName)) return safeFields;
+      safeFields[fieldName] = fields[fieldName] ?? '';
+      return safeFields;
+    }, {});
+  });
+```
+
+### 線上即時資料補驗
+- 驗證 URL：`https://solution-finder-gray.vercel.app/api/cases`
+- 驗證時間：2026-07-09
+- 結果：正式站目前仍是舊 API 格式，尚未部署本分支新版欄位
+- 正式站回傳筆數：59
+- 正式站第一筆欄位：`caseId, diagnosis, id, industry, isReal, order, pain, replicable, resistance, resolution, result, size, solutionType, title`
+- 正式站 `case_type`：0 筆
+- 正式站 `outcome_status`：0 筆
+- 正式站 fallback 計算：AI 模擬示範 59 筆（因為舊 API 無新欄位）
+- 判斷：預期標章數 `實績 14 / 預期成效 15 / AI模擬示範 30` 需等 PR Preview 部署新版 `api/cases.js` 後再以 Preview `/api/cases` 重驗
+
+### 檢查結果
+- `node --check api/cases.js`: pass
+- `public/dashboard.html` inline script syntax: pass
+- `public/manufacturing.html` inline script syntax: pass
+- `git diff --check -- api/cases.js public/dashboard.html public/sources.html public/strategy-guide.html public/manufacturing.html`: pass（僅 CRLF 提示）
+- `git diff origin/main -- public/strategy-guide.html`: empty
+
+### Git / PR
+- Branch: `feat-cases-frontend-v1`
+- PR 建立頁：`https://github.com/Pcc329/solution-finder/pull/new/feat-cases-frontend-v1`
+- 本機未安裝 `gh`，需手動用上述 GitHub 連結建立 PR
