@@ -33,7 +33,11 @@ export default async function handler(req, res) {
       );
       if (!logRes.ok) {
         const errText = await logRes.text();
-        console.error('Log write failed:', logRes.status, errText);
+        const time = new Date().toISOString();
+        console.error(`[Airtable Error] status=${logRes.status} endpoint=${req.url} table=Search_Logs time=${time} message=${errText}`);
+        if (logRes.status === 429) {
+          console.error(`[Airtable Rate Limit] status=429 endpoint=${req.url} table=Search_Logs time=${time}`);
+        }
       }
     } catch (err) {
       console.error('Log write error:', err);

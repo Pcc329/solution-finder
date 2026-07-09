@@ -53,6 +53,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'AIRTABLE_TOKEN not configured' });
   }
 
+  function logAirtableError(table, status, body) {
+    const time = new Date().toISOString();
+    console.error(`[Airtable Error] status=${status} endpoint=${req.url} table=${table} time=${time} message=${body}`);
+    if (status === 429) {
+      console.error(`[Airtable Rate Limit] status=429 endpoint=${req.url} table=${table} time=${time}`);
+    }
+  }
+
   async function fetchAll(table) {
     let allRecords = [];
     let offset = null;
@@ -67,6 +75,7 @@ export default async function handler(req, res) {
 
       if (!response.ok) {
         const body = await response.text();
+        logAirtableError(table, response.status, body);
         throw new Error(`Airtable error: ${response.status} - ${body}`);
       }
 
