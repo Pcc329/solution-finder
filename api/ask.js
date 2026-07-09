@@ -12,11 +12,31 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async function fetchAirtableWithRetry(url, options, table, maxRetries = 3) {
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+
+      if (response.status === 429 && attempt < maxRetries) {
+        const waitMs = 300 * Math.pow(2, attempt);
+        console.error(`[Airtable Rate Limit] retry=${attempt + 1}/${maxRetries} endpoint=${req.url} table=${table} waitMs=${waitMs} time=${new Date().toISOString()}`);
+        await sleep(waitMs);
+        continue;
+      }
+
+      return response;
+    }
+  }
+
   async function writeLog(token, { question, resultCount, searchQuery, answerLength }) {
     try {
       if (!token) return;
       const timestamp = new Date().toISOString().slice(0, 19) + '.000Z';
-      const logRes = await fetch('https://api.airtable.com/v0/appttP04OnzzC7qxG/tblvnoz1WHtXBzAqA', {
+      const logRes = await fetchAirtableWithRetry('https://api.airtable.com/v0/appttP04OnzzC7qxG/tblvnoz1WHtXBzAqA', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -31,10 +51,14 @@ export default async function handler(req, res) {
             answer_length: answerLength,
           },
         }),
-      });
+      }, 'Ask_Logs');
       if (!logRes.ok) {
         const errText = await logRes.text();
-        console.error('Log write failed:', logRes.status, errText);
+        const time = new Date().toISOString();
+        console.error(`[Airtable Error] status=${logRes.status} endpoint=${req.url} table=Ask_Logs time=${time} message=${errText}`);
+        if (logRes.status === 429) {
+          console.error(`[Airtable Rate Limit] status=429 endpoint=${req.url} table=Ask_Logs time=${time}`);
+        }
       }
     } catch (err) {
       console.error('Log write error:', err);
