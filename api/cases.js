@@ -1,5 +1,43 @@
 // api/cases.js - Vercel Serverless Function
-// Fetch all Airtable Cases records for manufacturing reference cases.
+// Fetch all Airtable Cases records with an explicit public whitelist.
+const BASE_ID = 'appttP04OnzzC7qxG';
+const CASES_TABLE_ID = 'tblgkjVcaohcQntzV';
+
+const CASE_FIELD_WHITELIST = [
+  'case_id',
+  'case_name',
+  'industry',
+  'industry_category',
+  'company_size',
+  'company_display_name',
+  'pain_points',
+  'diagnosis',
+  'resistance',
+  'resolution',
+  'outcome',
+  'replicable_condition',
+  'case_type',
+  'outcome_status',
+  'pain_point_domain',
+  'key_technology',
+  'ai_maturity_stage',
+  'difficulty_level',
+  'is_real',
+];
+
+// Never add these source/audit/private fields back to the API response:
+// company_real_name, confirmed_by, confirmed_at, source_doc, data_batch,
+// case_code, linked_company.
+const EXCLUDED_FIELDS = new Set([
+  'company_real_name',
+  'confirmed_by',
+  'confirmed_at',
+  'source_doc',
+  'data_batch',
+  'case_code',
+  'linked_company',
+]);
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
@@ -9,8 +47,6 @@ export default async function handler(req, res) {
   }
 
   const TOKEN = process.env.AIRTABLE_TOKEN;
-  const BASE_ID = 'appttP04OnzzC7qxG';
-  const CASES_TABLE_ID = 'tblgkjVcaohcQntzV';
 
   if (!TOKEN) {
     return res.status(500).json({ error: 'AIRTABLE_TOKEN not configured' });
@@ -44,25 +80,19 @@ export default async function handler(req, res) {
   try {
     const records = await fetchAll(CASES_TABLE_ID);
 
-    const converted = records.map((rec, index) => {
-      const f = rec.fields || {};
-      return {
-        id: rec.id,
-        caseId: f['case_id'] || '',
-        title: f['case_name'] || '',
-        industry: f['industry'] || '',
-        size: f['company_size'] || '',
-        solutionType: f['solution_type'] || '',
-        pain: f['pain_points'] || '',
-        result: f['outcome'] || '',
-        diagnosis: f['diagnosis'] || '',
-        resistance: f['resistance'] || '',
-        resolution: f['resolution'] || '',
-        replicable: f['replicable_condition'] || '',
-        isReal: f['is_real'] === true,
-        order: index,
-      };
-    });
+    const converted = records
+      .filter(rec => {
+        const confidentiality = String(rec.fields?.confidentiality || '').trim();
+        return confidentiality === '內部可看' || confidentiality === '公開';
+      })
+      .map(rec => {
+        const fields = rec.fields || {};
+        return CASE_FIELD_WHITELIST.reduce((safeFields, fieldName) => {
+          if (EXCLUDED_FIELDS.has(fieldName)) return safeFields;
+          safeFields[fieldName] = fields[fieldName] ?? '';
+          return safeFields;
+        }, {});
+      });
 
     return res.status(200).json(converted);
   } catch (err) {
