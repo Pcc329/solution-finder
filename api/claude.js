@@ -11,10 +11,30 @@ export default async function handler(req, res) {
   const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
   if (!CLAUDE_API_KEY) return res.status(500).json({ error: 'CLAUDE_API_KEY not configured' });
 
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async function fetchAirtableWithRetry(url, options, table, maxRetries = 3) {
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+
+      if (response.status === 429 && attempt < maxRetries) {
+        const waitMs = 300 * Math.pow(2, attempt);
+        console.error(`[Airtable Rate Limit] retry=${attempt + 1}/${maxRetries} endpoint=${req.url} table=${table} waitMs=${waitMs} time=${new Date().toISOString()}`);
+        await sleep(waitMs);
+        continue;
+      }
+
+      return response;
+    }
+  }
+
   async function writeLog(token, { query }) {
     try {
       if (!token) return;
-      const logRes = await fetch(
+      const logRes = await fetchAirtableWithRetry(
         'https://api.airtable.com/v0/appttP04OnzzC7qxG/tblLdVCmLwkzDFtMq',
         {
           method: 'POST',
@@ -29,7 +49,8 @@ export default async function handler(req, res) {
               log_type: 'ai_search',
             },
           }),
-        }
+        },
+        'Search_Logs'
       );
       if (!logRes.ok) {
         const errText = await logRes.text();
