@@ -37,6 +37,7 @@ const EXCLUDED_FIELDS = new Set([
   'case_code',
   'linked_company',
 ]);
+const ALLOWED_CONFIDENTIALITY = new Set(['內部可看', '公開']);
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -83,7 +84,7 @@ export default async function handler(req, res) {
     const converted = records
       .filter(rec => {
         const confidentiality = String(rec.fields?.confidentiality || '').trim();
-        return confidentiality === '內部可看' || confidentiality === '公開';
+        return ALLOWED_CONFIDENTIALITY.has(confidentiality);
       })
       .map(rec => {
         const fields = rec.fields || {};
