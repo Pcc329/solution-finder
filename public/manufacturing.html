@@ -774,6 +774,21 @@
         .map(entry => entry.item);
     }
 
+    function normalizeReferenceCase(item) {
+      return {
+        ...item,
+        caseId: item.caseId ?? item.case_id ?? "",
+        title: item.title ?? item.case_name ?? "",
+        industry: item.industry ?? item.industry_category ?? "",
+        size: item.size ?? item.company_size ?? "",
+        solutionType: item.solutionType ?? item.case_type ?? item.industry_category ?? "",
+        pain: item.pain ?? item.pain_points ?? "",
+        result: item.result ?? item.outcome ?? "",
+        replicable: item.replicable ?? item.replicable_condition ?? "",
+        isReal: item.isReal ?? item.is_real === true,
+      };
+    }
+
     function updateReferenceCaseFilterOptions() {
       const industries = [...new Set(referenceCases
         .map(item => safeStr(item.industry).trim())
@@ -2222,7 +2237,7 @@
         const res = await fetch("/api/cases");
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        referenceCases = sortReferenceCases(Array.isArray(data) ? data : []);
+        referenceCases = sortReferenceCases(Array.isArray(data) ? data.map(normalizeReferenceCase) : []);
         updateReferenceCaseFilterOptions();
       } catch (err) {
         console.error("Cases load error:", err);
