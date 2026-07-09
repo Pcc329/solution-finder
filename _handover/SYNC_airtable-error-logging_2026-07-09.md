@@ -87,6 +87,18 @@ status=500
   - `[Airtable Rate Limit]`
   - `status=429`
 
+## 2.1.1 節流／排隊／請求間隔機制盤點
+結論：以下 6 個 API 檔案都沒有節流（throttling）、排隊（queue）、或請求間隔控制機制。每個使用者請求進入 Serverless Function 後，程式會立即執行 Airtable `fetch()`；若同一頁面或多人同時觸發多個 API，這些 Airtable 請求會直接併發送出，沒有本機層級的 rate limit 保護。
+
+- `api/solutions.js`: 無節流、無 queue、無 request interval。`Promise.all([fetchAll('Solutions'), fetchAll('Companies')])` 會立即並行呼叫 Airtable。
+- `api/companies.js`: 無節流、無 queue、無 request interval。`Promise.all([fetchAll('Companies'), fetchAll('Solutions')])` 會立即並行呼叫 Airtable。
+- `api/stats.js`: 無節流、無 queue、無 request interval。`Promise.all([fetchAll('Solutions'), fetchAll('Companies')])` 會立即並行呼叫 Airtable。
+- `api/cases.js`: 無節流、無 queue、無 request interval。收到 GET 後立即呼叫 `fetchAll(CASES_TABLE_ID)`。
+- `api/ask.js`: 無節流、無 queue、無 request interval。AI 回答完成後立即寫入 Airtable `Ask_Logs`。
+- `api/claude.js`: 無節流、無 queue、無 request interval。語意搜尋解析完成後立即寫入 Airtable `Search_Logs`。
+
+補充：本次任務只補強錯誤記錄，不新增 retry、queue、throttle、cache 或任何請求節流策略。
+
 ## Git / PR
 - Branch: `feat-cases-frontend-v1`
 - Commit: 本 SYNC 所在 commit 以 `git log -1 --oneline` 為準
