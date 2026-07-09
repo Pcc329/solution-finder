@@ -58,6 +58,37 @@ const CASE_FIELD_WHITELIST = [
 - `case_code`
 - `linked_company`
 
+confidentiality 過濾採白名單式：
+
+```js
+const ALLOWED_CONFIDENTIALITY = new Set(['內部可看', '公開']);
+
+const converted = records
+  .filter(rec => {
+    const confidentiality = String(rec.fields?.confidentiality || '').trim();
+    return ALLOWED_CONFIDENTIALITY.has(confidentiality);
+  })
+  .map(rec => {
+    const fields = rec.fields || {};
+    return CASE_FIELD_WHITELIST.reduce((safeFields, fieldName) => {
+      if (EXCLUDED_FIELDS.has(fieldName)) return safeFields;
+      safeFields[fieldName] = fields[fieldName] ?? '';
+      return safeFields;
+    }, {});
+  });
+```
+
+其他 confidentiality 值一律不回傳。
+
+## 標章 fallback 邏輯
+`public/strategy-guide.html` 的 `outcomeBadge(item)`：
+
+1. `outcome_status === '預期成效'` → 顯示「預期成效」
+2. `outcome_status === '實際成效'` → 顯示「實績」
+3. `case_type === 'AI模擬示範'` → 顯示「AI模擬示範」
+4. 舊資料 fallback：`case_type` 空白、`outcome_status` 空白且 `is_real !== true` → 顯示「AI模擬示範」
+5. `outcome_status === '模擬數據'` 本身不產生標章；若同筆 `case_type === 'AI模擬示範'`，標章來自 `case_type`，不是來自 `outcome_status`。
+
 ## 驗證資料
 - 來源：`Cases-Grid view (4).csv`
 - 日期：2026-07-09 匯出
@@ -106,7 +137,21 @@ const CASE_FIELD_WHITELIST = [
   - 預期成效標章：15
   - 實績標章：9
   - AI模擬示範標章：35
-  - 預期成效說明文字：存在
+- 預期成效說明文字：存在
+
+## 線上即時資料補驗（2026-07-09）
+- 驗證 URL：`https://solution-finder-gray.vercel.app/api/cases`
+- 結果：正式機目前仍回傳舊 API 格式。
+- 筆數：59
+- 第一筆欄位仍為舊 alias：`id, caseId, title, industry, size, solutionType, pain, result, diagnosis, resistance, resolution, replicable, isReal, order`
+- 線上正式機 `case_type` 分布：空白 59
+- 線上正式機 `outcome_status` 分布：空白 59
+- 真名掃描：
+  - `華巨`: 0
+  - `健益`: 0
+  - `日盛`: 0
+  - `永芳`: 0
+- 判斷：因 `feat-cases-frontend-v1` 尚未建立 PR / Preview，正式機尚未部署本分支新版 `api/cases.js`，所以目前無法用正式機驗證預期標章數 `實績 14 / 預期成效 15 / AI模擬示範 30`。此數字需在 PR Preview 建立後，以 Preview `/api/cases` 重新驗證。
 
 ## 驗收截圖
 - 全量案例：`_handover/SYNC_cases_frontend_all_2026-07-09.png`

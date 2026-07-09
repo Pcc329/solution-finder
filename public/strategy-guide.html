@@ -1067,7 +1067,10 @@
       if (item.outcome_status === '實際成效') {
         return '<span class="case-badge actual">實績</span>';
       }
-      if (item.case_type === 'AI模擬示範' || item.is_real !== true) {
+      if (item.case_type === 'AI模擬示範') {
+        return '<span class="case-badge simulated">AI模擬示範</span>';
+      }
+      if (!item.case_type && !item.outcome_status && item.is_real !== true) {
         return '<span class="case-badge simulated">AI模擬示範</span>';
       }
       return '';
