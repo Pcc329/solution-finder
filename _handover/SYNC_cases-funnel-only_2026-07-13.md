@@ -3,7 +3,8 @@
 ## Git
 
 - branch: `fix/cases-funnel-only-2026-07-13`
-- implementation commit: `TBD`
+- implementation commit: `6d469b9`
+- note: this SYNC file is finalized in a follow-up docs commit because a commit cannot reliably contain its own final hash.
 - PR: `https://github.com/Pcc329/solution-finder/pull/new/fix/cases-funnel-only-2026-07-13`
 
 ## Scope
@@ -117,4 +118,3 @@ Preview checks required after PR creation:
 1. Before diagnosis: reference case section shows placeholder, no cards, no tabs.
 2. After diagnosis: funnel section shows title/subtitle, 5 cases, and the dashboard link.
 3. Same diagnosis profile as previous funnel PR: ordering should match because `rankCases()` and bridge logic were not modified.
-
