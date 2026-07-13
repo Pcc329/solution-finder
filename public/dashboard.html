@@ -1439,6 +1439,13 @@
         .replace(/'/g, '&#039;');
     }
 
+    function casePillHtml(value) {
+      const text = Array.isArray(value)
+        ? value.map(item => String(item ?? '').trim()).filter(Boolean).join('、')
+        : String(value ?? '').trim();
+      return text ? `<span class="case-pill">${escapeHtml(text)}</span>` : '';
+    }
+
     function uniqueOptions(items, key) {
       return ['全部', ...new Set(items.map(item => String(item[key] || '').trim()).filter(Boolean))];
     }
@@ -1508,9 +1515,9 @@
               ${getCaseBadge(item)}
             </div>
             <div class="case-meta">
-              ${item.case_type ? `<span class="case-pill">${escapeHtml(item.case_type)}</span>` : ''}
-              ${item.industry_category ? `<span class="case-pill">${escapeHtml(item.industry_category)}</span>` : ''}
-              ${item.pain_point_domain ? `<span class="case-pill">${escapeHtml(item.pain_point_domain)}</span>` : ''}
+              ${casePillHtml(item.case_type)}
+              ${casePillHtml(item.industry_category)}
+              ${casePillHtml(item.pain_point_domain)}
             </div>
             <p class="case-summary">${escapeHtml(item.pain_points || '痛點待補充。')}</p>
             <div class="case-detail">
