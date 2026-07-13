@@ -560,10 +560,10 @@
           <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
             <div>
               <div class="flex items-center gap-2">
-                <h3 class="font-black text-slate-900">參考案例</h3>
+                <h3 id="referenceCaseTitle" class="font-black text-slate-900">參考案例</h3>
                 <span id="referenceCaseCount" class="badge badge-blue">0 筆</span>
               </div>
-              <p class="text-xs text-slate-400 mt-1">以下案例為內部測試資料，用於輔助判斷導入方向。</p>
+              <p id="referenceCaseSubtitle" class="text-xs text-slate-400 mt-1">以下為輔導實績與規劃案例，供導入評估參考；標示「預期成效」者為規劃目標，非實際驗收數據。</p>
             </div>
             <div id="referenceCaseFilters" class="flex flex-wrap gap-2"></div>
           </div>
@@ -637,6 +637,8 @@
       categoryFilterCard: document.getElementById("categoryFilterCard"),
       categoryFilterTags: document.getElementById("categoryFilterTags"),
       referenceCasesCard: document.getElementById("referenceCasesCard"),
+      referenceCaseTitle: document.getElementById("referenceCaseTitle"),
+      referenceCaseSubtitle: document.getElementById("referenceCaseSubtitle"),
       referenceCaseFilters: document.getElementById("referenceCaseFilters"),
       referenceCaseList: document.getElementById("referenceCaseList"),
       referenceCaseCount: document.getElementById("referenceCaseCount"),
@@ -667,6 +669,25 @@
       "庫存物流": ["庫存", "倉儲", "物流", "WMS", "進銷存"],
       "資料整合": ["ERP", "MES", "資料", "儀表板", "整合"],
     };
+    const INDUSTRY_BRIDGE = {
+      "金屬加工": ["C24 基本金屬", "C25 金屬製品製造業"],
+      "電子零組件": ["C26 電子零組件製造業", "C27 電腦電子產品及光學製品製造業"],
+      "食品製造": ["C08 食品及飼品製造業", "C09 飲料製造業"],
+      "機械設備": ["C29 機械設備製造業", "C34 產業用機械設備製造業", "C28 電力設備及配備製造業"],
+      "化學材料": ["C18 化學材料及肥料製造業", "C19 其他化學製品製造業", "C20 藥品及醫用化學製品製造業"],
+      "其他製造": [],
+    };
+    const PAIN_BRIDGE = {
+      "生產排程": ["生產製程", "供應鏈管理"],
+      "品管檢測": ["品質檢測"],
+      "設備維護": ["設備維護"],
+      "庫存物流": ["物流倉儲", "供應鏈管理"],
+      "資料整合": ["營運管理行銷", "廠務管理"],
+    };
+    const KNOWN_INDUSTRY_CATEGORIES = new Set(Object.entries(INDUSTRY_BRIDGE)
+      .filter(([key]) => key !== "其他製造")
+      .flatMap(([, values]) => values));
+    const DEFAULT_REFERENCE_CASE_SUBTITLE = "以下為輔導實績與規劃案例，供導入評估參考；標示「預期成效」者為規劃目標，非實際驗收數據。";
 
     const agentSteps = [
       { key: "subIndustry", question: "先確認製造領域。比較接近哪一類？", options: ["金屬加工", "電子零組件", "食品製造", "機械設備", "化學材料", "其他製造"] },
@@ -738,6 +759,8 @@
     let selectedCategories = new Set();
     let selectedReferenceCaseIndustry = "全部";
     let expandedReferenceCaseTitles = [];
+    let referenceCaseMode = "browse";
+    let referenceCaseFunnelProfile = null;
     let lastToggledCaseTitle = null;
     let expandedIds = [];
     let lastToggledId = null;
@@ -785,8 +808,88 @@
         pain: item.pain ?? item.pain_points ?? "",
         result: item.result ?? item.outcome ?? "",
         replicable: item.replicable ?? item.replicable_condition ?? "",
+        case_type: item.case_type ?? item.solutionType ?? "",
+        industry_category: item.industry_category ?? item.industry ?? "",
+        pain_point_domain: item.pain_point_domain ?? item.painPointDomain ?? "",
         isReal: item.isReal ?? item.is_real === true,
       };
+    }
+
+    function splitCaseValues(value) {
+      if (Array.isArray(value)) {
+        return value.map(item => safeStr(item).trim()).filter(Boolean);
+      }
+      return safeStr(value)
+        .split(/[、,，;；\/|]/)
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    function getCaseNumericSortId(item) {
+      const rawId = item?.case_id ?? item?.caseId ?? item?.record_id ?? "";
+      const match = safeStr(rawId).match(/\d+/);
+      const numericId = match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
+      return Number.isFinite(numericId) ? numericId : Number.MAX_SAFE_INTEGER;
+    }
+
+    function matchesReferenceCaseIndustry(item, subIndustry) {
+      if (!subIndustry) return false;
+      const category = safeStr(item.industry_category || item.industry).trim();
+      if (!category) return false;
+      if (subIndustry === "其他製造") {
+        return !KNOWN_INDUSTRY_CATEGORIES.has(category);
+      }
+      return (INDUSTRY_BRIDGE[subIndustry] || []).includes(category);
+    }
+
+    function matchesReferenceCasePain(item, pain) {
+      if (!pain) return false;
+      const targetDomains = PAIN_BRIDGE[pain] || [];
+      if (!targetDomains.length) return false;
+      const domains = splitCaseValues(item.pain_point_domain || item.painPointDomain || item.pain);
+      return domains.some(domain => targetDomains.includes(domain));
+    }
+
+    function getReferenceCaseTier(item, funnelProfile) {
+      const subIndustry = safeStr(funnelProfile?.subIndustry).trim();
+      const pain = safeStr(funnelProfile?.pain).trim();
+      const hasIndustrySignal = Boolean(subIndustry);
+      const hasPainSignal = Boolean(pain);
+      const industryMatch = hasIndustrySignal && matchesReferenceCaseIndustry(item, subIndustry);
+      const painMatch = hasPainSignal && matchesReferenceCasePain(item, pain);
+
+      if (industryMatch && painMatch) return 1;
+      if (industryMatch) return 2;
+      if (painMatch) return 3;
+      return 4;
+    }
+
+    function rankCases(cases, funnelProfile) {
+      const subIndustry = safeStr(funnelProfile?.subIndustry).trim();
+      const pain = safeStr(funnelProfile?.pain).trim();
+      const hasSignal = Boolean(subIndustry || pain);
+      const candidates = cases.filter(item => safeStr(item.case_type || item.solutionType).trim() !== "AI模擬示範");
+      if (!hasSignal) return sortReferenceCases(candidates);
+
+      return candidates.map((item, index) => ({
+        item,
+        index,
+        tier: getReferenceCaseTier(item, funnelProfile),
+        caseTypeRank: safeStr(item.case_type || item.solutionType).trim() === "實績案例" ? 0 : 1,
+        numericId: getCaseNumericSortId(item),
+      })).sort((a, b) =>
+        a.tier - b.tier ||
+        a.caseTypeRank - b.caseTypeRank ||
+        a.numericId - b.numericId ||
+        a.index - b.index
+      ).map(entry => entry.item);
+    }
+
+    function getReferenceCaseFunnelBasis(funnelProfile) {
+      const parts = [funnelProfile?.subIndustry, funnelProfile?.pain]
+        .map(value => safeStr(value).trim())
+        .filter(Boolean);
+      return parts.length ? parts.join(" × ") : "";
     }
 
     function updateReferenceCaseFilterOptions() {
@@ -1518,10 +1621,14 @@
       selectedReferenceCaseIndustry = "全部";
       expandedReferenceCaseTitles = [];
       lastToggledCaseTitle = null;
+      referenceCaseMode = "browse";
+      referenceCaseFunnelProfile = null;
       refs.referenceCasesCard.style.display = "none";
       refs.referenceCaseList.innerHTML = "";
       refs.referenceCaseFilters.innerHTML = "";
       refs.referenceCaseCount.textContent = "0 筆";
+      refs.referenceCaseTitle.textContent = "參考案例";
+      refs.referenceCaseSubtitle.textContent = DEFAULT_REFERENCE_CASE_SUBTITLE;
     }
 
     function getReferenceCaseDetailHtml(item, shouldAnimate) {
@@ -1699,19 +1806,30 @@
         return;
       }
 
-      const visibleCases = selectedReferenceCaseIndustry === "全部"
-        ? referenceCases
-        : referenceCases.filter(item => item.industry === selectedReferenceCaseIndustry);
+      const isFunnelMode = referenceCaseMode === "funnel" && Boolean(getReferenceCaseFunnelBasis(referenceCaseFunnelProfile));
+      const rankedCases = isFunnelMode ? rankCases(referenceCases, referenceCaseFunnelProfile) : referenceCases;
+      const visibleCases = isFunnelMode
+        ? rankedCases
+        : selectedReferenceCaseIndustry === "全部"
+          ? referenceCases
+          : referenceCases.filter(item => item.industry === selectedReferenceCaseIndustry);
       const displayCases = visibleCases.slice(0, 5);
       syncExpandedReferenceCaseTitles(displayCases);
 
-      refs.referenceCaseCount.textContent = `顯示 ${displayCases.length} / 共 ${visibleCases.length} 筆`;
-      refs.referenceCaseFilters.innerHTML = referenceCaseFilterOptions.map(option => `
+      refs.referenceCaseTitle.textContent = isFunnelMode ? "與您診斷條件相關的參考案例" : "參考案例";
+      refs.referenceCaseSubtitle.textContent = isFunnelMode
+        ? `依據 ${getReferenceCaseFunnelBasis(referenceCaseFunnelProfile)} 排序，優先呈現最接近的輔導實績與規劃案例。`
+        : DEFAULT_REFERENCE_CASE_SUBTITLE;
+      refs.referenceCaseCount.textContent = isFunnelMode
+        ? `推薦 ${displayCases.length} / 共 ${visibleCases.length} 筆`
+        : `顯示 ${displayCases.length} / 共 ${visibleCases.length} 筆`;
+      refs.referenceCaseFilters.style.display = isFunnelMode ? "none" : "";
+      refs.referenceCaseFilters.innerHTML = isFunnelMode ? "" : referenceCaseFilterOptions.map(option => `
         <button class="reference-case-filter ${option === selectedReferenceCaseIndustry ? "active" : ""}" data-reference-case-filter="${escapeHtml(option)}" type="button">
           ${escapeHtml(option)}
         </button>
       `).join("");
-      refs.referenceCaseList.innerHTML = displayCases.length ? displayCases.map((item, index) => {
+      const caseCardsHtml = displayCases.length ? displayCases.map((item, index) => {
         const isExpanded = expandedReferenceCaseTitles.includes(item.title);
         const shouldAnimate = isExpanded && item.title === lastToggledCaseTitle;
         const mediaHtml = getReferenceCaseMediaHtml(item);
@@ -1749,6 +1867,12 @@
           目前無此產業的參考案例
         </div>
       `;
+      const browseAllLink = isFunnelMode ? `
+        <a class="text-sm font-black text-teal-700 border border-teal-200 rounded-xl px-4 py-3 hover:bg-teal-50 transition-colors inline-flex items-center justify-center" href="/dashboard.html#cases">
+          查看全部案例（${referenceCases.length} 筆）→
+        </a>
+      ` : "";
+      refs.referenceCaseList.innerHTML = `${caseCardsHtml}${browseAllLink}`;
       refs.referenceCaseList.querySelectorAll("[data-reference-case-index]").forEach(card => {
         card.addEventListener("click", () => {
           const item = displayCases[Number(card.dataset.referenceCaseIndex)];
@@ -1784,6 +1908,12 @@
     function renderResult(official, others, conclusion) {
       buildCategoryFilter(official, others);
       applyCategoryFilter();
+      const funnelBasis = getReferenceCaseFunnelBasis(profile);
+      referenceCaseMode = funnelBasis ? "funnel" : "browse";
+      referenceCaseFunnelProfile = funnelBasis ? { ...profile } : null;
+      selectedReferenceCaseIndustry = "全部";
+      expandedReferenceCaseTitles = [];
+      lastToggledCaseTitle = null;
       renderReferenceCases();
       if (conclusion) {
         refs.advisorConclusionContent.innerHTML = conclusion;
