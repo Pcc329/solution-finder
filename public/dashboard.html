@@ -796,6 +796,195 @@
       font-size: 13px;
     }
 
+    .case-toolbar {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .case-filter label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .case-filter select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      padding: 10px 12px;
+    }
+
+    .case-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .case-card {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 8px 8px 0;
+      background: #ffffff;
+      padding: 16px;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+    }
+
+    .case-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .case-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.45;
+    }
+
+    .case-company {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .case-badges,
+    .case-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .case-badge {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      padding: 4px 8px;
+      white-space: nowrap;
+    }
+
+    .case-badge.actual {
+      border-color: #99f6e4;
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .case-badge.expected {
+      border-color: #fde68a;
+      background: #fffbeb;
+      color: #b45309;
+    }
+
+    .case-badge.simulated {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .case-pill {
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 8px;
+    }
+
+    .case-summary {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .case-detail {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .case-detail-row {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .case-detail-label {
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .case-outcome-note {
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      background: #fffbeb;
+      color: #92400e;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 8px 10px;
+    }
+
+    .case-limited-preview {
+      position: relative;
+      max-height: 168px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .case-limited-preview .case-detail-row {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .case-limited-preview .case-detail-row:last-child {
+      border-bottom: 0;
+    }
+
+    .case-fade-mask {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 72px;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.92) 62%, #fff 100%);
+    }
+
+    .case-empty {
+      grid-column: 1 / -1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 18px;
+    }
+
     .error {
       display: none;
       margin: 0 0 18px;
@@ -868,7 +1057,9 @@
       }
 
       .panel-grid,
-      .metric-grid {
+      .metric-grid,
+      .case-grid,
+      .case-toolbar {
         grid-template-columns: 1fr;
       }
 
@@ -911,6 +1102,7 @@
       <a href="#map">地圖分布</a>
       <a href="#cross">交叉分析</a>
       <a href="#services">服務分類</a>
+      <a href="#cases">案例知識庫</a>
       <a href="#companies">公司圖譜</a>
       <a href="#competition">競爭態勢</a>
     </nav>
@@ -1030,6 +1222,33 @@
       </div>
       <div class="category-grid" id="categoryGrid"></div>
       <div class="panel hidden" id="categoryPanel"></div>
+    </section>
+
+    <section class="card strategy-section" id="cases" aria-label="案例知識庫">
+      <div class="section-head">
+        <div>
+          <h2>案例知識庫</h2>
+          <p class="section-note">以案例類型、產業分類與痛點領域篩選輔導經驗，企業名稱一律採公開顯示名。</p>
+        </div>
+        <span class="shown-count" id="caseCount">尚未載入</span>
+      </div>
+      <div class="toolbar case-toolbar" aria-label="案例篩選">
+        <div class="case-filter">
+          <label for="caseTypeFilter">案例類型</label>
+          <select id="caseTypeFilter"></select>
+        </div>
+        <div class="case-filter">
+          <label for="caseIndustryFilter">產業分類</label>
+          <select id="caseIndustryFilter"></select>
+        </div>
+        <div class="case-filter">
+          <label for="casePainFilter">痛點領域</label>
+          <select id="casePainFilter"></select>
+        </div>
+      </div>
+      <div class="case-grid" id="caseGrid">
+        <div class="case-empty">捲動到此區塊後載入案例資料。</div>
+      </div>
     </section>
 
     <section class="card strategy-section" id="companies" aria-label="公司圖譜">
@@ -1166,6 +1385,14 @@
 
     let activeCategory = null;
     let allCompanies = [];
+    let allCases = [];
+    let casesLoaded = false;
+    let casesLoading = false;
+    let caseFilters = {
+      case_type: '全部',
+      industry_category: '全部',
+      pain_point_domain: '全部',
+    };
     let activeType = 'all';
     let activeService = null;
     let selectedCompany = null;
@@ -1210,6 +1437,168 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    function uniqueOptions(items, key) {
+      return ['全部', ...new Set(items.map(item => String(item[key] || '').trim()).filter(Boolean))];
+    }
+
+    function getCaseBadge(item) {
+      if (item.outcome_status === '預期成效') {
+        return '<span class="case-badge expected">預期成效</span>';
+      }
+      if (item.outcome_status === '實際成效') {
+        return '<span class="case-badge actual">實績</span>';
+      }
+      if (item.case_type === 'AI模擬示範') {
+        return '<span class="case-badge simulated">AI模擬示範</span>';
+      }
+      if (!item.case_type && !item.outcome_status && item.is_real !== true) {
+        return '<span class="case-badge simulated">AI模擬示範</span>';
+      }
+      return '';
+    }
+
+    function renderCaseSelect(id, options, value) {
+      const select = document.getElementById(id);
+      if (!select) return;
+      select.innerHTML = options.map(option => `
+        <option value="${escapeHtml(option)}" ${option === value ? 'selected' : ''}>${escapeHtml(option)}</option>
+      `).join('');
+    }
+
+    function getFilteredCases() {
+      return allCases.filter(item => {
+        return Object.entries(caseFilters).every(([key, value]) => {
+          if (value === '全部') return true;
+          return String(item[key] || '').trim() === value;
+        });
+      });
+    }
+
+    function renderCases() {
+      const count = document.getElementById('caseCount');
+      const grid = document.getElementById('caseGrid');
+      if (!count || !grid) return;
+
+      renderCaseSelect('caseTypeFilter', uniqueOptions(allCases, 'case_type'), caseFilters.case_type);
+      renderCaseSelect('caseIndustryFilter', uniqueOptions(allCases, 'industry_category'), caseFilters.industry_category);
+      renderCaseSelect('casePainFilter', uniqueOptions(allCases, 'pain_point_domain'), caseFilters.pain_point_domain);
+
+      const filtered = getFilteredCases();
+      count.textContent = `顯示 ${formatNumber(filtered.length)} / 共 ${formatNumber(allCases.length)} 筆`;
+
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="case-empty">目前沒有符合條件的案例。</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => {
+        const expectedNote = item.outcome_status === '預期成效'
+          ? '<div class="case-outcome-note">本案例成效為輔導規劃之預期目標，非實際驗收數據</div>'
+          : '';
+        const displayName = item.company_display_name || '匿名案例';
+        return `
+          <article class="case-card">
+            <div class="case-card-head">
+              <div>
+                <h3 class="case-title">${escapeHtml(item.case_name || '未命名案例')}</h3>
+                <div class="case-company">${escapeHtml(displayName)}</div>
+              </div>
+              ${getCaseBadge(item)}
+            </div>
+            <div class="case-meta">
+              ${item.case_type ? `<span class="case-pill">${escapeHtml(item.case_type)}</span>` : ''}
+              ${item.industry_category ? `<span class="case-pill">${escapeHtml(item.industry_category)}</span>` : ''}
+              ${item.pain_point_domain ? `<span class="case-pill">${escapeHtml(item.pain_point_domain)}</span>` : ''}
+            </div>
+            <p class="case-summary">${escapeHtml(item.pain_points || '痛點待補充。')}</p>
+            <div class="case-detail">
+              <div class="case-detail-row">
+                <span class="case-detail-label">顧問診斷結論</span>
+                <span>${escapeHtml(item.diagnosis || '待顧問補充診斷。')}</span>
+              </div>
+              <div class="case-detail-row">
+                <span class="case-detail-label">推動阻力</span>
+                <span>${escapeHtml(item.resistance || '尚未記錄推動阻力。')}</span>
+              </div>
+              <div class="case-limited-preview">
+                <div class="case-detail-row">
+                  <span class="case-detail-label">化解方法</span>
+                  <span>${escapeHtml(item.resolution || '尚未記錄化解方法。')}</span>
+                </div>
+                <div class="case-detail-row">
+                  <span class="case-detail-label">可複製條件</span>
+                  <span>${escapeHtml(item.replicable_condition || '尚未記錄可複製條件。')}</span>
+                </div>
+                <div class="case-fade-mask" aria-hidden="true"></div>
+              </div>
+              <div class="case-detail-row">
+                <span class="case-detail-label">成效</span>
+                ${expectedNote}
+                <span>${escapeHtml(item.outcome || '成效資料待補充。')}</span>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    async function loadCases() {
+      const count = document.getElementById('caseCount');
+      const grid = document.getElementById('caseGrid');
+      if (casesLoaded || casesLoading) return;
+      casesLoading = true;
+      if (count) count.textContent = '載入中';
+      if (grid) grid.innerHTML = '<div class="case-empty">案例載入中...</div>';
+      try {
+        const res = await fetch('/api/cases');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        allCases = Array.isArray(data) ? data : [];
+        casesLoaded = true;
+        renderCases();
+      } catch (err) {
+        console.error('Cases load error:', err);
+        allCases = [];
+        if (count) count.textContent = '0 筆';
+        if (grid) grid.innerHTML = '<div class="case-empty">案例資料載入失敗，請稍後再試。</div>';
+      } finally {
+        casesLoading = false;
+      }
+    }
+
+    function setupCaseLazyLoad() {
+      [
+        ['caseTypeFilter', 'case_type'],
+        ['caseIndustryFilter', 'industry_category'],
+        ['casePainFilter', 'pain_point_domain'],
+      ].forEach(([id, key]) => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        select.addEventListener('change', event => {
+          caseFilters[key] = event.target.value || '全部';
+          renderCases();
+        });
+      });
+
+      const section = document.getElementById('cases');
+      const triggerIfHash = () => {
+        if (window.location.hash === '#cases') loadCases();
+      };
+      document.querySelector('a[href="#cases"]')?.addEventListener('click', () => loadCases());
+      window.addEventListener('hashchange', triggerIfHash);
+
+      if ('IntersectionObserver' in window && section) {
+        const observer = new IntersectionObserver(entries => {
+          if (entries.some(entry => entry.isIntersecting)) {
+            loadCases();
+            observer.disconnect();
+          }
+        }, { rootMargin: '160px' });
+        observer.observe(section);
+      }
+      triggerIfHash();
     }
 
     function updateRecentActivity(data) {
@@ -2066,6 +2455,7 @@
     }
 
     window.addEventListener('resize', () => renderBubbles());
+    setupCaseLazyLoad();
     loadDashboard();
   </script>
 </body>
