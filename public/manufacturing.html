@@ -765,6 +765,11 @@
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
+    function referenceCaseChipHtml(className, value) {
+      const text = safeStr(value).trim();
+      return text ? `<span class="reference-case-chip ${className}">${escapeHtml(text)}</span>` : "";
+    }
+
     function sortReferenceCases(cases) {
       return [...cases].map((item, index) => ({ item, index }))
         .sort((a, b) => {
@@ -1725,9 +1730,9 @@
                 </div>
               </div>
               <div class="flex flex-wrap gap-2 mb-3">
-                <span class="reference-case-chip industry">${escapeHtml(item.industry)}</span>
-                <span class="reference-case-chip solution">${escapeHtml(item.solutionType)}</span>
-                <span class="reference-case-chip size">${escapeHtml(item.size)}</span>
+                ${referenceCaseChipHtml("industry", item.industry)}
+                ${referenceCaseChipHtml("solution", item.solutionType)}
+                ${referenceCaseChipHtml("size", item.size)}
               </div>
               ${mediaHtml}
               <div class="space-y-3 text-xs text-slate-600 leading-relaxed">

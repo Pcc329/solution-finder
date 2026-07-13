@@ -167,6 +167,12 @@
       const [selectedItem, setSelectedItem] = useState(null);
       const [query, setQuery] = useState("");
       const [isSearching, setIsSearching] = useState(false);
+      const getDefaultFilters = () => ({
+        region: [], isAI: null, isStartup: null,
+        category: [], maxPrice: null, keyword: null,
+        program: [], industry_vertical: [],
+        industryKeyword: null
+      });
       const [filters, setFilters] = useState({
         region: [], isAI: null, isStartup: null,
         category: [], maxPrice: null, keyword: null,
@@ -184,6 +190,48 @@
       const [roiModal, setROIModal] = useState(null);
       const [showFilterTip, setShowFilterTip] = useState(false);
       const listTopRef = useRef(null);
+      const historyReadyRef = useRef(false);
+      const restoringHistoryRef = useRef(false);
+      const pendingHistoryItemIdRef = useRef(null);
+
+      const getHistoryItemId = (item) => String(item?.id || item?.s || "");
+      const cloneFilters = (source) => ({
+        ...getDefaultFilters(),
+        ...(source || {}),
+        region: Array.isArray(source?.region) ? [...source.region] : [],
+        category: Array.isArray(source?.category) ? [...source.category] : [],
+        program: Array.isArray(source?.program) ? [...source.program] : [],
+        industry_vertical: Array.isArray(source?.industry_vertical) ? [...source.industry_vertical] : [],
+      });
+      const findItemByHistoryId = (itemId) => allData.find(item => getHistoryItemId(item) === String(itemId || "")) || null;
+      const buildHistoryUrl = (state) => {
+        const params = new URLSearchParams();
+        if (state.activePage && state.activePage !== "home") params.set("page", state.activePage);
+        if (state.query) params.set("q", state.query);
+        if (state.activePage === "detail" && state.selectedItemId) params.set("item", state.selectedItemId);
+        const qs = params.toString();
+        return `${window.location.pathname}${qs ? `?${qs}` : ""}`;
+      };
+      const writeHistoryState = (page, item, options = {}) => {
+        if (!historyReadyRef.current || restoringHistoryRef.current) return;
+        const state = {
+          activePage: page,
+          selectedItemId: page === "detail" ? getHistoryItemId(item) : "",
+          query: options.queryValue ?? query,
+          filters: cloneFilters(options.filtersValue ?? filters),
+        };
+        const url = buildHistoryUrl(state);
+        if (options.replace) {
+          window.history.replaceState(state, "", url);
+        } else {
+          window.history.pushState(state, "", url);
+        }
+      };
+      const navigateToPage = (page, item = null, options = {}) => {
+        setActivePage(page);
+        setSelectedItem(page === "detail" ? item : null);
+        writeHistoryState(page, item, options);
+      };
 
       // 1. 抓資料
       useEffect(() => {
@@ -201,6 +249,83 @@
         }
         fetchAll();
       }, []);
+
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlQuery = params.get("q") || "";
+        const urlPage = params.get("page") || (urlQuery ? "list" : "home");
+        const urlItem = params.get("item") || "";
+        const initialFilters = urlQuery ? { ...getDefaultFilters(), keyword: urlQuery } : getDefaultFilters();
+        const initialPage = ["home", "list", "detail"].includes(urlPage) ? urlPage : "home";
+
+        if (urlQuery) {
+          setQuery(urlQuery);
+          setFilters(initialFilters);
+        }
+        if (initialPage === "detail" && urlItem) {
+          pendingHistoryItemIdRef.current = urlItem;
+          setActivePage("detail");
+        } else if (initialPage === "list") {
+          setActivePage("list");
+        } else {
+          setActivePage("home");
+        }
+
+        window.history.replaceState({
+          activePage: initialPage,
+          selectedItemId: initialPage === "detail" ? urlItem : "",
+          query: urlQuery,
+          filters: initialFilters,
+        }, "", buildHistoryUrl({
+          activePage: initialPage,
+          selectedItemId: initialPage === "detail" ? urlItem : "",
+          query: urlQuery,
+        }));
+        historyReadyRef.current = true;
+      }, []);
+
+      useEffect(() => {
+        const pendingId = pendingHistoryItemIdRef.current;
+        if (!pendingId || !allData.length) return;
+        const item = findItemByHistoryId(pendingId);
+        if (item) {
+          setSelectedItem(item);
+          setActivePage("detail");
+        } else {
+          setSelectedItem(null);
+          setActivePage("list");
+        }
+        pendingHistoryItemIdRef.current = null;
+      }, [allData]);
+
+      useEffect(() => {
+        const handlePopState = (event) => {
+          const state = event.state || { activePage: "home", selectedItemId: "", query: "", filters: getDefaultFilters() };
+          const nextPage = ["home", "list", "detail"].includes(state.activePage) ? state.activePage : "home";
+          restoringHistoryRef.current = true;
+          setQuery(state.query || "");
+          setFilters(cloneFilters(state.filters || (state.query ? { ...getDefaultFilters(), keyword: state.query } : getDefaultFilters())));
+          if (nextPage === "detail" && state.selectedItemId) {
+            const item = findItemByHistoryId(state.selectedItemId);
+            if (item) {
+              setSelectedItem(item);
+              setActivePage("detail");
+              pendingHistoryItemIdRef.current = null;
+            } else {
+              pendingHistoryItemIdRef.current = state.selectedItemId;
+              setSelectedItem(null);
+              setActivePage("detail");
+            }
+          } else {
+            pendingHistoryItemIdRef.current = null;
+            setSelectedItem(null);
+            setActivePage(nextPage);
+          }
+          window.setTimeout(() => { restoringHistoryRef.current = false; }, 0);
+        };
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+      }, [allData]);
 
       // 2. Claude 語意解析
       async function callClaude(userQuery) {
@@ -251,9 +376,10 @@
       const handleSearch = async () => {
         if (loading || !query.trim()) return;
         setIsSearching(true);
+        let nextFilters = null;
         try {
           const result = await callClaude(query);
-          setFilters({
+          nextFilters = {
             region: result.region ? [result.region] : [],
             isAI: result.ai != null ? result.ai : null,
             isStartup: result.startup != null ? result.startup : null,
@@ -263,13 +389,14 @@
             program: result.program ? [result.program] : [],
             industry_vertical: result.industry_vertical ? [result.industry_vertical] : [],
             industryKeyword: result.industryKeyword || null,
-          });
+          };
+          setFilters(nextFilters);
         } catch (err) {
-          setFilters(parseQueryFallback(query));
+          nextFilters = parseQueryFallback(query);
+          setFilters(nextFilters);
         }
         setIsSearching(false);
-        setActivePage("list");
-        setSelectedItem(null);
+        navigateToPage("list", null, { queryValue: query, filtersValue: nextFilters });
         setCurrentPage(1);
         setSortBy("relevance");
       };
@@ -279,13 +406,12 @@
         if (loading) return;
         setQuery(text);
         setIsSearching(true);
-        setActivePage("list");
-        setSelectedItem(null);
         setCurrentPage(1);
         setSortBy("relevance");
+        let nextFilters = null;
         try {
           const result = await callClaude(text);
-          setFilters({
+          nextFilters = {
             region: result.region ? [result.region] : [],
             isAI: result.ai != null ? result.ai : null,
             isStartup: result.startup != null ? result.startup : null,
@@ -295,11 +421,14 @@
             program: result.program ? [result.program] : [],
             industry_vertical: result.industry_vertical ? [result.industry_vertical] : [],
             industryKeyword: result.industryKeyword || null,
-          });
+          };
+          setFilters(nextFilters);
         } catch (err) {
-          setFilters(parseQueryFallback(text));
+          nextFilters = parseQueryFallback(text);
+          setFilters(nextFilters);
         }
         setIsSearching(false);
+        navigateToPage("list", null, { queryValue: text, filtersValue: nextFilters });
       };
 
       // helper: 安全轉小寫字串（防止陣列或非字串欄位）
@@ -740,7 +869,7 @@
         <div className="max-w-4xl mx-auto px-4 py-8 pb-36 animate-in" ref={listTopRef}>
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
-            <button onClick={() => setActivePage("home")} className="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-colors">
+            <button onClick={() => navigateToPage("home")} className="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-colors">
               <i className="fa-solid fa-arrow-left"></i>
             </button>
             <div>
@@ -980,7 +1109,7 @@
               const disabled = !checked && compareItems.length >= 4;
               return (
               <div key={item.id || item.s}
-                onClick={() => { setSelectedItem(item); setActivePage("detail"); }}
+                onClick={() => navigateToPage("detail", item)}
                 className={`bg-white rounded-2xl border shadow-sm overflow-hidden hover:border-[#0d6e52]/40 hover:shadow-md transition-all cursor-pointer animate-in ${checked ? "border-[#1D9E75] ring-2 ring-[#1D9E75]/20" : "border-slate-200"}`}>
                 <div className="p-5 sm:p-6 flex flex-col sm:flex-row justify-between gap-4">
                   <label onClick={(e) => e.stopPropagation()}
@@ -1082,7 +1211,7 @@
         return (
           <div className="max-w-3xl mx-auto px-4 py-8 animate-in">
             {/* Back button */}
-            <button onClick={() => { setActivePage("list"); setSelectedItem(null); }}
+            <button onClick={() => navigateToPage("list")}
               className="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 mb-6 transition-colors">
               <i className="fa-solid fa-arrow-left"></i> 返回搜尋結果
             </button>
@@ -1192,7 +1321,7 @@
       return (
         <div className="min-h-screen flex flex-col">
           <nav id="global-nav">
-            <div className="global-nav-brand" onClick={() => { setActivePage("home"); setQuery(""); }}>
+            <div className="global-nav-brand" onClick={() => { setQuery(""); navigateToPage("home", null, { queryValue: "" }); }}>
               <div className="global-nav-logo"><span style={{fontSize: "18px"}}>🔷</span></div>
               <div>
                 <div className="global-nav-kicker">SOLUTION FINDER</div>
