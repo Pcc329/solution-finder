@@ -3,7 +3,8 @@
 ## Git
 
 - branch: `fix/nav-history-and-empty-chip-2026-07-13`
-- commit: `525b384`
+- implementation commit: `9ec561c`
+- note: this SYNC file is finalized in a follow-up docs commit because a commit cannot reliably contain its own final hash.
 - PR: `https://github.com/Pcc329/solution-finder/pull/new/fix/nav-history-and-empty-chip-2026-07-13`
 
 ## Modified Files
