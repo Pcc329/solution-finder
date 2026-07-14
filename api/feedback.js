@@ -8,7 +8,7 @@ const ALLOWED_MILESTONES = new Set([
   'M4 真實應用',
   '其他回饋',
 ]);
-const ALLOWED_PATH_CHOICES = new Set(['AI 搜尋', 'AI 分析']);
+const ALLOWED_PATH_CHOICES = new Set(['AI 搜尋', 'AI 分析', '兩者都用']);
 const ALLOWED_WOULD_CITE = new Set(['會', '不會']);
 
 export default async function handler(req, res) {
