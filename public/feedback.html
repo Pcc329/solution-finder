@@ -318,7 +318,7 @@
         ].join("");
       } else if (state.milestone === "M4 真實應用") {
         dynamicFields.innerHTML = [
-          choiceGroup("path_choice", "你選了哪條路徑？", ["AI 搜尋", "AI 分析"], state.path_choice),
+          choiceGroup("path_choice", "你選了哪條路徑？", ["AI 搜尋", "AI 分析", "兩者都用"], state.path_choice),
           textarea("path_reason", "為什麼選這條路徑？"),
           choiceGroup("would_cite", "若下週見此客戶，會引用查到的方案或案例嗎？", ["會", "不會"], state.would_cite),
           textarea("cite_reason", "原因"),
