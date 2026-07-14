@@ -989,34 +989,6 @@
       padding: 8px 10px;
     }
 
-    .case-limited-preview {
-      position: relative;
-      max-height: 168px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #ffffff;
-    }
-
-    .case-limited-preview .case-detail-row {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .case-limited-preview .case-detail-row:last-child {
-      border-bottom: 0;
-    }
-
-    .case-fade-mask {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      height: 72px;
-      pointer-events: none;
-      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.92) 62%, #fff 100%);
-    }
-
     .case-empty {
       grid-column: 1 / -1;
       border: 1px solid var(--border);
@@ -1610,16 +1582,13 @@
                   <span class="case-detail-label">推動阻力</span>
                   <span>${escapeHtml(item.resistance || '尚未記錄推動阻力。')}</span>
                 </div>
-                <div class="case-limited-preview">
-                  <div class="case-detail-row">
-                    <span class="case-detail-label">化解方法</span>
-                    <span>${escapeHtml(item.resolution || '尚未記錄化解方法。')}</span>
-                  </div>
-                  <div class="case-detail-row">
-                    <span class="case-detail-label">可複製條件</span>
-                    <span>${escapeHtml(item.replicable_condition || '尚未記錄可複製條件。')}</span>
-                  </div>
-                  <div class="case-fade-mask" aria-hidden="true"></div>
+                <div class="case-detail-row">
+                  <span class="case-detail-label">化解方法</span>
+                  <span>${escapeHtml(item.resolution || '尚未記錄化解方法。')}</span>
+                </div>
+                <div class="case-detail-row">
+                  <span class="case-detail-label">可複製條件</span>
+                  <span>${escapeHtml(item.replicable_condition || '尚未記錄可複製條件。')}</span>
                 </div>
                 <div class="case-detail-row">
                   <span class="case-detail-label">成效</span>
