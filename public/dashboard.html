@@ -915,6 +915,48 @@
       line-height: 1.65;
     }
 
+    .case-body {
+      position: relative;
+      max-height: 15em;
+      overflow: hidden;
+    }
+
+    .case-body.expanded {
+      max-height: none;
+      overflow: visible;
+    }
+
+    .case-body-fade {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 56px;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.92) 62%, #fff 100%);
+    }
+
+    .case-body.expanded .case-body-fade,
+    .case-card:not(.case-can-expand) .case-body-fade {
+      display: none;
+    }
+
+    .case-toggle {
+      display: none;
+      margin-top: 10px;
+      border: 0;
+      background: transparent;
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .case-card.case-can-expand .case-toggle {
+      display: inline-flex;
+    }
+
     .case-detail {
       display: grid;
       gap: 10px;
@@ -947,34 +989,6 @@
       padding: 8px 10px;
     }
 
-    .case-limited-preview {
-      position: relative;
-      max-height: 168px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #ffffff;
-    }
-
-    .case-limited-preview .case-detail-row {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .case-limited-preview .case-detail-row:last-child {
-      border-bottom: 0;
-    }
-
-    .case-fade-mask {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      height: 72px;
-      pointer-events: none;
-      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.92) 62%, #fff 100%);
-    }
-
     .case-empty {
       grid-column: 1 / -1;
       border: 1px solid var(--border);
@@ -983,6 +997,38 @@
       color: var(--muted);
       font-size: 14px;
       padding: 18px;
+    }
+
+    .case-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .case-page-button {
+      min-width: 34px;
+      min-height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--text);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .case-page-button.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .case-page-button:disabled {
+      color: #cbd5e1;
+      cursor: not-allowed;
+      background: #f8fafc;
     }
 
     .error {
@@ -1249,6 +1295,7 @@
       <div class="case-grid" id="caseGrid">
         <div class="case-empty">捲動到此區塊後載入案例資料。</div>
       </div>
+      <div class="case-pagination" id="casePagination" aria-label="案例分頁"></div>
     </section>
 
     <section class="card strategy-section" id="companies" aria-label="公司圖譜">
@@ -1299,6 +1346,7 @@
     const TEAL = '#0BA08C';
     const MAP_NO_DATA = '#EFF2F3';
     const COMPANY_DISPLAY_LIMIT = 200;
+    const CASES_PAGE_SIZE = 9;
     const COMPETITION_X_MID = 150;
     const COMPETITION_Y_MID = 0.47;
 
@@ -1388,6 +1436,7 @@
     let allCases = [];
     let casesLoaded = false;
     let casesLoading = false;
+    let currentCasePage = 1;
     let caseFilters = {
       case_type: '全部',
       industry_category: '全部',
@@ -1486,20 +1535,30 @@
       renderCaseSelect('casePainFilter', uniqueOptions(allCases, 'pain_point_domain'), caseFilters.pain_point_domain);
 
       const filtered = getFilteredCases();
-      count.textContent = `顯示 ${formatNumber(filtered.length)} / 共 ${formatNumber(allCases.length)} 筆`;
+      const totalPages = Math.max(1, Math.ceil(filtered.length / CASES_PAGE_SIZE));
+      currentCasePage = Math.min(Math.max(currentCasePage, 1), totalPages);
+      const pageStart = (currentCasePage - 1) * CASES_PAGE_SIZE;
+      const pageItems = filtered.slice(pageStart, pageStart + CASES_PAGE_SIZE);
+      const displayStart = filtered.length ? pageStart + 1 : 0;
+      const displayEnd = pageStart + pageItems.length;
+      count.textContent = filtered.length
+        ? `顯示 ${formatNumber(displayStart)}-${formatNumber(displayEnd)} / 共 ${formatNumber(filtered.length)} 筆`
+        : '顯示 0 筆';
 
       if (!filtered.length) {
         grid.innerHTML = '<div class="case-empty">目前沒有符合條件的案例。</div>';
+        renderCasePagination(0);
         return;
       }
 
-      grid.innerHTML = filtered.map(item => {
+      grid.innerHTML = pageItems.map((item, index) => {
         const expectedNote = item.outcome_status === '預期成效'
           ? '<div class="case-outcome-note">本案例成效為輔導規劃之預期目標，非實際驗收數據</div>'
           : '';
         const displayName = item.company_display_name || '匿名案例';
+        const cardId = `${pageStart + index}`;
         return `
-          <article class="case-card">
+          <article class="case-card" data-case-card="${cardId}">
             <div class="case-card-head">
               <div>
                 <h3 class="case-title">${escapeHtml(item.case_name || '未命名案例')}</h3>
@@ -1512,17 +1571,17 @@
               ${item.industry_category ? `<span class="case-pill">${escapeHtml(item.industry_category)}</span>` : ''}
               ${item.pain_point_domain ? `<span class="case-pill">${escapeHtml(item.pain_point_domain)}</span>` : ''}
             </div>
-            <p class="case-summary">${escapeHtml(item.pain_points || '痛點待補充。')}</p>
-            <div class="case-detail">
-              <div class="case-detail-row">
-                <span class="case-detail-label">顧問診斷結論</span>
-                <span>${escapeHtml(item.diagnosis || '待顧問補充診斷。')}</span>
-              </div>
-              <div class="case-detail-row">
-                <span class="case-detail-label">推動阻力</span>
-                <span>${escapeHtml(item.resistance || '尚未記錄推動阻力。')}</span>
-              </div>
-              <div class="case-limited-preview">
+            <div class="case-body" data-case-body="${cardId}">
+              <p class="case-summary">${escapeHtml(item.pain_points || '痛點待補充。')}</p>
+              <div class="case-detail">
+                <div class="case-detail-row">
+                  <span class="case-detail-label">顧問診斷結論</span>
+                  <span>${escapeHtml(item.diagnosis || '待顧問補充診斷。')}</span>
+                </div>
+                <div class="case-detail-row">
+                  <span class="case-detail-label">推動阻力</span>
+                  <span>${escapeHtml(item.resistance || '尚未記錄推動阻力。')}</span>
+                </div>
                 <div class="case-detail-row">
                   <span class="case-detail-label">化解方法</span>
                   <span>${escapeHtml(item.resolution || '尚未記錄化解方法。')}</span>
@@ -1531,24 +1590,91 @@
                   <span class="case-detail-label">可複製條件</span>
                   <span>${escapeHtml(item.replicable_condition || '尚未記錄可複製條件。')}</span>
                 </div>
-                <div class="case-fade-mask" aria-hidden="true"></div>
+                <div class="case-detail-row">
+                  <span class="case-detail-label">成效</span>
+                  ${expectedNote}
+                  <span>${escapeHtml(item.outcome || '成效資料待補充。')}</span>
+                </div>
               </div>
-              <div class="case-detail-row">
-                <span class="case-detail-label">成效</span>
-                ${expectedNote}
-                <span>${escapeHtml(item.outcome || '成效資料待補充。')}</span>
-              </div>
+              <div class="case-body-fade" aria-hidden="true"></div>
             </div>
+            <button class="case-toggle" type="button" data-case-toggle="${cardId}" aria-expanded="false">展開全文</button>
           </article>
         `;
       }).join('');
+
+      renderCasePagination(filtered.length);
+      updateCaseBodyToggles();
     }
 
+    function renderCasePagination(totalCount) {
+      const pagination = document.getElementById('casePagination');
+      if (!pagination) return;
+      const totalPages = Math.ceil(totalCount / CASES_PAGE_SIZE);
+      if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+      }
+
+      const pageButtons = Array.from({ length: totalPages }, (_, index) => {
+        const page = index + 1;
+        return `<button class="case-page-button ${page === currentCasePage ? 'active' : ''}" type="button" data-case-page="${page}" aria-current="${page === currentCasePage ? 'page' : 'false'}">${page}</button>`;
+      }).join('');
+
+      pagination.innerHTML = `
+        <button class="case-page-button" type="button" data-case-page="prev" ${currentCasePage === 1 ? 'disabled' : ''}>上一頁</button>
+        ${pageButtons}
+        <button class="case-page-button" type="button" data-case-page="next" ${currentCasePage === totalPages ? 'disabled' : ''}>下一頁</button>
+      `;
+
+      pagination.querySelectorAll('[data-case-page]').forEach(button => {
+        button.addEventListener('click', () => {
+          const target = button.dataset.casePage;
+          const nextPage = target === 'prev'
+            ? currentCasePage - 1
+            : target === 'next'
+              ? currentCasePage + 1
+              : Number(target);
+          if (!Number.isFinite(nextPage) || nextPage === currentCasePage) return;
+          currentCasePage = Math.min(Math.max(nextPage, 1), totalPages);
+          renderCases();
+          document.getElementById('cases')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+    }
+
+    function updateCaseBodyToggles() {
+      document.querySelectorAll('[data-case-card]').forEach(card => {
+        const body = card.querySelector('[data-case-body]');
+        const toggle = card.querySelector('[data-case-toggle]');
+        if (!body || !toggle) return;
+        const canExpand = body.scrollHeight > body.clientHeight + 1;
+        card.classList.toggle('case-can-expand', canExpand);
+        if (!canExpand) {
+          body.classList.remove('expanded');
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.textContent = '展開全文';
+        }
+      });
+
+      document.querySelectorAll('[data-case-toggle]').forEach(button => {
+        button.addEventListener('click', () => {
+          const card = button.closest('[data-case-card]');
+          const body = card?.querySelector('[data-case-body]');
+          if (!card || !body) return;
+          const expanded = body.classList.toggle('expanded');
+          button.setAttribute('aria-expanded', String(expanded));
+          button.textContent = expanded ? '收合' : '展開全文';
+        });
+      });
+    }
     async function loadCases() {
       const count = document.getElementById('caseCount');
       const grid = document.getElementById('caseGrid');
+      const pagination = document.getElementById('casePagination');
       if (casesLoaded || casesLoading) return;
       casesLoading = true;
+      if (pagination) pagination.innerHTML = '';
       if (count) count.textContent = '載入中';
       if (grid) grid.innerHTML = '<div class="case-empty">案例載入中...</div>';
       try {
@@ -1556,18 +1682,19 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         allCases = Array.isArray(data) ? data : [];
+        currentCasePage = 1;
         casesLoaded = true;
         renderCases();
       } catch (err) {
         console.error('Cases load error:', err);
         allCases = [];
+        if (pagination) pagination.innerHTML = '';
         if (count) count.textContent = '0 筆';
         if (grid) grid.innerHTML = '<div class="case-empty">案例資料載入失敗，請稍後再試。</div>';
       } finally {
         casesLoading = false;
       }
     }
-
     function setupCaseLazyLoad() {
       [
         ['caseTypeFilter', 'case_type'],
@@ -1578,6 +1705,7 @@
         if (!select) return;
         select.addEventListener('change', event => {
           caseFilters[key] = event.target.value || '全部';
+          currentCasePage = 1;
           renderCases();
         });
       });
