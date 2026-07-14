@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>內部測試回饋｜產業策略智庫</title>
+  <style>
+    :root {
+      --teal: #1D9E75;
+      --teal-dark: #0d6e52;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --bg: #f8f9fa;
+      --soft: #ecfdf5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+    main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }
+    header { margin-bottom: 24px; }
+    .kicker { margin: 0 0 6px; font-size: 13px; color: var(--teal-dark); font-weight: 800; letter-spacing: .08em; }
+    h1 { margin: 0; font-size: clamp(28px, 5vw, 42px); line-height: 1.15; }
+    .subtitle { margin: 10px 0 0; color: var(--muted); font-weight: 600; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 14px 36px rgba(15, 23, 42, .06);
+      padding: 24px;
+      margin-bottom: 18px;
+    }
+    .section-title { margin: 0 0 16px; font-size: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    label { display: block; font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 6px; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 11px 12px;
+      font: inherit;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+    }
+    textarea { min-height: 112px; resize: vertical; }
+    input:focus, textarea:focus, select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(29, 158, 117, .12); }
+    .milestones { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+    .milestone {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #334155;
+      border-radius: 14px;
+      padding: 14px 10px;
+      font-weight: 900;
+      cursor: pointer;
+      text-align: left;
+      min-height: 84px;
+    }
+    .milestone span { display: block; color: var(--muted); font-size: 12px; font-weight: 700; margin-top: 4px; }
+    .milestone.active { border-color: var(--teal); background: var(--soft); color: var(--teal-dark); box-shadow: 0 0 0 3px rgba(29, 158, 117, .12); }
+    .dynamic { display: grid; gap: 16px; }
+    .stars { display: flex; gap: 8px; flex-wrap: wrap; }
+    .star {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #94a3b8;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .star.active { color: #f59e0b; border-color: #fbbf24; background: #fffbeb; }
+    .choices { display: flex; gap: 10px; flex-wrap: wrap; }
+    .choice {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #334155;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .choice.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-weight: 900;
+      cursor: pointer;
+      background: var(--teal);
+      color: #fff;
+    }
+    .btn:hover { background: var(--teal-dark); }
+    .btn.secondary { background: #f1f5f9; color: #334155; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .error { color: #dc2626; font-size: 14px; font-weight: 800; }
+    .success {
+      text-align: center;
+      padding: 48px 24px;
+    }
+    .success h2 { margin: 0 0 8px; font-size: 26px; }
+    .hint { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+    .required::after { content: " *"; color: #dc2626; }
+    @media (max-width: 780px) {
+      main { width: min(100% - 20px, 980px); padding-top: 24px; }
+      .grid, .milestones { grid-template-columns: 1fr; }
+      .card { padding: 18px; border-radius: 14px; }
+      .actions { flex-direction: column; align-items: stretch; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="kicker">SOLUTION FINDER</p>
+      <h1>內部測試回饋</h1>
+      <p class="subtitle">產業策略智庫 小規模試行</p>
+    </header>
+
+    <section id="successState" class="card success" hidden>
+      <h2>感謝回饋</h2>
+      <p class="subtitle">這筆里程碑回報已送出。</p>
+      <div class="actions" style="justify-content:center">
+        <button class="btn" id="nextFeedbackBtn" type="button">填寫下一個里程碑</button>
+      </div>
+    </section>
+
+    <form id="feedbackForm">
+      <section class="card">
+        <h2 class="section-title">基本資料</h2>
+        <div class="grid">
+          <div>
+            <label class="required" for="name">姓名</label>
+            <input id="name" name="name" maxlength="50" autocomplete="name" required>
+          </div>
+          <div>
+            <label for="department">部門 / 組別</label>
+            <input id="department" name="department" maxlength="50" autocomplete="organization">
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title required">里程碑選擇</h2>
+        <div class="milestones" id="milestoneGrid" role="radiogroup" aria-label="里程碑選擇"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">動態問題</h2>
+        <div id="dynamicFields" class="dynamic">
+          <p class="hint">請先選擇一個里程碑。</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="actions">
+          <button class="btn" id="submitBtn" type="submit">送出回饋</button>
+          <span class="error" id="errorMessage" role="alert"></span>
+        </div>
+        <p class="hint">回饋內容會寫入內部 Airtable 回饋表；此頁面不含任何前端憑證。</p>
+      </section>
+    </form>
+  </main>
+
+  <script>
+    const milestones = [
+      { value: "M1 AI語意搜尋", title: "M1", note: "AI語意搜尋" },
+      { value: "M2 案例知識庫", title: "M2", note: "案例知識庫" },
+      { value: "M3 情境實戰", title: "M3", note: "情境實戰" },
+      { value: "M4 真實應用", title: "M4", note: "真實應用" },
+      { value: "其他回饋", title: "其他", note: "自由描述" },
+    ];
+    const state = {
+      milestone: "",
+      score: null,
+      relevant_count: "",
+      path_choice: "",
+      would_cite: "",
+      detailAnswers: {},
+    };
+
+    const form = document.getElementById("feedbackForm");
+    const successState = document.getElementById("successState");
+    const milestoneGrid = document.getElementById("milestoneGrid");
+    const dynamicFields = document.getElementById("dynamicFields");
+    const errorMessage = document.getElementById("errorMessage");
+    const submitBtn = document.getElementById("submitBtn");
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function resetDynamicState() {
+      state.score = null;
+      state.relevant_count = "";
+      state.path_choice = "";
+      state.would_cite = "";
+      state.detailAnswers = {};
+      errorMessage.textContent = "";
+    }
+
+    function setMilestone(value) {
+      state.milestone = value;
+      resetDynamicState();
+      renderMilestones();
+      renderDynamicFields();
+    }
+
+    function renderMilestones() {
+      milestoneGrid.innerHTML = milestones.map(item => `
+        <button class="milestone ${state.milestone === item.value ? "active" : ""}" type="button" data-milestone="${escapeHtml(item.value)}" role="radio" aria-checked="${state.milestone === item.value}">
+          ${escapeHtml(item.title)}
+          <span>${escapeHtml(item.note)}</span>
+        </button>
+      `).join("");
+      milestoneGrid.querySelectorAll("[data-milestone]").forEach(button => {
+        button.addEventListener("click", () => setMilestone(button.dataset.milestone || ""));
+      });
+    }
+
+    function bindTextareas() {
+      dynamicFields.querySelectorAll("[data-detail-key]").forEach(input => {
+        input.addEventListener("input", () => {
+          state.detailAnswers[input.dataset.detailKey] = input.value;
+        });
+      });
+    }
+
+    function textarea(key, label, required = true) {
+      return `
+        <div>
+          <label class="${required ? "required" : ""}" for="${key}">${escapeHtml(label)}</label>
+          <textarea id="${key}" data-detail-key="${escapeHtml(key)}" ${required ? "required" : ""}>${escapeHtml(state.detailAnswers[key] || "")}</textarea>
+        </div>
+      `;
+    }
+
+    function relevantSelect(label) {
+      return `
+        <div>
+          <label for="relevant_count">${escapeHtml(label)}</label>
+          <select id="relevant_count">
+            <option value="">請選擇</option>
+            ${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}" ${String(state.relevant_count) === String(n) ? "selected" : ""}>${n} 筆</option>`).join("")}
+          </select>
+        </div>
+      `;
+    }
+
+    function stars() {
+      return `
+        <div>
+          <label>案例資訊完整度足以向客戶說明嗎？</label>
+          <div class="stars" aria-label="評分">
+            ${[1, 2, 3, 4, 5].map(n => `<button class="star ${state.score >= n ? "active" : ""}" type="button" data-score="${n}" aria-label="${n}分">★</button>`).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function choiceGroup(name, label, values, current) {
+      return `
+        <div>
+          <label>${escapeHtml(label)}</label>
+          <div class="choices">
+            ${values.map(value => `<button class="choice ${current === value ? "active" : ""}" type="button" data-choice-group="${name}" data-choice-value="${escapeHtml(value)}">${escapeHtml(value)}</button>`).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDynamicFields() {
+      if (!state.milestone) {
+        dynamicFields.innerHTML = '<p class="hint">請先選擇一個里程碑。</p>';
+        return;
+      }
+
+      if (state.milestone === "M1 AI語意搜尋") {
+        dynamicFields.innerHTML = [
+          textarea("search_query", "你實際輸入的搜尋語句"),
+          relevantSelect("前 5 筆結果中對題的有幾筆？"),
+          textarea("implicit_conditions", "AI 是否理解你話中的隱含條件（預算、地區）？"),
+        ].join("");
+      } else if (state.milestone === "M2 案例知識庫") {
+        dynamicFields.innerHTML = [
+          stars(),
+          choiceGroup("case_kind", "你讀的這筆案例是實績還是規劃？", ["實績案例", "輔導規劃", "不確定"], state.detailAnswers.case_kind || ""),
+          textarea("case_feeling", "一句話描述閱讀感受"),
+        ].join("");
+      } else if (state.milestone === "M3 情境實戰") {
+        dynamicFields.innerHTML = [
+          relevantSelect("推薦的 5 筆中真正相關的有幾筆？"),
+          textarea("least_relevant", "最不相關的是哪筆、為什麼？"),
+        ].join("");
+      } else if (state.milestone === "M4 真實應用") {
+        dynamicFields.innerHTML = [
+          choiceGroup("path_choice", "你選了哪條路徑？", ["AI 搜尋", "AI 分析"], state.path_choice),
+          textarea("path_reason", "為什麼選這條路徑？"),
+          choiceGroup("would_cite", "若下週見此客戶，會引用查到的方案或案例嗎？", ["會", "不會"], state.would_cite),
+          textarea("cite_reason", "原因"),
+        ].join("");
+      } else {
+        dynamicFields.innerHTML = textarea("free_feedback", "自由描述");
+      }
+
+      bindDynamicEvents();
+    }
+
+    function bindDynamicEvents() {
+      bindTextareas();
+      const relevant = document.getElementById("relevant_count");
+      if (relevant) {
+        relevant.addEventListener("change", () => {
+          state.relevant_count = relevant.value;
+        });
+      }
+      dynamicFields.querySelectorAll("[data-score]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.score = Number(button.dataset.score);
+          renderDynamicFields();
+        });
+      });
+      dynamicFields.querySelectorAll("[data-choice-group]").forEach(button => {
+        button.addEventListener("click", () => {
+          const group = button.dataset.choiceGroup;
+          const value = button.dataset.choiceValue || "";
+          if (group === "path_choice") state.path_choice = value;
+          else if (group === "would_cite") state.would_cite = value;
+          else state.detailAnswers[group] = value;
+          renderDynamicFields();
+        });
+      });
+    }
+
+    function buildDetail() {
+      const rows = [];
+      const add = (label, value) => {
+        const text = String(value || "").trim();
+        if (text) rows.push(`${label}：${text}`);
+      };
+
+      if (state.milestone === "M1 AI語意搜尋") {
+        add("你實際輸入的搜尋語句", state.detailAnswers.search_query);
+        add("AI 是否理解你話中的隱含條件（預算、地區）", state.detailAnswers.implicit_conditions);
+      } else if (state.milestone === "M2 案例知識庫") {
+        add("你讀的這筆案例是實績還是規劃", state.detailAnswers.case_kind);
+        add("一句話描述閱讀感受", state.detailAnswers.case_feeling);
+      } else if (state.milestone === "M3 情境實戰") {
+        add("最不相關的是哪筆、為什麼", state.detailAnswers.least_relevant);
+      } else if (state.milestone === "M4 真實應用") {
+        add("為什麼選這條路徑", state.detailAnswers.path_reason);
+        add("原因", state.detailAnswers.cite_reason);
+      } else {
+        add("自由描述", state.detailAnswers.free_feedback);
+      }
+
+      return rows.join("\n");
+    }
+
+    function validateBeforeSubmit(payload) {
+      if (!payload.name) return "請填寫姓名";
+      if (!payload.milestone) return "請選擇里程碑";
+      if (!payload.detail) return "請填寫回報內容";
+      if (payload.detail.length > 2000) return "回報內容不可超過2000字";
+      return "";
+    }
+
+    function resetForm() {
+      form.reset();
+      state.milestone = "";
+      resetDynamicState();
+      renderMilestones();
+      renderDynamicFields();
+      errorMessage.textContent = "";
+      successState.hidden = true;
+      form.hidden = false;
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      errorMessage.textContent = "";
+      const payload = {
+        name: document.getElementById("name").value.trim(),
+        department: document.getElementById("department").value.trim(),
+        milestone: state.milestone,
+        detail: buildDetail(),
+      };
+      if (state.score !== null) payload.score = state.score;
+      if (state.relevant_count !== "") payload.relevant_count = Number(state.relevant_count);
+      if (state.path_choice) payload.path_choice = state.path_choice;
+      if (state.would_cite) payload.would_cite = state.would_cite;
+
+      const validationError = validateBeforeSubmit(payload);
+      if (validationError) {
+        errorMessage.textContent = validationError;
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "送出中...";
+      try {
+        const res = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "送出失敗，請稍後再試");
+        form.hidden = true;
+        successState.hidden = false;
+      } catch (err) {
+        errorMessage.textContent = err.message || "送出失敗，請稍後再試";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "送出回饋";
+      }
+    });
+
+    document.getElementById("nextFeedbackBtn").addEventListener("click", resetForm);
+    renderMilestones();
+    renderDynamicFields();
+  </script>
+</body>
+</html>
