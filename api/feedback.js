@@ -4,8 +4,7 @@ const FEEDBACK_TABLE_ID = 'tbly0aNVLiogY9Eu1';
 const ALLOWED_MILESTONES = new Set([
   'M1 AI語意搜尋',
   'M2 案例知識庫',
-  'M3 情境實戰',
-  'M4 真實應用',
+  'M3 AI分析推薦',
   '其他回饋',
 ]);
 const ALLOWED_PATH_CHOICES = new Set(['AI 搜尋', 'AI 分析', '兩者都用']);
@@ -84,7 +83,7 @@ export default async function handler(req, res) {
     const body = parseBody();
     const name = requiredString(body, 'name', '姓名', 1, 50);
     const department = optionalString(body, 'department', '部門', 50);
-    const milestone = requiredString(body, 'milestone', '里程碑', 1, 50);
+    const milestone = requiredString(body, 'milestone', '任務', 1, 50);
     const detail = requiredString(body, 'detail', '回報內容', 1, 2000);
     const score = optionalInteger(body, 'score', '評分', 1, 5);
     const relevantCount = optionalInteger(body, 'relevant_count', '相關筆數', 0, 5);
@@ -92,7 +91,7 @@ export default async function handler(req, res) {
     const wouldCite = optionalString(body, 'would_cite', '會否引用', 10);
 
     if (!ALLOWED_MILESTONES.has(milestone)) {
-      return res.status(400).json({ error: '里程碑不在允許範圍內' });
+      return res.status(400).json({ error: '任務不在允許範圍內' });
     }
     if (pathChoice && !ALLOWED_PATH_CHOICES.has(pathChoice)) {
       return res.status(400).json({ error: '路徑選擇不在允許範圍內' });
