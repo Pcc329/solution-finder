@@ -128,19 +128,19 @@
     <section class="card" style="background:#f0fdf9;border-color:#a7e8d4">
       <h2 class="section-title" style="margin-top:0">填寫說明</h2>
       <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.9;color:#334155">
-        <li>每完成一個測試里程碑，回到本頁提交一次回報，<strong>每次約 2–3 分鐘</strong>。</li>
-        <li>建議依 <strong>M1 → M2 → M3 → M4</strong> 順序進行，但順序不強制——每次提交各自獨立，先後不影響資料彙整。</li>
+        <li>每完成一個測試任務，回到本頁提交一次回報，<strong>每次約 2–3 分鐘</strong>。</li>
+        <li>建議依 <strong>M1 → M2 → M3</strong> 順序進行，但順序不強制——每次提交各自獨立，先後不影響資料彙整。</li>
         <li>標 <span style="color:#dc2626">*</span> 為必填；其餘欄位可留空，不影響送出。</li>
-        <li>送出成功後可按「填寫下一個里程碑」繼續填寫其他階段。</li>
+        <li>送出成功後可按「填寫下一個任務」繼續填寫其他階段。</li>
         <li>任務以外的想法或問題，隨時選「<strong>其他</strong>」提交，不限次數。</li>
       </ul>
     </section>
 
     <section id="successState" class="card success" hidden>
       <h2>感謝回饋</h2>
-      <p class="subtitle">這筆里程碑回報已送出。</p>
+      <p class="subtitle">這筆任務回報已送出。</p>
       <div class="actions" style="justify-content:center">
-        <button class="btn" id="nextFeedbackBtn" type="button">填寫下一個里程碑</button>
+        <button class="btn" id="nextFeedbackBtn" type="button">填寫下一個任務</button>
       </div>
     </section>
 
@@ -160,14 +160,14 @@
       </section>
 
       <section class="card">
-        <h2 class="section-title required">里程碑選擇</h2>
-        <div class="milestones" id="milestoneGrid" role="radiogroup" aria-label="里程碑選擇"></div>
+        <h2 class="section-title required">任務選擇</h2>
+        <div class="milestones" id="milestoneGrid" role="radiogroup" aria-label="任務選擇"></div>
       </section>
 
       <section class="card">
         <h2 class="section-title">動態問題</h2>
         <div id="dynamicFields" class="dynamic">
-          <p class="hint">請先選擇一個里程碑。</p>
+          <p class="hint">請先選擇一個任務。</p>
         </div>
       </section>
 
@@ -183,10 +183,9 @@
 
   <script>
     const milestones = [
-      { value: "M1 AI語意搜尋", title: "M1", note: "AI語意搜尋" },
-      { value: "M2 案例知識庫", title: "M2", note: "案例知識庫" },
-      { value: "M3 情境實戰", title: "M3", note: "情境實戰" },
-      { value: "M4 真實應用", title: "M4", note: "真實應用" },
+      { value: "M1 AI語意搜尋", title: "M1", note: "AI語意辨識與搜尋精準度測試" },
+      { value: "M2 案例知識庫", title: "M2", note: "案例知識庫功能完整度測試" },
+      { value: "M3 AI分析推薦", title: "M3", note: "AI分析與案例推薦精準度測試" },
       { value: "其他回饋", title: "其他", note: "自由描述" },
     ];
     const state = {
@@ -295,7 +294,7 @@
 
     function renderDynamicFields() {
       if (!state.milestone) {
-        dynamicFields.innerHTML = '<p class="hint">請先選擇一個里程碑。</p>';
+        dynamicFields.innerHTML = '<p class="hint">請先選擇一個任務。</p>';
         return;
       }
 
@@ -311,14 +310,10 @@
           choiceGroup("case_kind", "你讀的這筆案例是實績還是規劃？", ["實績案例", "輔導規劃", "不確定"], state.detailAnswers.case_kind || ""),
           textarea("case_feeling", "一句話描述閱讀感受"),
         ].join("");
-      } else if (state.milestone === "M3 情境實戰") {
+      } else if (state.milestone === "M3 AI分析推薦") {
         dynamicFields.innerHTML = [
-          relevantSelect("推薦的 5 筆中真正相關的有幾筆？"),
-          textarea("least_relevant", "最不相關的是哪筆、為什麼？"),
-        ].join("");
-      } else if (state.milestone === "M4 真實應用") {
-        dynamicFields.innerHTML = [
-          choiceGroup("path_choice", "你選了哪條路徑？", ["AI 搜尋", "AI 分析"], state.path_choice),
+          relevantSelect("推薦案例中真正相關的有幾筆？"),
+          choiceGroup("path_choice", "你選了哪條路徑？", ["AI 搜尋", "AI 分析", "兩者都用"], state.path_choice),
           textarea("path_reason", "為什麼選這條路徑？"),
           choiceGroup("would_cite", "若下週見此客戶，會引用查到的方案或案例嗎？", ["會", "不會"], state.would_cite),
           textarea("cite_reason", "原因"),
@@ -369,9 +364,7 @@
       } else if (state.milestone === "M2 案例知識庫") {
         add("你讀的這筆案例是實績還是規劃", state.detailAnswers.case_kind);
         add("一句話描述閱讀感受", state.detailAnswers.case_feeling);
-      } else if (state.milestone === "M3 情境實戰") {
-        add("最不相關的是哪筆、為什麼", state.detailAnswers.least_relevant);
-      } else if (state.milestone === "M4 真實應用") {
+      } else if (state.milestone === "M3 AI分析推薦") {
         add("為什麼選這條路徑", state.detailAnswers.path_reason);
         add("原因", state.detailAnswers.cite_reason);
       } else {
@@ -383,14 +376,18 @@
 
     function validateBeforeSubmit(payload) {
       if (!payload.name) return "請填寫姓名";
-      if (!payload.milestone) return "請選擇里程碑";
+      if (!payload.milestone) return "請選擇任務";
       if (!payload.detail) return "請填寫回報內容";
       if (payload.detail.length > 2000) return "回報內容不可超過2000字";
       return "";
     }
 
     function resetForm() {
+      const keepName = document.getElementById("name").value;
+      const keepDept = document.getElementById("department").value;
       form.reset();
+      document.getElementById("name").value = keepName;
+      document.getElementById("department").value = keepDept;
       state.milestone = "";
       resetDynamicState();
       renderMilestones();
