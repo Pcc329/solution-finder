@@ -312,7 +312,26 @@
       font-weight: 800;
       padding: 4px 8px;
     }
-
+     .update-item-source {
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .update-item-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .update-item-name-row .update-item-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
     .update-item-time {
       color: var(--muted);
       font-size: 12px;
@@ -1728,7 +1747,23 @@
       }
       triggerIfHash();
     }
+    const SOURCE_BADGE_COLORS = {
+      '農業部':    { bg: '#EAF3DE', color: '#27500A' },
+      '中企署':    { bg: '#E6F1FB', color: '#0C447C' },
+      '產發署':    { bg: '#FAEEDA', color: '#633806' },
+      '商業署':    { bg: '#FBEAF0', color: '#72243E' },
+      '軟體採購網': { bg: '#EEEDFE', color: '#3C3489' },
+      '新創嚴選':  { bg: '#E1F5EE', color: '#085041' },
+      '自有方案':  { bg: '#F1EFE8', color: '#444441' },
+    };
+    const SOURCE_BADGE_DEFAULT = { bg: '#F1EFE8', color: '#444441' };
 
+    function renderSourceBadge(source) {
+      const name = String(source || '').trim();
+      if (!name) return '';
+      const c = SOURCE_BADGE_COLORS[name] || SOURCE_BADGE_DEFAULT;
+      return `<span class="update-item-source" style="background:${c.bg};color:${c.color};">${escapeHtml(name)}</span>`;
+    }
     function updateRecentActivity(data) {
       document.getElementById('newThisWeek').textContent = `+${data.newThisWeek || 0}`;
       document.getElementById('newThisMonth').textContent = `+${data.newThisMonth || 0}`;
@@ -1748,7 +1783,11 @@
         return `
           <div class="update-item">
             <div class="update-item-main">
-              <span class="update-item-name">${escapeHtml(item.name)}</span>
+              <div class="update-item-main">
+              <div class="update-item-name-row">
+                ${renderSourceBadge(item.dataSource)}
+                <span class="update-item-name">${escapeHtml(item.name)}</span>
+              </div>
               <span class="update-item-company">${escapeHtml(item.company)}</span>
             </div>
             <div class="update-item-meta">
