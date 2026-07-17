@@ -95,6 +95,7 @@ export default async function handler(req, res) {
         name: rec.fields?.['solution_name'] || '',
         company: rec.fields?.['company_name'] || '',
         category: rec.fields?.['industry_category'] || '',
+        dataSource: rec.fields?.['data_source'] || '',
         createdTime: rec.createdTime,
       }));
 
