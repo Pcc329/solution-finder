@@ -889,9 +889,16 @@
       margin-top: 10px;
     }
 
+    .case-card-head .case-badges {
+      justify-content: flex-end;
+      margin-top: 0;
+      flex-shrink: 0;
+    }
+
     .case-badge {
       display: inline-flex;
       align-items: center;
+      gap: 4px;
       border: 1px solid var(--border);
       border-radius: 999px;
       background: #f8fafc;
@@ -918,6 +925,10 @@
       border-color: #bfdbfe;
       background: #eff6ff;
       color: #1d4ed8;
+    }
+
+    .case-badge.outcome-info {
+      cursor: help;
     }
 
     .case-pill {
@@ -1513,20 +1524,49 @@
       return ['全部', ...new Set(items.map(item => String(item[key] || '').trim()).filter(Boolean))];
     }
 
-    function getCaseBadge(item) {
-      if (item.outcome_status === '預期成效') {
-        return '<span class="case-badge expected">預期成效</span>';
+    function getCaseBadgeClass(value) {
+      if (value === '實績案例' || value === '實際成效') return 'actual';
+      if (value === '輔導規劃' || value === '預期成效') return 'expected';
+      if (value === 'AI模擬示範' || value === '模擬數據') return 'simulated';
+      return '';
+    }
+
+    function getOutcomeBadgeTitle(item) {
+      const status = String(item.outcome_status || '').trim();
+      const outcome = String(item.outcome || '').trim();
+      if (outcome) return outcome;
+      if (status === '預期成效') {
+        return '此為預期成效，須以實際導入後數據驗證。';
       }
-      if (item.outcome_status === '實際成效') {
-        return '<span class="case-badge actual">實績</span>';
-      }
-      if (item.case_type === 'AI模擬示範') {
-        return '<span class="case-badge simulated">AI模擬示範</span>';
-      }
-      if (!item.case_type && !item.outcome_status && item.is_real !== true) {
-        return '<span class="case-badge simulated">AI模擬示範</span>';
+      if (status === '模擬數據') {
+        return '此為 AI 模擬案例，請以實際導入情境驗證。';
       }
       return '';
+    }
+
+    function getCaseBadges(item) {
+      const badges = [];
+      const caseType = String(item.case_type || '').trim();
+      const outcomeStatus = String(item.outcome_status || '').trim();
+
+      if (caseType) {
+        const badgeClass = getCaseBadgeClass(caseType);
+        badges.push(`<span class="case-badge ${badgeClass}">${escapeHtml(caseType)}</span>`);
+      }
+
+      if (outcomeStatus) {
+        const badgeClass = getCaseBadgeClass(outcomeStatus);
+        const title = getOutcomeBadgeTitle(item);
+        const titleAttr = title ? ` title="${escapeHtml(title)}" aria-label="${escapeHtml(`${outcomeStatus}：${title}`)}"` : '';
+        const infoIcon = title ? '<span aria-hidden="true">i</span>' : '';
+        badges.push(`<span class="case-badge ${badgeClass} outcome-info"${titleAttr}>${escapeHtml(outcomeStatus)}${infoIcon}</span>`);
+      }
+
+      if (!badges.length && item.is_real !== true) {
+        badges.push('<span class="case-badge simulated">AI模擬示範</span>');
+      }
+
+      return badges.length ? `<div class="case-badges">${badges.join('')}</div>` : '';
     }
 
     function renderCaseSelect(id, options, value) {
@@ -1585,7 +1625,7 @@
                 <h3 class="case-title">${escapeHtml(item.case_name || '未命名案例')}</h3>
                 <div class="case-company">${escapeHtml(displayName)}</div>
               </div>
-              ${getCaseBadge(item)}
+              ${getCaseBadges(item)}
             </div>
             <div class="case-meta">
               ${item.case_type ? `<span class="case-pill">${escapeHtml(item.case_type)}</span>` : ''}
