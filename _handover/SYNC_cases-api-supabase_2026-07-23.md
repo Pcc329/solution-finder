@@ -38,15 +38,42 @@
 3. 離線契約測試：以同一組來源資料分別模擬 Airtable records 與 Supabase rows；公開案例 `case_id=52` 的回傳 JSON 完全一致，`confidentiality=機密` 的 `case_id=53` 在兩種模式都被排除。
 4. 線上 Airtable 模式唯讀驗證：`https://solution-finder-gray.vercel.app/api/cases` 於 2026-07-23 回傳 29 筆；前 3 個 `case_id` 為 `52`、`41`、`38`。
 
-### 尚待 Vercel Supabase 環境驗收
+### Vercel Preview 設定與即時驗收
 
-目前本機與公開部署均未提供可供本任務使用的 `SUPABASE_URL` 與 `SUPABASE_ANON_KEY`，無法誠實完成 Supabase 即時資料比對。部署 Preview / Vercel 設定這兩個環境變數後，請依序驗證：
+2026-07-23 已在 Vercel 將 `DB_SOURCE_CASES=supabase` 設為 **Preview 專用**（未套用 Production），並重新部署 `feat/cases-api-supabase`。本次 Preview：
 
-1. 設 `DB_SOURCE_CASES=airtable`，記錄筆數、完整欄位集合與前三筆 ID。
-2. 設 `DB_SOURCE_CASES=supabase`，重複相同記錄。
-3. 針對 `case_id=52`、`41`、`38` 比對兩個模式的完整 JSON；同時確認筆數、排序與欄位型別一致。
+- https://solution-finder-git-feat-case-28415f-patrick0814-6136s-projects.vercel.app
+- 部署狀態：Ready
+- 部署來源：`29acbc0 docs: add cases Supabase PR link`
 
-規格書寫明 Cases 當前預期為 59 筆，但公開 Airtable API 實測為 29 筆。此差異可能來自 confidentiality 白名單或部署環境資料版本；切換前須以兩個模式的即時回傳為準確認原因。
+Codex 工作環境的網路沙箱禁止讀取 Vercel API，受控瀏覽器也對 `/api/*` 回傳 `ERR_BLOCKED_BY_CLIENT`。因此本次無法從此環境取得 Supabase API 的實際 JSON；下列命令需在可連線至 Vercel 的本機 PowerShell 執行，才能誠實完成「29 筆逐筆、欄位、值、順序」驗收：
+
+```powershell
+$preview = 'https://solution-finder-git-feat-case-28415f-patrick0814-6136s-projects.vercel.app/api/cases'
+$airtable = 'https://solution-finder-gray.vercel.app/api/cases'
+
+$supabaseRows = Invoke-RestMethod -Uri $preview
+$airtableRows = Invoke-RestMethod -Uri $airtable
+
+$differences = for ($i = 0; $i -lt [Math]::Max(@($supabaseRows).Count, @($airtableRows).Count); $i++) {
+  $supabaseJson = if ($i -lt @($supabaseRows).Count) { $supabaseRows[$i] | ConvertTo-Json -Depth 10 -Compress } else { '<missing>' }
+  $airtableJson = if ($i -lt @($airtableRows).Count) { $airtableRows[$i] | ConvertTo-Json -Depth 10 -Compress } else { '<missing>' }
+  if ($supabaseJson -ne $airtableJson) {
+    [pscustomobject]@{ index = $i; supabase = $supabaseJson; airtable = $airtableJson }
+  }
+}
+
+[pscustomobject]@{
+  supabaseCount = @($supabaseRows).Count
+  airtableCount = @($airtableRows).Count
+  first3Supabase = @($supabaseRows | Select-Object -First 3 | ForEach-Object case_id)
+  first3Airtable = @($airtableRows | Select-Object -First 3 | ForEach-Object case_id)
+  differences = @($differences).Count
+}
+$differences | Format-List
+```
+
+通過條件：兩邊皆為 29 筆、前 3 筆皆為 `52`、`41`、`38`，且 `differences = 0`。Production 未設定 feature flag 時會維持 Airtable 預設模式，因此可作為目前 Preview Supabase 模式的對照來源。
 
 ## Git
 
