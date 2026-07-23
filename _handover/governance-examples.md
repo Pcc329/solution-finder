@@ -30,8 +30,26 @@
 - 判斷：不能講「我們跟這些公司合作過」，只能講「我們對這些公司在雲市集/政府計畫上登記的方案有掌握」；新創嚴選網來源的可以講「入選新創嚴選網優質方案商」（背書性質，不是合作關係）
 - 理由：「新創嚴選」是中小企業處主辦的公開平台，不是本院自營計畫，「合作過」容易讓對方誤以為有直接業務往來，一旦被追問對接窗口反而傷害可信度
 
-## 案例：Supabase Security Advisor 的 CRITICAL 項目（2026-07-22）
+## 案例:Supabase Security Advisor 的 CRITICAL 項目（2026-07-22）
 
 - 情境：階段二 RLS 上線後，Security Advisor 標出 `Security Definer View`（companies_public、contacts_masked 兩個 view）跟 `RLS Enabled No Policy`（contacts 表）
 - 判斷：立即修正，不等下一個階段
 - 理由：View 預設用建立者權限執行，可能繞過底層表的 RLS，這類問題不會在功能測試中被發現，只能靠專門的資安掃描抓出來；RLS 開啟但沒有政策會直接擋掉所有人（含管理員），必須補上明確政策
+
+## 案例：contacts_masked 遮罩視圖，刻意保留 Security Definer（2026-07-23）
+
+- 情境：Security Advisor 把 `contacts_masked` 標記為 `Security Definer View`（CRITICAL），起初改成 `security_invoker = true` 想消除警告
+- 問題：改成 invoker 之後，consultant 透過視圖查詢時，等於是拿 consultant 自己的權限去查底層 `contacts` 表；但 consultant 本來就不該有讀取 `contacts` 原表的權限，於是遮罩視圖直接查不到任何資料（0 筆），遮罩功能失效
+- 最終判斷：**改回不設 `security_invoker`（維持 Security Definer 模式）**，讓視圖用建立者的權限執行、consultant 完全不需要也不會被授予 `contacts` 原表的任何欄位/列權限，只能透過這個「一定會遮罩」的視圖存取
+- 理由：遮罩視圖的正確作法本來就是 Security Definer——這是業界標準模式，不是漏洞。Security Advisor 是通用規則掃描工具，無法辨識「這是刻意設計來做欄位遮罩」的視圖，會一律標記 CRITICAL
+- **後續處理**：這個 CRITICAL 警告**刻意保留、不需要再修正**，已評估並記錄於此。之後任何人（含未來的 Claude 對話）再看到 Security Advisor 對 `contacts_masked` 的 CRITICAL 警告，直接查這份文件即可，不用重新調查
+
+## 案例：Supabase API 金鑰必須依角色分流，不能統一用同一把 key（2026-07-23）
+
+- 情境：階段二做完 RLS 政策跟遮罩視圖驗證後，發現一個更根本的前提——**RLS 政策要生效，前提是連線資料庫時用的是「受限的」金鑰身分**（例如對應 anon 或 consultant），而不是萬能的 `SUPABASE_SERVICE_KEY`
+- 風險：`SUPABASE_SERVICE_KEY`（服務金鑰）預設會**完全繞過 RLS**，等同今天測試的 `admin_role`。如果階段三（API 逐支切換）圖方便，所有 API 都統一用 service key 連線，那麼不管是人類顧問還是 AI（Claude API）透過這些 API 拿到的資料，都會是**完整未遮罩的原始資料**——今天做的 RLS 政策跟遮罩視圖會被整個繞過，形同白做
+- **判斷**：階段三規劃 API 切換時，必須明確區分兩種情境，對應不同金鑰：
+  - 凡是「顧問角色會透過這個 API 拿到資料、包括 AI 生成推薦內容所依據的資料查詢」→ 一律用對應 `consultant` 權限等級的金鑰連線（例如搭配未來的使用者驗證機制，或至少用 anon key + 額外的應用層身分判斷）
+  - 只有「後台管理功能」（例如資料匯入、管理員操作）才適合用 `SUPABASE_SERVICE_KEY`
+- **現況**：目前 solution-finder 的 API 尚未做這個分流，還是用同一把 key 連線。這是階段三動工前必須解決的架構前提，不是可以事後補的小細節
+- **待辦**：撰寫階段三 API 切換規格書時，「防呆」段落必須明確寫入這條原則，避免 Codex 或任何執行者為了圖方便而統一使用 service key
