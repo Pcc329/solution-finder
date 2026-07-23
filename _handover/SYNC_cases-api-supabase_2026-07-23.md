@@ -50,5 +50,6 @@
 
 ## Git
 
-- 已建立本任務的單一 commit；完整 hash 以最終 Git log 為準。
-- 尚未 push / 建立 PR；完成 Vercel 環境設定與即時對照後，再推送本分支並建立以 `main` 為 base 的 PR。
+- 已建立本任務 commit；完整 hash 以最終 Git log 為準。
+- PR：https://github.com/Pcc329/solution-finder/pull/115
+- Supabase 即時對照會在 Vercel 完成 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 設定後補做。
