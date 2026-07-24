@@ -140,6 +140,19 @@ export default async function handler(req, res) {
     return Array.isArray(data) ? data : [];
   }
 
+  function normalizeSupabaseCase(fields) {
+    const normalized = {};
+
+    for (const [fieldName, value] of Object.entries(fields || {})) {
+      if (fieldName !== 'industry_code') {
+        normalized[fieldName] = value ?? '';
+      }
+    }
+
+    normalized.industry_category = fields?.industry_code ?? '';
+    return normalized;
+  }
+
   try {
     const source = getCasesSource();
     let converted;
@@ -152,7 +165,7 @@ export default async function handler(req, res) {
       }
 
       const records = await fetchAllSupabase(supabaseUrl, supabaseAnonKey);
-      converted = projectCases(records);
+      converted = projectCases(records.map(normalizeSupabaseCase));
     } else {
       const airtableToken = process.env.AIRTABLE_TOKEN;
       if (!airtableToken) {
@@ -169,4 +182,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
