@@ -2,6 +2,7 @@
 // Fetch all Airtable Cases records with an explicit public whitelist.
 const BASE_ID = 'appttP04OnzzC7qxG';
 const CASES_TABLE_ID = 'tblgkjVcaohcQntzV';
+const DEFAULT_CASES_SOURCE = 'airtable';
 
 const CASE_FIELD_WHITELIST = [
   'case_id',
@@ -39,18 +40,31 @@ const EXCLUDED_FIELDS = new Set([
 ]);
 const ALLOWED_CONFIDENTIALITY = new Set(['內部可看', '公開']);
 
+function projectCases(records) {
+  return records
+    .filter(fields => {
+      const confidentiality = String(fields?.confidentiality || '').trim();
+      return ALLOWED_CONFIDENTIALITY.has(confidentiality);
+    })
+    .map(fields => CASE_FIELD_WHITELIST.reduce((safeFields, fieldName) => {
+      if (EXCLUDED_FIELDS.has(fieldName)) return safeFields;
+      safeFields[fieldName] = fields[fieldName] ?? '';
+      return safeFields;
+    }, {}));
+}
+
+function getCasesSource() {
+  const source = String(process.env.DB_SOURCE_CASES || DEFAULT_CASES_SOURCE).trim().toLowerCase();
+  if (source === 'airtable' || source === 'supabase') return source;
+  throw new Error('DB_SOURCE_CASES must be "airtable" or "supabase"');
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const TOKEN = process.env.AIRTABLE_TOKEN;
-
-  if (!TOKEN) {
-    return res.status(500).json({ error: 'AIRTABLE_TOKEN not configured' });
   }
 
   function logAirtableError(table, status, body) {
@@ -81,7 +95,7 @@ export default async function handler(req, res) {
     }
   }
 
-  async function fetchAll(table) {
+  async function fetchAllAirtable(table, token) {
     let allRecords = [];
     let offset = null;
 
@@ -89,7 +103,7 @@ export default async function handler(req, res) {
       let url = `https://api.airtable.com/v0/${BASE_ID}/${table}?pageSize=100`;
       if (offset) url += `&offset=${encodeURIComponent(offset)}`;
 
-      const response = await fetchAirtableWithRetry(url, { Authorization: `Bearer ${TOKEN}` }, table);
+      const response = await fetchAirtableWithRetry(url, { Authorization: `Bearer ${token}` }, table);
 
       if (!response.ok) {
         const body = await response.text();
@@ -105,22 +119,62 @@ export default async function handler(req, res) {
     return allRecords;
   }
 
-  try {
-    const records = await fetchAll(CASES_TABLE_ID);
+  async function fetchAllSupabase(url, anonKey) {
+    const endpoint = new URL('/rest/v1/cases', url);
+    endpoint.searchParams.set('select', '*');
 
-    const converted = records
-      .filter(rec => {
-        const confidentiality = String(rec.fields?.confidentiality || '').trim();
-        return ALLOWED_CONFIDENTIALITY.has(confidentiality);
-      })
-      .map(rec => {
-        const fields = rec.fields || {};
-        return CASE_FIELD_WHITELIST.reduce((safeFields, fieldName) => {
-          if (EXCLUDED_FIELDS.has(fieldName)) return safeFields;
-          safeFields[fieldName] = fields[fieldName] ?? '';
-          return safeFields;
-        }, {});
-      });
+    const response = await fetch(endpoint, {
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(`[Supabase Error] status=${response.status} endpoint=${req.url} table=cases time=${new Date().toISOString()} message=${body}`);
+      throw new Error(`Supabase error: ${response.status} - ${body}`);
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  }
+
+  function normalizeSupabaseCase(fields) {
+    const normalized = {};
+
+    for (const [fieldName, value] of Object.entries(fields || {})) {
+      if (fieldName !== 'industry_code') {
+        normalized[fieldName] = value ?? '';
+      }
+    }
+
+    normalized.industry_category = fields?.industry_code ?? '';
+    return normalized;
+  }
+
+  try {
+    const source = getCasesSource();
+    let converted;
+
+    if (source === 'supabase') {
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseAnonKey) {
+        return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
+      }
+
+      const records = await fetchAllSupabase(supabaseUrl, supabaseAnonKey);
+      converted = projectCases(records.map(normalizeSupabaseCase));
+    } else {
+      const airtableToken = process.env.AIRTABLE_TOKEN;
+      if (!airtableToken) {
+        return res.status(500).json({ error: 'AIRTABLE_TOKEN not configured' });
+      }
+
+      const records = await fetchAllAirtable(CASES_TABLE_ID, airtableToken);
+      converted = projectCases(records.map(rec => rec.fields || {}));
+    }
 
     return res.status(200).json(converted);
   } catch (err) {
@@ -128,4 +182,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
