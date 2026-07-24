@@ -80,3 +80,22 @@ $differences | Format-List
 - 已建立本任務 commit；完整 hash 以最終 Git log 為準。
 - PR：https://github.com/Pcc329/solution-finder/pull/115
 - Supabase 即時對照會在 Vercel 完成 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 設定後補做。
+
+
+---
+## 2026-07-24: Supabase field mapping correction
+Scope
+Modified only the Supabase path in api/cases.js.
+The Airtable fetch, retry, projection call, and else branch are unchanged.
+Mapping and NULL handling
+Supabase industry_code is normalized to the public industry_category field before projectCases() runs.
+industry_code is removed during this Supabase-only normalization and is not in CASE_FIELD_WHITELIST; therefore it cannot appear in the response JSON.
+Every Supabase null value is converted to '' with value ?? '' before projection, including company_size. Non-null values, including false, are preserved.
+Root cause
+Supabase stores the industry value as industry_code, while Airtable exposes the same public field as industry_category. Supabase also contains nullable values such as company_size, whereas the Airtable response contract uses empty strings.
+Validation
+node --check api/cases.js: passed.
+git diff --check: passed.
+Expected production verification: Preview Supabase and Production Airtable each return 29 rows with differences = 0 using the PowerShell comparison script above.
+Commit
+Implementation commit: 3ce860cbe8cb77f9327005288024e537cd8339ec (fix(cases): normalize Supabase field mapping).
