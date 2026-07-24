@@ -99,3 +99,7 @@ git diff --check: passed.
 Expected production verification: Preview Supabase and Production Airtable each return 29 rows with differences = 0 using the PowerShell comparison script above.
 Commit
 Implementation commit: 3ce860cbe8cb77f9327005288024e537cd8339ec (fix(cases): normalize Supabase field mapping).
+
+### Final verification (2026-07-24)
+Sorted row-by-row comparison passed: 29 rows, differences = 0.
+Additional backfills: pain_point_domain (24), key_technology (24), ai_maturity_stage (8) via ALTER TABLE + ETL patch.
