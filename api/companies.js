@@ -1,4 +1,6 @@
 // api/companies.js — Vercel Serverless Function
+const DEFAULT_COMPANIES_SOURCE = 'airtable';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
@@ -120,7 +122,92 @@ export default async function handler(req, res) {
     return companies;
   }
 
+  function getCompaniesSource() {
+    const source = String(process.env.DB_SOURCE_COMPANIES || DEFAULT_COMPANIES_SOURCE).trim().toLowerCase();
+    if (source === 'airtable' || source === 'supabase') return source;
+    throw new Error('DB_SOURCE_COMPANIES must be "airtable" or "supabase"');
+  }
+
+  async function fetchAllSupabase(url, anonKey) {
+    const endpoint = new URL('/rest/v1/companies_with_counts', url);
+    endpoint.searchParams.set('select', '*');
+
+    const response = await fetch(endpoint, {
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(`[Supabase Error] status=${response.status} endpoint=${req.url} view=companies_with_counts time=${new Date().toISOString()} message=${body}`);
+      throw new Error(`Supabase error: ${response.status} - ${body}`);
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  }
+
+  function normalizeSupabaseCompany(row) {
+    const techTags = Array.isArray(row.tech_tags) ? row.tech_tags : [];
+    const industryVertical = row.industry_vertical ?? '';
+    const item = {
+      id: row.airtable_rec_id ?? '',
+      name: row.company_name ?? '',
+      is_startup: row.is_startup === true,
+      has_award: (row.award_count ?? 0) > 0,
+      award_count: row.award_count ?? 0,
+      solution_count: row.solution_count ?? 0,
+      contact_count: row.contact_count ?? 0,
+      industry: industryVertical || '資訊服務',
+      industry_vertical: industryVertical,
+      city: row.city ?? '',
+      est_year: row.est_year ?? null,
+      tech_tags: techTags,
+      avg_score: row.avg_score ?? null,
+      tags: [],
+    };
+    tagFromFields(item);
+    return item;
+  }
+
   try {
+    const source = getCompaniesSource();
+
+    if (source === 'supabase') {
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseAnonKey) {
+        return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
+      }
+
+      const records = await fetchAllSupabase(supabaseUrl, supabaseAnonKey);
+      const companies = records.map(normalizeSupabaseCompany);
+      const filter = String(req.query?.filter || '').trim();
+      const sortedCompanies = companies
+        .sort((a, b) => b.solution_count - a.solution_count || a.name.localeCompare(b.name, 'zh-Hant'));
+      const filteredCompanies = applyFilter(sortedCompanies, filter);
+      const limitedCompanies = (filter ? filteredCompanies : filteredCompanies.slice(0, 200))
+        .map(item => ({
+          id: item.id,
+          name: item.name,
+          is_startup: item.is_startup,
+          has_award: item.has_award,
+          award_count: item.award_count,
+          solution_count: item.solution_count,
+          contact_count: item.contact_count,
+          industry: item.industry,
+          city: item.city,
+          est_year: item.est_year,
+          tech_tags: item.tech_tags,
+          avg_score: item.avg_score,
+          tags: item.tags,
+        }));
+
+      return res.status(200).json(limitedCompanies);
+    }
+
     const [companyRecords, solutionRecords] = await Promise.all([
       fetchAll('Companies'),
       fetchAll('Solutions'),
