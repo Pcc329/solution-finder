@@ -151,7 +151,7 @@ export default async function handler(req, res) {
 
   async function fetchSupabaseSolutions(url, anonKey) {
     const endpoint = new URL('/rest/v1/solutions', url);
-    endpoint.searchParams.set('select', 'company_id,solution_name,description,has_ai,score_overall');
+    endpoint.searchParams.set('select', 'company_id,solution_name,description,has_ai,score_overall,industry_category,features_list');
 
     const pageSize = 1000;
     const allSolutions = [];
@@ -232,7 +232,12 @@ export default async function handler(req, res) {
         if (!company) return;
 
         const hasAi = isChecked(sol.has_ai);
-        const text = [sol.solution_name, sol.description].join(' ');
+        const text = [
+          sol.solution_name,
+          sol.industry_category,
+          sol.description,
+          sol.features_list,
+        ].join(' ');
         const score = parseScore(sol.score_overall);
         if (score !== null) {
           company.score_sum += score;
