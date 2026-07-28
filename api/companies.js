@@ -149,27 +149,39 @@ export default async function handler(req, res) {
     return Array.isArray(data) ? data : [];
   }
 
-  function normalizeSupabaseCompany(row) {
-    const techTags = Array.isArray(row.tech_tags) ? row.tech_tags : [];
-    const industryVertical = row.industry_vertical ?? '';
-    const item = {
-      id: row.airtable_rec_id ?? '',
-      name: row.company_name ?? '',
-      is_startup: row.is_startup === true,
-      has_award: (row.award_count ?? 0) > 0,
-      award_count: row.award_count ?? 0,
-      solution_count: row.solution_count ?? 0,
-      contact_count: row.contact_count ?? 0,
-      industry: industryVertical || '資訊服務',
-      industry_vertical: industryVertical,
-      city: row.city ?? '',
-      est_year: row.est_year ?? null,
-      tech_tags: techTags,
-      avg_score: row.avg_score ?? null,
-      tags: [],
-    };
-    tagFromFields(item);
-    return item;
+  async function fetchSupabaseSolutions(url, anonKey) {
+    const endpoint = new URL('/rest/v1/solutions', url);
+    endpoint.searchParams.set('select', 'company_id,solution_name,description,has_ai,score_overall');
+
+    const pageSize = 1000;
+    const allSolutions = [];
+    let start = 0;
+
+    while (true) {
+      const response = await fetch(endpoint, {
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+          Range: `${start}-${start + pageSize - 1}`,
+          'Range-Unit': 'items',
+        },
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        console.error(`[Supabase Error] status=${response.status} view=solutions time=${new Date().toISOString()} message=${body}`);
+        throw new Error(`Supabase solutions error: ${response.status} - ${body}`);
+      }
+
+      const page = await response.json();
+      const rows = Array.isArray(page) ? page : [];
+      allSolutions.push(...rows);
+      if (rows.length < pageSize) break;
+      start += pageSize;
+    }
+
+    console.log(`[Supabase] companies solutions fetched=${allSolutions.length}`);
+    return allSolutions;
   }
 
   try {
@@ -182,8 +194,55 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
       }
 
-      const records = await fetchAllSupabase(supabaseUrl, supabaseAnonKey);
-      const companies = records.map(normalizeSupabaseCompany);
+      const [records, solutions] = await Promise.all([
+        fetchAllSupabase(supabaseUrl, supabaseAnonKey),
+        fetchSupabaseSolutions(supabaseUrl, supabaseAnonKey),
+      ]);
+      const companyByCid = {};
+      const companies = records.map(row => {
+        const techTags = Array.isArray(row.tech_tags) ? row.tech_tags : [];
+        const industryVertical = row.industry_vertical ?? '';
+        const cid = normalizeCid(row.company_id);
+        const item = {
+          id: row.airtable_rec_id ?? '',
+          cid,
+          name: row.company_name ?? '',
+          is_startup: row.is_startup === true,
+          has_award: (row.award_count ?? 0) > 0,
+          award_count: row.award_count ?? 0,
+          solution_count: row.solution_count ?? 0,
+          contact_count: row.contact_count ?? 0,
+          industry: industryVertical || '資訊服務',
+          industry_vertical: industryVertical,
+          city: row.city ?? '',
+          est_year: row.est_year ?? null,
+          tech_tags: techTags,
+          score_sum: 0,
+          score_count: 0,
+          tags: [],
+        };
+        tagFromFields(item);
+        if (cid) companyByCid[cid] = item;
+        return item;
+      });
+
+      solutions.forEach(sol => {
+        const cid = normalizeCid(sol.company_id);
+        const company = companyByCid[cid];
+        if (!company) return;
+
+        const hasAi = isChecked(sol.has_ai);
+        const text = [sol.solution_name, sol.description].join(' ');
+        const score = parseScore(sol.score_overall);
+        if (score !== null) {
+          company.score_sum += score;
+          company.score_count += 1;
+        }
+        if (hasAi || /AI|人工智慧|智慧/.test(text)) addTag(company.tags, 'AI工具');
+        if (/ERP|進銷存|企業資源/.test(text)) addTag(company.tags, 'ERP');
+        if (/資安|資訊安全|防毒|弱點|防護|備份/.test(text)) addTag(company.tags, '資安');
+      });
+
       const filter = String(req.query?.filter || '').trim();
       const sortedCompanies = companies
         .sort((a, b) => b.solution_count - a.solution_count || a.name.localeCompare(b.name, 'zh-Hant'));
@@ -201,7 +260,9 @@ export default async function handler(req, res) {
           city: item.city,
           est_year: item.est_year,
           tech_tags: item.tech_tags,
-          avg_score: item.avg_score,
+          avg_score: item.score_count > 0
+            ? Number((item.score_sum / item.score_count).toFixed(1))
+            : null,
           tags: item.tags,
         }));
 
