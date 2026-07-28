@@ -72,6 +72,7 @@ export default async function handler(req, res) {
   }
 
   function parseScore(value) {
+    if (value === null || value === undefined || value === '') return null;
     const n = Number(value);
     return Number.isFinite(n) ? n : null;
   }
@@ -264,7 +265,7 @@ export default async function handler(req, res) {
           industry: item.industry,
           city: item.city,
           est_year: item.est_year,
-          tech_tags: item.tech_tags,
+          tech_tags: (Array.isArray(item.tech_tags) && item.tech_tags.length) ? item.tech_tags : '',
           avg_score: item.score_count > 0
             ? Number((item.score_sum / item.score_count).toFixed(1))
             : null,
