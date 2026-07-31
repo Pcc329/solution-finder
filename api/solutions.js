@@ -82,6 +82,11 @@ export default async function handler(req, res) {
         },
       });
 
+      // 當總筆數剛好是 pageSize 的倍數時，前一頁回滿 pageSize 筆會使迴圈續打下一頁，
+      // 而該頁起點已超出資料範圍，PostgREST 回 416 Range Not Satisfiable。
+      // 這是正常的「已抓完」訊號，不是錯誤，須在 !response.ok 判斷前先攔下並結束分頁。
+      if (response.status === 416) break;
+
       if (!response.ok) {
         const body = await response.text();
         console.error(`[Supabase Error] status=${response.status} table=${table} time=${new Date().toISOString()} message=${body}`);
