@@ -174,9 +174,10 @@ export default async function handler(req, res) {
           id: String(row.airtable_rec_id || row.solution_id || '').replace(/^\uFEFF/, ''),
           s: row.solution_name || '',
           c: co.name || '',
-          // Airtable 端 Companies.company_id 欄位名帶 BOM，co.cid 恆 undefined
-          // → 線上 cid 一律空字串。遷移期比照，真修正另開 fix/cid-bom
-          cid: '',
+          // cid = 公司統一編號，作為重要查詢/識別欄位。
+          // 遷移已完成、以 Supabase 為準，回傳實際統編（Airtable 版因 BOM 恆空的舊 bug 不再比照）。
+          // company_id 已於 Supabase 端為乾淨 8 碼統編；無統編來源（農業部等）回空字串。
+          cid: cid,
           p: row.program_type || '',
           ai: hasAi,
           d: emptyToBlank(row.target_industry),
