@@ -1,6 +1,7 @@
 // api/solutions.js — Vercel Serverless Function
 // 從 Airtable 抓取 Solutions 資料，join Companies 的 region/is_startup/company_name
 const DEFAULT_SOLUTIONS_SOURCE = 'airtable';
+const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -37,12 +38,13 @@ export default async function handler(req, res) {
     }
   }
 
-  async function fetchAll(table) {
+  async function fetchAll(table, filterByFormula = '') {
     let allRecords = [];
     let offset = null;
     do {
       let url = `https://api.airtable.com/v0/${BASE_ID}/${table}?pageSize=100`;
       if (offset) url += `&offset=${offset}`;
+      if (filterByFormula) url += `&filterByFormula=${encodeURIComponent(filterByFormula)}`;
       const response = await fetchAirtableWithRetry(url, { Authorization: `Bearer ${TOKEN}` }, table);
       if (!response.ok) {
         const body = await response.text();
@@ -208,7 +210,7 @@ export default async function handler(req, res) {
     }
 
     const [solRecords, coRecords] = await Promise.all([
-      fetchAll('Solutions'),
+      fetchAll('Solutions', ACTIVE_SOLUTIONS_FILTER),
       fetchAll('Companies'),
     ]);
 
