@@ -684,13 +684,13 @@
     async function syncSourceCounts() {
       try {
         const response = await fetch('/api/stats');
-        if (!response.ok) throw new Error(\`HTTP \${response.status}\`);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
         const data = await response.json();
         const byProgramType = data.byProgramType || {};
 
         document.querySelectorAll('[data-source-count]').forEach(element => {
           const count = getProgramTypeCount(byProgramType, element.dataset.programTypes || '');
-          element.textContent = \`\${sourceCountFormatter.format(count)} 筆\`;
+          element.textContent = sourceCountFormatter.format(count) + ' 筆';
         });
         document.querySelectorAll('[data-source-total]').forEach(element => {
           element.textContent = sourceCountFormatter.format(Number(data.total) || 0);
