@@ -425,13 +425,13 @@
     <header>
       <div>
         <h1>🗂️ 資料來源說明</h1>
-        <p class="subtitle">III 產業資料庫 · 收錄 9 大來源 · 2,443 筆方案</p>
+        <p class="subtitle">III 產業資料庫 · 收錄 9 大方案來源 · <span data-source-total>2,443</span> 筆方案</p>
       </div>
       <a href="/" class="home-link">← 回首頁</a>
     </header>
 
     <section class="card intro" aria-label="資料來源一句話說明">
-      <p>這個資料庫整合了 8 個政府單位和平台的方案，涵蓋「找方案 → 確認補助 → 採購」的完整路徑。</p>
+      <p>這個資料庫整合政府單位與平台的方案，涵蓋「找方案 → 確認補助 → 採購」的完整路徑。</p>
     </section>
 
     <section class="section" aria-label="三層架構">
@@ -443,10 +443,10 @@
             <span class="layer-pill">找方案</span>
           </div>
           <ul class="source-list">
-            <li><span>臺灣雲市集（數位部）</span><span class="count">1,226 筆</span></li>
-            <li><span>雲市集工業館（數位部/工業局）</span><span class="count">329 筆</span></li>
-            <li><span>農業雲市集-數位館（農業部）</span><span class="count">93 筆</span></li>
-            <li><span>領域型調查（III 自有）</span><span class="count">133 筆</span></li>
+            <li><span>臺灣雲市集（數位部）</span><span class="count" data-source-count data-program-types="雲市集|臺灣雲市集">1,226 筆</span></li>
+            <li><span>雲市集工業館（數位部/工業局）</span><span class="count" data-source-count data-program-types="產業數位化升級|雲市集工業館">329 筆</span></li>
+            <li><span>農業雲市集-數位館（農業部）</span><span class="count" data-source-count data-program-types="農業雲市集-數位館|農業雲市集">93 筆</span></li>
+            <li><span>領域型調查（III 自有）</span><span class="count" data-source-count data-program-types="領域型調查(攻頂PO)|領域型調查">133 筆</span></li>
           </ul>
           <p class="layer-note">找到適合的方案，評估要不要買</p>
         </article>
@@ -457,9 +457,10 @@
             <span class="layer-pill">確認補助</span>
           </div>
           <ul class="source-list">
-            <li><span>SMEI平台（中企署）</span><span class="count">279 筆</span></li>
-            <li><span>商業服務業專區（商業署）</span><span class="count">117 筆</span></li>
-            <li><span>新創嚴選網（國發會）</span><span class="count">152 筆</span></li>
+            <li><span>SMEI平台（中企署）</span><span class="count" data-source-count data-program-types="中小企業數位轉型|SMEI平台">279 筆</span></li>
+            <li><span>商業服務業專區（商業署）</span><span class="count" data-source-count data-program-types="商服業AI解決方案|商業服務業專區">117 筆</span></li>
+            <li><span>新創嚴選網（國發會）</span><span class="count" data-source-count data-program-types="新創嚴選">152 筆</span></li>
+            <li><span>新北產業AI化輔導計畫（新北市經發局）</span><span class="count" data-source-count data-program-types="新北產業AI化輔導計畫">36 筆</span></li>
           </ul>
           <p class="layer-note">確認可以申請哪些政府補助</p>
         </article>
@@ -470,7 +471,7 @@
             <span class="layer-pill">走採購</span>
           </div>
           <ul class="source-list">
-            <li><span>政府軟體採購網（共構平台組(軟採網)）</span><span class="count">100 筆</span></li>
+            <li><span>政府軟體採購網（共構平台組(軟採網)）</span><span class="count" data-source-count data-program-types="政府採購|政府軟體採購網">100 筆</span></li>
           </ul>
           <p class="layer-note">政府機關 / 學校走採購流程，與中小企業路徑不同</p>
         </article>
@@ -508,7 +509,7 @@
               <h3>臺灣雲市集</h3>
               <span class="agency">數位部</span>
             </div>
-            <span class="badge">1,226 筆</span>
+            <span class="badge" data-source-count data-program-types="雲市集|臺灣雲市集">1,226 筆</span>
           </div>
           <div class="meta">
             <div><strong>補助類型：</strong>採購平台（無直接補助）</div>
@@ -523,7 +524,7 @@
               <h3>雲市集工業館</h3>
               <span class="agency">數位部/工業局</span>
             </div>
-            <span class="badge">329 筆</span>
+            <span class="badge" data-source-count data-program-types="產業數位化升級|雲市集工業館">329 筆</span>
           </div>
           <div class="meta">
             <div><strong>補助類型：</strong>採購平台（製造業專區）</div>
@@ -538,7 +539,7 @@
               <h3>農業雲市集-數位館</h3>
               <span class="agency">農業部</span>
             </div>
-            <span class="badge">93 筆</span>
+            <span class="badge" data-source-count data-program-types="農業雲市集-數位館|農業雲市集">93 筆</span>
           </div>
           <div class="meta">
             <div><strong>補助類型：</strong>採購平台（農業數位專區）</div>
@@ -553,7 +554,7 @@
               <h3>SMEI平台</h3>
               <span class="agency">中企署</span>
             </div>
-            <span class="badge">279 筆</span>
+            <span class="badge" data-source-count data-program-types="中小企業數位轉型|SMEI平台">279 筆</span>
           </div>
           <div class="meta">
             <div><strong>補助類型：</strong>政府補助（中小企業數位轉型）</div>
@@ -568,7 +569,7 @@
               <h3>領域型調查</h3>
               <span class="agency">III 自有</span>
             </div>
-            <span class="badge">133 筆</span>
+            <span class="badge" data-source-count data-program-types="領域型調查(攻頂PO)|領域型調查">133 筆</span>
           </div>
           <div class="meta">
             <div><strong>補助類型：</strong>無補助，純資訊整理</div>
@@ -583,7 +584,7 @@
               <h3>新創嚴選網</h3>
               <span class="agency">國發會</span>
             </div>
-            <span class="badge">152 筆</span>
+            <span class="badge" data-source-count data-program-types="新創嚴選">152 筆</span>
           </div>
           <div class="meta">
             <div><strong>補助類型：</strong>新創認證（非直接補助）</div>
@@ -598,7 +599,7 @@
               <h3>商業服務業專區</h3>
               <span class="agency">商業署</span>
             </div>
-            <span class="badge">117 筆</span>
+            <span class="badge" data-source-count data-program-types="商服業AI解決方案|商業服務業專區">117 筆</span>
           </div>
           <div class="meta">
             <div><strong>補助類型：</strong>政府補助（商服業）</div>
@@ -613,7 +614,7 @@
               <h3>政府軟體採購網</h3>
               <span class="agency">共構平台組(軟採網)</span>
             </div>
-            <span class="badge">100 筆</span>
+            <span class="badge" data-source-count data-program-types="政府採購|政府軟體採購網">100 筆</span>
           </div>
           <div class="meta">
             <div><strong>補助類型：</strong>政府採購（已完成採購流程）</div>
@@ -622,6 +623,27 @@
           <p class="feature">大型授權、EA 合約為主，price 偏高，與中小企業定位不同</p>
         </article>
 
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div>
+              <h3>新北產業AI化輔導計畫</h3>
+              <span class="agency">新北市經濟發展局</span>
+            </div>
+            <span class="badge" data-source-count data-program-types="新北產業AI化輔導計畫">36 筆</span>
+          </div>
+          <div class="meta">
+            <div><strong>補助類型：</strong>政府輔導（地方政府AI化輔導專案）</div>
+            <div><strong>適用對象：</strong>新北市中小企業</div>
+          </div>
+          <p class="feature">新北市專屬的 AI 化輔導方案，協助在地企業評估與導入數位工具。</p>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="section" aria-label="產業案例知識庫">
+      <h2 class="section-head">產業案例知識庫</h2>
+      <div class="detail-grid">
         <article class="card detail-card">
           <div class="detail-head">
             <div>
@@ -647,5 +669,38 @@
       </ul>
     </section>
   </main>
+  <script>
+    const sourceCountFormatter = new Intl.NumberFormat('zh-TW');
+
+    function getProgramTypeCount(byProgramType, aliases) {
+      for (const alias of aliases.split('|')) {
+        if (Object.prototype.hasOwnProperty.call(byProgramType, alias)) {
+          return Number(byProgramType[alias]) || 0;
+        }
+      }
+      return 0;
+    }
+
+    async function syncSourceCounts() {
+      try {
+        const response = await fetch('/api/stats');
+        if (!response.ok) throw new Error(\`HTTP \${response.status}\`);
+        const data = await response.json();
+        const byProgramType = data.byProgramType || {};
+
+        document.querySelectorAll('[data-source-count]').forEach(element => {
+          const count = getProgramTypeCount(byProgramType, element.dataset.programTypes || '');
+          element.textContent = \`\${sourceCountFormatter.format(count)} 筆\`;
+        });
+        document.querySelectorAll('[data-source-total]').forEach(element => {
+          element.textContent = sourceCountFormatter.format(Number(data.total) || 0);
+        });
+      } catch (error) {
+        console.warn('資料來源筆數同步失敗，保留頁面預設值。', error);
+      }
+    }
+
+    syncSourceCounts();
+  </script>
 </body>
 </html>
