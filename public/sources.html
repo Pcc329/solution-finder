@@ -581,7 +581,7 @@
         <article class="card detail-card">
           <div class="detail-head">
             <div>
-              <h3>新創嚴選網|新創嚴選網</h3>
+              <h3>新創嚴選網</h3>
               <span class="agency">國發會</span>
             </div>
             <span class="badge" data-source-count data-program-types="新創嚴選網|新創嚴選">152 筆</span>
@@ -687,6 +687,7 @@
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const data = await response.json();
         const byProgramType = data.byProgramType || {};
+        document.documentElement.dataset.programTypes = JSON.stringify(byProgramType);
 
         document.querySelectorAll('[data-source-count]').forEach(element => {
           const count = getProgramTypeCount(byProgramType, element.dataset.programTypes || '');
