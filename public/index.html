@@ -185,6 +185,38 @@
       const [showFilterTip, setShowFilterTip] = useState(false);
       const listTopRef = useRef(null);
 
+      const pushHistoryView = (view) => {
+        const hash = `#${view}`;
+        if (window.location.hash === hash || window.history.state?.view === view) return;
+        window.history.pushState({ view }, "", hash);
+      };
+
+      const goBackInApp = () => {
+        if (activePage !== "home") window.history.back();
+      };
+
+      useEffect(() => {
+        const hash = window.location.hash;
+        if (hash === "#list" || hash === "#detail") {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+
+        const handlePopState = (event) => {
+          if (event.state?.view === "list") {
+            setSelectedItem(null);
+            setActivePage("list");
+            return;
+          }
+
+          setSelectedItem(null);
+          setQuery("");
+          setActivePage("home");
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+      }, []);
+
       // 1. 抓資料
       useEffect(() => {
         async function fetchAll() {
@@ -272,6 +304,7 @@
         setSelectedItem(null);
         setCurrentPage(1);
         setSortBy("relevance");
+        pushHistoryView("list");
       };
 
       // 快速搜尋也走 Claude
@@ -283,6 +316,7 @@
         setSelectedItem(null);
         setCurrentPage(1);
         setSortBy("relevance");
+        pushHistoryView("list");
         try {
           const result = await callClaude(text);
           setFilters({
@@ -980,7 +1014,11 @@
               const disabled = !checked && compareItems.length >= 4;
               return (
               <div key={item.id || item.s}
-                onClick={() => { setSelectedItem(item); setActivePage("detail"); }}
+                onClick={() => {
+                  setSelectedItem(item);
+                  setActivePage("detail");
+                  pushHistoryView("detail");
+                }}
                 className={`bg-white rounded-2xl border shadow-sm overflow-hidden hover:border-[#0d6e52]/40 hover:shadow-md transition-all cursor-pointer animate-in ${checked ? "border-[#1D9E75] ring-2 ring-[#1D9E75]/20" : "border-slate-200"}`}>
                 <div className="p-5 sm:p-6 flex flex-col sm:flex-row justify-between gap-4">
                   <label onClick={(e) => e.stopPropagation()}
@@ -1082,7 +1120,7 @@
         return (
           <div className="max-w-3xl mx-auto px-4 py-8 animate-in">
             {/* Back button */}
-            <button onClick={() => { setActivePage("list"); setSelectedItem(null); }}
+            <button onClick={goBackInApp}
               className="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 mb-6 transition-colors">
               <i className="fa-solid fa-arrow-left"></i> 返回搜尋結果
             </button>
@@ -1192,7 +1230,7 @@
       return (
         <div className="min-h-screen flex flex-col">
           <nav id="global-nav">
-            <div className="global-nav-brand" onClick={() => { setActivePage("home"); setQuery(""); }}>
+            <div className="global-nav-brand" onClick={goBackInApp}>
               <div className="global-nav-logo"><span style={{fontSize: "18px"}}>🔷</span></div>
               <div>
                 <div className="global-nav-kicker">SOLUTION FINDER</div>
