@@ -81,3 +81,10 @@ https://solution-finder-git-fix-index-cbc93a-patrick0814-6136s-projects.vercel.a
 - [x] 不重複 push 同一個 view。
 - [x] 未改動 API 或其他功能頁面。
 - [x] Preview Console 無 application error。
+
+
+## 2026-08-12 補充：退回首頁清空搜尋框
+
+- 實作 commit：`41b696589e3f9f995afe4a1f59ed93d4ea1c81a4`
+- 僅在 `popstate` 的 home fallback（非 `view === "list"`）加入 `setQuery("")`。
+- 回到 list 的分支維持原樣，因此既有搜尋字串、結果與 filters state 均保留；沒有清除 filters。
