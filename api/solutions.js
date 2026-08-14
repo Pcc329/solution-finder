@@ -64,11 +64,12 @@ export default async function handler(req, res) {
     throw new Error('DB_SOURCE_SOLUTIONS must be "airtable" or "supabase"');
   }
 
-  async function fetchAllSupabasePaged(url, anonKey, table, selectCols, orderBy) {
+  async function fetchAllSupabasePaged(url, anonKey, table, selectCols, orderBy, filters = {}) {
     const endpoint = new URL(`/rest/v1/${table}`, url);
     endpoint.searchParams.set('select', selectCols);
     // 分頁必須指定穩定排序，否則 PostgREST 不保證跨頁順序，會出現重複 row / 漏抓
     endpoint.searchParams.set('order', orderBy);
+    Object.entries(filters).forEach(([key, value]) => endpoint.searchParams.set(key, value));
 
     const pageSize = 1000;
     const all = [];
@@ -124,7 +125,9 @@ export default async function handler(req, res) {
           'price_tier,service_region,target_industry,target_scale,has_award,' +
           'has_certification,website_url,score_overall,monthly_price,monthly_price_tier,' +
           'subscription_months,features_list',
-          'solution_id.asc'
+          'solution_id.asc',
+          // Only exclude the confirmed abnormal status; include legacy NULL statuses.
+          { or: '(record_status.is.null,record_status.neq.已下架_資料異常)' }
         ),
         fetchAllSupabasePaged(
           supabaseUrl, supabaseAnonKey, 'companies',
