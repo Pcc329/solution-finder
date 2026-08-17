@@ -1471,7 +1471,7 @@
     let currentCasePage = 1;
     let caseFilters = {
       case_type: '全部',
-      industry_category: '全部',
+      industry_code: '全部',
       pain_point_domain: '全部',
     };
     let activeType = 'all';
@@ -1592,7 +1592,7 @@
       if (!count || !grid) return;
 
       renderCaseSelect('caseTypeFilter', uniqueOptions(allCases, 'case_type'), caseFilters.case_type);
-      renderCaseSelect('caseIndustryFilter', uniqueOptions(allCases, 'industry_category'), caseFilters.industry_category);
+      renderCaseSelect('caseIndustryFilter', uniqueOptions(allCases, 'industry_code'), caseFilters.industry_code);
       renderCaseSelect('casePainFilter', uniqueOptions(allCases, 'pain_point_domain'), caseFilters.pain_point_domain);
 
       const filtered = getFilteredCases();
@@ -1629,7 +1629,7 @@
             </div>
             <div class="case-meta">
               ${item.case_type ? `<span class="case-pill">${escapeHtml(item.case_type)}</span>` : ''}
-              ${item.industry_category ? `<span class="case-pill">${escapeHtml(item.industry_category)}</span>` : ''}
+              ${item.industry_code ? `<span class="case-pill">${escapeHtml(item.industry_code)}</span>` : ''}
               ${item.pain_point_domain ? `<span class="case-pill">${escapeHtml(item.pain_point_domain)}</span>` : ''}
             </div>
             <div class="case-body" data-case-body="${cardId}">
@@ -1759,7 +1759,7 @@
     function setupCaseLazyLoad() {
       [
         ['caseTypeFilter', 'case_type'],
-        ['caseIndustryFilter', 'industry_category'],
+        ['caseIndustryFilter', 'industry_code'],
         ['casePainFilter', 'pain_point_domain'],
       ].forEach(([id, key]) => {
         const select = document.getElementById(id);

@@ -799,14 +799,14 @@
         ...item,
         caseId: item.caseId ?? item.case_id ?? "",
         title: item.title ?? item.case_name ?? "",
-        industry: item.industry ?? item.industry_category ?? "",
+        industry: item.industry ?? item.industry_code ?? "",
         size: item.size ?? item.company_size ?? "",
-        solutionType: item.solutionType ?? item.case_type ?? item.industry_category ?? "",
+        solutionType: item.solutionType ?? item.case_type ?? item.industry_code ?? "",
         pain: item.pain ?? item.pain_points ?? "",
         result: item.result ?? item.outcome ?? "",
         replicable: item.replicable ?? item.replicable_condition ?? "",
         case_type: item.case_type ?? item.solutionType ?? "",
-        industry_category: item.industry_category ?? item.industry ?? "",
+        industry_code: item.industry_code ?? item.industry ?? "",
         pain_point_domain: item.pain_point_domain ?? item.painPointDomain ?? "",
         isReal: item.isReal ?? item.is_real === true,
       };
@@ -831,7 +831,7 @@
 
     function matchesReferenceCaseIndustry(item, subIndustry) {
       if (!subIndustry) return false;
-      const category = safeStr(item.industry_category || item.industry).trim();
+      const category = safeStr(item.industry_code || item.industry).trim();
       if (!category) return false;
       if (subIndustry === "其他製造") {
         return !KNOWN_INDUSTRY_CATEGORIES.has(category);
