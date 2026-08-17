@@ -1,5 +1,6 @@
 // api/companies.js — Vercel Serverless Function
 const DEFAULT_COMPANIES_SOURCE = 'airtable';
+const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -37,12 +38,13 @@ export default async function handler(req, res) {
     }
   }
 
-  async function fetchAll(table) {
+  async function fetchAll(table, filterByFormula = '') {
     let allRecords = [];
     let offset = null;
     do {
       let url = `https://api.airtable.com/v0/${BASE_ID}/${table}?pageSize=100`;
       if (offset) url += `&offset=${offset}`;
+      if (filterByFormula) url += `&filterByFormula=${encodeURIComponent(filterByFormula)}`;
       const response = await fetchAirtableWithRetry(url, { Authorization: `Bearer ${TOKEN}` }, table);
       if (!response.ok) {
         const body = await response.text();
@@ -153,6 +155,8 @@ export default async function handler(req, res) {
   async function fetchSupabaseSolutions(url, anonKey) {
     const endpoint = new URL('/rest/v1/solutions', url);
     endpoint.searchParams.set('select', 'company_id,solution_name,description,has_ai,score_overall,industry_category,features_list');
+    // Exclude only confirmed retired records; retain legacy rows with a NULL status.
+    endpoint.searchParams.set('or', '(record_status.is.null,record_status.neq.已下架_資料異常)');
 
     const pageSize = 1000;
     const allSolutions = [];
@@ -211,7 +215,8 @@ export default async function handler(req, res) {
           is_startup: row.is_startup === true,
           has_award: (row.award_count ?? 0) > 0,
           award_count: row.award_count ?? 0,
-          solution_count: row.solution_count ?? 0,
+          // Count from the filtered Solutions query below, not the unfiltered view aggregate.
+          solution_count: 0,
           contact_count: row.contact_count ?? 0,
           industry: industryVertical || '資訊服務',
           industry_vertical: industryVertical,
@@ -232,6 +237,7 @@ export default async function handler(req, res) {
         const company = companyByCid[cid];
         if (!company) return;
 
+        company.solution_count += 1;
         const hasAi = isChecked(sol.has_ai);
         const text = [
           sol.solution_name,
@@ -277,7 +283,7 @@ export default async function handler(req, res) {
 
     const [companyRecords, solutionRecords] = await Promise.all([
       fetchAll('Companies'),
-      fetchAll('Solutions'),
+      fetchAll('Solutions', ACTIVE_SOLUTIONS_FILTER),
     ]);
 
     const companyByCid = {};
@@ -298,7 +304,8 @@ export default async function handler(req, res) {
         is_startup: f['is_startup'] === 'checked' || f['is_startup_auto'] === '新創',
         has_award: awardCount > 0,
         award_count: awardCount,
-        solution_count: linkedSolutionCount,
+        // Count from the filtered Solutions query below, not the unfiltered Companies link count.
+        solution_count: 0,
         linked_solution_count: linkedSolutionCount,
         score_sum: 0,
         score_count: 0,
@@ -331,7 +338,7 @@ export default async function handler(req, res) {
       solutionCompanyKeys(f, companyByRecId).forEach(cid => {
         const company = companyByCid[cid] || companyByRecId[cid];
         if (!company) return;
-        if (!company.linked_solution_count) company.solution_count += 1;
+        company.solution_count += 1;
         const score = parseScore(f['score_overall']);
         if (score !== null) {
           company.score_sum += score;
