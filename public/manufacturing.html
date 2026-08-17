@@ -918,7 +918,8 @@
       const descriptionShort = solutionField(item, "ds", "description_short");
       const description = solutionField(item, "desc", "description");
       const features = solutionField(item, "feat", "features");
-      const category = solutionField(item, "cat", "category");
+      const solutionCategory = solutionField(item, "sc", "solution_category");
+      const category = solutionCategory || solutionField(item, "cat", "category");
       const targetIndustry = solutionField(item, "d", "target_industry");
       const scale = solutionField(item, "scale", "scale");
       const featureLines = safeStr(features)
@@ -1008,7 +1009,10 @@
       const name = solutionField(item, "s", "name");
       const vendor = solutionField(item, "c", "vendor");
       const programType = solutionField(item, "p", "program_type");
-      const category = solutionField(item, "cat", "category");
+      const dataSource = solutionField(item, "src", "data_source");
+      const sourceLabel = dataSource || programType;
+      const solutionCategory = solutionField(item, "sc", "solution_category");
+      const category = solutionCategory || solutionField(item, "cat", "category");
       const price = solutionField(item, "pr", "price");
       const monthlyPrice = solutionField(item, "mo", "monthly_price");
       const descriptionShort = solutionField(item, "ds", "description_short");
@@ -1044,7 +1048,7 @@
 
           <section class="card p-6">
             <div class="flex flex-wrap gap-2 mb-4">
-              ${programType ? `<span class="badge badge-muted">${escapeHtml(programType)}</span>` : ""}
+              ${sourceLabel ? `<span class="badge badge-muted">${escapeHtml(sourceLabel)}</span>` : ""}
               ${location ? `<span class="badge badge-muted"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(location)}</span>` : ""}
               ${scale ? `<span class="badge badge-muted">${escapeHtml(scale)}</span>` : ""}
               ${isAi ? '<span class="badge badge-teal"><i class="fa-solid fa-bolt mr-1"></i>AI 方案</span>' : ""}
@@ -1527,9 +1531,9 @@
                 </div>
               </div>
               <div class="mt-3 flex flex-wrap gap-2">
-                <span class="badge badge-muted">${escapeHtml(item.p || "未標示來源")}</span>
+                <span class="badge badge-muted">${escapeHtml(item.src || item.p || "未標示來源")}</span>
                 <span class="badge ${item.ai ? "badge-teal" : "badge-muted"}">${item.ai ? "AI 方案" : "一般方案"}</span>
-                ${item.cat ? `<span class="badge badge-muted">${escapeHtml(item.cat)}</span>` : ""}
+                ${item.sc || item.cat ? `<span class="badge badge-muted">${escapeHtml(item.sc || item.cat)}</span>` : ""}
               </div>
             </article>
             ${isExpanded ? getInlineDetailHtml(item, shouldAnimate) : ""}
