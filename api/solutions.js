@@ -121,7 +121,7 @@ export default async function handler(req, res) {
         fetchAllSupabasePaged(
           supabaseUrl, supabaseAnonKey, 'solutions',
           'solution_id,airtable_rec_id,company_id,solution_name,description,description_short,' +
-          'slogan,has_ai,function_category,program_type,industry_category,data_source,price,' +
+          'slogan,has_ai,function_category,program_type,industry_category,data_source,solution_category,price,' +
           'price_tier,service_region,target_industry,target_scale,has_award,' +
           'has_certification,website_url,score_overall,monthly_price,monthly_price_tier,' +
           'subscription_months,features_list',
@@ -184,9 +184,11 @@ export default async function handler(req, res) {
           // company_id 已於 Supabase 端為乾淨 8 碼統編；無統編來源（農業部等）回空字串。
           cid: cid,
           p: row.program_type || '',
+          src: row.data_source || '',
           ai: hasAi,
           d: emptyToBlank(row.target_industry),
           cat: row.industry_category || '',
+          sc: row.solution_category || '',
           iv: '',
           pr: parseFloat(row.price) || null,
           pt: row.price_tier || '',
@@ -274,9 +276,11 @@ export default async function handler(req, res) {
         c: co.name || '',
         cid: cidDisplay,
         p: f['program_type'] || '',
+        src: f['data_source'] || '',
         ai: hasAi,
         d: f['target_industry'] || '',
         cat: f['industry_category'] || '',
+        sc: f['solution_category'] || '',
         iv: f['industry_vertical'] || '',
         pr: parseFloat(f['price']) || null,
         pt: f['price_tier'] || '',
