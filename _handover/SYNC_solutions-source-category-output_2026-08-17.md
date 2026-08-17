@@ -91,3 +91,44 @@ PR 建立時的比較結果僅包含：
 - `api/solutions.js`
 - `public/manufacturing.html`
 
+
+
+---
+
+## 2026-08-17 PR #126 補充修正：搜尋結果列表 badge
+
+- Commit：`0a927b6dec9ba20880ed3fbed4a3663939a15c12`
+- 檔案：`public/manufacturing.html`
+
+### 改動位置與片段
+
+搜尋結果卡片列表原始位置約第 1534–1536 行：
+
+```js
+// 改前
+<span class="badge badge-muted">${escapeHtml(item.p || "未標示來源")}</span>
+${item.cat ? `<span class="badge badge-muted">${escapeHtml(item.cat)}</span>` : ""}
+```
+
+```js
+// 改後
+<span class="badge badge-muted">${escapeHtml(item.src || item.p || "未標示來源")}</span>
+${item.sc || item.cat ? `<span class="badge badge-muted">${escapeHtml(item.sc || item.cat)}</span>` : ""}
+```
+
+列表卡片現在會在**未展開、非詳情頁**的第一眼畫面優先顯示 API 的 `data_source`／`solution_category`。若舊資料沒有新欄位，仍分別回退到 `program_type`／`industry_category`。
+
+### 全檔再次盤點
+
+已重新搜尋 `item.p`、`item.cat`、`item.src`、`item.sc`：
+
+- `getInlineDetailHtml()`：分類已採 `sc || cat`。
+- `renderDetail()`：來源已採 `src || p`，分類已採 `sc || cat`。
+- 搜尋結果列表：來源已採 `src || p`，分類已採 `sc || cat`。
+- 剩餘 `item.p`／`item.cat` 用途只有評分／官方方案篩選／分類篩選，以及 `compactRecommendSolutions()` 送往 AI 的摘要欄位；皆非前端來源或分類顯示，依任務範圍未變更。
+
+### 補充驗證
+
+- `manufacturing.html` inline JavaScript 語法解析通過。
+- 靜態驗證確認列表 source fallback 為 `item.src || item.p || "未標示來源"`，category fallback 為 `item.sc || item.cat`。
+- 先前本機瀏覽器仍攔截 Preview 的 `/api/solutions`（`ERR_BLOCKED_BY_CLIENT`），無法在此環境取得真實農業部方案資料或產出列表截圖。API 兩條路徑的 `src/sc` handler mock 驗證結果維持通過；請以 Preview 可連線環境驗證至少兩筆農業部方案的**列表卡片**顯示。
