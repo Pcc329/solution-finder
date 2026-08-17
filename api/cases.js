@@ -8,7 +8,7 @@ const CASE_FIELD_WHITELIST = [
   'case_id',
   'case_name',
   'industry',
-  'industry_category',
+  'industry_code',
   'company_size',
   'company_display_name',
   'pain_points',
@@ -144,12 +144,15 @@ export default async function handler(req, res) {
     const normalized = {};
 
     for (const [fieldName, value] of Object.entries(fields || {})) {
-      if (fieldName !== 'industry_code') {
-        normalized[fieldName] = value ?? '';
-      }
+      normalized[fieldName] = value ?? '';
     }
 
-    normalized.industry_category = fields?.industry_code ?? '';
+    return normalized;
+  }
+
+  function normalizeAirtableCase(fields) {
+    const normalized = { ...(fields || {}) };
+    normalized.industry_code = fields?.industry_code ?? fields?.industry_category ?? '';
     return normalized;
   }
 
@@ -173,7 +176,7 @@ export default async function handler(req, res) {
       }
 
       const records = await fetchAllAirtable(CASES_TABLE_ID, airtableToken);
-      converted = projectCases(records.map(rec => rec.fields || {}));
+      converted = projectCases(records.map(rec => normalizeAirtableCase(rec.fields || {})));
     }
 
     return res.status(200).json(converted);
