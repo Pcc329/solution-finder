@@ -91,6 +91,6 @@ fetchAll('Solutions', ACTIVE_SOLUTIONS_FILTER)
 - [x] Supabase 路徑加入保留 NULL 的 `or` 排除條件。
 - [x] `solution_count`、`avg_score`、`tags` 統一從已過濾 Solutions 明細計算。
 - [x] 排序、篩選、回傳格式與 200 筆上限未變。
-- [x] PR diff 僅包含 `api/companies.js`（+12/-5）。
+- [x] 程式 Commit 僅修改 `api/companies.js`（+12/-5）；PR 另含本 SYNC 文件。
 - [x] Vercel Preview Ready，Dashboard 公司圖譜成功載入。
 - [ ] Airtable runtime live call：受公開 API 未提供資料來源切換限制，需在 Preview 設定 `DB_SOURCE_COMPANIES=airtable` 後補驗。
