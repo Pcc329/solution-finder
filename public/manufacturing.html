@@ -1531,9 +1531,9 @@
                 </div>
               </div>
               <div class="mt-3 flex flex-wrap gap-2">
-                <span class="badge badge-muted">${escapeHtml(item.p || "未標示來源")}</span>
+                <span class="badge badge-muted">${escapeHtml(item.src || item.p || "未標示來源")}</span>
                 <span class="badge ${item.ai ? "badge-teal" : "badge-muted"}">${item.ai ? "AI 方案" : "一般方案"}</span>
-                ${item.cat ? `<span class="badge badge-muted">${escapeHtml(item.cat)}</span>` : ""}
+                ${item.sc || item.cat ? `<span class="badge badge-muted">${escapeHtml(item.sc || item.cat)}</span>` : ""}
               </div>
             </article>
             ${isExpanded ? getInlineDetailHtml(item, shouldAnimate) : ""}
