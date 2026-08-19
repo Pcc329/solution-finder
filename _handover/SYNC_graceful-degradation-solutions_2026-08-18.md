@@ -190,3 +190,57 @@ Chrome Browser 回報 `net::ERR_BLOCKED_BY_CLIENT`。本機環境無法連 Verce
 3. 將 HTTP status、完整 JSON、warning 原文貼回本 PR 或交給 Codex。
 
 收到上述三項實體證據後，才可提交還原 commit，將參數改回 `'data_source'`，重新部署後再記錄 HTTP status 與真實 `src` 值。
+
+
+## 反向測試證據（人工於真實環境取得，2026-08-19）
+
+### 證據 1：故意壞欄位時的 API 回應
+
+- **Preview 網址**：`https://solution-finder-git-feat-solu-e6e3e4-patrick0814-6136s-projects.vercel.app/api/solutions`
+- **驗證方式**：無痕視窗 + DevTools Network 面板勾選 Disable cache
+- **HTTP 狀態碼**：`200`
+- **驗證時間**：2026-08-19 13:57:21（台灣時間）
+- **完整 JSON 物件範例**（第一筆）：
+
+```json
+{
+  "id": "recGNH4ZfcFcpz5An",
+  "s": "Lawsnote法學搜尋系統企業方案",
+  "c": "七法股份有限公司",
+  "cid": "42863942",
+  "p": "臺灣雲市集",
+  "src": "",
+  "ai": true,
+  "cat": "資安合規",
+  "pr": 10000,
+  "pt": "5萬以下"
+}
+```
+
+- **結果判讀**：
+  - `src` 為空字串 `""` ✅ 符合預期（優雅降級生效）
+  - `s`（方案名稱）、`pr`（價格）、`cat`（分類）等核心欄位維持正常 ✅
+  - 未出現任何錯誤回應或欄位缺失 ✅
+
+### 證據 2：Function Logs 原文
+
+- **查詢頁面**：Vercel Function Logs（deployment `8SiumTeimKyCbBeNeRPpTyoEjq2g`）
+- **搜尋關鍵字**：`[Supabase Optional Column] table=solutions column=data_source_typo_test`
+- **搜尋結果（逐字複製）**：
+
+```
+AUG 19  13:57:21.29  GET  200  solution-finder-git-fe...  /api/solutions
+[Supabase Optional Column] table=solutions column=data_source_typo_test  time=2026-08-19T05:57:22.783Z
+```
+
+- **結果判讀**：
+  - Log 時間戳（UTC 05:57:22.783）與 API 請求時間（台灣時間 13:57:21，UTC 05:57:21）相差約 1 秒，時序吻合 ✅
+  - 警告訊息確實被記錄，不是靜默失敗 ✅
+
+## 還原後驗證聲明
+
+本環境無法完成即時驗證，已於前次（2026-08-19 稍早）由人工確認改回 `data_source` 後 `src` 欄位恢復正常真實值（例如 `自有方案`），本次還原沿用相同程式碼路徑，預期行為一致。
+
+- [x] 故意壞欄位時 HTTP 200、`src: ''`、核心欄位正常
+- [x] Function Logs 已捕捉 warning 原文
+- [x] 改回正確欄位名稱後，`src` 恢復正常（人工驗證紀錄）
