@@ -2,7 +2,7 @@
 
 - 日期：2026-08-19
 - Branch：`feat/stats-supabase-dual-source-2026-08-19`
-- PR：待建立
+- Draft PR：[PR #130](https://github.com/Pcc329/solution-finder/pull/130)
 - 狀態：實作與 mock／靜態驗證完成；Supabase schema 與真實 Preview 雙軌驗證待人工執行。
 
 ## 實際修改
