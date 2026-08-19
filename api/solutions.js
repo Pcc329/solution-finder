@@ -162,7 +162,7 @@ export default async function handler(req, res) {
           supabaseAnonKey,
           'solutions',
           'solution_id',
-          'data_source',
+          'data_source_typo_test',
           'solution_id.asc',
           solutionFilters
         ),
