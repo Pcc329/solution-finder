@@ -117,3 +117,40 @@ Chrome Browser 回報 `net::ERR_BLOCKED_BY_CLIENT`。本機環境無法連 Verce
 2. 呼叫上述 Preview `/api/solutions`，確認 HTTP 200、筆數與既有基準一致、`src` 值正常。
 3. 暫時將 `fetchOptionalSupabaseColumn(..., 'data_source', ...)` 的欄位字串改成不存在欄位（僅 Preview 分支測試），重新部署後確認 HTTP 200、核心欄位仍在、`src` 為空且 Vercel log 有 warning；測完立刻改回 `data_source`。
 4. 執行上方 `information_schema.columns` SQL，將結果附回 PR/SYNC。
+
+
+## 2026-08-19：五之三反向測試部署紀錄
+
+本輪嚴格依反向測試規格，只替換
+`fetchOptionalSupabaseColumn(..., optionalColumn, ...)` 呼叫傳入的欄位名稱；函式本體、核心查詢與輸出映射均未修改。
+
+| 階段 | Commit | Vercel 部署（UTC） | Preview |
+| --- | --- | --- | --- |
+| 故意失敗 | `2486e5bd04013caa99f13d32fc0c98d49cd1c3a6` | 2026-08-19 04:24 Ready | https://solution-finder-git-feat-solu-e6e3e4-patrick0814-6136s-projects.vercel.app |
+| 改回正常 | `35f38d0c13f07f1f3b585c3b392d7ced9185b1d0` | 2026-08-19 04:27 Ready | https://solution-finder-git-feat-solu-e6e3e4-patrick0814-6136s-projects.vercel.app |
+
+故意失敗階段的唯一程式差異：
+
+```js
+-  'data_source',
++  'data_source_typo_test',
+```
+
+還原 commit 已將該參數精確改回 `'data_source'`；目前分支沒有保留刻意錯誤的欄位名稱。
+
+### 實體 Endpoint / Function Log 結果
+
+- [ ] 故意壞欄位時 HTTP 200、`src: ''`、核心欄位正常：**未能取得**
+- [ ] Function Logs 的 warning：**未能取得**
+- [ ] 改回後 HTTP 200 與真實 `src`：**未能重新取得**
+
+本執行環境嘗試讀取 Preview API 時受到平台限制：
+- Web 讀取回報 Preview URL 不屬於可安全開啟的 URL。
+- 瀏覽器控制連線被本機 trusted-code-path 限制拒絕。
+- 因此沒有用 mock 或部署 Ready 狀態冒充 HTTP 回應／Function Log 結果。
+
+**結論：反向測試的兩次部署與完整還原已完成，但實體 API 與 Vercel Function Log 的三項證據仍未完成。PR #128 必須維持 Draft，不可因本節而解除 merge gate。**
+
+在具備 Vercel endpoint / Function Logs 存取權的環境，可從上述 commit 的部署紀錄補驗：
+1. 故意失敗版本：呼叫 `/api/solutions`，預期 HTTP 200、`src: ''`、核心欄位仍存在，並在 log 搜尋 `[Supabase Optional Column]`。
+2. 已還原版本：呼叫同一 endpoint，預期 HTTP 200 且 `src` 恢復真實資料來源。
