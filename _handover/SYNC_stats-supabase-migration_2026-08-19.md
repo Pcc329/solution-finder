@@ -72,3 +72,21 @@ order by ordinal_position;
 - [ ] 真實 Preview 的 Supabase / Airtable 雙軌結果與即時筆數對照。
 
 **依規格：真實環境驗證尚未完成前，不建議 merge。**
+
+
+## Preview 部署
+
+- Vercel Preview：[Preview](https://solution-finder-git-feat-stat-51381d-patrick0814-6136s-projects.vercel.app)
+- Stats endpoint：https://solution-finder-git-feat-stat-51381d-patrick0814-6136s-projects.vercel.app/api/stats
+- Deployment：[Vercel Ready](https://vercel.com/patrick0814-6136s-projects/solution-finder/5NTABfLxuDpuY4no7BjaE4pvtqxP)
+
+### 待人工即時驗收
+
+本環境無法連線上述 Preview endpoint，請於 Vercel Preview 依序設定並重新部署：
+
+1. `DB_SOURCE_SOLUTIONS=supabase`、`DB_SOURCE_COMPANIES=supabase`，呼叫 `/api/stats`，記錄 `total`、`companyTotal`、`newThisWeek`、`newThisMonth`、`latest5`，並確認分布物件有資料。
+2. 改為 `airtable`（或移除兩個環境變數），重複記錄相同欄位，作為 fallback 對照。
+3. 先執行本 SYNC 的 Companies schema SQL，確認 `company_name` 與其他 select 欄位存在。
+4. 確認兩種回應皆不計入 `record_status=已下架_資料異常` 的資料。
+
+在上述真實驗收完成前，PR #130 必須維持 Draft。
