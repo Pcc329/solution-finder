@@ -161,7 +161,7 @@ export default async function handler(req, res) {
           supabaseUrl,
           supabaseAnonKey,
           'solutions',
-          'solution_id,company_id,has_ai,industry_category,program_type,data_source,price,price_tier,created_at',
+          'solution_id,company_id,solution_name,has_ai,industry_category,program_type,data_source,price,price_tier,created_at',
           'solution_id.asc',
           activeRecordFilter
         )
