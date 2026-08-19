@@ -210,6 +210,7 @@ export default async function handler(req, res) {
         };
       });
 
+      console.log('[DEBUG src field]', JSON.stringify(converted[0]));
       return res.status(200).json(converted);
     }
 
