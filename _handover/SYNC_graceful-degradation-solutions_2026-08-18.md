@@ -154,3 +154,39 @@ Chrome Browser 回報 `net::ERR_BLOCKED_BY_CLIENT`。本機環境無法連 Verce
 在具備 Vercel endpoint / Function Logs 存取權的環境，可從上述 commit 的部署紀錄補驗：
 1. 故意失敗版本：呼叫 `/api/solutions`，預期 HTTP 200、`src: ''`、核心欄位仍存在，並在 log 搜尋 `[Supabase Optional Column]`。
 2. 已還原版本：呼叫同一 endpoint，預期 HTTP 200 且 `src` 恢復真實資料來源。
+
+
+## 2026-08-19：五之三反向測試 v2（目前等待實體證據）
+
+> **目前 Preview 刻意維持錯誤欄位版本；不得 merge。** 請先完成本節「待人工取證」，再將欄位字串改回 `data_source`。
+
+### 故意失敗版本
+
+- Branch：`feat/solutions-graceful-degradation-2026-08-18`
+- Commit：`98d8509915fa97791058098051dee7bf1f1129d0`
+- 唯一程式差異：呼叫參數 `'data_source'` → `'data_source_typo_test'`
+- Vercel Ready：2026-08-19 05:53 UTC（台北 13:53）
+- Preview：https://solution-finder-git-feat-solu-e6e3e4-patrick0814-6136s-projects.vercel.app
+- API：https://solution-finder-git-feat-solu-e6e3e4-patrick0814-6136s-projects.vercel.app/api/solutions
+- Deployment：https://vercel.com/patrick0814-6136s-projects/solution-finder/8SiumTeimKyCbBeNeRPpTyoEjq2g
+
+### 本環境結果與阻塞
+
+本環境嘗試以 Web 開啟 Preview API，被 URL safety policy 拒絕；嘗試建立 Browser 連線亦被 trusted-code-path 限制拒絕。因此目前不能產出真實 HTTP response 或 Vercel Function Log，且不會以 mock 結果替代。
+
+- [ ] HTTP 狀態碼：待人工取證
+- [ ] 完整 JSON 一筆（確認 `src: ""`）：待人工取證
+- [ ] 核心欄位 `s`／`pr`：待人工取證
+- [ ] Function warning 原文：待人工取證
+
+### 待人工取證（完成前不要還原）
+
+1. 開啟上方 **API** 網址，複製 HTTP status 與回傳 JSON 任一完整物件；該物件至少需包含 `s`、`pr`、`src`。
+2. 在上方 **Deployment** 的 Vercel Function Logs，以 2026-08-19 05:53 UTC（台北 13:53）後的時間範圍搜尋：
+   ```
+   [Supabase Optional Column] table=solutions column=data_source_typo_test
+   ```
+   請完整複製實際 warning 行。
+3. 將 HTTP status、完整 JSON、warning 原文貼回本 PR 或交給 Codex。
+
+收到上述三項實體證據後，才可提交還原 commit，將參數改回 `'data_source'`，重新部署後再記錄 HTTP status 與真實 `src` 值。
