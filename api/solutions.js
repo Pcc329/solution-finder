@@ -107,6 +107,25 @@ export default async function handler(req, res) {
     return all;
   }
 
+  async function fetchOptionalSupabaseColumn(url, anonKey, table, keyColumn, optionalColumn, orderBy, filters = {}) {
+    try {
+      const rows = await fetchAllSupabasePaged(
+        url,
+        anonKey,
+        table,
+        `${keyColumn},${optionalColumn}`,
+        orderBy,
+        filters
+      );
+      return new Map(rows.map(row => [String(row[keyColumn] || ''), row[optionalColumn] || '']));
+    } catch (error) {
+      console.warn(
+        `[Supabase Optional Column] table=${table} column=${optionalColumn} time=${new Date().toISOString()} message=${error.message}`
+      );
+      return new Map();
+    }
+  }
+
   try {
     const source = getSolutionsSource();
 
@@ -117,22 +136,35 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
       }
 
-      const [solRows, coRows] = await Promise.all([
+      const solutionFilters = {
+        // Only exclude the confirmed abnormal status; include legacy NULL statuses.
+        or: '(record_status.is.null,record_status.neq.已下架_資料異常)',
+      };
+      const [solRows, coRows, dataSourceBySolutionId] = await Promise.all([
         fetchAllSupabasePaged(
           supabaseUrl, supabaseAnonKey, 'solutions',
+          // Stable fields required for the complete solution response.
           'solution_id,airtable_rec_id,company_id,solution_name,description,description_short,' +
-          'slogan,has_ai,function_category,program_type,industry_category,data_source,price,' +
-          'price_tier,service_region,target_industry,target_scale,has_award,' +
-          'has_certification,website_url,score_overall,monthly_price,monthly_price_tier,' +
-          'subscription_months,features_list',
+          'slogan,has_ai,program_type,industry_category,price,price_tier,service_region,' +
+          'target_industry,target_scale,has_award,has_certification,website_url,score_overall,' +
+          'monthly_price,monthly_price_tier,subscription_months,features_list',
           'solution_id.asc',
-          // Only exclude the confirmed abnormal status; include legacy NULL statuses.
-          { or: '(record_status.is.null,record_status.neq.已下架_資料異常)' }
+          solutionFilters
         ),
         fetchAllSupabasePaged(
           supabaseUrl, supabaseAnonKey, 'companies',
           'company_id,company_name,region,is_startup,city,tech_tags,industry_vertical',
           'company_id.asc'
+        ),
+        // Schema-sensitive field: a missing column must not fail the complete API response.
+        fetchOptionalSupabaseColumn(
+          supabaseUrl,
+          supabaseAnonKey,
+          'solutions',
+          'solution_id',
+          'data_source',
+          'solution_id.asc',
+          solutionFilters
         ),
       ]);
 
@@ -184,7 +216,7 @@ export default async function handler(req, res) {
           // company_id 已於 Supabase 端為乾淨 8 碼統編；無統編來源（農業部等）回空字串。
           cid: cid,
           p: row.program_type || '',
-          src: row.data_source || '',
+          src: dataSourceBySolutionId.get(String(row.solution_id || '')) || '',
           ai: hasAi,
           d: emptyToBlank(row.target_industry),
           cat: row.industry_category || '',
