@@ -244,3 +244,12 @@ AUG 19  13:57:21.29  GET  200  solution-finder-git-fe...  /api/solutions
 - [x] 故意壞欄位時 HTTP 200、`src: ''`、核心欄位正常
 - [x] Function Logs 已捕捉 warning 原文
 - [x] 改回正確欄位名稱後，`src` 恢復正常（人工驗證紀錄）
+
+
+## PR base 與合併前狀態（2026-08-19）
+
+- PR #128 base 已更新為 `main`。
+- 比對當下分支相對 `main`：ahead 9、behind 1。
+- GitHub PR metadata 回報 `mergeable: false`。
+
+因此功能驗收與反向測試證據已完成，但 PR 尚未具備直接解除 Draft／merge 的條件；需先將分支更新至最新 `main` 並處理 GitHub 顯示的合併狀態，再由人工解除 Draft。
