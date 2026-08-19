@@ -253,3 +253,28 @@ AUG 19  13:57:21.29  GET  200  solution-finder-git-fe...  /api/solutions
 - GitHub PR metadata 回報 `mergeable: false`。
 
 因此功能驗收與反向測試證據已完成，但 PR 尚未具備直接解除 Draft／merge 的條件；需先將分支更新至最新 `main` 並處理 GitHub 顯示的合併狀態，再由人工解除 Draft。
+
+
+## 與 main 同步嘗試（2026-08-19，等待遠端更新）
+
+已在隔離 worktree 執行規格指定的 **merge** 路徑：
+
+```text
+git fetch origin main feat/solutions-graceful-degradation-2026-08-18
+git merge origin/main --no-edit
+# Merge made by the 'ort' strategy.
+```
+
+- 本機 merge commit：`ffc3da3`
+- 本機 SYNC commit：`b14199cf9facafdc152a0d2c8b29ff827c1e0497`
+- 衝突：無。
+- Force push：未使用。
+- 同步後靜態核對：`api/solutions.js` 無 `solution_category`／`sc:`；`fetchOptionalSupabaseColumn` 與 `data_source` 獨立補查仍存在；`node --check api/solutions.js` 通過。
+
+### 遠端推送阻塞
+
+此執行環境以 GitHub OpenSSL transport 成功 fetch，但 Git Credential Manager 無法取得 push 憑證；對原分支的正常 fast-forward push 未成功，遠端仍停在 `91ae96a6f4ec98393f88f9d2de2eb7737392badf`。
+
+因此 GitHub 尚未看到 `ffc3da3`／`b14199c`，PR 的 mergeability 也尚未能更新。未使用 force push、未改寫既有分支歷史。
+
+待可使用 GitHub 網頁時，請於 PR #128 使用 **Update branch**（將 `main` 合併入 PR 分支）或在具備 GitHub push 憑證的環境執行正常 `git push origin HEAD:feat/solutions-graceful-degradation-2026-08-18`；完成後重新確認 `mergeable`。
