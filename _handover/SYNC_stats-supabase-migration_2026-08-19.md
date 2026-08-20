@@ -1,92 +1,91 @@
 # SYNC — stats.js Supabase 雙軌讀取
 
-- 日期：2026-08-19
+- 日期：2026-08-20
 - Branch：`feat/stats-supabase-dual-source-2026-08-19`
 - Draft PR：[PR #130](https://github.com/Pcc329/solution-finder/pull/130)
-- 狀態：實作與 mock／靜態驗證完成；Supabase schema 與真實 Preview 雙軌驗證待人工執行。
+- 最新程式 commit：`96cd7088bb356d7c2a3d05782016c842e9fb2fa1`
+- 狀態：Companies Supabase schema 錯誤已修正，真實 Preview API 驗證通過。
 
-## 實際修改
+## 本次修正：Companies 使用 company_status
 
-檔案：`api/stats.js`
+### 根因
 
-### 新增雙軌來源判斷
+真實 Preview 原本回傳：
 
-- `DB_SOURCE_SOLUTIONS=supabase` 時從 Supabase `solutions` 讀取統計欄位；未設定或 `airtable` 時維持原 Airtable `Solutions` 分頁讀取。
-- `DB_SOURCE_COMPANIES=supabase` 時從 Supabase `companies` 讀取統計欄位；未設定或 `airtable` 時維持原 Airtable `Companies` 分頁讀取。
-- 新增泛用 `fetchAllSupabasePaged()`，使用每頁 1,000 筆、穩定排序與 416 結束防護。
-- Supabase 的 Solutions 與 Companies 皆帶：
-  ```js
-  or: '(record_status.is.null,record_status.neq.已下架_資料異常)'
-  ```
-  只排除明確已下架值，保留歷史 `NULL` 狀態。
-- Airtable Companies 不對中文 Single Select 使用 `filterByFormula`，改為全量分頁後以 JavaScript 排除 `record_status === '已下架_資料異常'`。
-
-### 時間與 latest5 對齊
-
-- `getCreatedTime()`：Airtable 使用 `createdTime`，Supabase 使用 `created_at`。
-- `latest5` 保持既有 `name/company/category/dataSource/createdTime` 結構。
-- Supabase Companies select 額外取 `company_name`，供 `latest5.company` 以 `company_id` 對照，避免既有 dashboard 方案名稱／業者名稱顯示退化。
-- Supabase Solutions select 包含 `solution_name`，維持 `latest5.name` 的既有內容。
-
-## 靜態與 Mock 驗證
-
-以 handler 層級 mock 驗證，未呼叫真實資料庫：
-
-| 情境 | HTTP | total / companyTotal | 核對 |
-| --- | --- | --- | --- |
-| Supabase 雙軌 | 200 | 1 / 1 | `aiCount=1`、`latest5.name=即時方案`、`latest5.company=甲公司`、`latest5.dataSource=農業部`、`臺北市→台北市`；兩張查詢皆有 record_status `or` |
-| Airtable fallback | 200 | 1 / 1 | Solutions 保留原 `filterByFormula`；Companies 的已下架「南部」測試記錄未進入 `byRegion` |
-| 缺少 Supabase 設定 | 500 | - | 回傳既定錯誤 `SUPABASE_URL or SUPABASE_ANON_KEY not configured` |
-
-- `api/stats.js` 以 Node ESM `SourceTextModule` 解析通過。
-
-## 五之二：Companies schema
-
-尚未完成真實 schema 查詢：本環境沒有 Supabase SQL Editor 或資料庫連線權限，不能捏造欄位存在性。
-
-待在 Supabase SQL Editor 執行：
-
-```sql
-select column_name, data_type
-from information_schema.columns
-where table_name = 'companies'
-order by ordinal_position;
+```json
+{"error":"Supabase companies error: 400 - {\"code\":\"42703\",\"message\":\"column companies.record_status does not exist\"}"}
 ```
 
-需要確認：`company_id, company_name, region, is_startup, city, record_status`。
+Solutions 使用 `record_status`；Companies 則是不同的 `company_status` enum，兩者不可共用篩選欄位或值。
 
-## 五之三：驗證方式聲明
+### Supabase SQL 的權威確認
 
-- [ ] 已在真實 Preview 環境驗證，含 Supabase 路徑與 Airtable 路徑兩種情境
-- [x] 僅完成 mock／靜態驗證，**尚未真實環境驗證**
+PM 於 Supabase SQL Editor 執行：
 
-本環境無法直接連線 Vercel Preview API。待人工於 Preview 分別設定 `DB_SOURCE_SOLUTIONS`／`DB_SOURCE_COMPANIES` 為 `supabase` 與 `airtable` 後，記錄 `total`、`companyTotal`、`newThisWeek`、`newThisMonth`、`latest5`，並確認 API JSON 不含已下架資料。
+```sql
+select distinct company_status from companies;
+```
+
+結果僅有兩個值：
+
+- `正常營業`
+- `暫停營業`
+
+因此本次只排除 `暫停營業`，不沿用 Solutions 的 `已下架_資料異常`。
+
+### api/stats.js 改動
+
+| 路徑 | 修正後行為 |
+| --- | --- |
+| Supabase Solutions | 維持 `record_status.is.null,record_status.neq.已下架_資料異常`，未改動。 |
+| Supabase Companies | select 改取 `company_status`；查詢加入 `company_status=neq.暫停營業`。 |
+| Airtable Companies | JavaScript 保護改為排除 `company_status === '暫停營業'`。 |
+
+核心片段：
+
+```js
+const activeSolutionsFilter = {
+  or: '(record_status.is.null,record_status.neq.已下架_資料異常)',
+};
+const activeCompaniesFilter = {
+  company_status: 'neq.暫停營業',
+};
+```
+
+並將 Companies Supabase select 改為：
+
+```js
+'company_id,company_name,region,is_startup,city,company_status'
+```
+
+## 真實 Preview 驗證
+
+- Preview：https://solution-finder-git-feat-stat-51381d-patrick0814-6136s-projects.vercel.app
+- Endpoint：https://solution-finder-git-feat-stat-51381d-patrick0814-6136s-projects.vercel.app/api/stats
+- 驗證時間：2026-08-20
+- HTTP：`200`
+- 重要回傳值：
+  - `total: 2461`
+  - `companyTotal: 906`
+  - `aiCount: 985`
+  - `validPriceCount: 2334`
+  - `medianPrice: 40000`
+  - `byRegion`、`byCity`、`latest5` 均有資料。
+- 結果：已不再出現 `42703 column companies.record_status does not exist`。
+
+本次 Preview 為 Supabase 路徑的實際呼叫；回應非 mock。Vercel 於 branch commit 後自動部署。
+
+## 原雙軌設計維持
+
+- `DB_SOURCE_SOLUTIONS` 與 `DB_SOURCE_COMPANIES` 可各自設定 `airtable` 或 `supabase`。
+- `fetchAllSupabasePaged()` 維持 1,000 筆分頁、穩定排序與 HTTP 416 結束防護。
+- Airtable Solutions 仍使用既有 `ACTIVE_SOLUTIONS_FILTER`。
+- 回傳 JSON 結構未調整：`total`、`companyTotal`、`byRegion`、`byCity`、`latest5` 等維持原樣。
 
 ## 驗收狀態
 
-- [x] stats.js 支援 Solutions / Companies 雙軌讀取。
-- [x] Supabase 兩張表皆帶 record_status 排除條件。
-- [x] Airtable fallback 的既有回傳 JSON 結構維持。
-- [x] Supabase `created_at` 與 Airtable `createdTime` 均可供近期統計使用。
-- [ ] Companies schema 真實查詢。
-- [ ] 真實 Preview 的 Supabase / Airtable 雙軌結果與即時筆數對照。
-
-**依規格：真實環境驗證尚未完成前，不建議 merge。**
-
-
-## Preview 部署
-
-- Vercel Preview：[Preview](https://solution-finder-git-feat-stat-51381d-patrick0814-6136s-projects.vercel.app)
-- Stats endpoint：https://solution-finder-git-feat-stat-51381d-patrick0814-6136s-projects.vercel.app/api/stats
-- Deployment：[Vercel Ready](https://vercel.com/patrick0814-6136s-projects/solution-finder/5NTABfLxuDpuY4no7BjaE4pvtqxP)
-
-### 待人工即時驗收
-
-本環境無法連線上述 Preview endpoint，請於 Vercel Preview 依序設定並重新部署：
-
-1. `DB_SOURCE_SOLUTIONS=supabase`、`DB_SOURCE_COMPANIES=supabase`，呼叫 `/api/stats`，記錄 `total`、`companyTotal`、`newThisWeek`、`newThisMonth`、`latest5`，並確認分布物件有資料。
-2. 改為 `airtable`（或移除兩個環境變數），重複記錄相同欄位，作為 fallback 對照。
-3. 先執行本 SYNC 的 Companies schema SQL，確認 `company_name` 與其他 select 欄位存在。
-4. 確認兩種回應皆不計入 `record_status=已下架_資料異常` 的資料。
-
-在上述真實驗收完成前，PR #130 必須維持 Draft。
+- [x] Companies Supabase 查詢不再引用不存在的 `record_status` 欄位。
+- [x] 已依實際 `company_status` enum 排除 `暫停營業`。
+- [x] Solutions 的 `record_status` 過濾邏輯保持不變。
+- [x] 真實 Preview `/api/stats` 回傳 HTTP 200，且統計值非零。
+- [x] 未修改回傳 JSON 結構或前端檔案。
