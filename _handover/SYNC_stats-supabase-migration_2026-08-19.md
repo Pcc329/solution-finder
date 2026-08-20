@@ -89,3 +89,49 @@ const activeCompaniesFilter = {
 - [x] Solutions 的 `record_status` 過濾邏輯保持不變。
 - [x] 真實 Preview `/api/stats` 回傳 HTTP 200，且統計值非零。
 - [x] 未修改回傳 JSON 結構或前端檔案。
+
+## 2026-08-20：newThisMonth 語意調整
+
+### 根因
+
+Supabase Solutions 僅有 `created_at` 時間欄位。2026-08-12 批次遷移時，2,461 筆既有方案在同一期間寫入 Supabase；因此原有程式：
+
+```js
+const newThisMonth = solutions.filter(rec => new Date(getCreatedTime(rec)) > monthAgo).length;
+```
+
+在 Supabase 路徑透過 `getCreatedTime()` 讀到的是批次寫入時間，會正確地算出「本月寫入資料庫」2,461 筆，卻不等於「本月外部發布的新方案」。這不是時區或 `new Date` 比較錯誤；`newThisWeek` 與 `newThisMonth` 使用同一個日期比較方式。
+
+經確認不追溯 Airtable `createdTime`、不修改 Supabase 資料內容或 schema。
+
+### 採用做法 A
+
+保留 API 欄位 `newThisMonth` 與既有計算，僅在 `public/dashboard.html` 調整顯示語意：
+
+```html
+<!-- 改前 -->
+<span class="update-label">本月新增</span>
+
+<!-- 改後 -->
+<span class="update-label">本月寫入資料庫</span>
+```
+
+理由：這是單一、可見且準確的產品文案修正，不增加 API 欄位，也不改變回傳 JSON 契約。真正的外部方案追蹤由 `source_monitoring_targets` / `source_monitoring_checks` 的定期海巡機制負責。
+
+### 保留項目
+
+- `newThisWeek` 計算與顯示未改動。
+- `created_at`、任何資料內容、`company_status`、Solutions `record_status`、其他統計欄位均未改動。
+- 本次程式改動僅為 `public/dashboard.html` 的 1 行標籤文字。
+
+### 部署與驗證
+
+- Vercel PR #130 deployment：Ready  
+  https://solution-finder-git-feat-stat-51381d-patrick0814-6136s-projects.vercel.app/dashboard.html
+- 已以 GitHub 分支檔案確認新文案存在。
+- [ ] 本環境對 Preview HTML 的實際 fetch 在本次執行期間連續失敗（網路層 `fetch failed`），因此尚未能以 HTTP body 截圖／回應再次確認畫面文字。不可把 Vercel Ready 視為此項畫面驗收完成。
+
+### PR 狀態
+
+此語意修正已推入 PR #130 的既有分支。待可取得 Preview HTML 實際回應、確認「本月寫入資料庫」顯示後，才具備解除 Draft 並人工合併的條件。
+
