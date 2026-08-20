@@ -1,5 +1,8 @@
 // api/stats.js — Vercel Serverless Function
+const DEFAULT_SOLUTIONS_SOURCE = 'airtable';
+const DEFAULT_COMPANIES_SOURCE = 'airtable';
 const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
+const SUSPENDED_COMPANY_STATUS = '暫停營業';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -56,6 +59,50 @@ export default async function handler(req, res) {
     return allRecords;
   }
 
+  function getSource(envName, defaultSource) {
+    const source = String(process.env[envName] || defaultSource).trim().toLowerCase();
+    if (source === 'airtable' || source === 'supabase') return source;
+    throw new Error(`${envName} must be "airtable" or "supabase"`);
+  }
+
+  async function fetchAllSupabasePaged(url, anonKey, table, selectCols, orderBy, filters = {}) {
+    const endpoint = new URL(`/rest/v1/${table}`, url);
+    endpoint.searchParams.set('select', selectCols);
+    endpoint.searchParams.set('order', orderBy);
+    Object.entries(filters).forEach(([key, value]) => endpoint.searchParams.set(key, value));
+
+    const pageSize = 1000;
+    const all = [];
+    let start = 0;
+
+    while (true) {
+      const response = await fetch(endpoint, {
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+          Range: `${start}-${start + pageSize - 1}`,
+          'Range-Unit': 'items',
+        },
+      });
+
+      if (response.status === 416) break;
+      if (!response.ok) {
+        const body = await response.text();
+        console.error(`[Supabase Error] status=${response.status} endpoint=${req.url} table=${table} time=${new Date().toISOString()} message=${body}`);
+        throw new Error(`Supabase ${table} error: ${response.status} - ${body}`);
+      }
+
+      const page = await response.json();
+      const rows = Array.isArray(page) ? page : [];
+      all.push(...rows);
+      if (rows.length < pageSize) break;
+      start += pageSize;
+    }
+
+    console.log(`[Supabase] stats fetched table=${table} count=${all.length}`);
+    return all;
+  }
+
   function increment(map, key) {
     const normalized = String(key || '').trim();
     if (!normalized) return;
@@ -80,27 +127,93 @@ export default async function handler(req, res) {
     return Math.round((sorted[mid - 1] + sorted[mid]) / 2);
   }
 
+  function getFields(record) {
+    return record?.fields || record || {};
+  }
+
+  function getCreatedTime(record) {
+    return record?.createdTime || record?.created_at || '';
+  }
+
+  function isAi(value) {
+    return value === true || value === '有';
+  }
+
   try {
-    const [solutions, companies] = await Promise.all([
-      fetchAll('Solutions', ACTIVE_SOLUTIONS_FILTER),
-      fetchAll('Companies'),
+    const solutionsSource = getSource('DB_SOURCE_SOLUTIONS', DEFAULT_SOLUTIONS_SOURCE);
+    const companiesSource = getSource('DB_SOURCE_COMPANIES', DEFAULT_COMPANIES_SOURCE);
+    const needsSupabase = solutionsSource === 'supabase' || companiesSource === 'supabase';
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+    if (needsSupabase && (!supabaseUrl || !supabaseAnonKey)) {
+      return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
+    }
+
+    const activeSolutionsFilter = {
+      // Exclude only confirmed retired solutions; retain legacy NULL statuses.
+      or: '(record_status.is.null,record_status.neq.已下架_資料異常)',
+    };
+    const activeCompaniesFilter = {
+      // Supabase companies uses its own enum, distinct from Solutions.record_status.
+      company_status: 'neq.暫停營業',
+    };
+
+    const [solutionRecords, companyRecords] = await Promise.all([
+      solutionsSource === 'supabase'
+        ? fetchAllSupabasePaged(
+          supabaseUrl,
+          supabaseAnonKey,
+          'solutions',
+          'solution_id,company_id,solution_name,has_ai,industry_category,program_type,data_source,price,price_tier,created_at',
+          'solution_id.asc',
+          activeSolutionsFilter
+        )
+        : fetchAll('Solutions', ACTIVE_SOLUTIONS_FILTER),
+      companiesSource === 'supabase'
+        ? fetchAllSupabasePaged(
+          supabaseUrl,
+          supabaseAnonKey,
+          'companies',
+          'company_id,company_name,region,is_startup,city,company_status',
+          'company_id.asc',
+          activeCompaniesFilter
+        )
+        : fetchAll('Companies'),
     ]);
+
+    // Airtable Single Select filters on Chinese values are unreliable; retain active rows and
+    // remove only the explicit suspended company status in JavaScript.
+    const companies = companiesSource === 'airtable'
+      ? companyRecords.filter(rec => getFields(rec)['company_status'] !== SUSPENDED_COMPANY_STATUS)
+      : companyRecords;
+    const solutions = solutionRecords;
+
+    const companyNameById = new Map(
+      companies.map(rec => {
+        const f = getFields(rec);
+        return [String(f['company_id'] || '').trim(), f['company_name'] || ''];
+      }).filter(([companyId]) => companyId)
+    );
 
     const now = new Date();
     const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
-    const newThisWeek = solutions.filter(rec => new Date(rec.createdTime) > weekAgo).length;
-    const newThisMonth = solutions.filter(rec => new Date(rec.createdTime) > monthAgo).length;
+    const newThisWeek = solutions.filter(rec => new Date(getCreatedTime(rec)) > weekAgo).length;
+    const newThisMonth = solutions.filter(rec => new Date(getCreatedTime(rec)) > monthAgo).length;
     const latest5 = [...solutions]
-      .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
+      .sort((a, b) => new Date(getCreatedTime(b)) - new Date(getCreatedTime(a)))
       .slice(0, 5)
-      .map(rec => ({
-        name: rec.fields?.['solution_name'] || '',
-        company: rec.fields?.['company_name'] || '',
-        category: rec.fields?.['industry_category'] || '',
-        dataSource: rec.fields?.['data_source'] || '',
-        createdTime: rec.createdTime,
-      }));
+      .map(rec => {
+        const f = getFields(rec);
+        return {
+          name: f['solution_name'] || '',
+          company: f['company_name'] || companyNameById.get(String(f['company_id'] || '').trim()) || '',
+          category: f['industry_category'] || '',
+          dataSource: f['data_source'] || '',
+          createdTime: getCreatedTime(rec),
+        };
+      });
 
     const byCategory = {};
     const byProgramType = {};
@@ -111,8 +224,8 @@ export default async function handler(req, res) {
     let aiCount = 0;
 
     solutions.forEach(rec => {
-      const f = rec.fields || {};
-      if (f['has_ai'] === '有') aiCount += 1;
+      const f = getFields(rec);
+      if (isAi(f['has_ai'])) aiCount += 1;
       increment(byCategory, f['industry_category']);
       increment(byProgramType, f['program_type']);
 
@@ -124,7 +237,7 @@ export default async function handler(req, res) {
     });
 
     companies.forEach(rec => {
-      const f = rec.fields || {};
+      const f = getFields(rec);
       increment(byRegion, f['region']);
       increment(byCity, normalizeCity(f['city']));
     });
