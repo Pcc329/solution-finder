@@ -2,7 +2,7 @@
 const DEFAULT_SOLUTIONS_SOURCE = 'airtable';
 const DEFAULT_COMPANIES_SOURCE = 'airtable';
 const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
-const RETIRED_RECORD_STATUS = '已下架_資料異常';
+const SUSPENDED_COMPANY_STATUS = '暫停營業';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -150,9 +150,13 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
     }
 
-    const activeRecordFilter = {
-      // Exclude only confirmed retired records; retain legacy NULL statuses.
+    const activeSolutionsFilter = {
+      // Exclude only confirmed retired solutions; retain legacy NULL statuses.
       or: '(record_status.is.null,record_status.neq.已下架_資料異常)',
+    };
+    const activeCompaniesFilter = {
+      // Supabase companies uses its own enum, distinct from Solutions.record_status.
+      company_status: 'neq.暫停營業',
     };
 
     const [solutionRecords, companyRecords] = await Promise.all([
@@ -163,7 +167,7 @@ export default async function handler(req, res) {
           'solutions',
           'solution_id,company_id,solution_name,has_ai,industry_category,program_type,data_source,price,price_tier,created_at',
           'solution_id.asc',
-          activeRecordFilter
+          activeSolutionsFilter
         )
         : fetchAll('Solutions', ACTIVE_SOLUTIONS_FILTER),
       companiesSource === 'supabase'
@@ -171,17 +175,17 @@ export default async function handler(req, res) {
           supabaseUrl,
           supabaseAnonKey,
           'companies',
-          'company_id,company_name,region,is_startup,city,record_status',
+          'company_id,company_name,region,is_startup,city,company_status',
           'company_id.asc',
-          activeRecordFilter
+          activeCompaniesFilter
         )
         : fetchAll('Companies'),
     ]);
 
-    // Airtable Single Select filters on Chinese values are unreliable; retain legacy rows and
-    // remove only the explicit retired company status in JavaScript.
+    // Airtable Single Select filters on Chinese values are unreliable; retain active rows and
+    // remove only the explicit suspended company status in JavaScript.
     const companies = companiesSource === 'airtable'
-      ? companyRecords.filter(rec => getFields(rec)['record_status'] !== RETIRED_RECORD_STATUS)
+      ? companyRecords.filter(rec => getFields(rec)['company_status'] !== SUSPENDED_COMPANY_STATUS)
       : companyRecords;
     const solutions = solutionRecords;
 
