@@ -135,3 +135,27 @@ const newThisMonth = solutions.filter(rec => new Date(getCreatedTime(rec)) > mon
 
 此語意修正已推入 PR #130 的既有分支。待可取得 Preview HTML 實際回應、確認「本月寫入資料庫」顯示後，才具備解除 Draft 並人工合併的條件。
 
+## 2026-08-20：資料來源文案更新
+
+### 採用文案
+
+採用不綁定單一供應商的寫法，避免下次資料來源調整時再次過時：
+
+```text
+改前：資料來源：Airtable，每次載入即時更新
+改後：資料來源：即時讀取，每次載入更新
+```
+
+只修改 `public/dashboard.html` 的 `.source-note` 文字；未修改 `api/stats.js`、統計邏輯或既有過濾條件。
+
+### 部署與驗證
+
+- Vercel 最新 PR #130 deployment：Ready（2026-08-20 02:31 UTC）  
+  https://solution-finder-git-feat-stat-51381d-patrick0814-6136s-projects.vercel.app/dashboard.html
+- 已以 GitHub 分支檔案確認舊 Airtable 文案已移除、新文案存在。
+- [ ] 本環境對 Preview HTML 的直接 fetch 仍為網路層 `fetch failed`；尚未讀取到真正 HTML body，因此不能把此項視為完整畫面驗收。
+
+### PR 收尾狀態
+
+此為 PR #130 的最後一項程式／文案修正。待使用者於 Ready Preview 確認頁面顯示「資料來源：即時讀取，每次載入更新」後，即具備人工解除 Draft 並合併的條件。
+
