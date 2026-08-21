@@ -128,6 +128,8 @@ export default async function handler(req, res) {
 
   try {
     const source = getSolutionsSource();
+    // Expose the active non-secret source in Preview responses for operational verification.
+    res.setHeader('X-Solutions-Data-Source', source);
 
     if (source === 'supabase') {
       const supabaseUrl = process.env.SUPABASE_URL;
