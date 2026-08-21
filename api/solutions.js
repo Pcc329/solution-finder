@@ -127,48 +127,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Temporary Preview-only source override for cross-source filter verification.
-    const requestedPreviewSource = String(req.query?.testSource || '').trim().toLowerCase();
-    const source = process.env.VERCEL_ENV === 'preview' && ['airtable', 'supabase'].includes(requestedPreviewSource)
-      ? requestedPreviewSource
-      : getSolutionsSource();
-
-    // Temporary Preview-only Airtable trace. It compares the raw record to the
-    // same record constrained by ACTIVE_SOLUTIONS_FILTER, then is removed after validation.
-    const traceAirtableRecordId = String(req.query?.traceAirtableRecordId || '').trim();
-    if (source === 'airtable' && traceAirtableRecordId && process.env.VERCEL_ENV === 'preview') {
-      if (!/^rec[a-zA-Z0-9]+$/.test(traceAirtableRecordId)) {
-        return res.status(400).json({ error: 'Invalid traceAirtableRecordId' });
-      }
-      const recordFormula = `RECORD_ID() = '${traceAirtableRecordId}'`;
-      const [rawRows, activeRows] = await Promise.all([
-        fetchAll('Solutions', recordFormula),
-        fetchAll('Solutions', `AND(${ACTIVE_SOLUTIONS_FILTER}, ${recordFormula})`),
-      ]);
-      return res.status(200).json({
-        source,
-        traceAirtableRecordId,
-        rawRows: rawRows.map(rec => ({
-          id: rec.id,
-          solutionName: rec.fields?.['solution_name'] || '',
-          recordStatus: rec.fields?.['record_status'] || '',
-        })),
-        activeMatches: activeRows.length,
-      });
-    }
-
-    if (source === 'airtable' && req.query?.traceAirtableRetired === 'true' && process.env.VERCEL_ENV === 'preview') {
-      const retiredRows = await fetchAll('Solutions', 'LEFT({record_status}, 3) = "已下架"');
-      return res.status(200).json({
-        source,
-        retiredCount: retiredRows.length,
-        sample: retiredRows.slice(0, 5).map(rec => ({
-          id: rec.id,
-          solutionName: rec.fields?.['solution_name'] || '',
-          recordStatus: rec.fields?.['record_status'] || '',
-        })),
-      });
-    }
+    const source = getSolutionsSource();
 
     if (source === 'supabase') {
       const supabaseUrl = process.env.SUPABASE_URL;
