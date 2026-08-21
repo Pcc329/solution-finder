@@ -32,6 +32,7 @@
 - Preview：`https://solution-finder-git-fix-recor-834295-patrick0814-6136s-projects.vercel.app`
 - `GET /api/solutions`：HTTP 200，回傳 **2,333** 筆。
 - `GET /api/stats`：HTTP 200，`total=2,333`、`companyTotal=906`，與 solutions 總筆數一致。
+- `GET /api/companies`：HTTP 200，回傳首頁既有上限的 200 家公司；確認 companies Supabase 路徑沒有因 `not.like` 查詢而失敗。
 - Preview 回傳資料的 `id` 是 `airtable_rec_id`，且不公開 `solution_id`／`record_status`。因此 API 名稱搜尋「電子發票加值中心」雖得到 4 筆同名或近名方案，無法從公開回應逐筆確認其中是否就是 `SOL-1320`；不可把名稱結果誤判成前綴條件失效。
 
 仍需具備資料庫查詢權限的人員完成以下最後核對後才可 merge：
