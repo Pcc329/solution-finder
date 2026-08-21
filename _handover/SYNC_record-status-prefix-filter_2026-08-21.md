@@ -54,6 +54,8 @@
 
 人工瀏覽器用名稱搜尋仍看到的「電子發票加值中心」是另一筆資料：`id=rec4pe2a1KC56NnpW`、業者「鉅盛資訊股份有限公司」、`program_type=SME AI平台`、`data_source=中企署`。它不是 SOL-1320，不能因名稱相同而當成過濾失效。
 
+`/api/solutions` 目前不讀取 `q` 或 `t` query parameter；帶入這些參數不會進入另一條搜尋程式分支，只是回傳同一份已套用資料來源過濾的完整集合。因此失敗回報中的 `?q=電子發票加值中心` 不會繞過 `solutionFilters`。
+
 ### 尚待補強的驗證
 
 1. 選一筆已知 `record_status=正常` 的 solution_id，完成同樣的 source row 對照，留下保留證據。
