@@ -56,9 +56,33 @@
 
 `/api/solutions` 目前不讀取 `q` 或 `t` query parameter；帶入這些參數不會進入另一條搜尋程式分支，只是回傳同一份已套用資料來源過濾的完整集合。因此失敗回報中的 `?q=電子發票加值中心` 不會繞過 `solutionFilters`。
 
-### 尚待補強的驗證
+## Airtable 路徑端到端驗證
 
-1. 選一筆已知 `record_status=正常` 的 solution_id，完成同樣的 source row 對照，留下保留證據。
-2. 暫時將 Preview `DB_SOURCE_SOLUTIONS` 切至 Airtable，以相同已下架／正常 solution_id 重測 Airtable 路徑；目前 Preview 使用 Supabase，已完成 Supabase 實測。
-3. 若要逐家公司驗證 `api/companies` 的方案數變動，需由具資料庫查詢權限者提供已下架方案對應的公司與變動前基準。
+為驗證 Preview 上的 Airtable 路徑，曾以僅限 Preview 的來源覆寫與 trace 入口進行測試；測試完成後已完整移除，最終程式碼沒有這些 query 參數或除錯輸出。
+
+- Airtable 原始資料中找到 **26** 筆 `record_status` 以「已下架」開頭的記錄。
+- 排除樣本：`rec0MMRzXu2A0GfPm`，`solution_name=缺`，`record_status=已下架_資料異常`。
+  - 以 `RECORD_ID()` 直查原始資料：找到 1 筆。
+  - 以 `AND(NOT(LEFT({record_status}, 3) = "已下架"), RECORD_ID() = ...)` 查詢：`activeMatches=0`。
+  - 完整 Airtable 模式 `/api/solutions`：HTTP 200、回傳 **2,459** 筆，該 record ID 不存在。
+- 正常保留樣本：SOL-SME-0183 對應 Airtable record `rec4pe2a1KC56NnpW`，方案名「電子發票加值中心」，原始 Airtable `record_status` 為空字串。
+  - 同一條 active filter：`activeMatches=1`。
+  - 完整 Airtable 模式輸出仍含該 record，來源為 `中企署`，證實 NULL／空字串不會被誤排除。
+
+### SOL-1320 與 SOL-SME-0183 對照
+
+| 欄位 | SOL-1320 | SOL-SME-0183 |
+| --- | --- | --- |
+| 名稱 | 電子發票加值中心(無限型) | 電子發票加值中心 |
+| Supabase `record_status` | 已下架_平台停止服務 | 正常營運資料（來源資料未標示已下架） |
+| 回傳結果 | 已排除 | 保留 |
+
+兩筆名稱相似但為不同方案；使用名稱搜尋不能作為 SOL-1320 過濾是否成功的判斷依據。預設保留的 `疑似已下架_平台停止服務未逐筆驗證` 仍未納入排除範圍。
+
+## 最終驗證狀態
+
+1. Supabase：已以 SOL-1320 完成實際排除驗證，HTTP 200。
+2. Airtable：已以一筆明確「已下架_資料異常」資料完成原始資料、filter 結果與完整 API 三段驗證，HTTP 200。
+3. 正常方案：SOL-SME-0183 對應記錄完整保留。
+4. `api/companies.js` 的逐家公司統計差異仍需具資料庫比較基準時另行驗證；本次僅改動與 `api/solutions.js`／`api/stats.js` 一致的過濾條件。
 
