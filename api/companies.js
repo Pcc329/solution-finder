@@ -1,6 +1,6 @@
 // api/companies.js — Vercel Serverless Function
 const DEFAULT_COMPANIES_SOURCE = 'airtable';
-const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
+const ACTIVE_SOLUTIONS_FILTER = 'NOT(LEFT({record_status}, 3) = "已下架")';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -155,8 +155,9 @@ export default async function handler(req, res) {
   async function fetchSupabaseSolutions(url, anonKey) {
     const endpoint = new URL('/rest/v1/solutions', url);
     endpoint.searchParams.set('select', 'company_id,solution_name,description,has_ai,score_overall,industry_category,features_list');
-    // Exclude only confirmed retired records; retain legacy rows with a NULL status.
-    endpoint.searchParams.set('or', '(record_status.is.null,record_status.neq.已下架_資料異常)');
+    // Exclude every confirmed retired status beginning with 「已下架」;
+    // retain legacy NULL and unverified 「疑似已下架」 statuses.
+    endpoint.searchParams.set('or', '(record_status.is.null,record_status.not.like.已下架*)');
 
     const pageSize = 1000;
     const allSolutions = [];
