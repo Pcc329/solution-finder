@@ -33,12 +33,30 @@
 - `GET /api/solutions`：HTTP 200，回傳 **2,333** 筆。
 - `GET /api/stats`：HTTP 200，`total=2,333`、`companyTotal=906`，與 solutions 總筆數一致。
 - `GET /api/companies`：HTTP 200，回傳首頁既有上限的 200 家公司；確認 companies Supabase 路徑沒有因 `not.like` 查詢而失敗。
-- Preview 回傳資料的 `id` 是 `airtable_rec_id`，且不公開 `solution_id`／`record_status`。因此 API 名稱搜尋「電子發票加值中心」雖得到 4 筆同名或近名方案，無法從公開回應逐筆確認其中是否就是 `SOL-1320`；不可把名稱結果誤判成前綴條件失效。
 
-仍需具備資料庫查詢權限的人員完成以下最後核對後才可 merge：
+### SOL-1320 端到端追蹤證據
 
-1. 以 `solution_id=SOL-1320` 查核其 Preview/Supabase 原始 `record_status`，確認該筆不在 `/api/solutions` 回傳中。
-2. 選一筆明確 `record_status=正常` 的 solution_id，確認仍可回傳。
-3. 暫時將 Preview `DB_SOURCE_SOLUTIONS` 切至 Airtable，再以相同兩筆 solution_id 重測兩條資料來源。
-4. `GET /api/companies`：確認公司層方案統計不包含已確認下架方案。
+為避免同名方案誤判，曾在 Preview 暫時啟用僅限 Preview 的 trace，完成後已移除，沒有保留在最終程式碼：
+
+```json
+{
+  "source": "supabase",
+  "traceSolutionId": "SOL-1320",
+  "rawRows": [{
+    "solution_id": "SOL-1320",
+    "airtable_rec_id": "reclC4TyfoJVO6Rzx",
+    "record_status": "已下架_平台停止服務"
+  }]
+}
+```
+
+以一般 `/api/solutions` 回傳逐筆檢查：`id === "reclC4TyfoJVO6Rzx"` 的筆數為 **0**，證實 SOL-1320 已在 Supabase 查詢過濾時被排除。
+
+人工瀏覽器用名稱搜尋仍看到的「電子發票加值中心」是另一筆資料：`id=rec4pe2a1KC56NnpW`、業者「鉅盛資訊股份有限公司」、`program_type=SME AI平台`、`data_source=中企署`。它不是 SOL-1320，不能因名稱相同而當成過濾失效。
+
+### 尚待補強的驗證
+
+1. 選一筆已知 `record_status=正常` 的 solution_id，完成同樣的 source row 對照，留下保留證據。
+2. 暫時將 Preview `DB_SOURCE_SOLUTIONS` 切至 Airtable，以相同已下架／正常 solution_id 重測 Airtable 路徑；目前 Preview 使用 Supabase，已完成 Supabase 實測。
+3. 若要逐家公司驗證 `api/companies` 的方案數變動，需由具資料庫查詢權限者提供已下架方案對應的公司與變動前基準。
 
