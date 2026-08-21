@@ -1,7 +1,7 @@
 // api/stats.js — Vercel Serverless Function
 const DEFAULT_SOLUTIONS_SOURCE = 'airtable';
 const DEFAULT_COMPANIES_SOURCE = 'airtable';
-const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
+const ACTIVE_SOLUTIONS_FILTER = 'NOT(LEFT({record_status}, 3) = "已下架")';
 const SUSPENDED_COMPANY_STATUS = '暫停營業';
 
 export default async function handler(req, res) {
@@ -151,8 +151,9 @@ export default async function handler(req, res) {
     }
 
     const activeSolutionsFilter = {
-      // Exclude only confirmed retired solutions; retain legacy NULL statuses.
-      or: '(record_status.is.null,record_status.neq.已下架_資料異常)',
+      // Exclude every confirmed retired status beginning with 「已下架」;
+      // retain legacy NULL and unverified 「疑似已下架」 statuses.
+      or: '(record_status.is.null,record_status.not.like.已下架*)',
     };
     const activeCompaniesFilter = {
       // Supabase companies uses its own enum, distinct from Solutions.record_status.
