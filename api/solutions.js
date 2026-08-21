@@ -138,6 +138,25 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
       }
 
+      // Temporary Preview-only trace endpoint for a specific solution_id.
+      // Remove after confirming the production data path; never expose it in production.
+      const traceSolutionId = String(req.query?.traceSolutionId || '').trim();
+      if (traceSolutionId && process.env.VERCEL_ENV === 'preview') {
+        const traceRows = await fetchAllSupabasePaged(
+          supabaseUrl,
+          supabaseAnonKey,
+          'solutions',
+          'solution_id,airtable_rec_id,record_status',
+          'solution_id.asc',
+          { solution_id: `eq.${traceSolutionId}` }
+        );
+        return res.status(200).json({
+          source,
+          traceSolutionId,
+          rawRows: traceRows,
+        });
+      }
+
       const solutionFilters = {
         // Exclude every confirmed retired status beginning with 「已下架」;
         // retain legacy NULL and unverified 「疑似已下架」 statuses.
