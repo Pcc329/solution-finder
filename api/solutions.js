@@ -128,33 +128,11 @@ export default async function handler(req, res) {
 
   try {
     const source = getSolutionsSource();
-    // Expose the active non-secret source in Preview responses for operational verification.
-    res.setHeader('X-Solutions-Data-Source', source);
-
     if (source === 'supabase') {
       const supabaseUrl = process.env.SUPABASE_URL;
       const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
       if (!supabaseUrl || !supabaseAnonKey) {
         return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
-      }
-
-      // Temporary Preview-only trace endpoint for a specific solution_id.
-      // Remove after confirming the production data path; never expose it in production.
-      const traceSolutionId = String(req.query?.traceSolutionId || '').trim();
-      if (traceSolutionId && process.env.VERCEL_ENV === 'preview') {
-        const traceRows = await fetchAllSupabasePaged(
-          supabaseUrl,
-          supabaseAnonKey,
-          'solutions',
-          'solution_id,airtable_rec_id,record_status',
-          'solution_id.asc',
-          { solution_id: `eq.${traceSolutionId}` }
-        );
-        return res.status(200).json({
-          source,
-          traceSolutionId,
-          rawRows: traceRows,
-        });
       }
 
       const solutionFilters = {
