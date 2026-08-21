@@ -1,7 +1,7 @@
 // api/solutions.js — Vercel Serverless Function
 // 從 Airtable 抓取 Solutions 資料，join Companies 的 region/is_startup/company_name
 const DEFAULT_SOLUTIONS_SOURCE = 'airtable';
-const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
+const ACTIVE_SOLUTIONS_FILTER = 'NOT(LEFT({record_status}, 3) = "已下架")';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -137,8 +137,9 @@ export default async function handler(req, res) {
       }
 
       const solutionFilters = {
-        // Only exclude the confirmed abnormal status; include legacy NULL statuses.
-        or: '(record_status.is.null,record_status.neq.已下架_資料異常)',
+        // Exclude every confirmed retired status beginning with 「已下架」;
+        // retain legacy NULL and unverified 「疑似已下架」 statuses.
+        or: '(record_status.is.null,record_status.not.like.已下架*)',
       };
       const [solRows, coRows, dataSourceBySolutionId] = await Promise.all([
         fetchAllSupabasePaged(
@@ -339,3 +340,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
