@@ -27,14 +27,17 @@
   - `正常`：保留。
   - NULL／空字串：保留。
 
-## 真實環境驗證待辦
+## 真實 Preview 驗證
 
-此 commit 產生 Vercel Preview 後，必須以 Preview 實測，不能以本機邏輯結果取代：
+- Preview：`https://solution-finder-git-fix-recor-834295-patrick0814-6136s-projects.vercel.app`
+- `GET /api/solutions`：HTTP 200，回傳 **2,333** 筆。
+- `GET /api/stats`：HTTP 200，`total=2,333`、`companyTotal=906`，與 solutions 總筆數一致。
+- Preview 回傳資料的 `id` 是 `airtable_rec_id`，且不公開 `solution_id`／`record_status`。因此 API 名稱搜尋「電子發票加值中心」雖得到 4 筆同名或近名方案，無法從公開回應逐筆確認其中是否就是 `SOL-1320`；不可把名稱結果誤判成前綴條件失效。
 
-1. `GET /api/solutions`：搜尋或檢查 `SOL-1320`／「電子發票加值中心」不再出現。
-2. 選一筆 `record_status=正常` 的方案，確認仍可回傳。
-3. 將 `DB_SOURCE_SOLUTIONS` 切換／對照 Airtable 與 Supabase 兩條路徑，確認相同的已確認下架狀態均被排除。
-4. `GET /api/stats` 與 `GET /api/companies`：確認方案總數與公司層方案統計不包含已確認下架方案。
+仍需具備資料庫查詢權限的人員完成以下最後核對後才可 merge：
 
-本地端沒有 Vercel Preview 的環境變數與部署控制權，因此在取得 Preview URL 前，不宣稱已完成真實 API 驗證，也不填寫資料總筆數。
+1. 以 `solution_id=SOL-1320` 查核其 Preview/Supabase 原始 `record_status`，確認該筆不在 `/api/solutions` 回傳中。
+2. 選一筆明確 `record_status=正常` 的 solution_id，確認仍可回傳。
+3. 暫時將 Preview `DB_SOURCE_SOLUTIONS` 切至 Airtable，再以相同兩筆 solution_id 重測兩條資料來源。
+4. `GET /api/companies`：確認公司層方案統計不包含已確認下架方案。
 
