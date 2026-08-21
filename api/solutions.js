@@ -157,6 +157,19 @@ export default async function handler(req, res) {
       });
     }
 
+    if (source === 'airtable' && req.query?.traceAirtableRetired === 'true' && process.env.VERCEL_ENV === 'preview') {
+      const retiredRows = await fetchAll('Solutions', 'LEFT({record_status}, 3) = "已下架"');
+      return res.status(200).json({
+        source,
+        retiredCount: retiredRows.length,
+        sample: retiredRows.slice(0, 5).map(rec => ({
+          id: rec.id,
+          solutionName: rec.fields?.['solution_name'] || '',
+          recordStatus: rec.fields?.['record_status'] || '',
+        })),
+      });
+    }
+
     if (source === 'supabase') {
       const supabaseUrl = process.env.SUPABASE_URL;
       const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
