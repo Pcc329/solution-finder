@@ -169,7 +169,7 @@ export default async function handler(req, res) {
       company_status: 'neq.暫停營業',
     };
 
-    const [solutionRecords, companyRecords] = await Promise.all([
+    const [solutionRecords, companyRecords, caseRecords] = await Promise.all([
       solutionsSource === 'supabase'
         ? fetchAllSupabasePaged(
           supabaseUrl,
