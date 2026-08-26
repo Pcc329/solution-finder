@@ -204,6 +204,131 @@
       border-left: 3px solid var(--primary);
     }
 
+    .recent-case-hero {
+      margin-bottom: 14px;
+      padding: 18px;
+      border: 1px solid #BFE5D8;
+      border-radius: 8px;
+      background: #ECF8F4;
+    }
+
+    .recent-case-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 4px;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 850;
+    }
+
+    .recent-case-desc {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .recent-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .recent-metric {
+      min-width: 112px;
+    }
+
+    .recent-metric-value {
+      display: block;
+      color: var(--primary-dark);
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .recent-metric-value.total {
+      color: var(--text);
+      font-size: 24px;
+    }
+
+    .recent-metric-label {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .recent-secondary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .recent-secondary-card {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #F7FAF9;
+    }
+
+    .recent-secondary-title {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .recent-secondary-card .recent-metrics {
+      gap: 20px;
+    }
+
+    .recent-secondary-card .recent-metric-value {
+      color: var(--text);
+      font-size: 22px;
+    }
+
+    .recent-secondary-card .recent-metric-value.total {
+      font-size: 20px;
+    }
+
+    .recent-list-heading {
+      margin: 0 0 4px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .recent-list-note {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .recent-item-type {
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 8px;
+      white-space: nowrap;
+    }
+
+    .recent-item-type.case {
+      border: 1px solid #BFE5D8;
+      background: #E6F4F1;
+      color: var(--primary-dark);
+    }
+
+    .recent-item-type.solution {
+      border: 1px solid #D9E4F0;
+      background: #EEF4FA;
+      color: #255B8C;
+    }
+
     .update-head {
       display: flex;
       align-items: center;
@@ -1105,6 +1230,10 @@
         height: 420px;
       }
 
+      .recent-secondary-grid {
+        grid-template-columns: 1fr;
+      }
+
       .update-item {
         display: block;
       }
@@ -1213,16 +1342,53 @@
         <h2>近期更新</h2>
         <span class="update-dot">● 即時</span>
       </div>
-      <div class="update-stats">
-        <div class="update-stat">
-          <span class="update-num" id="newThisWeek">--</span>
-          <span class="update-label">本週新增</span>
+
+      <article class="recent-case-hero" aria-label="案例知識庫近期更新">
+        <h3 class="recent-case-title">案例知識庫 Cases</h3>
+        <p class="recent-case-desc">以真實輔導成效紀錄為準，已排除模擬示範資料。</p>
+        <div class="recent-metrics">
+          <div class="recent-metric">
+            <span class="recent-metric-value" id="newCasesThisWeek">--</span>
+            <span class="recent-metric-label">本週新增案例</span>
+          </div>
+          <div class="recent-metric">
+            <span class="recent-metric-value total" id="caseTotal">--</span>
+            <span class="recent-metric-label">累計真實案例</span>
+          </div>
         </div>
-        <div class="update-stat">
-          <span class="update-num" id="newThisMonth">--</span>
-          <span class="update-label">本月寫入資料庫</span>
-        </div>
+      </article>
+
+      <div class="recent-secondary-grid">
+        <article class="recent-secondary-card" aria-label="方案近期更新">
+          <h3 class="recent-secondary-title">方案 Solutions</h3>
+          <div class="recent-metrics">
+            <div class="recent-metric">
+              <span class="recent-metric-value" id="newThisWeek">--</span>
+              <span class="recent-metric-label">本週新增</span>
+            </div>
+            <div class="recent-metric">
+              <span class="recent-metric-value total" id="recentSolutionTotal">--</span>
+              <span class="recent-metric-label">累計總數</span>
+            </div>
+          </div>
+        </article>
+        <article class="recent-secondary-card" aria-label="公司近期更新">
+          <h3 class="recent-secondary-title">公司 Companies</h3>
+          <div class="recent-metrics">
+            <div class="recent-metric">
+              <span class="recent-metric-value" id="newCompaniesThisWeek">--</span>
+              <span class="recent-metric-label">本週新增</span>
+            </div>
+            <div class="recent-metric">
+              <span class="recent-metric-value total" id="recentCompanyTotal">--</span>
+              <span class="recent-metric-label">累計總數</span>
+            </div>
+          </div>
+        </article>
       </div>
+
+      <h3 class="recent-list-heading">最新寫入項目</h3>
+      <p class="recent-list-note">案例與方案依建立時間混合排序</p>
       <div class="update-list" id="latest5List"></div>
     </section>
 
@@ -1806,34 +1972,54 @@
       const c = SOURCE_BADGE_COLORS[name] || SOURCE_BADGE_DEFAULT;
       return `<span class="update-item-source" style="background:${c.bg};color:${c.color};">${escapeHtml(name)}</span>`;
     }
+    function formatRecentTime(value) {
+      const created = new Date(value);
+      const daysAgo = Number.isFinite(created.getTime())
+        ? Math.max(0, Math.floor((Date.now() - created) / (1000 * 60 * 60 * 24)))
+        : null;
+      if (daysAgo === null) return '--';
+      if (daysAgo === 0) return '今天';
+      return daysAgo === 1 ? '1 天前' : `${daysAgo} 天前`;
+    }
+
+    function renderRecentTypeBadge(type) {
+      const isCase = type === 'case';
+      return `<span class="recent-item-type ${isCase ? 'case' : 'solution'}">${isCase ? '案例' : '方案'}</span>`;
+    }
+
     function updateRecentActivity(data) {
+      document.getElementById('newCasesThisWeek').textContent = `+${data.newCasesThisWeek || 0}`;
+      document.getElementById('caseTotal').textContent = formatNumber(data.caseTotal || 0);
       document.getElementById('newThisWeek').textContent = `+${data.newThisWeek || 0}`;
-      document.getElementById('newThisMonth').textContent = `+${data.newThisMonth || 0}`;
+      document.getElementById('recentSolutionTotal').textContent = formatNumber(data.total || 0);
+      document.getElementById('newCompaniesThisWeek').textContent = `+${data.newCompaniesThisWeek || 0}`;
+      document.getElementById('recentCompanyTotal').textContent = formatNumber(data.companyTotal || 0);
+
       const list = document.getElementById('latest5List');
-      if (!data.latest5 || !data.latest5.length) {
+      const items = data.recentItems || data.latest5 || [];
+      if (!items.length) {
         list.innerHTML = '<div class="update-item"><span class="update-item-company">尚無近期更新資料</span></div>';
         return;
       }
-      list.innerHTML = data.latest5.map(item => {
-        const created = new Date(item.createdTime);
-        const daysAgo = Number.isFinite(created.getTime())
-          ? Math.max(0, Math.floor((Date.now() - created) / (1000 * 60 * 60 * 24)))
-          : null;
-        const timeText = daysAgo === null ? '--' :
-          daysAgo === 0 ? '今天' :
-          daysAgo === 1 ? '1 天前' : `${daysAgo} 天前`;
+
+      list.innerHTML = items.map(item => {
+        const isCase = item.type === 'case';
+        const secondaryText = isCase
+          ? '真實輔導案例'
+          : (item.company || '');
         return `
           <div class="update-item">
             <div class="update-item-main">
               <div class="update-item-name-row">
-                ${renderSourceBadge(item.dataSource)}
+                ${renderRecentTypeBadge(item.type)}
+                ${!isCase ? renderSourceBadge(item.dataSource) : ''}
                 <span class="update-item-name">${escapeHtml(item.name)}</span>
               </div>
-              <span class="update-item-company">${escapeHtml(item.company)}</span>
+              <span class="update-item-company">${escapeHtml(secondaryText)}</span>
             </div>
             <div class="update-item-meta">
-              ${item.category ? `<span class="update-item-cat">${escapeHtml(item.category)}</span>` : ''}
-              <span class="update-item-time">${timeText}</span>
+              ${!isCase && item.category ? `<span class="update-item-cat">${escapeHtml(item.category)}</span>` : ''}
+              <span class="update-item-time">${formatRecentTime(item.createdTime)}</span>
             </div>
           </div>
         `;
