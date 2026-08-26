@@ -1,6 +1,7 @@
 // api/stats.js — Vercel Serverless Function
 const DEFAULT_SOLUTIONS_SOURCE = 'airtable';
 const DEFAULT_COMPANIES_SOURCE = 'airtable';
+const CASES_TABLE = 'cases';
 const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
 const SUSPENDED_COMPANY_STATUS = '暫停營業';
 
@@ -135,6 +136,14 @@ export default async function handler(req, res) {
     return record?.createdTime || record?.created_at || '';
   }
 
+  function getWeekStart(now) {
+    const start = new Date(now);
+    const day = start.getDay() || 7;
+    start.setDate(start.getDate() - day + 1);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  }
+
   function isAi(value) {
     return value === true || value === '有';
   }
@@ -142,7 +151,8 @@ export default async function handler(req, res) {
   try {
     const solutionsSource = getSource('DB_SOURCE_SOLUTIONS', DEFAULT_SOLUTIONS_SOURCE);
     const companiesSource = getSource('DB_SOURCE_COMPANIES', DEFAULT_COMPANIES_SOURCE);
-    const needsSupabase = solutionsSource === 'supabase' || companiesSource === 'supabase';
+    // Recent case activity is sourced from Supabase so is_real can be enforced server-side.
+    const needsSupabase = true;
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
@@ -159,7 +169,7 @@ export default async function handler(req, res) {
       company_status: 'neq.暫停營業',
     };
 
-    const [solutionRecords, companyRecords] = await Promise.all([
+    const [solutionRecords, companyRecords, caseRecords] = await Promise.all([
       solutionsSource === 'supabase'
         ? fetchAllSupabasePaged(
           supabaseUrl,
@@ -175,11 +185,19 @@ export default async function handler(req, res) {
           supabaseUrl,
           supabaseAnonKey,
           'companies',
-          'company_id,company_name,region,is_startup,city,company_status',
+          'company_id,company_name,region,is_startup,city,company_status,created_at',
           'company_id.asc',
           activeCompaniesFilter
         )
         : fetchAll('Companies'),
+      fetchAllSupabasePaged(
+        supabaseUrl,
+        supabaseAnonKey,
+        CASES_TABLE,
+        'case_id,case_name,created_at,is_real',
+        'created_at.desc',
+        { is_real: 'eq.true' }
+      ),
     ]);
 
     // Airtable Single Select filters on Chinese values are unreliable; retain active rows and
@@ -188,6 +206,7 @@ export default async function handler(req, res) {
       ? companyRecords.filter(rec => getFields(rec)['company_status'] !== SUSPENDED_COMPANY_STATUS)
       : companyRecords;
     const solutions = solutionRecords;
+    const cases = caseRecords;
 
     const companyNameById = new Map(
       companies.map(rec => {
@@ -199,8 +218,11 @@ export default async function handler(req, res) {
     const now = new Date();
     const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    const weekStart = getWeekStart(now);
     const newThisWeek = solutions.filter(rec => new Date(getCreatedTime(rec)) > weekAgo).length;
     const newThisMonth = solutions.filter(rec => new Date(getCreatedTime(rec)) > monthAgo).length;
+    const newCompaniesThisWeek = companies.filter(rec => new Date(getCreatedTime(rec)) >= weekStart).length;
+    const newCasesThisWeek = cases.filter(rec => new Date(getCreatedTime(rec)) >= weekStart).length;
     const latest5 = [...solutions]
       .sort((a, b) => new Date(getCreatedTime(b)) - new Date(getCreatedTime(a)))
       .slice(0, 5)
@@ -214,6 +236,25 @@ export default async function handler(req, res) {
           createdTime: getCreatedTime(rec),
         };
       });
+
+    const latestCases = [...cases]
+      .sort((a, b) => new Date(getCreatedTime(b)) - new Date(getCreatedTime(a)))
+      .slice(0, 5)
+      .map(rec => {
+        const f = getFields(rec);
+        return {
+          type: 'case',
+          name: f['case_name'] || '',
+          createdTime: getCreatedTime(rec),
+        };
+      });
+
+    const recentItems = [
+      ...latest5.map(item => ({ ...item, type: 'solution' })),
+      ...latestCases,
+    ]
+      .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
+      .slice(0, 5);
 
     const byCategory = {};
     const byProgramType = {};
@@ -256,6 +297,10 @@ export default async function handler(req, res) {
       newThisWeek,
       newThisMonth,
       latest5,
+      caseTotal: cases.length,
+      newCasesThisWeek,
+      newCompaniesThisWeek,
+      recentItems,
     });
   } catch (err) {
     console.error('Stats API error:', err);
