@@ -41,7 +41,13 @@ const EXCLUDED_FIELDS = new Set([
 ]);
 const ALLOWED_CONFIDENTIALITY = new Set(['內部可看', '公開']);
 
-function projectCases(records) {
+function resolveIndustryDisplay(rawValue, codeMap) {
+  if (!rawValue) return rawValue;
+  const name = codeMap.get(rawValue);
+  return name ? `${rawValue} ${name}` : rawValue;
+}
+
+function projectCases(records, codeMap) {
   return records
     .filter(fields => {
       const confidentiality = String(fields?.confidentiality || '').trim();
@@ -49,9 +55,11 @@ function projectCases(records) {
     })
     .map(fields => CASE_FIELD_WHITELIST.reduce((safeFields, fieldName) => {
       if (EXCLUDED_FIELDS.has(fieldName)) return safeFields;
-      safeFields[fieldName] = fieldName === 'secondary_industry_codes'
-        ? fields.secondary_industry_codes ?? []
-        : fields[fieldName] ?? '';
+      safeFields[fieldName] = fieldName === 'industry_code'
+        ? resolveIndustryDisplay(fields.industry_code ?? '', codeMap)
+        : fieldName === 'secondary_industry_codes'
+          ? fields.secondary_industry_codes ?? []
+          : fields[fieldName] ?? '';
       return safeFields;
     }, {}));
 }
@@ -143,6 +151,36 @@ export default async function handler(req, res) {
     return Array.isArray(data) ? data : [];
   }
 
+  async function fetchIndustryCodeMap(url, anonKey) {
+    try {
+      const endpoint = new URL('/rest/v1/industry_codes', url);
+      endpoint.searchParams.set('select', 'code,name');
+
+      const response = await fetch(endpoint, {
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        },
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        console.error(`[Supabase Industry Codes Error] status=${response.status} endpoint=${req.url} table=industry_codes time=${new Date().toISOString()} message=${body}`);
+        return new Map();
+      }
+
+      const data = await response.json();
+      return new Map(
+        (Array.isArray(data) ? data : [])
+          .filter(row => row?.code && row?.name)
+          .map(row => [row.code, row.name])
+      );
+    } catch (err) {
+      console.error(`[Supabase Industry Codes Error] endpoint=${req.url} table=industry_codes time=${new Date().toISOString()} message=${err.message}`);
+      return new Map();
+    }
+  }
+
   function normalizeSupabaseCase(fields) {
     const normalized = {};
 
@@ -163,17 +201,21 @@ export default async function handler(req, res) {
 
   try {
     const source = getCasesSource();
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
     let converted;
 
-    if (source === 'supabase') {
-      const supabaseUrl = process.env.SUPABASE_URL;
-      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseAnonKey) {
-        return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
-      }
+    if (source === 'supabase' && (!supabaseUrl || !supabaseAnonKey)) {
+      return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
+    }
 
+    const industryCodeMap = supabaseUrl && supabaseAnonKey
+      ? await fetchIndustryCodeMap(supabaseUrl, supabaseAnonKey)
+      : new Map();
+
+    if (source === 'supabase') {
       const records = await fetchAllSupabase(supabaseUrl, supabaseAnonKey);
-      converted = projectCases(records.map(normalizeSupabaseCase));
+      converted = projectCases(records.map(normalizeSupabaseCase), industryCodeMap);
     } else {
       const airtableToken = process.env.AIRTABLE_TOKEN;
       if (!airtableToken) {
@@ -181,7 +223,7 @@ export default async function handler(req, res) {
       }
 
       const records = await fetchAllAirtable(CASES_TABLE_ID, airtableToken);
-      converted = projectCases(records.map(rec => normalizeAirtableCase(rec.fields || {})));
+      converted = projectCases(records.map(rec => normalizeAirtableCase(rec.fields || {})), industryCodeMap);
     }
 
     return res.status(200).json(converted);
