@@ -9,6 +9,7 @@ const CASE_FIELD_WHITELIST = [
   'case_name',
   'industry',
   'industry_code',
+  'secondary_industry_codes',
   'company_size',
   'company_display_name',
   'pain_points',
@@ -48,7 +49,9 @@ function projectCases(records) {
     })
     .map(fields => CASE_FIELD_WHITELIST.reduce((safeFields, fieldName) => {
       if (EXCLUDED_FIELDS.has(fieldName)) return safeFields;
-      safeFields[fieldName] = fields[fieldName] ?? '';
+      safeFields[fieldName] = fieldName === 'secondary_industry_codes'
+        ? fields.secondary_industry_codes ?? []
+        : fields[fieldName] ?? '';
       return safeFields;
     }, {}));
 }
@@ -144,7 +147,9 @@ export default async function handler(req, res) {
     const normalized = {};
 
     for (const [fieldName, value] of Object.entries(fields || {})) {
-      normalized[fieldName] = value ?? '';
+      normalized[fieldName] = fieldName === 'secondary_industry_codes'
+        ? value ?? []
+        : value ?? '';
     }
 
     return normalized;
