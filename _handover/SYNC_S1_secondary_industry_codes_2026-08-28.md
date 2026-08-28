@@ -85,3 +85,9 @@ WHERE table_name = 'cases' AND column_name = 'secondary_industry_codes';
 | 既有 Cases 未回填、保持 NULL | Pending：需 SQL 查詢確認 |
 | 真實 Preview API 200 且每筆含 key | Pending：需部署後測試 |
 | confidentiality 過濾後 85 筆不變 | Pending：需真實 Preview 測試 |
+
+## Preview 部署狀態
+
+- Vercel commit status：success。
+- 部署資訊頁需要已登入的 Vercel session 才會提供可呼叫的 Preview alias；本環境取得的未驗證頁面回應要求登入，無法誠實宣稱已完成真實 Preview API 呼叫。
+- 因此本 PR 維持 Draft。請先依本文件 SQL 區塊完成 Schema 建立，之後再用該 PR 的 Vercel Preview 呼叫 /api/cases，確認 200、85 筆基準與每筆 secondary_industry_codes 為 [] 或 text[]。
