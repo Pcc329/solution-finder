@@ -25,6 +25,8 @@ const CASE_FIELD_WHITELIST = [
   'ai_maturity_stage',
   'difficulty_level',
   'is_real',
+  'provider_linked_company_id',
+  'case_relationship_type',
 ];
 
 // Never add these source/audit/private fields back to the API response:
