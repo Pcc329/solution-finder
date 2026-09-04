@@ -37,20 +37,24 @@ export default async function handler(req, res) {
   }
 
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
+  // This key is server-only and is never returned to the client.
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    return res.status(500).json({
+      error: 'SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not configured',
+    });
   }
 
   const headers = {
-    apikey: supabaseAnonKey,
-    Authorization: `Bearer ${supabaseAnonKey}`,
+    apikey: supabaseServiceRoleKey,
+    Authorization: `Bearer ${supabaseServiceRoleKey}`,
   };
 
-  async function fetchSupabase(table, select) {
+  async function fetchSupabase(table, select, limit) {
     const endpoint = new URL(`/rest/v1/${table}`, supabaseUrl);
     endpoint.searchParams.set('select', select);
     endpoint.searchParams.set('company_id', `eq.${companyId}`);
+    if (limit) endpoint.searchParams.set('limit', String(limit));
 
     const response = await fetch(endpoint, { headers });
     if (!response.ok) {
@@ -66,7 +70,8 @@ export default async function handler(req, res) {
   try {
     const companies = await fetchSupabase(
       'companies',
-      'company_id,company_name,ceo_name,capital,established_date,website,company_intro,employee_range,company_type'
+      'company_id,company_name,ceo_name,capital,established_date,website,company_intro,employee_range,company_type',
+      1
     );
     const company = companies[0];
 
@@ -75,7 +80,7 @@ export default async function handler(req, res) {
     }
 
     const [contacts, awards] = await Promise.all([
-      fetchSupabase('contacts', 'contact_name,title,email,mobile,office_phone'),
+      fetchSupabase('contacts', 'contact_name,title,office_phone'),
       fetchSupabase('awards', 'award_name,award_level,host_org,award_year,match_method'),
     ]);
 
@@ -92,8 +97,6 @@ export default async function handler(req, res) {
       contacts: contacts.map(contact => ({
         contact_name: textOrBlank(contact.contact_name),
         title: textOrBlank(contact.title),
-        email: textOrBlank(contact.email),
-        mobile: textOrBlank(contact.mobile),
         office_phone: textOrBlank(contact.office_phone),
       })),
       awards: awards.map(award => ({
