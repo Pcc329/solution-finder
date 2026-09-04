@@ -81,5 +81,4 @@ formatScaleDisplay tests
 
 - Base: `origin/main` at `400b03159b3c7430fe05837c05c1a5d299b06c49`
 - Branch: `fix/scale-display-unlimited-2026-09-04`
-- Pull request: pending creation after push
-
+- Pull request: https://github.com/Pcc329/solution-finder/pull/140
