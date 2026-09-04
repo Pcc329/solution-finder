@@ -272,6 +272,50 @@
       animation: inlineDetailIn 160ms ease-out;
     }
     .inline-detail.no-animation { animation: none; }
+    .solution-detail-tabs {
+      display: flex; gap: 4px; overflow-x: auto;
+      margin: 0 -2px 18px; padding: 0 2px 8px;
+      border-bottom: 1px solid #dbe7ef;
+    }
+    .solution-detail-tab {
+      flex: 0 0 auto; border: none; border-radius: 7px;
+      padding: 8px 12px; background: transparent; color: #64748b;
+      cursor: pointer; font-size: 13px; font-weight: 800;
+      transition: background .15s ease, color .15s ease;
+    }
+    .solution-detail-tab:hover { background: #ecfdf5; color: #0f766e; }
+    .solution-detail-tab.is-active { background: #0f766e; color: #ffffff; }
+    .solution-detail-panel { min-width: 0; }
+    .company-profile-heading {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+    }
+    .company-profile-avatar {
+      width: 44px; height: 44px; flex: 0 0 auto; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #ffffff; font-size: 18px; font-weight: 900;
+    }
+    .company-profile-name { color: #0f172a; font-size: 16px; font-weight: 900; }
+    .company-detail-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px; margin-bottom: 18px;
+    }
+    .company-detail-item { min-width: 0; }
+    .company-detail-label { color: #94a3b8; font-size: 11px; font-weight: 800; }
+    .company-detail-value { color: #334155; font-size: 13px; font-weight: 700; overflow-wrap: break-word; word-break: break-word; }
+    .company-detail-section { margin-top: 18px; }
+    .company-detail-section-title { color: #1e293b; font-size: 14px; font-weight: 900; margin-bottom: 8px; }
+    .company-contact-list, .company-award-list { display: grid; gap: 8px; }
+    .company-contact-item, .company-award-item {
+      border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; padding: 10px 12px;
+    }
+    .company-contact-name, .company-award-name { color: #334155; font-size: 13px; font-weight: 900; }
+    .company-contact-meta, .company-award-meta { color: #64748b; font-size: 12px; line-height: 1.55; }
+    .company-award-source { color: #0f766e; font-size: 11px; font-weight: 800; }
+    .detail-empty-state {
+      padding: 22px 16px; border: 1px dashed #cbd5e1; border-radius: 10px;
+      background: #f8fafc; color: #64748b; font-size: 13px; text-align: center;
+    }
+    .detail-case-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .inline-detail,
     .inline-detail p,
     .inline-detail li {
@@ -287,6 +331,8 @@
       .reference-case-lightbox-nav { top: auto; bottom: 92px; }
       .reference-case-lightbox-prev { left: calc(50% - 54px); }
       .reference-case-lightbox-next { right: calc(50% - 54px); }
+      .company-detail-grid { grid-template-columns: 1fr; }
+      .solution-detail-tab { padding: 8px 10px; font-size: 12px; }
     }
     @media (min-width: 1024px) {
       .diagnosis-workspace {
@@ -764,6 +810,10 @@
     const CASE_MOBILE_MAX = 1;
     let currentView = "result";
     let selectedSolution = null;
+    const detailTabsBySolutionId = new Map();
+    const companyDetailCache = new Map();
+    let detailExpandedCaseTitles = [];
+    let detailLastToggledCaseTitle = null;
     let stepIndex = 0;
     let conversationHistory = [];
 
@@ -912,6 +962,226 @@
       return item?.[shortName] ?? item?.[fullName] ?? "";
     }
 
+    function getSolutionDetailKey(item) {
+      return safeStr(solutionField(item, "id", "id") || solutionField(item, "s", "name")).trim();
+    }
+
+    function getSolutionCompanyId(item) {
+      return safeStr(solutionField(item, "cid", "company_id")).trim();
+    }
+
+    function getActiveDetailTab(item) {
+      return detailTabsBySolutionId.get(getSolutionDetailKey(item)) || "solution";
+    }
+
+    function setActiveDetailTab(item, tab) {
+      detailTabsBySolutionId.set(getSolutionDetailKey(item), tab);
+    }
+
+    function getDetailTabsHtml(item, activeTab) {
+      const tabs = [
+        ["solution", "方案介紹"],
+        ["company", "公司介紹"],
+        ["cases", "案例文章"],
+      ];
+      return `
+        <div class="solution-detail-tabs" role="tablist" aria-label="方案詳細資訊分頁">
+          ${tabs.map(([key, label]) => `
+            <button class="solution-detail-tab ${activeTab === key ? "is-active" : ""}" type="button" data-solution-detail-tab="${key}" role="tab" aria-selected="${activeTab === key}">${label}</button>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function providedCompanyValue(value) {
+      const text = safeStr(value).trim();
+      return text || "未提供";
+    }
+
+    function companyCapitalValue(value) {
+      if (value === null || value === undefined || value === "") return "未提供";
+      const capital = Number(value);
+      return Number.isFinite(capital) ? `NT$ ${capital.toLocaleString("zh-TW")}` : providedCompanyValue(value);
+    }
+
+    function getCompanyAvatarColor(name) {
+      const colors = ["#0f766e", "#185FA5", "#7c3aed", "#be123c", "#b45309", "#0369a1"];
+      const hash = [...safeStr(name)].reduce((total, char) => total + char.charCodeAt(0), 0);
+      return colors[hash % colors.length];
+    }
+
+    function getCompanyDetailTabHtml(item) {
+      const companyId = getSolutionCompanyId(item);
+      if (!companyId) {
+        return '<div class="detail-empty-state">暫無公司資料</div>';
+      }
+
+      const entry = companyDetailCache.get(companyId);
+      if (!entry || entry.status === "loading") {
+        return '<div class="detail-empty-state"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>正在載入公司資料...</div>';
+      }
+      if (entry.status === "error") {
+        return '<div class="detail-empty-state">暫無公司資料</div>';
+      }
+
+      const company = entry.data;
+      const companyName = providedCompanyValue(company.company_name || solutionField(item, "c", "vendor"));
+      const website = safeStr(company.website).trim();
+      const websiteHtml = /^https?:\/\//i.test(website)
+        ? `<a class="text-teal-700 underline underline-offset-2" href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">${escapeHtml(website)}</a>`
+        : escapeHtml(providedCompanyValue(website));
+      const details = [
+        ["負責人", providedCompanyValue(company.ceo_name)],
+        ["資本額", companyCapitalValue(company.capital)],
+        ["成立時間", providedCompanyValue(company.established_date)],
+        ["員工規模", providedCompanyValue(company.employee_range)],
+        ["公司類型", providedCompanyValue(company.company_type)],
+      ];
+      const contacts = Array.isArray(company.contacts) ? company.contacts : [];
+      const awards = Array.isArray(company.awards) ? company.awards : [];
+
+      return `
+        <div class="solution-detail-panel">
+          <div class="company-profile-heading">
+            <div class="company-profile-avatar" style="background:${getCompanyAvatarColor(companyName)}" aria-hidden="true">${escapeHtml(companyName.charAt(0) || "企")}</div>
+            <div>
+              <div class="company-profile-name">${escapeHtml(companyName)}</div>
+              <div class="text-xs text-slate-500 mt-1">公司基本資料</div>
+            </div>
+          </div>
+          <div class="company-detail-grid">
+            ${details.map(([label, value]) => `
+              <div class="company-detail-item">
+                <div class="company-detail-label">${label}</div>
+                <div class="company-detail-value">${escapeHtml(value)}</div>
+              </div>
+            `).join("")}
+            <div class="company-detail-item">
+              <div class="company-detail-label">官方網站</div>
+              <div class="company-detail-value">${websiteHtml}</div>
+            </div>
+          </div>
+          <section class="company-detail-section">
+            <h4 class="company-detail-section-title">公司介紹</h4>
+            <p class="text-sm text-slate-600" style="white-space:pre-line; overflow-wrap:break-word; word-break:break-word;">${escapeHtml(providedCompanyValue(company.company_intro))}</p>
+          </section>
+          ${contacts.length ? `
+            <section class="company-detail-section">
+              <h4 class="company-detail-section-title">聯絡窗口</h4>
+              <div class="company-contact-list">
+                ${contacts.map(contact => {
+                  const lines = [
+                    contact.contact_name,
+                    contact.title,
+                    contact.office_phone,
+                  ].map(value => safeStr(value).trim()).filter(Boolean);
+                  return `
+                    <div class="company-contact-item">
+                      <div class="company-contact-name">${escapeHtml(lines[0] || "未提供")}</div>
+                      ${lines.slice(1).map(value => `<div class="company-contact-meta">${escapeHtml(value)}</div>`).join("")}
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </section>
+          ` : ""}
+          ${awards.length ? `
+            <section class="company-detail-section">
+              <h4 class="company-detail-section-title">獲獎紀錄</h4>
+              <div class="company-award-list">
+                ${awards.map(award => `
+                  <div class="company-award-item">
+                    <div class="company-award-name">${escapeHtml(providedCompanyValue(award.award_name))}</div>
+                    <div class="company-award-meta">${escapeHtml([award.award_level, award.host_org, award.award_year].map(safeStr).filter(Boolean).join(" · "))}</div>
+                    ${award.confidence === "ai_extracted" ? '<div class="company-award-source">資料來源：文章萃取</div>' : ""}
+                  </div>
+                `).join("")}
+              </div>
+            </section>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    function isVendorReferenceCase(item) {
+      const relationshipType = safeStr(item.case_relationship_type).trim();
+      return relationshipType === "廠商" || relationshipType === "廠商案例";
+    }
+
+    function getVendorReferenceCases(item) {
+      const companyId = getSolutionCompanyId(item);
+      if (!companyId) return [];
+      return referenceCases.filter(caseItem =>
+        safeStr(caseItem.provider_linked_company_id).trim() === companyId && isVendorReferenceCase(caseItem)
+      );
+    }
+
+    function getDetailCasesTabHtml(item) {
+      if (referenceCasesLoading) {
+        return '<div class="detail-empty-state"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>案例資料載入中...</div>';
+      }
+      const cases = getVendorReferenceCases(item);
+      if (!cases.length) {
+        return '<div class="detail-empty-state">暫無案例資料</div>';
+      }
+      return `
+        <div class="solution-detail-panel">
+          <p class="text-xs text-slate-500 mb-3">共 ${cases.length} 筆廠商案例</p>
+          <div class="detail-case-list" data-detail-case-list>
+            ${getReferenceCaseCardsHtml(cases, detailExpandedCaseTitles, detailLastToggledCaseTitle, "暫無案例資料")}
+          </div>
+        </div>
+      `;
+    }
+
+    function loadCompanyDetail(item, rerender) {
+      const companyId = getSolutionCompanyId(item);
+      if (!companyId || companyDetailCache.has(companyId)) return;
+      companyDetailCache.set(companyId, { status: "loading" });
+      fetch(`/api/company-detail?company_id=${encodeURIComponent(companyId)}`)
+        .then(async response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then(data => companyDetailCache.set(companyId, { status: "ready", data }))
+        .catch(() => companyDetailCache.set(companyId, { status: "error" }))
+        .finally(() => {
+          if (getActiveDetailTab(item) === "company") rerender();
+        });
+    }
+
+    function toggleDetailReferenceCase(item) {
+      const title = safeStr(item?.title).trim();
+      if (!title) return;
+      const index = detailExpandedCaseTitles.indexOf(title);
+      if (index >= 0) {
+        detailExpandedCaseTitles.splice(index, 1);
+        detailLastToggledCaseTitle = null;
+      } else {
+        detailExpandedCaseTitles = [title];
+        detailLastToggledCaseTitle = title;
+      }
+    }
+
+    function bindDetailPanelInteractions(container, item, rerender) {
+      container.querySelectorAll("[data-solution-detail-tab]").forEach(button => {
+        button.addEventListener("click", () => {
+          const tab = button.dataset.solutionDetailTab;
+          setActiveDetailTab(item, tab);
+          if (tab === "company") loadCompanyDetail(item, rerender);
+          rerender();
+        });
+      });
+      const caseList = container.querySelector("[data-detail-case-list]");
+      if (caseList) {
+        const cases = getVendorReferenceCases(item);
+        bindReferenceCaseCardInteractions(caseList, cases, caseItem => {
+          toggleDetailReferenceCase(caseItem);
+          rerender();
+        });
+      }
+    }
+
     function getInlineDetailHtml(item, shouldAnimate) {
       const price = solutionField(item, "pr", "price");
       const monthlyPrice = solutionField(item, "mo", "monthly_price");
@@ -936,10 +1206,14 @@
         ["適用產業", targetIndustry],
         ["適用規模", scale],
       ].filter(([, value]) => safeStr(value).trim());
+      const activeTab = getActiveDetailTab(item);
 
       return `
         <div class="inline-detail ${shouldAnimate ? "" : "no-animation"}">
-          <section class="grid grid-cols-1 ${hasMonthlyPrice ? "sm:grid-cols-2" : ""} gap-3">
+          ${getDetailTabsHtml(item, activeTab)}
+          ${activeTab === "solution" ? `
+          <div class="solution-detail-panel">
+            <section class="grid grid-cols-1 ${hasMonthlyPrice ? "sm:grid-cols-2" : ""} gap-3">
             <div class="bg-white border border-slate-200 rounded-xl p-4">
               <p class="text-xs text-slate-400 mb-1">方案總費用</p>
               ${hasPrice
@@ -952,7 +1226,7 @@
                 <p class="text-xl font-black text-slate-700 font-mono">${formatCurrency(monthlyPrice)}</p>
               </div>
             ` : ""}
-          </section>
+            </section>
 
           ${displayDesc ? `
             <section class="mt-4">
@@ -979,7 +1253,7 @@
             </section>
           ` : ""}
 
-          ${propertyItems.length ? `
+            ${propertyItems.length ? `
             <section class="mt-4">
               <h5 class="text-sm font-black text-slate-800 mb-2 flex items-center gap-2">
                 <i class="fa-solid fa-tags text-slate-400"></i> 方案屬性
@@ -993,7 +1267,9 @@
                 `).join("")}
               </div>
             </section>
-          ` : ""}
+            ` : ""}
+          </div>
+          ` : activeTab === "company" ? getCompanyDetailTabHtml(item) : getDetailCasesTabHtml(item)}
         </div>
       `;
     }
@@ -1037,6 +1313,7 @@
         ["適用產業", targetIndustry],
         ["適用規模", scale],
       ].filter(([, value]) => safeStr(value).trim());
+      const activeTab = getActiveDetailTab(item);
 
       refs.detailView.innerHTML = `
         <div class="max-w-3xl mx-auto space-y-4">
@@ -1055,6 +1332,11 @@
             ${vendor ? `<p class="text-base text-slate-600 font-semibold mt-2">${escapeHtml(vendor)}</p>` : ""}
           </section>
 
+          <section class="card p-4">
+            ${getDetailTabsHtml(item, activeTab)}
+          </section>
+
+          ${activeTab === "solution" ? `
           <section class="grid grid-cols-1 ${hasMonthlyPrice ? "sm:grid-cols-2" : ""} gap-4">
             <div class="card p-5">
               <p class="text-xs text-slate-400 mb-1">方案總費用</p>
@@ -1110,14 +1392,23 @@
               </div>
             </section>
           ` : ""}
+          ` : `
+            <section class="card p-6">
+              ${activeTab === "company" ? getCompanyDetailTabHtml(item) : getDetailCasesTabHtml(item)}
+            </section>
+          `}
         </div>
       `;
       document.getElementById("backToResultBtn")?.addEventListener("click", backToResult);
+      bindDetailPanelInteractions(refs.detailView, item, renderDetail);
     }
 
     function openDetail(item) {
       if (!item) return;
       selectedSolution = item;
+      setActiveDetailTab(item, "solution");
+      detailExpandedCaseTitles = [];
+      detailLastToggledCaseTitle = null;
       currentView = "detail";
       renderDetail();
       updateView();
@@ -1476,6 +1767,9 @@
         expandedIds.splice(index, 1);
       } else {
         expandedIds = [itemId];
+        setActiveDetailTab(item, "solution");
+        detailExpandedCaseTitles = [];
+        detailLastToggledCaseTitle = null;
       }
 
       renderCurrentLists();
@@ -1540,6 +1834,14 @@
       }).join("");
       container.querySelectorAll(".solution-card").forEach(card => {
         card.addEventListener("click", () => toggleInlineDetail(items[Number(card.dataset.index)]));
+      });
+      container.querySelectorAll(".solution-result-item").forEach(resultItem => {
+        const card = resultItem.querySelector(".solution-card");
+        const detail = resultItem.querySelector(".inline-detail");
+        const item = items[Number(card?.dataset.index)];
+        if (detail && item) {
+          bindDetailPanelInteractions(detail, item, renderCurrentLists);
+        }
       });
     }
 
@@ -1728,6 +2030,69 @@
       `;
     }
 
+    function getReferenceCaseCardsHtml(items, expandedTitles, lastToggledTitle, emptyMessage) {
+      return items.length ? items.map((item, index) => {
+        const isExpanded = expandedTitles.includes(item.title);
+        const shouldAnimate = isExpanded && item.title === lastToggledTitle;
+        const mediaHtml = getReferenceCaseMediaHtml(item);
+        return `
+          <div class="reference-case-item">
+            <article class="reference-case-card ${isExpanded ? "is-expanded" : ""} border border-slate-200 p-4" data-reference-case-index="${index}" aria-expanded="${isExpanded}">
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <h4 class="font-black text-slate-900 text-sm leading-snug">${escapeHtml(item.title)}</h4>
+                <div class="flex items-center gap-2 shrink-0">
+                  <i class="fa-solid fa-chevron-${isExpanded ? "up" : "down"} text-xs text-slate-400"></i>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2 mb-3">
+                ${referenceCaseChipHtml("industry", item.industry)}
+                ${referenceCaseChipHtml("solution", item.solutionType)}
+                ${referenceCaseChipHtml("size", item.size)}
+              </div>
+              ${mediaHtml}
+              <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+                <div>
+                  <p class="font-black text-slate-700 mb-1">導入痛點</p>
+                  <p>${escapeHtml(item.pain)}</p>
+                </div>
+                <div>
+                  <span class="reference-case-result-badge mb-1"><i class="fa-solid fa-chart-line"></i>導入成果</span>
+                  <p>${escapeHtml(item.result)}</p>
+                </div>
+              </div>
+            </article>
+            ${isExpanded ? getReferenceCaseDetailHtml(item, shouldAnimate) : ""}
+          </div>
+        `;
+      }).join("") : `
+        <div class="md:col-span-3 text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-4">
+          ${escapeHtml(emptyMessage)}
+        </div>
+      `;
+    }
+
+    function bindReferenceCaseCardInteractions(container, items, onToggle) {
+      container.querySelectorAll("[data-reference-case-index]").forEach(card => {
+        card.addEventListener("click", () => onToggle(items[Number(card.dataset.referenceCaseIndex)]));
+      });
+      container.querySelectorAll("[data-reference-case-media-thumb]").forEach(thumb => {
+        thumb.addEventListener("click", event => {
+          event.preventDefault();
+          event.stopPropagation();
+          const card = thumb.closest("[data-reference-case-index]");
+          const item = items[Number(card?.dataset.referenceCaseIndex || 0)];
+          openReferenceCaseLightbox(item, Number(thumb.dataset.referenceCaseMediaImageIndex || 0));
+        });
+      });
+      container.querySelectorAll("[data-subscribe-case-cta]").forEach(button => {
+        button.addEventListener("click", event => {
+          event.preventDefault();
+          event.stopPropagation();
+          showSubscriptionToast();
+        });
+      });
+    }
+
     function renderReferenceCaseLightbox() {
       const image = referenceCaseLightboxImages[referenceCaseLightboxIndex];
       if (!image) return;
@@ -1816,72 +2181,19 @@
       refs.referenceCaseTitle.textContent = "與您診斷條件相關的參考案例";
       refs.referenceCaseSubtitle.textContent = `依據 ${getReferenceCaseFunnelBasis(referenceCaseFunnelProfile)} 排序，優先呈現最接近的輔導實績與規劃案例。`;
       refs.referenceCaseCount.textContent = `推薦 ${displayCases.length} / 共 ${visibleCases.length} 筆`;
-      const caseCardsHtml = displayCases.length ? displayCases.map((item, index) => {
-        const isExpanded = expandedReferenceCaseTitles.includes(item.title);
-        const shouldAnimate = isExpanded && item.title === lastToggledCaseTitle;
-        const mediaHtml = getReferenceCaseMediaHtml(item);
-        return `
-          <div class="reference-case-item">
-            <article class="reference-case-card ${isExpanded ? "is-expanded" : ""} border border-slate-200 p-4" data-reference-case-index="${index}" aria-expanded="${isExpanded}">
-              <div class="flex items-start justify-between gap-3 mb-3">
-                <h4 class="font-black text-slate-900 text-sm leading-snug">${escapeHtml(item.title)}</h4>
-                <div class="flex items-center gap-2 shrink-0">
-                  <i class="fa-solid fa-chevron-${isExpanded ? "up" : "down"} text-xs text-slate-400"></i>
-                </div>
-              </div>
-              <div class="flex flex-wrap gap-2 mb-3">
-                ${referenceCaseChipHtml("industry", item.industry)}
-                ${referenceCaseChipHtml("solution", item.solutionType)}
-                ${referenceCaseChipHtml("size", item.size)}
-              </div>
-              ${mediaHtml}
-              <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
-                <div>
-                  <p class="font-black text-slate-700 mb-1">導入痛點</p>
-                  <p>${escapeHtml(item.pain)}</p>
-                </div>
-                <div>
-                  <span class="reference-case-result-badge mb-1"><i class="fa-solid fa-chart-line"></i>導入成果</span>
-                  <p>${escapeHtml(item.result)}</p>
-                </div>
-              </div>
-            </article>
-            ${isExpanded ? getReferenceCaseDetailHtml(item, shouldAnimate) : ""}
-          </div>
-        `;
-      }).join("") : `
-        <div class="md:col-span-3 text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-4">
-          目前無此產業的參考案例
-        </div>
-      `;
+      const caseCardsHtml = getReferenceCaseCardsHtml(
+        displayCases,
+        expandedReferenceCaseTitles,
+        lastToggledCaseTitle,
+        "目前無此產業的參考案例"
+      );
       const browseAllLink = `
         <a class="text-sm font-black text-teal-700 border border-teal-200 rounded-xl px-4 py-3 hover:bg-teal-50 transition-colors inline-flex items-center justify-center" href="/dashboard.html#cases">
           瀏覽完整案例庫（${referenceCases.length} 筆）→
         </a>
       `;
       refs.referenceCaseList.innerHTML = `${caseCardsHtml}${browseAllLink}`;
-      refs.referenceCaseList.querySelectorAll("[data-reference-case-index]").forEach(card => {
-        card.addEventListener("click", () => {
-          const item = displayCases[Number(card.dataset.referenceCaseIndex)];
-          toggleReferenceCase(item);
-        });
-      });
-      refs.referenceCaseList.querySelectorAll("[data-reference-case-media-thumb]").forEach(thumb => {
-        thumb.addEventListener("click", event => {
-          event.preventDefault();
-          event.stopPropagation();
-          const card = thumb.closest("[data-reference-case-index]");
-          const item = displayCases[Number(card?.dataset.referenceCaseIndex || 0)];
-          openReferenceCaseLightbox(item, Number(thumb.dataset.referenceCaseMediaImageIndex || 0));
-        });
-      });
-      refs.referenceCaseList.querySelectorAll("[data-subscribe-case-cta]").forEach(button => {
-        button.addEventListener("click", event => {
-          event.preventDefault();
-          event.stopPropagation();
-          showSubscriptionToast();
-        });
-      });
+      bindReferenceCaseCardInteractions(refs.referenceCaseList, displayCases, toggleReferenceCase);
       lastToggledCaseTitle = null;
     }
 
@@ -2357,6 +2669,14 @@
 
       if (refs.referenceCasesCard.style.display !== "none") {
         renderReferenceCases();
+      }
+      if (currentView === "detail" && selectedSolution && getActiveDetailTab(selectedSolution) === "cases") {
+        renderDetail();
+      } else if (expandedIds.some(id => {
+        const item = [...currentOfficial, ...currentOthers].find(candidate => safeStr(candidate.id) === id);
+        return item && getActiveDetailTab(item) === "cases";
+      })) {
+        renderCurrentLists();
       }
     }
 
