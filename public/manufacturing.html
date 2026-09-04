@@ -461,7 +461,7 @@
             </label>
             <input id="fileInputAssessment" type="file" class="hidden" accept=".pdf">
             <div class="upload-lock-overlay" data-upload-lock>
-              <div class="upload-lock-message">💬 已有問答紀錄，請先按「重新分析」清除後再使用文件上傳</div>
+              <div class="upload-lock-message">💬 已有問答紀錄，請先按「清空重填」清除後再使用文件上傳</div>
             </div>
           </div>
           <div id="progressAssessment" class="mt-3 mb-4 hidden">
@@ -484,7 +484,7 @@
             </label>
             <input id="fileInputDiagnosis" type="file" class="hidden" accept=".pdf">
             <div class="upload-lock-overlay" data-upload-lock>
-              <div class="upload-lock-message">💬 已有問答紀錄，請先按「重新分析」清除後再使用文件上傳</div>
+              <div class="upload-lock-message">💬 已有問答紀錄，請先按「清空重填」清除後再使用文件上傳</div>
             </div>
           </div>
           <div id="progressDiagnosis" class="mt-3 hidden">
@@ -525,12 +525,12 @@
         <section class="card p-5 analysis-result-sticky">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <h2 class="text-xl font-black text-slate-900">分析結果</h2>
+              <h2 class="text-xl font-black text-slate-900">您的需求條件</h2>
               <p id="queryPreview" class="text-xs text-slate-400 mt-1">完成左側問答後產生官方推薦與其他候選方案。</p>
             </div>
             <div class="flex items-center gap-3">
               <button id="restartBtn" class="text-sm text-slate-600 font-bold border border-slate-300 rounded-xl px-3 py-2 hover:bg-slate-50 hover:border-teal-500 hover:text-teal-700 transition-colors flex items-center gap-1.5" type="button">
-                <i class="fa-solid fa-arrow-rotate-left"></i>重新分析
+                <i class="fa-solid fa-arrow-rotate-left"></i>清空重填
               </button>
               <button id="runBtn" class="btn-primary" type="button" disabled>
                 <i class="fa-solid fa-magnifying-glass-chart mr-2"></i>產生推薦
@@ -1494,7 +1494,7 @@
         }
         renderResult(data.official || [], data.others || [], data.conclusion || data.summary || "");
         updateProfilePreview();
-        addMessage("assistant", "已還原上一輪方案探索結果。若要重新分析，請按「重新分析」。");
+        addMessage("assistant", "已還原上一輪方案探索結果。若要重新開始，請按「清空重填」。");
         return true;
       } catch (err) {
         sessionStorage.removeItem("mfg_result");
@@ -1675,7 +1675,7 @@
       }
       if (stepIndex >= agentSteps.length) {
         hardLockAgentInput("already-complete-submit");
-        addMessage("assistant", "已完成條件整理，可直接按「產生推薦」，或重新分析。");
+        addMessage("assistant", "已完成條件整理，可直接按「產生推薦」，或按「清空重填」重新開始。");
         return;
       }
       const step = agentSteps[stepIndex];
