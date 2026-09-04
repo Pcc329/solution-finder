@@ -93,4 +93,3 @@ rg -n "contact_name|office_phone|\\.email|\\.mobile" public/manufacturing.html
 - Branch: `feat/manufacturing-detail-tabs-2026-09-04`
 - Implementation commit: `09d101e77bc0b501b175e68e83d16d867c720cba`
 - Pull request: https://github.com/Pcc329/solution-finder/pull/139
-
