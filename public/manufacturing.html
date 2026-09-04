@@ -823,6 +823,16 @@
       return String(value);
     };
 
+    function formatScaleDisplay(scaleValue) {
+      const list = Array.isArray(scaleValue) ? scaleValue : (scaleValue ? [scaleValue] : []);
+      if (!list.length) return "";
+      const cleaned = list.map(value => safeStr(value).trim()).filter(Boolean);
+      if (!cleaned.length) return "";
+      if (cleaned.includes("不限規模")) return "不限規模";
+      if (cleaned.length >= 4) return "不限規模";
+      return cleaned.join("、");
+    }
+
     const escapeHtml = value => safeStr(value)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -1191,6 +1201,7 @@
       const category = solutionField(item, "cat", "category");
       const targetIndustry = solutionField(item, "d", "target_industry");
       const scale = solutionField(item, "scale", "scale");
+      const scaleDisplay = formatScaleDisplay(scale);
       const featureLines = safeStr(features)
         .split(/\n|；|;/)
         .map(line => line.trim())
@@ -1204,7 +1215,7 @@
       const propertyItems = [
         ["服務類別", category],
         ["適用產業", targetIndustry],
-        ["適用規模", scale],
+        ["適用規模", scaleDisplay],
       ].filter(([, value]) => safeStr(value).trim());
       const activeTab = getActiveDetailTab(item);
 
@@ -1294,6 +1305,7 @@
       const features = solutionField(item, "feat", "features");
       const targetIndustry = solutionField(item, "d", "target_industry");
       const scale = solutionField(item, "scale", "scale");
+      const scaleDisplay = formatScaleDisplay(scale);
       const region = solutionField(item, "r", "region");
       const city = solutionField(item, "city", "city");
       const isAi = item.ai === true || item.is_ai === true || item.is_ai === "有";
@@ -1311,7 +1323,7 @@
       const propertyItems = [
         ["服務類別", category],
         ["適用產業", targetIndustry],
-        ["適用規模", scale],
+        ["適用規模", scaleDisplay],
       ].filter(([, value]) => safeStr(value).trim());
       const activeTab = getActiveDetailTab(item);
 
@@ -1325,7 +1337,7 @@
             <div class="flex flex-wrap gap-2 mb-4">
               ${sourceLabel ? `<span class="badge badge-muted">${escapeHtml(sourceLabel)}</span>` : ""}
               ${location ? `<span class="badge badge-muted"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(location)}</span>` : ""}
-              ${scale ? `<span class="badge badge-muted">${escapeHtml(scale)}</span>` : ""}
+              ${scaleDisplay ? `<span class="badge badge-muted">${escapeHtml(scaleDisplay)}</span>` : ""}
               ${isAi ? '<span class="badge badge-teal"><i class="fa-solid fa-bolt mr-1"></i>AI 方案</span>' : ""}
             </div>
             <h1 class="text-2xl font-black text-slate-900">${escapeHtml(name || "未命名方案")}</h1>
