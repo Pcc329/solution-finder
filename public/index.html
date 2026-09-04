@@ -373,6 +373,15 @@
       // helper: 安全轉小寫字串（防止陣列或非字串欄位）
       const safeStr = (v) => (typeof v === 'string' ? v : Array.isArray(v) ? v.join(',') : String(v || ''));
 
+      const formatScaleDisplay = (scaleValue) => {
+        const list = Array.isArray(scaleValue) ? scaleValue : (scaleValue ? [scaleValue] : []);
+        const cleaned = list.map(value => (typeof value === 'string' ? value : String(value || '')).trim()).filter(Boolean);
+        if (!cleaned.length) return '';
+        if (cleaned.includes('不限規模')) return '不限規模';
+        if (cleaned.length >= 4) return '不限規模';
+        return cleaned.join('、');
+      };
+
       const INDUSTRY_KEYWORDS = {
         "金融": ["法遵", "合規", "金融", "個資法", "金管會", "洗錢", "KYC", "銀行", "保險"],
         "製造": ["工控", "OT", "工廠", "製造", "產線", "SCADA", "PLC", "機台"],
@@ -1091,7 +1100,7 @@
                       {item.st && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] px-2 py-0.5 rounded font-bold">新創嚴選</span>}
                       {item.iv && <span className="bg-purple-100 text-purple-800 border border-purple-200 text-[10px] px-2 py-0.5 rounded font-bold">{item.iv}</span>}
                       {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] px-2 py-0.5 rounded"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}</span>}
-                      {item.scale && <span className="bg-sky-50 text-sky-700 border border-sky-200 text-[10px] px-2 py-0.5 rounded">{item.scale}</span>}
+                      {formatScaleDisplay(item.scale) && <span className="bg-sky-50 text-sky-700 border border-sky-200 text-[10px] px-2 py-0.5 rounded">{formatScaleDisplay(item.scale)}</span>}
                     </div>
                     <div className="flex items-start justify-between gap-3 mb-1">
                       <h2 className="text-lg font-bold text-slate-900 truncate">{item.s || "（未命名方案）"}</h2>
@@ -1189,7 +1198,7 @@
                 {item.iv && <span className="bg-purple-100 text-purple-800 border border-purple-200 text-xs px-3 py-1 rounded-full font-bold">{item.iv}</span>}
                 {item.p && <span className="bg-blue-100 text-blue-800 border border-blue-200 text-xs px-3 py-1 rounded-full">{item.p}</span>}
                 {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-xs px-3 py-1 rounded-full"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}{item.city ? ` · ${item.city}` : ""}</span>}
-                {item.scale && <span className="bg-sky-50 text-sky-700 border border-sky-200 text-xs px-3 py-1 rounded-full">{item.scale}</span>}
+                {formatScaleDisplay(item.scale) && <span className="bg-sky-50 text-sky-700 border border-sky-200 text-xs px-3 py-1 rounded-full">{formatScaleDisplay(item.scale)}</span>}
               </div>
               <h1 className="text-2xl font-black text-slate-900 mb-2">{item.s || "（未命名方案）"}</h1>
               <p className="text-base text-slate-600 font-semibold mb-4">{item.c}</p>
@@ -1262,10 +1271,10 @@
                     <p className="text-slate-700 font-medium">{item.d}</p>
                   </div>
                 )}
-                {item.scale && (
+                {formatScaleDisplay(item.scale) && (
                   <div>
                     <p className="text-xs text-slate-400 mb-1">適用規模</p>
-                    <p className="text-slate-700 font-medium">{item.scale}</p>
+                    <p className="text-slate-700 font-medium">{formatScaleDisplay(item.scale)}</p>
                   </div>
                 )}
                 {item.tags && (
