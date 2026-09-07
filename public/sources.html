@@ -350,6 +350,77 @@
       font-weight: 700;
     }
 
+    .source-links {
+      margin-top: 14px;
+    }
+
+    .source-links-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid #99dfc6;
+      border-radius: 6px;
+      background: #ecfdf5;
+      color: var(--primary-dark);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .source-links-toggle:hover,
+    .source-links-toggle[aria-expanded="true"] {
+      border-color: var(--primary);
+      background: #d1fae5;
+    }
+
+    .source-links-toggle i {
+      transition: transform 160ms ease;
+    }
+
+    .source-links-toggle[aria-expanded="true"] i {
+      transform: rotate(180deg);
+    }
+
+    .source-links-menu {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 10px;
+      border: 1px solid #b7ead7;
+      border-radius: 6px;
+      background: #f7fffb;
+    }
+
+    .source-links-menu a {
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.5;
+      overflow-wrap: break-word;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .source-links-menu a:hover {
+      color: #0f5f49;
+    }
+
+    .source-links-menu a i {
+      margin-left: 4px;
+      font-size: 11px;
+    }
+
+    .status-closed {
+      margin: 12px 0 0;
+      color: #b45309;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.55;
+    }
+
     .notes {
       padding: 18px 20px;
     }
@@ -402,6 +473,11 @@
 
       .intro p {
         font-size: 16px;
+      }
+
+      .source-links-toggle {
+        width: 100%;
+        justify-content: space-between;
       }
     }
   </style>
@@ -457,7 +533,7 @@
             <span class="layer-pill">確認補助</span>
           </div>
           <ul class="source-list">
-            <li><span>SMEI平台（中企署）</span><span class="count" data-source-count data-program-types="SME AI平台">279 筆</span></li>
+            <li><span>SME AI平台（中企署）</span><span class="count" data-source-count data-program-types="SME AI平台">279 筆</span></li>
             <li><span>商業服務業專區（商業署）</span><span class="count" data-source-count data-program-types="商業服務業專區">117 筆</span></li>
             <li><span>新創嚴選網（國發會）</span><span class="count" data-source-count data-program-types="新創嚴選網">152 筆</span></li>
             <li><span>新北產業AI化輔導計畫（新北市經發局）</span><span class="count" data-source-count data-program-types="新北產業AI化輔導計畫">36 筆</span></li>
@@ -485,12 +561,12 @@
         <article class="card path-card">
           <span class="path-label">路徑 A</span>
           <h3>中小企業申請補助買雲端工具</h3>
-          <p>SMEI平台 ＋ 臺灣雲市集</p>
+          <p>SME AI平台 ＋ 臺灣雲市集</p>
         </article>
         <article class="card path-card">
           <span class="path-label">路徑 B</span>
           <h3>製造業補助購買工業 4.0 方案</h3>
-          <p>SMEI平台 ＋ 雲市集工業館</p>
+          <p>SME AI平台 ＋ 雲市集工業館</p>
         </article>
         <article class="card path-card">
           <span class="path-label">路徑 C</span>
@@ -516,6 +592,7 @@
             <div><strong>適用對象：</strong>中小企業、政府機關</div>
           </div>
           <p class="feature">SaaS/雲端服務，月費/年費為主，品項最多</p>
+          <p class="status-closed">⚠ 平台已停止服務（原因：計畫結束及相關政策調整）</p>
         </article>
 
         <article class="card detail-card">
@@ -531,6 +608,16 @@
             <div><strong>適用對象：</strong>製造業</div>
           </div>
           <p class="feature">工業 4.0、智慧製造、IoT 相關方案</p>
+          <div class="source-links">
+            <button class="source-links-toggle" type="button" aria-expanded="false">
+              相關連結 <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="source-links-menu" hidden>
+              <a href="https://keid.nat.gov.tw/cloud/Web/cloud_solution.aspx" target="_blank" rel="noopener noreferrer">雲端解決方案 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+              <a href="https://keid.nat.gov.tw/cloud/Web/ai_solution.aspx" target="_blank" rel="noopener noreferrer">AI工具庫方案 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+              <a href="https://keid.nat.gov.tw/cloud/Web/AITools_solution.aspx" target="_blank" rel="noopener noreferrer">AI工具庫Lite版 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+          </div>
         </article>
 
         <article class="card detail-card">
@@ -546,12 +633,20 @@
             <div><strong>適用對象：</strong>農漁畜產業、農企業</div>
           </div>
           <p class="feature">農業數位轉型、智慧農業、溯源與雲端管理相關方案</p>
+          <div class="source-links">
+            <button class="source-links-toggle" type="button" aria-expanded="false">
+              相關連結 <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="source-links-menu" hidden>
+              <a href="https://agdigi.atri.org.tw/Market" target="_blank" rel="noopener noreferrer">農業雲市集數位館 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+          </div>
         </article>
 
         <article class="card detail-card">
           <div class="detail-head">
             <div>
-              <h3>SMEI平台</h3>
+              <h3>SME AI平台</h3>
               <span class="agency">中企署</span>
             </div>
             <span class="badge" data-source-count data-source-card data-program-types="SME AI平台">279 筆</span>
@@ -561,6 +656,14 @@
             <div><strong>適用對象：</strong>中小企業</div>
           </div>
           <p class="feature">有補助資格認證，企業可申請補助購買</p>
+          <div class="source-links">
+            <button class="source-links-toggle" type="button" aria-expanded="false">
+              相關連結 <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="source-links-menu" hidden>
+              <a href="https://www.smeai.tw/service/category-card" target="_blank" rel="noopener noreferrer">SME AI平台官網 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+          </div>
         </article>
 
         <article class="card detail-card">
@@ -590,7 +693,15 @@
             <div><strong>補助類型：</strong>新創認證（非直接補助）</div>
             <div><strong>適用對象：</strong>想導入創新方案的企業</div>
           </div>
-          <p class="feature">成立 8 年內、具創新性，可與 SMEI 補助組合使用</p>
+          <p class="feature">成立 8 年內、具創新性，可與 SME AI平台 補助組合使用</p>
+          <div class="source-links">
+            <button class="source-links-toggle" type="button" aria-expanded="false">
+              相關連結 <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="source-links-menu" hidden>
+              <a href="https://startup.sme.gov.tw/startupselect" target="_blank" rel="noopener noreferrer">新創嚴選網官網 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+          </div>
         </article>
 
         <article class="card detail-card">
@@ -606,6 +717,14 @@
             <div><strong>適用對象：</strong>餐飲、零售、服務業</div>
           </div>
           <p class="feature">AI 解決方案為主，商服業一站式查詢</p>
+          <div class="source-links">
+            <button class="source-links-toggle" type="button" aria-expanded="false">
+              相關連結 <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="source-links-menu" hidden>
+              <a href="https://www.smebiz.org.tw/service-ai.php" target="_blank" rel="noopener noreferrer">商業服務業專區官網 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+          </div>
         </article>
 
         <article class="card detail-card">
@@ -621,6 +740,14 @@
             <div><strong>適用對象：</strong>政府機關、公立學校</div>
           </div>
           <p class="feature">大型授權、EA 合約為主，price 偏高，與中小企業定位不同</p>
+          <div class="source-links">
+            <button class="source-links-toggle" type="button" aria-expanded="false">
+              相關連結 <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="source-links-menu" hidden>
+              <a href="https://gsmarket.adi.gov.tw/portal/" target="_blank" rel="noopener noreferrer">政府軟體採購網官網 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+          </div>
         </article>
 
         <article class="card detail-card">
@@ -636,6 +763,15 @@
             <div><strong>適用對象：</strong>新北市中小企業</div>
           </div>
           <p class="feature">新北市專屬的 AI 化輔導方案，協助在地企業評估與導入數位工具。</p>
+          <div class="source-links">
+            <button class="source-links-toggle" type="button" aria-expanded="false">
+              相關連結 <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="source-links-menu" hidden>
+              <a href="https://ntpc-ai.ntpc.gov.tw/vendors" target="_blank" rel="noopener noreferrer">媒合平台 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+              <a href="https://www.economic.ntpc.gov.tw/Custom/AITransformation" target="_blank" rel="noopener noreferrer">經發局公告頁 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+          </div>
         </article>
 
       </div>
@@ -709,6 +845,15 @@
         console.warn('資料來源筆數同步失敗，保留頁面預設值。', error);
       }
     }
+
+    document.querySelectorAll('.source-links-toggle').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const menu = toggle.nextElementSibling;
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        menu.hidden = expanded;
+      });
+    });
 
     syncSourceCounts();
   </script>
