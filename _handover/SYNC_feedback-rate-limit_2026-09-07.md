@@ -29,5 +29,5 @@
 ## Git
 
 - Branch：`feedback-rate-limit-2026-09-07`
-- Commit：待建立
-- PR：待建立
+- Commit：`279a3f2 fix(security): rate limit feedback submissions`
+- PR：https://github.com/Pcc329/solution-finder/pull/146
