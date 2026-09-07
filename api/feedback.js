@@ -9,10 +9,32 @@ const ALLOWED_MILESTONES = new Set([
 ]);
 const ALLOWED_PATH_CHOICES = new Set(['AI 搜尋', 'AI 分析', '兩者都用']);
 const ALLOWED_WOULD_CITE = new Set(['會', '不會']);
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 3;
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+  if (!record || now - record.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitMap.set(ip, { windowStart: now, count: 1 });
+    return true;
+  }
+  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+  record.count += 1;
+  return true;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+  if (!checkRateLimit(clientIp)) {
+    return res.status(429).json({ error: '提交過於頻繁，請稍後再試' });
   }
 
   const token = process.env.AIRTABLE_TOKEN;
