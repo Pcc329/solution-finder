@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>方案比較</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <style>
     :root {
       --primary: #1D9E75;
@@ -431,7 +432,7 @@
         if (!response.ok) {
           throw new Error(data.error || 'AI 分析失敗');
         }
-        answer.innerHTML = marked.parse(data.answer || '');
+        answer.innerHTML = DOMPurify.sanitize(marked.parse(data.answer || ''));
         card.style.display = 'block';
       } catch (err) {
         error.textContent = err.message || 'AI 分析失敗';
