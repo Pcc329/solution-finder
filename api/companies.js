@@ -1,4 +1,5 @@
 // api/companies.js — Vercel Serverless Function
+import { requireAuth } from '../_lib/auth.js';
 const DEFAULT_COMPANIES_SOURCE = 'airtable';
 const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
 
@@ -6,6 +7,8 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 's-maxage=300');
+
+  if (!requireAuth(req, res)) return;
 
   const TOKEN = process.env.AIRTABLE_TOKEN;
   const BASE_ID = 'appttP04OnzzC7qxG';
