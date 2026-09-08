@@ -5,7 +5,10 @@
     { "source": "/api/ask", "destination": "/api/ask" },
     { "source": "/api/cases", "destination": "/api/cases" },
     { "source": "/api/manufacturing-analyze", "destination": "/api/manufacturing-analyze" },
-    { "source": "/api/manufacturing-recommend", "destination": "/api/manufacturing-recommend" }
+    { "source": "/api/manufacturing-recommend", "destination": "/api/manufacturing-recommend" },
+    { "source": "/api/login", "destination": "/api/auth?action=login" },
+    { "source": "/api/logout", "destination": "/api/auth?action=logout" },
+    { "source": "/api/session-check", "destination": "/api/auth?action=session-check" }
   ],
   "headers": [
     {

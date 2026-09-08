@@ -1,11 +1,14 @@
 // api/solutions.js — Vercel Serverless Function
 // 從 Airtable 抓取 Solutions 資料，join Companies 的 region/is_startup/company_name
+import { requireAuth } from '../_lib/auth.js';
 const DEFAULT_SOLUTIONS_SOURCE = 'airtable';
 const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')";
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
+
+  if (!requireAuth(req, res)) return;
 
   const TOKEN = process.env.AIRTABLE_TOKEN;
   const BASE_ID = 'appttP04OnzzC7qxG';

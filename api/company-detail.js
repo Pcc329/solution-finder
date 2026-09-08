@@ -1,4 +1,5 @@
 // api/company-detail.js - Vercel Serverless Function
+import { requireAuth } from '../_lib/auth.js';
 const OVERFLOW_CAPITAL_THRESHOLD = 2147483647;
 const VERIFIED_MATCH_METHODS = new Set(['EXACT', 'PARTIAL', 'PARTIAL_GROUP']);
 
@@ -30,6 +31,7 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+  if (!requireAuth(req, res)) return;
 
   const companyId = String(req.query?.company_id || '').trim();
   if (!companyId) {
