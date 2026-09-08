@@ -1,4 +1,5 @@
 // api/cases.js - Vercel Serverless Function
+import { requireAuth } from '../_lib/auth.js';
 // Fetch all Airtable Cases records with an explicit public whitelist.
 const BASE_ID = 'appttP04OnzzC7qxG';
 const CASES_TABLE_ID = 'tblgkjVcaohcQntzV';
@@ -75,6 +76,8 @@ function getCasesSource() {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
+
+  if (!requireAuth(req, res)) return;
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });

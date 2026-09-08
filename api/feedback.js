@@ -1,3 +1,5 @@
+import { requireAuth } from '../_lib/auth.js';
+
 const BASE_ID = 'appttP04OnzzC7qxG';
 const FEEDBACK_TABLE_ID = 'tbly0aNVLiogY9Eu1';
 
@@ -31,6 +33,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (!requireAuth(req, res)) return;
 
   const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
   if (!checkRateLimit(clientIp)) {
