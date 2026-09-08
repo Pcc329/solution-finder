@@ -1,4 +1,5 @@
 // api/ask.js — Vercel Serverless Function
+import { requireAuth } from '../_lib/auth.js';
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -11,6 +12,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
+  if (!requireAuth(req, res)) return;
 
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
