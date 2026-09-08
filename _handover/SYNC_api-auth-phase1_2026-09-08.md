@@ -48,5 +48,5 @@ Preview：`https://solution-finder-8fs1y84zc-patrick0814-6136s-projects.vercel.a
 ## Git
 
 - Branch：`feat/api-auth-phase1-2026-09-08`
-- Commits：`919ec4d feat(security): add phase 1 API authentication`、`785d228 fix(deploy): consolidate authentication endpoints`
+- 實作 commit：`752ef063afd58b0f827135a8662e3721ee6beb3c feat(security): add phase 1 API authentication`（已重新對齊 `main` 的 feedback 速率限制修正）。
 - PR：https://github.com/Pcc329/solution-finder/pull/147
