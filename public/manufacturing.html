@@ -6,6 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>方案探索 | Solution Finder</title>
   <script src="/auth-gate.js"></script>
+  <script src="/company-avatar.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1825,9 +1826,12 @@
           <div class="solution-result-item">
             <article class="solution-card ${variantClass} ${isExpanded ? "is-expanded" : ""} bg-white border border-slate-200 p-4" data-index="${index}" title="${isExpanded ? "收合方案詳細" : "展開方案詳細"}" aria-expanded="${isExpanded}">
               <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0">
-                  <h4 class="font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h4>
-                  <p class="text-xs text-slate-500 mt-1">${escapeHtml(item.c || "未提供業者")}</p>
+                <div class="flex min-w-0 flex-1 items-start gap-3">
+                  ${window.renderCompanyAvatar(item.c, item.logo)}
+                  <div class="min-w-0">
+                    <h4 class="font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h4>
+                    <p class="text-xs text-slate-500 mt-1">${escapeHtml(item.c || "未提供業者")}</p>
+                  </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                   ${Number.isFinite(Number(item.pr)) && Number(item.pr) > 0
