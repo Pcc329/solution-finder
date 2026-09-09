@@ -6,6 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>台灣資服業者方案資料庫</title>
   <script src="/auth-gate.js"></script>
+  <script src="/company-avatar.js"></script>
   <script>
     window.onerror = function(message, source, lineno, colno, error) {
       document.body.innerHTML = '<div style="padding: 2rem; color: #dc2626; font-family: sans-serif; text-align: center;"><h2>發生錯誤</h2><p>' + message + '</p></div>';
@@ -1097,6 +1098,10 @@
                       className="sr-only" />
                     <i className={`fa-solid ${checked ? "fa-check" : "fa-plus"} text-sm`}></i>
                   </label>
+                  <div
+                    className="shrink-0"
+                    dangerouslySetInnerHTML={{ __html: window.renderCompanyAvatar(item.c, item.logo) }}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap gap-2 mb-2">
                       {item.ai && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-bolt mr-1"></i>AI方案</span>}

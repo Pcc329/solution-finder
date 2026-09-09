@@ -156,7 +156,7 @@ export default async function handler(req, res) {
         ),
         fetchAllSupabasePaged(
           supabaseUrl, supabaseAnonKey, 'companies',
-          'company_id,company_name,region,is_startup,city,tech_tags,industry_vertical',
+          'company_id,company_name,region,is_startup,city,tech_tags,industry_vertical,logo_url',
           'company_id.asc'
         ),
         // Schema-sensitive field: a missing column must not fail the complete API response.
@@ -193,6 +193,7 @@ export default async function handler(req, res) {
           city: row.city || '',
           tech_tags: emptyToBlank(row.tech_tags),
           industry_vertical_co: row.industry_vertical || '',
+          logo_url: row.logo_url || '',
         };
         if (cid) companyByCid[cid] = coData;
       });
@@ -214,6 +215,7 @@ export default async function handler(req, res) {
           id: String(row.airtable_rec_id || row.solution_id || '').replace(/^\uFEFF/, ''),
           s: row.solution_name || '',
           c: co.name || '',
+          logo: co.logo_url || '',
           // cid = 公司統一編號，作為重要查詢/識別欄位。
           // 遷移已完成、以 Supabase 為準，回傳實際統編（Airtable 版因 BOM 恆空的舊 bug 不再比照）。
           // company_id 已於 Supabase 端為乾淨 8 碼統編；無統編來源（農業部等）回空字串。
@@ -270,6 +272,7 @@ export default async function handler(req, res) {
         city: f['city'] || '',
         tech_tags: f['tech_tags'] || '',
         industry_vertical_co: f['industry_vertical'] || '',
+        logo_url: f['logo_url'] || '',
       };
       if (cid) companyByCid[cid] = coData;
       companyByRecId[rec.id] = coData;
@@ -308,6 +311,7 @@ export default async function handler(req, res) {
         id: String(f['solution_id'] || rec.id || '').replace(/^\uFEFF/, ''),
         s: f['solution_name'] || '',
         c: co.name || '',
+        logo: co.logo_url || '',
         cid: cidDisplay,
         p: f['program_type'] || '',
         src: f['data_source'] || '',
