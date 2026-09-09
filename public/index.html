@@ -168,6 +168,9 @@
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
       const [activePage, setActivePage] = useState("home"); // home | list | detail
+      useEffect(() => {
+        window.scrollTo(0, 0);
+      }, [activePage]);
       const [selectedItem, setSelectedItem] = useState(null);
       const [query, setQuery] = useState("");
       const [isSearching, setIsSearching] = useState(false);
