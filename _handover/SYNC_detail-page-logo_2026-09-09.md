@@ -34,7 +34,7 @@
   - 無 logo 時輸出首字 avatar。
   - 有 `https://` logo URL 時輸出 `img`。
 - 全分支靜態搜尋：對本 branch 的 21 個 `api/`、`public/` HTML/JS 檔搜尋 `getCompanyAvatarColor`，結果為 `[]`，無殘留定義或呼叫。
-- Vercel Preview：Ready  
+- Vercel Preview：Ready
   https://solution-finder-jj66ip9js-patrick0814-6136s-projects.vercel.app/
 
 ### 真實畫面驗證狀態
