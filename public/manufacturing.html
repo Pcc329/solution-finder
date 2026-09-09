@@ -292,11 +292,6 @@
     .company-profile-heading {
       display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
     }
-    .company-profile-avatar {
-      width: 44px; height: 44px; flex: 0 0 auto; border-radius: 50%;
-      display: inline-flex; align-items: center; justify-content: center;
-      color: #ffffff; font-size: 18px; font-weight: 900;
-    }
     .company-profile-name { color: #0f172a; font-size: 16px; font-weight: 900; }
     .company-detail-grid {
       display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1017,12 +1012,6 @@
       return Number.isFinite(capital) ? `NT$ ${capital.toLocaleString("zh-TW")}` : providedCompanyValue(value);
     }
 
-    function getCompanyAvatarColor(name) {
-      const colors = ["#0f766e", "#185FA5", "#7c3aed", "#be123c", "#b45309", "#0369a1"];
-      const hash = [...safeStr(name)].reduce((total, char) => total + char.charCodeAt(0), 0);
-      return colors[hash % colors.length];
-    }
-
     function getCompanyDetailTabHtml(item) {
       const companyId = getSolutionCompanyId(item);
       if (!companyId) {
@@ -1056,7 +1045,7 @@
       return `
         <div class="solution-detail-panel">
           <div class="company-profile-heading">
-            <div class="company-profile-avatar" style="background:${getCompanyAvatarColor(companyName)}" aria-hidden="true">${escapeHtml(companyName.charAt(0) || "企")}</div>
+            ${window.renderCompanyAvatar(companyName, company.logo_url)}
             <div>
               <div class="company-profile-name">${escapeHtml(companyName)}</div>
               <div class="text-xs text-slate-500 mt-1">公司基本資料</div>

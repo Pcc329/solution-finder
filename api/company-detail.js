@@ -72,7 +72,7 @@ export default async function handler(req, res) {
   try {
     const companies = await fetchSupabase(
       'companies',
-      'company_id,company_name,ceo_name,capital,established_date,website,company_intro,employee_range,company_type',
+      'company_id,company_name,logo_url,ceo_name,capital,established_date,website,company_intro,employee_range,company_type',
       1
     );
     const company = companies[0];
@@ -89,6 +89,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       company_id: textOrBlank(company.company_id),
       company_name: textOrBlank(company.company_name),
+      logo_url: textOrBlank(company.logo_url),
       ceo_name: textOrBlank(company.ceo_name),
       capital: normalizeCapital(company.capital),
       established_date: textOrBlank(company.established_date),
