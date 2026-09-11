@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/diagnosis.html",
+      "destination": "/manufacturing.html",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/api/solutions", "destination": "/api/solutions" },
     { "source": "/api/stats", "destination": "/api/stats" },
