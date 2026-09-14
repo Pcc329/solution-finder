@@ -54,3 +54,12 @@ migrations/20260914_create_csp_violations.sql
 ```
 
 Report-Only 不會封鎖頁面資源。注意：Vercel `headers` 設定會同時出現在 Production 和 Preview；本次是以 Production 收集真實流量為目的，但 Preview 也會收到同一個非阻擋標頭。
+
+
+## Preview 部署實測
+
+- Preview：https://solution-finder-git-feat-csp-4f5422-patrick0814-6136s-projects.vercel.app
+- `GET /`：HTTP 200，回應實際含 `Content-Security-Policy-Report-Only`，且值含 `report-uri /api/csp-report`。
+- `OPTIONS /api/csp-report`：HTTP 204，回應含 `Access-Control-Allow-Origin: *`、`Access-Control-Allow-Methods: POST, OPTIONS`、`Access-Control-Allow-Headers: Content-Type`。
+
+因 Preview 尚未執行新資料表 migration，未發送會觸發資料庫寫入的 POST；待 migration 執行後再以本文件提供的 payload 進行真實 POST 與 Supabase SELECT 驗收。
