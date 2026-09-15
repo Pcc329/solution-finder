@@ -6,7 +6,7 @@ const ACTIVE_SOLUTIONS_FILTER = "NOT({record_status} = '已下架_資料異常')
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
-  res.setHeader('Cache-Control', 's-maxage=300');
+  res.setHeader('Cache-Control', 'private, no-store');
 
   if (!requireAuth(req, res)) return;
 
