@@ -399,12 +399,13 @@
 
       const renderTrustVerification = (item) => {
         const signals = [
-          { label: "官方能量登錄", active: Boolean(item.gov), icon: "fa-circle-check" },
-          { label: "資安 CDM 分類", active: Boolean(item.cdm), icon: "fa-shield-halved" },
-          { label: "政府獎項", active: Boolean(item.awd), icon: "fa-award", detail: item.awdTier || "" },
-          { label: "案例實績佐證", active: Boolean(item.cs), icon: "fa-briefcase" },
+          { label: "官方能量登錄", active: Boolean(item.gov), countable: true, icon: "fa-circle-check" },
+          { label: "資安 CDM 分類", active: Boolean(item.cdm), countable: true, icon: "fa-shield-halved" },
+          { label: "政府獎項", active: Boolean(item.awd), countable: true, icon: "fa-award", detail: item.awdTier || "" },
+          { label: "案例實績佐證", active: Boolean(item.cs), countable: item.cs === true, icon: "fa-briefcase" },
         ];
-        const verifiedCount = signals.filter(signal => signal.active).length;
+        const countedSignals = signals.filter(signal => signal.countable);
+        const verifiedCount = countedSignals.filter(signal => signal.active).length;
 
         return (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-4">
@@ -415,7 +416,7 @@
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">依公開資料與案例佐證彙整</p>
               </div>
-              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">{verifiedCount}/4</span>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">{verifiedCount}/{countedSignals.length}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {signals.map(signal => (

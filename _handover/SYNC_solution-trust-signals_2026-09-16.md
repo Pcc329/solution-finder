@@ -57,3 +57,12 @@
 - `airaTrack-全場域人臉追蹤解決方案`（城智科技股份有限公司，company_id `83522758`）：搜尋列表顯示「獲獎肯定」；詳情頁為 1/4，政府獎項通過且層級顯示為「國際級」。
 - 以上三筆都是由已登入首頁實際載入的 `/api/solutions` 資料驅動，非 mock。直接以瀏覽器網址列前往 API 端點會被此環境的用戶端攔截器阻擋，故未把該攔截回應誤判為 API 失敗；改以產品頁面實際消費的回應完成驗證。
 - 修正後首頁搜尋卡與 `#detail` 均能呈現信任訊號；`manufacturing.html` 原有呈現也已確認正常。
+
+
+## 分母動態計算修正（2026-09-16）
+
+- 修正 `public/index.html` 的 `renderTrustVerification(item)`：前三項固定計入分母；「案例實績佐證」僅在 `item.cs === true` 時以 `countable: true` 計入。
+- 分數標示由寫死的 `{verifiedCount}/4` 改為 `{verifiedCount}/{countedSignals.length}`。因此 LEO KM-GPT 的三個已通過來源、無案例實績情況應顯示 3/3；有案例佐證時才顯示四項總分。
+- `public/manufacturing.html` 已採同樣規則：前三項 `hasData: true`，案例實績僅在 `cs === true` 時計入 `verifiedItems`。
+- 技術債：`index.html` 的 JSX 與 `manufacturing.html` 的字串模板各自維護等價的信任呈現邏輯。本輪只修正分母，不合併架構；後續新增信任來源時應評估收斂，避免規則再次漂移。
+- 待新版 Preview 完成後，以 LEO KM-GPT 分別確認首頁與 manufacturing 頁面均為 3/3。
