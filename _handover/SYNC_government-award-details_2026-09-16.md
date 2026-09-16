@@ -27,10 +27,11 @@
   1. `APICTA亞太資通訊科技聯盟大賽` — `2025年 · 國際級`
   2. `數位新創應用獎勵計畫` — `2024年 · 國家級`
 - 驗證多筆獎項均被呈現，且排序為 2025 國際級在 2024 國家級之前。
+- `manufacturing.html` 實際完成五步條件流程並成功載入 2,462 筆方案與推薦列表；獲獎明細 helper 已套用至其行內展開及既有詳情兩個入口。
 - 前端僅在 `awdList` 為非空陣列時顯示該區塊；年分或類別為空時，顯示邏輯會省略空白項目與分隔符號。
 - 目前 Preview 使用 Supabase；Airtable 的相容行為由 API 輸出固定空陣列保證不會改變既有畫面。
 
 ## Git
 
 - 實作 commit：`fb329cfd4056383bd0d989bc657896af81341cc7`
-- 文件 commit：本次 commit
+- PR：[ #159 feat: 顯示政府獎項明細 ](https://github.com/Pcc329/solution-finder/pull/159)
