@@ -103,3 +103,14 @@
 - Airtable 路徑固定回傳 `pgc: 0`，不執行此彙整。
 - 首頁與方案探索卡片：僅當 `pgc >= 2` 才以 `badge-violet` 顯示「跨N種公部門計畫」。既有信任驗證四列、排序與篩選邏輯未調整。
 - 待新版 Preview 部署後，將以谷林運算（預期 `pgc=5`）及單一計畫來源方案驗證 API 回應與兩個前端入口。
+
+
+## 公部門計畫參與標籤 Preview 驗證（2026-09-16）
+
+- 驗證環境：已登入 PR #157 Preview，`https://solution-finder-git-feat-solu-7e85d0-patrick0814-6136s-projects.vercel.app/`；首頁及方案探索均實際載入 2,462 筆方案。
+- 首頁有標籤樣本：搜尋「谷林運算」（company_id `50849424`）得到 6 筆結果；每張谷林方案卡均顯示紫色「跨5種公部門計畫」。
+- 首頁無標籤樣本：熱門查詢「AI 客服方案」的「WordPress客服系統」（一心堂智慧科技股份有限公司）卡片顯示既有「新創嚴選」來源，未顯示紫色跨計畫標籤；同一結果頁中 `pgc=2` 的數辰創藝方案正確顯示「跨2種公部門計畫」，確認門檻為 >= 2。
+- 方案探索樣本：以「其他製造／10人以下／剛起步／庫存物流／30萬以下」實際產生推薦。推薦卡可見 SARA 智慧生產排程「跨3種」、AI 循環碳永續價值鏈「跨2種」、Status PowerBPM+AI「跨4種」公部門計畫標籤。
+- 已截取首頁與方案探索的實際 Preview 畫面，確認紫色標籤位於卡片頂端既有 badge 旁，未進入四列「信任驗證」區塊。
+- 直接用瀏覽器網址列開啟 `/api/solutions` 時，此環境的本機用戶端攔截器回報 `ERR_BLOCKED_BY_CLIENT`，故無法取得可保存的原始 JSON body，也未嘗試繞過攔截器。上述兩頁載入並呈現 `pgc` 的真實 2,462 筆資料，是由產品頁面的既有 `/api/solutions` 呼叫取得，而非 mock。
+- 查詢數量佐證：本次前後 Supabase `Promise.all` 均為 7 個既有讀取（solutions、companies、data_source、gov_registrations、company_cdm_categories、cases、awards）；`programTypesByCid` 僅迭代既有 `solRows`。
