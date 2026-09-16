@@ -114,3 +114,26 @@
 - 已截取首頁與方案探索的實際 Preview 畫面，確認紫色標籤位於卡片頂端既有 badge 旁，未進入四列「信任驗證」區塊。
 - 直接用瀏覽器網址列開啟 `/api/solutions` 時，此環境的本機用戶端攔截器回報 `ERR_BLOCKED_BY_CLIENT`，故無法取得可保存的原始 JSON body，也未嘗試繞過攔截器。上述兩頁載入並呈現 `pgc` 的真實 2,462 筆資料，是由產品頁面的既有 `/api/solutions` 呼叫取得，而非 mock。
 - 查詢數量佐證：本次前後 Supabase `Promise.all` 均為 7 個既有讀取（solutions、companies、data_source、gov_registrations、company_cdm_categories、cases、awards）；`programTypesByCid` 僅迭代既有 `solRows`。
+
+
+## 公部門計畫明細與標籤樣式修正（2026-09-16）
+
+- 改動檔案：`api/solutions.js`、`public/index.html`、`public/manufacturing.html`，以及本 SYNC 文件。
+- API：Supabase 仍只使用既有 `solRows` 與 `programTypesByCid`；每筆輸出新增 `pgList: Array.from(programTypesByCid.get(cid) || [])`。因此不新增 Supabase 查詢；既有 `Promise.all` 仍為 7 個讀取。Airtable 路徑明確輸出 `pgList: []`。
+- 首頁：`renderProgramParticipation(item)` 僅於 `pgc >= 2` 且 `pgList` 非空時，在詳情頁的「信任驗證」區塊後渲染獨立紫色區塊，標題為「跨N種計畫」，並把所有來源計畫做成 chip。搜尋結果卡不顯示明細。
+- 方案探索：`getProgramParticipationHtml(item)` 使用相同條件，插入展開卡片與既有詳情頁的信任驗證區塊後；不修改四項信任驗證邏輯。
+- Badge 文案統一為「跨N種計畫」。首頁的紫色 badge 補上 `inline-flex items-center gap-1`；實測 computed style 為 `display:flex`、`align-items:center`、字級 `10px`、padding `2px 8px`。製造頁的 `.badge` 原本即為 `display:inline-flex; align-items:center`，實測紫色 badge 為 `display:flex`、`align-items:center`、字級 `11px`、padding `3px 8px`，故只改文案，不額外調整 CSS。
+
+### Preview 驗證
+
+- 驗證環境：已登入 PR #157 Preview，`https://solution-finder-git-feat-solu-7e85d0-patrick0814-6136s-projects.vercel.app/`；兩頁皆實際載入 2,462 筆方案。
+- 首頁：搜尋並開啟谷林運算股份有限公司的「谷林運算GoodLinker | 企業雲端戰情室」。卡片紫色 badge 顯示「跨5種計畫」；詳情頁在信任驗證下方顯示獨立「跨5種計畫」區塊與五個 chip：臺灣雲市集、新創嚴選網、領域型調查(人工搜查)、雲市集工業館、SME AI平台。
+- 方案探索：以「其他製造／10人以下／剛起步／庫存物流／30萬以下」產生推薦，展開「SARA 智慧生產排程系統 (入門版)」。卡片顯示「跨3種計畫」；展開後的獨立區塊列出新創嚴選網、領域型調查(人工搜查)、雲市集工業館。
+- 已透過瀏覽器可視畫面與 accessibility tree 確認上述首頁、方案探索兩個詳情入口；首頁區塊與製造頁區塊均未混入原有四項信任驗證。
+- 靜態檢查：Supabase/Airtable 各一處 `pgList` 輸出、首頁一處詳情 helper、製造頁兩處詳情插入點皆存在；舊文案「跨N種公部門計畫」不存在。
+
+### Git
+
+- 分支：`feat/solution-trust-signals-2026-09-16`
+- 實作 commit：`1f17ffdb04945a3dc537d66caf37f60c7e7421f0`（`feat: 顯示跨計畫參與明細`）
+- SYNC commit：待本次文件提交後補入。
