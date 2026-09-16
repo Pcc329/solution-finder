@@ -94,3 +94,12 @@
 - 方案探索：以「其他製造／10人以下／剛起步／庫存物流／30萬以下」產生推薦，展開無案例佐證的 `AI 循環碳永續價值鏈與善良管理人雲管家`。四列均正常顯示「累積中」，且沒有 `0/3` 或其他 X/Y 分數標籤。
 - 已以瀏覽器截圖確認上述兩個入口。原有的綠色通過狀態、獲獎層級與累積中顯示均未改變。
 - 靜態確認：`public/index.html` 仍保留 `countable`／`countedSignals`，`public/manufacturing.html` 仍保留 `hasData`／`verifiedItems`；本次只刪除可見分數的 DOM。
+
+
+## 公部門計畫參與標籤（2026-09-16）
+
+- 改動檔案：`api/solutions.js`、`public/index.html`、`public/manufacturing.html`，以及本 SYNC 文件。
+- Supabase 路徑使用既有 `solRows` 在記憶體以 `company_id` 正規化後彙整不重複的 `program_type`；回傳 `pgc`（program count）。`Promise.all` 既有 7 個讀取不變，未新增任何 Supabase 查詢。
+- Airtable 路徑固定回傳 `pgc: 0`，不執行此彙整。
+- 首頁與方案探索卡片：僅當 `pgc >= 2` 才以 `badge-violet` 顯示「跨N種公部門計畫」。既有信任驗證四列、排序與篩選邏輯未調整。
+- 待新版 Preview 部署後，將以谷林運算（預期 `pgc=5`）及單一計畫來源方案驗證 API 回應與兩個前端入口。
