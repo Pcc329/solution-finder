@@ -262,6 +262,16 @@ export default async function handler(req, res) {
         return Number.isFinite(n) ? n : null;
       };
 
+      // Reuse the already fetched solution rows: no extra Supabase request is needed.
+      const programTypesByCid = new Map();
+      solRows.forEach(row => {
+        const cid = normalizeCid(row.company_id);
+        const pt = (row.program_type || '').trim();
+        if (!cid || !pt) return;
+        if (!programTypesByCid.has(cid)) programTypesByCid.set(cid, new Set());
+        programTypesByCid.get(cid).add(pt);
+      });
+
       const converted = solRows.map(row => {
         const cid = normalizeCid(row.company_id);
         const co = companyByCid[cid] || {};
@@ -306,6 +316,8 @@ export default async function handler(req, res) {
           cs: caseEvidenceCids.has(cid),
           awd: awardTierByCid.has(cid),
           awdTier: awardTierByCid.get(cid)?.tier || null,
+          pgc: programTypesByCid.get(cid)?.size || 0,
+          pgList: Array.from(programTypesByCid.get(cid) || []),
           so: parseScore(row.score_overall),
         };
       });
@@ -404,6 +416,8 @@ export default async function handler(req, res) {
         cs: false,
         awd: false,
         awdTier: null,
+        pgc: 0,
+        pgList: [],
         so: parseScore(f['score_overall']),
       };
     });
