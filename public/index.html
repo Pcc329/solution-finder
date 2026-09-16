@@ -470,6 +470,12 @@
           const year = String(value || '').trim();
           return year && !year.includes('年') ? `${year}年` : year;
         };
+        const TIER_COLOR_CLASS = {
+          '國際級': 'text-violet-700 bg-violet-100 border-violet-200',
+          '國家級': 'text-emerald-700 bg-emerald-100 border-emerald-200',
+          '產業級': 'text-slate-600 bg-slate-100 border-slate-200',
+        };
+        const DEFAULT_TIER_COLOR_CLASS = 'text-slate-600 bg-slate-100 border-slate-200';
 
         return (
           <div className="bg-amber-50/60 rounded-2xl border border-amber-200 shadow-sm p-6 mb-4">
@@ -482,11 +488,22 @@
             </div>
             <div className="space-y-2">
               {awards.map((award, index) => {
-                const details = [formatYear(award.year), award.category].filter(Boolean);
+                const yearText = formatYear(award.year);
+                const categoryText = String(award.category || '').trim();
+                const categoryClass = TIER_COLOR_CLASS[categoryText] || DEFAULT_TIER_COLOR_CLASS;
                 return (
                   <div key={`${award.name || 'award'}-${index}`} className="rounded-xl border border-amber-100 bg-white px-3 py-2">
                     <p className="text-sm font-bold text-slate-800">{award.name || "未命名獎項"}</p>
-                    {details.length > 0 && <p className="text-xs text-amber-800 mt-1">{details.join(" · ")}</p>}
+                    {(yearText || categoryText) && (
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                        {yearText && <span className="text-amber-800">{yearText}</span>}
+                        {categoryText && (
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 font-bold ${categoryClass}`}>
+                            {categoryText}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
