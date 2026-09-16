@@ -40,6 +40,7 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .roi-entry { display: none !important; }
+    .badge-violet { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
   </style>
 </head>
 <body>
@@ -394,6 +395,7 @@
           {item.gov && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-circle-check mr-1"></i>官方認證</span>}
           {item.cdm && <span className="bg-sky-100 text-sky-800 border border-sky-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-shield-halved mr-1"></i>資安分級</span>}
           {item.awd && <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-award mr-1"></i>獲獎肯定</span>}
+          {item.pgc >= 2 && <span className="badge-violet text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-building-columns mr-1"></i>跨{item.pgc}種公部門計畫</span>}
         </>
       );
 
