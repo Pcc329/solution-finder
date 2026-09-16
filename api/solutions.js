@@ -317,6 +317,7 @@ export default async function handler(req, res) {
           awd: awardTierByCid.has(cid),
           awdTier: awardTierByCid.get(cid)?.tier || null,
           pgc: programTypesByCid.get(cid)?.size || 0,
+          pgList: Array.from(programTypesByCid.get(cid) || []),
           so: parseScore(row.score_overall),
         };
       });
@@ -416,6 +417,7 @@ export default async function handler(req, res) {
         awd: false,
         awdTier: null,
         pgc: 0,
+        pgList: [],
         so: parseScore(f['score_overall']),
       };
     });
