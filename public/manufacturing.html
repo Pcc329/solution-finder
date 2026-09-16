@@ -1053,6 +1053,41 @@
       `;
     }
 
+    function getAwardDetailsHtml(item) {
+      const awards = Array.isArray(item?.awdList)
+        ? item.awdList.filter(award => award && (award.name || award.year || award.category))
+        : [];
+      if (!awards.length) return "";
+
+      const formatYear = value => {
+        const year = safeStr(value).trim();
+        return year && !year.includes("年") ? `${year}年` : year;
+      };
+
+      return `
+        <section class="mt-4 border border-amber-200 rounded-xl bg-amber-50/60 p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <i class="fa-solid fa-award text-amber-700"></i>
+            <div>
+              <h5 class="text-sm font-black text-amber-900">獲獎紀錄</h5>
+              <p class="text-xs text-amber-700/80 mt-1">依公開政府獎項資料彙整</p>
+            </div>
+          </div>
+          <div class="space-y-2">
+            ${awards.map(award => {
+              const details = [formatYear(award.year), safeStr(award.category).trim()].filter(Boolean);
+              return `
+                <div class="rounded-xl border border-amber-100 bg-white px-3 py-2">
+                  <p class="text-sm font-black text-slate-800">${escapeHtml(safeStr(award.name).trim() || "未命名獎項")}</p>
+                  ${details.length ? `<p class="text-xs text-amber-800 mt-1">${escapeHtml(details.join(" · "))}</p>` : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      `;
+    }
+
     function getSolutionDetailKey(item) {
       return safeStr(solutionField(item, "id", "id") || solutionField(item, "s", "name")).trim();
     }
@@ -1356,6 +1391,7 @@
             ` : ""}
             ${getTrustVerificationHtml(item)}
             ${getProgramParticipationHtml(item)}
+            ${getAwardDetailsHtml(item)}
           </div>
           ` : activeTab === "company" ? getCompanyDetailTabHtml(item) : getDetailCasesTabHtml(item)}
         </div>
@@ -1484,6 +1520,7 @@
 
           ${getTrustVerificationHtml(item)}
             ${getProgramParticipationHtml(item)}
+            ${getAwardDetailsHtml(item)}
           ` : `
             <section class="card p-6">
               ${activeTab === "company" ? getCompanyDetailTabHtml(item) : getDetailCasesTabHtml(item)}

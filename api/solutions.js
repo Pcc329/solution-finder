@@ -203,7 +203,7 @@ export default async function handler(req, res) {
           supabaseUrl,
           supabaseAnonKey,
           'awards',
-          'company_id,award_category',
+          'company_id,award_category,award_name,award_year',
           'company_id.asc'
         ),
       ]);
@@ -229,6 +229,11 @@ export default async function handler(req, res) {
       const caseEvidenceCids = toCidSet(caseEvidenceRows, 'provider_linked_company_id');
       const TIER_PRIORITY = { '國際級': 3, '國家級': 2, '產業級': 1 };
       const awardTierByCid = new Map();
+      const awardListByCid = new Map();
+      const awardYearValue = value => {
+        const match = String(value ?? '').match(/\d{4}/);
+        return match ? Number(match[0]) : -Infinity;
+      };
       awardRows.forEach(row => {
         const cid = normalizeCid(row.company_id);
         if (!cid) return;
@@ -238,6 +243,19 @@ export default async function handler(req, res) {
         if (!current || priority > current.priority) {
           awardTierByCid.set(cid, { tier, priority });
         }
+        if (!awardListByCid.has(cid)) awardListByCid.set(cid, []);
+        awardListByCid.get(cid).push({
+          name: row.award_name || '未命名獎項',
+          year: row.award_year || null,
+          category: row.award_category || null,
+        });
+      });
+      awardListByCid.forEach(awards => {
+        awards.sort((left, right) => {
+          const byYear = awardYearValue(right.year) - awardYearValue(left.year);
+          if (byYear) return byYear;
+          return (TIER_PRIORITY[right.category] || 0) - (TIER_PRIORITY[left.category] || 0);
+        });
       });
 
       const companyByCid = {};
@@ -316,6 +334,7 @@ export default async function handler(req, res) {
           cs: caseEvidenceCids.has(cid),
           awd: awardTierByCid.has(cid),
           awdTier: awardTierByCid.get(cid)?.tier || null,
+          awdList: awardListByCid.get(cid) || [],
           pgc: programTypesByCid.get(cid)?.size || 0,
           pgList: Array.from(programTypesByCid.get(cid) || []),
           so: parseScore(row.score_overall),
@@ -416,6 +435,7 @@ export default async function handler(req, res) {
         cs: false,
         awd: false,
         awdTier: null,
+        awdList: [],
         pgc: 0,
         pgList: [],
         so: parseScore(f['score_overall']),
