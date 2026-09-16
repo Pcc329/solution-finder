@@ -143,7 +143,15 @@ export default async function handler(req, res) {
         // Only exclude the confirmed abnormal status; include legacy NULL statuses.
         or: '(record_status.is.null,record_status.neq.已下架_資料異常)',
       };
-      const [solRows, coRows, dataSourceBySolutionId] = await Promise.all([
+      const [
+        solRows,
+        coRows,
+        dataSourceBySolutionId,
+        govRegistrationRows,
+        cdmCategoryRows,
+        caseEvidenceRows,
+        awardRows,
+      ] = await Promise.all([
         fetchAllSupabasePaged(
           supabaseUrl, supabaseAnonKey, 'solutions',
           // Stable fields required for the complete solution response.
@@ -169,6 +177,35 @@ export default async function handler(req, res) {
           'solution_id.asc',
           solutionFilters
         ),
+        fetchAllSupabasePaged(
+          supabaseUrl,
+          supabaseAnonKey,
+          'gov_registrations',
+          'company_id',
+          'company_id.asc'
+        ),
+        fetchAllSupabasePaged(
+          supabaseUrl,
+          supabaseAnonKey,
+          'company_cdm_categories',
+          'company_id',
+          'company_id.asc'
+        ),
+        fetchAllSupabasePaged(
+          supabaseUrl,
+          supabaseAnonKey,
+          'cases',
+          'provider_linked_company_id',
+          'provider_linked_company_id.asc',
+          { provider_linked_company_id: 'not.is.null' }
+        ),
+        fetchAllSupabasePaged(
+          supabaseUrl,
+          supabaseAnonKey,
+          'awards',
+          'company_id,award_category',
+          'company_id.asc'
+        ),
       ]);
 
       // Airtable 端 `f['x'] || ''` 空值回空字串；Supabase 空陣列 [] 是 truthy，需對齊
@@ -181,6 +218,27 @@ export default async function handler(req, res) {
         if (Array.isArray(value)) return String(value[0] || '').replace(/^\uFEFF/, '').trim();
         return String(value || '').replace(/^\uFEFF/, '').trim();
       };
+
+      const toCidSet = (rows, fieldName) => new Set(
+        rows
+          .map(row => normalizeCid(row[fieldName]))
+          .filter(Boolean)
+      );
+      const govRegisteredCids = toCidSet(govRegistrationRows, 'company_id');
+      const cdmClassifiedCids = toCidSet(cdmCategoryRows, 'company_id');
+      const caseEvidenceCids = toCidSet(caseEvidenceRows, 'provider_linked_company_id');
+      const TIER_PRIORITY = { '國際級': 3, '國家級': 2, '產業級': 1 };
+      const awardTierByCid = new Map();
+      awardRows.forEach(row => {
+        const cid = normalizeCid(row.company_id);
+        if (!cid) return;
+        const tier = TIER_PRIORITY[row.award_category] ? row.award_category : null;
+        const priority = TIER_PRIORITY[tier] || 0;
+        const current = awardTierByCid.get(cid);
+        if (!current || priority > current.priority) {
+          awardTierByCid.set(cid, { tier, priority });
+        }
+      });
 
       const companyByCid = {};
       coRows.forEach(row => {
@@ -243,6 +301,11 @@ export default async function handler(req, res) {
           sp: null,
           ss: null,
           si: null,
+          gov: govRegisteredCids.has(cid),
+          cdm: cdmClassifiedCids.has(cid),
+          cs: caseEvidenceCids.has(cid),
+          awd: awardTierByCid.has(cid),
+          awdTier: awardTierByCid.get(cid)?.tier || null,
           so: parseScore(row.score_overall),
         };
       });
@@ -336,6 +399,11 @@ export default async function handler(req, res) {
         sp: parseScore(f['score_price']),
         ss: parseScore(f['score_support']),
         si: parseScore(f['score_innovation']),
+        gov: false,
+        cdm: false,
+        cs: false,
+        awd: false,
+        awdTier: null,
         so: parseScore(f['score_overall']),
       };
     });
