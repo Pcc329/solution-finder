@@ -85,3 +85,12 @@
 - 四列信任項目與通過／累積中顯示邏輯不變。
 - `countable`／`hasData` 及動態分母相關計算保留在兩份實作中，沒有觸碰 API 信任旗標或查詢。
 - 待新版 Preview 部署後，使用 LEO KM-GPT 與一筆無案例佐證方案確認兩個入口都沒有殘留分數標籤。
+
+
+## 移除分數標籤 Preview 驗證（2026-09-16）
+
+- 驗證環境：已登入的 PR #157 Preview，`https://solution-finder-git-feat-solu-7e85d0-patrick0814-6136s-projects.vercel.app/`；頁面實際載入 2,462 筆方案。
+- 首頁：搜尋並開啟 `LEO KM-GPT國眾智慧大獅` 詳情。信任驗證仍顯示官方能量登錄、資安 CDM 分類、政府獎項、案例實績佐證四列；畫面沒有 `3/3` 或其他 X/Y 分數標籤。
+- 方案探索：以「其他製造／10人以下／剛起步／庫存物流／30萬以下」產生推薦，展開無案例佐證的 `AI 循環碳永續價值鏈與善良管理人雲管家`。四列均正常顯示「累積中」，且沒有 `0/3` 或其他 X/Y 分數標籤。
+- 已以瀏覽器截圖確認上述兩個入口。原有的綠色通過狀態、獲獎層級與累積中顯示均未改變。
+- 靜態確認：`public/index.html` 仍保留 `countable`／`countedSignals`，`public/manufacturing.html` 仍保留 `hasData`／`verifiedItems`；本次只刪除可見分數的 DOM。
