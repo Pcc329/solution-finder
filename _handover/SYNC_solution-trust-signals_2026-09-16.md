@@ -47,3 +47,13 @@
 - 根因是前端入口範圍遺漏：初始實作只修改 `public/manufacturing.html`，而使用者測試的方案搜尋與詳情由 `public/index.html` 渲染；該檔案沒有任何 `gov/cdm/cs/awd/awdTier` 的呈現邏輯。
 - 本次補件在 `public/index.html` 新增共用的 JSX 信任標章與四列「信任驗證」呈現，並插入搜尋卡、詳情 header 與詳情內容。未改動 API 聚合、評分或推薦邏輯。
 - 接下來以新版 Preview 對「LEO KM-GPT」、FarmiSpace、airaTrack 重新驗證三個使用者指定案例；驗證結果與新 commit SHA 追加於本文件。
+
+
+## 已登入 Preview 實測（修正後）
+
+- 驗證環境：已登入的 PR #157 Preview，`https://solution-finder-git-feat-solu-7e85d0-patrick0814-6136s-projects.vercel.app/`；首頁顯示已載入 2,462 筆方案。
+- `LEO KM-GPT國眾智慧大獅`（國眾電腦股份有限公司，company_id `01517124`）：搜尋列表顯示「官方認證／資安分級／獲獎肯定」三枚 badge；詳情頁「信任驗證」為 3/4，三個來源項目通過、案例實績為累積中。
+- `產品碳足跡盤查解決方案`（大云永續科技股份有限公司；原回報名稱 Products Carbon Footprint）：搜尋列表顯示「官方認證」；詳情頁為 1/4，官方能量登錄通過，其餘累積中。
+- `airaTrack-全場域人臉追蹤解決方案`（城智科技股份有限公司，company_id `83522758`）：搜尋列表顯示「獲獎肯定」；詳情頁為 1/4，政府獎項通過且層級顯示為「國際級」。
+- 以上三筆都是由已登入首頁實際載入的 `/api/solutions` 資料驅動，非 mock。直接以瀏覽器網址列前往 API 端點會被此環境的用戶端攔截器阻擋，故未把該攔截回應誤判為 API 失敗；改以產品頁面實際消費的回應完成驗證。
+- 修正後首頁搜尋卡與 `#detail` 均能呈現信任訊號；`manufacturing.html` 原有呈現也已確認正常。
