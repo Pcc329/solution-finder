@@ -1063,6 +1063,12 @@
         const year = safeStr(value).trim();
         return year && !year.includes("年") ? `${year}年` : year;
       };
+      const TIER_COLOR_CLASS = {
+        "國際級": "text-violet-700 bg-violet-100 border-violet-200",
+        "國家級": "text-emerald-700 bg-emerald-100 border-emerald-200",
+        "產業級": "text-slate-600 bg-slate-100 border-slate-200",
+      };
+      const DEFAULT_TIER_COLOR_CLASS = "text-slate-600 bg-slate-100 border-slate-200";
 
       return `
         <section class="mt-4 border border-amber-200 rounded-xl bg-amber-50/60 p-4">
@@ -1075,11 +1081,13 @@
           </div>
           <div class="space-y-2">
             ${awards.map(award => {
-              const details = [formatYear(award.year), safeStr(award.category).trim()].filter(Boolean);
+              const yearText = formatYear(award.year);
+              const categoryText = safeStr(award.category).trim();
+              const categoryClass = TIER_COLOR_CLASS[categoryText] || DEFAULT_TIER_COLOR_CLASS;
               return `
                 <div class="rounded-xl border border-amber-100 bg-white px-3 py-2">
                   <p class="text-sm font-black text-slate-800">${escapeHtml(safeStr(award.name).trim() || "未命名獎項")}</p>
-                  ${details.length ? `<p class="text-xs text-amber-800 mt-1">${escapeHtml(details.join(" · "))}</p>` : ""}
+                  ${(yearText || categoryText) ? `<div class="mt-1 flex flex-wrap items-center gap-2 text-xs">${yearText ? `<span class="text-amber-800">${escapeHtml(yearText)}</span>` : ""}${categoryText ? `<span class="inline-flex items-center rounded-full border px-2 py-0.5 font-bold ${categoryClass}">${escapeHtml(categoryText)}</span>` : ""}</div>` : ""}
                 </div>
               `;
             }).join("")}
