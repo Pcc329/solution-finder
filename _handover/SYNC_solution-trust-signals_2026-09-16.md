@@ -66,3 +66,12 @@
 - `public/manufacturing.html` 已採同樣規則：前三項 `hasData: true`，案例實績僅在 `cs === true` 時計入 `verifiedItems`。
 - 技術債：`index.html` 的 JSX 與 `manufacturing.html` 的字串模板各自維護等價的信任呈現邏輯。本輪只修正分母，不合併架構；後續新增信任來源時應評估收斂，避免規則再次漂移。
 - 待新版 Preview 完成後，以 LEO KM-GPT 分別確認首頁與 manufacturing 頁面均為 3/3。
+
+
+## 分母修正後 Preview 驗證
+
+- 已登入新版 Preview 並以首頁搜尋 `LEO KM-GPT`：`LEO KM-GPT國眾智慧大獅` 詳情的信任分數已由 3/4 修正為 **3/3**；三個通過項目仍正常顯示，案例實績佐證為「累積中」且不列入分母。
+- 方案探索頁實測同一套動態規則：
+  - `AI 循環碳永續價值鏈與善良管理人雲管家` 無案例佐證時顯示 **0/3**。
+  - `GenAIoT平台` 有案例佐證時顯示 **3/4**。
+- `manufacturing.html` 的現有實作維持 `verifiedItems.length` 作為分母；首頁現在改為等價的 `countedSignals.length`。兩個入口在有／無案例佐證時均依相同規則切換分母。
