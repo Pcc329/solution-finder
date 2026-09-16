@@ -460,6 +460,41 @@
         );
       };
 
+      const renderAwardDetails = (item) => {
+        const awards = Array.isArray(item.awdList)
+          ? item.awdList.filter(award => award && (award.name || award.year || award.category))
+          : [];
+        if (!awards.length) return null;
+
+        const formatYear = value => {
+          const year = String(value || '').trim();
+          return year && !year.includes('年') ? `${year}年` : year;
+        };
+
+        return (
+          <div className="bg-amber-50/60 rounded-2xl border border-amber-200 shadow-sm p-6 mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <i className="fa-solid fa-award text-amber-700"></i>
+              <div>
+                <h3 className="text-sm font-bold text-amber-900">獲獎紀錄</h3>
+                <p className="text-xs text-amber-700/80 mt-1">依公開政府獎項資料彙整</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {awards.map((award, index) => {
+                const details = [formatYear(award.year), award.category].filter(Boolean);
+                return (
+                  <div key={`${award.name || 'award'}-${index}`} className="rounded-xl border border-amber-100 bg-white px-3 py-2">
+                    <p className="text-sm font-bold text-slate-800">{award.name || "未命名獎項"}</p>
+                    {details.length > 0 && <p className="text-xs text-amber-800 mt-1">{details.join(" · ")}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      };
+
       const INDUSTRY_KEYWORDS = {
         "金融": ["法遵", "合規", "金融", "個資法", "金管會", "洗錢", "KYC", "銀行", "保險"],
         "製造": ["工控", "OT", "工廠", "製造", "產線", "SCADA", "PLC", "機台"],
@@ -1383,6 +1418,7 @@
 
             {renderTrustVerification(item)}
             {renderProgramParticipation(item)}
+            {renderAwardDetails(item)}
 
             {/* Solution ID */}
             <p className="text-xs text-slate-300 text-center">{item.id}</p>
