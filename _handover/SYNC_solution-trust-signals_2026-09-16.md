@@ -28,3 +28,12 @@
 
 - 未修改 Airtable `Solutions` 查詢流程或排序/評分邏輯。
 - 未修改任何 Supabase 資料表、DDL、快取設定、`scoreSolution`、`getRecommendations` 或 `officialPrograms`。
+
+## Preview 部署與動態驗證狀態
+
+- Vercel Preview：`https://solution-finder-git-feat-solu-7e85d0-patrick0814-6136s-projects.vercel.app`，部署狀態 Ready。
+- 未登入的 Preview 瀏覽器請求會先被共用密碼登入閘門攔下，`/api/solutions` 回應為 401；此回應發生於 API handler 執行前，不能用來判斷 Supabase 查詢成功或失敗。
+- 因本工作階段沒有可使用的 Preview 登入憑證，未傳送共用密碼，也未將未授權 401 誤記為功能失敗。
+- 以完整的 fetch mock 驗證 Supabase 路徑：同一公司同時具備政府登錄、CDM、案例、產業級與國際級獎項時，回傳 HTTP 200、`gov/cdm/cs/awd=true`、`awdTier=國際級`，並正確輸出 `src=農業部`。
+- 以完整的 fetch mock 驗證 Airtable 路徑：回傳 HTTP 200，且 `gov/cdm/cs/awd=false`、`awdTier=null`。
+- 仍待已登入 Preview 工作階段實測：呼叫真實 `/api/solutions`，確認四個 Supabase table query 與實際 3 組公司/方案資料；這是登入保護造成的外部驗證前置條件，不是程式執行錯誤。
