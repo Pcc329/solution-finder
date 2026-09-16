@@ -29,6 +29,7 @@
     .badge-teal { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
     .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
     .badge-indigo { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+    .badge-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
     .badge-muted { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
     .dropzone { border: 2px dashed #99f6e4; background: #f0fdfa; border-radius: 16px; padding: 22px; text-align: center; cursor: pointer; transition: 0.16s; }
     .dropzone.dragover { border-color: #0d9488; background: #ccfbf1; }
@@ -970,6 +971,64 @@
       return item?.[shortName] ?? item?.[fullName] ?? "";
     }
 
+    function getTrustSignalState(item) {
+      const awardTier = ["國際級", "國家級", "產業級"].includes(item?.awdTier) ? item.awdTier : null;
+      const awardLabel = awardTier ? `${awardTier}獲獎` : "獲獎肯定";
+      return {
+        gov: item?.gov === true,
+        cdm: item?.cdm === true,
+        cs: item?.cs === true,
+        awd: item?.awd === true,
+        awardTier,
+        awardLabel,
+      };
+    }
+
+    function getTrustBadgeHtml(item) {
+      const trust = getTrustSignalState(item);
+      const badges = [];
+      if (trust.gov) badges.push(`<span class="badge badge-teal"><i class="fa-solid fa-circle-check mr-1"></i>官方認證</span>`);
+      if (trust.cdm) badges.push(`<span class="badge badge-blue"><i class="fa-solid fa-shield-halved mr-1"></i>資安分級</span>`);
+      if (trust.awd) badges.push(`<span class="badge badge-amber"><i class="fa-solid fa-award mr-1"></i>${trust.awardLabel}</span>`);
+      return badges.join("");
+    }
+
+    function getTrustVerificationHtml(item) {
+      const trust = getTrustSignalState(item);
+      const allSignals = [
+        { label: "官方能量登錄", hasData: true, passed: trust.gov, passedLabel: "已登錄" },
+        { label: "資安 CDM 分類", hasData: true, passed: trust.cdm, passedLabel: "已分類" },
+        { label: "政府獎項", hasData: true, passed: trust.awd, passedLabel: trust.awardLabel },
+        { label: "案例實績佐證", hasData: trust.cs === true, passed: trust.cs === true, passedLabel: "已佐證" },
+      ];
+      const verifiedItems = allSignals.filter(signal => signal.hasData);
+      const score = verifiedItems.filter(signal => signal.passed).length;
+      const total = verifiedItems.length;
+      const scoreClass = score === total ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-50 text-slate-600";
+
+      return `
+        <section class="mt-4 border border-slate-200 rounded-xl bg-white p-4">
+          <div class="flex items-center justify-between gap-4 mb-3">
+            <div>
+              <h5 class="text-sm font-black text-slate-800 flex items-center gap-2"><i class="fa-solid fa-shield-heart text-teal-600"></i>信任驗證</h5>
+              <p class="text-xs text-slate-400 mt-1">依公開資料與案例佐證彙整</p>
+            </div>
+            
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${allSignals.map(signal => `
+              <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                <span class="text-sm font-bold text-slate-700">${signal.label}</span>
+                ${signal.passed
+                  ? `<span class="text-xs font-black text-emerald-700"><i class="fa-solid fa-circle-check mr-1"></i>${signal.passedLabel}</span>`
+                  : `<span class="text-xs font-bold text-slate-400">累積中</span>`}
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
     function getSolutionDetailKey(item) {
       return safeStr(solutionField(item, "id", "id") || solutionField(item, "s", "name")).trim();
     }
@@ -1271,6 +1330,7 @@
               </div>
             </section>
             ` : ""}
+            ${getTrustVerificationHtml(item)}
           </div>
           ` : activeTab === "company" ? getCompanyDetailTabHtml(item) : getDetailCasesTabHtml(item)}
         </div>
@@ -1396,6 +1456,8 @@
               </div>
             </section>
           ` : ""}
+
+          ${getTrustVerificationHtml(item)}
           ` : `
             <section class="card p-6">
               ${activeTab === "company" ? getCompanyDetailTabHtml(item) : getDetailCasesTabHtml(item)}
@@ -1833,6 +1895,7 @@
                 <span class="badge badge-muted">${escapeHtml(item.src || item.p || "未標示來源")}</span>
                 <span class="badge ${item.ai ? "badge-teal" : "badge-muted"}">${item.ai ? "AI 方案" : "一般方案"}</span>
                 ${item.cat ? `<span class="badge badge-muted">${escapeHtml(item.cat)}</span>` : ""}
+                ${getTrustBadgeHtml(item)}
               </div>
             </article>
             ${isExpanded ? getInlineDetailHtml(item, shouldAnimate) : ""}

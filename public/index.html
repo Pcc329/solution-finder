@@ -389,6 +389,49 @@
         return cleaned.join('、');
       };
 
+      const getTrustBadges = (item) => (
+        <>
+          {item.gov && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-circle-check mr-1"></i>官方認證</span>}
+          {item.cdm && <span className="bg-sky-100 text-sky-800 border border-sky-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-shield-halved mr-1"></i>資安分級</span>}
+          {item.awd && <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] px-2 py-0.5 rounded font-bold"><i className="fa-solid fa-award mr-1"></i>獲獎肯定</span>}
+        </>
+      );
+
+      const renderTrustVerification = (item) => {
+        const signals = [
+          { label: "官方能量登錄", active: Boolean(item.gov), countable: true, icon: "fa-circle-check" },
+          { label: "資安 CDM 分類", active: Boolean(item.cdm), countable: true, icon: "fa-shield-halved" },
+          { label: "政府獎項", active: Boolean(item.awd), countable: true, icon: "fa-award", detail: item.awdTier || "" },
+          { label: "案例實績佐證", active: Boolean(item.cs), countable: item.cs === true, icon: "fa-briefcase" },
+        ];
+        const countedSignals = signals.filter(signal => signal.countable);
+        const verifiedCount = countedSignals.filter(signal => signal.active).length;
+
+        return (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-4">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <i className="fa-solid fa-shield-heart text-emerald-600"></i> 信任驗證
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">依公開資料與案例佐證彙整</p>
+              </div>
+              
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {signals.map(signal => (
+                <div key={signal.label} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${signal.active ? "bg-emerald-50 text-emerald-800" : "bg-slate-50 text-slate-400"}`}>
+                  <i className={`fa-solid ${signal.icon} text-xs ${signal.active ? "text-emerald-600" : "text-slate-300"}`}></i>
+                  <span className="font-medium">{signal.label}</span>
+                  {signal.detail && <span className="text-xs text-amber-700 ml-auto">{signal.detail}</span>}
+                  {!signal.active && <span className="text-xs ml-auto">累積中</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      };
+
       const INDUSTRY_KEYWORDS = {
         "金融": ["法遵", "合規", "金融", "個資法", "金管會", "洗錢", "KYC", "銀行", "保險"],
         "製造": ["工控", "OT", "工廠", "製造", "產線", "SCADA", "PLC", "機台"],
@@ -1112,6 +1155,7 @@
                       {item.iv && <span className="bg-purple-100 text-purple-800 border border-purple-200 text-[10px] px-2 py-0.5 rounded font-bold">{item.iv}</span>}
                       {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] px-2 py-0.5 rounded"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}</span>}
                       {formatScaleDisplay(item.scale) && <span className="bg-sky-50 text-sky-700 border border-sky-200 text-[10px] px-2 py-0.5 rounded">{formatScaleDisplay(item.scale)}</span>}
+                      {getTrustBadges(item)}
                     </div>
                     <div className="flex items-start justify-between gap-3 mb-1">
                       <h2 className="text-lg font-bold text-slate-900 truncate">{item.s || "（未命名方案）"}</h2>
@@ -1212,6 +1256,7 @@
                     {item.p && <span className="bg-blue-100 text-blue-800 border border-blue-200 text-xs px-3 py-1 rounded-full">{item.p}</span>}
                     {item.r && <span className="bg-slate-100 text-slate-600 border border-slate-200 text-xs px-3 py-1 rounded-full"><i className="fa-solid fa-location-dot mr-1"></i>{item.r}{item.city ? ` · ${item.city}` : ""}</span>}
                     {formatScaleDisplay(item.scale) && <span className="bg-sky-50 text-sky-700 border border-sky-200 text-xs px-3 py-1 rounded-full">{formatScaleDisplay(item.scale)}</span>}
+                    {getTrustBadges(item)}
                   </div>
                   <h1 className="text-2xl font-black text-slate-900 mb-2">{item.s || "（未命名方案）"}</h1>
                   <p className="text-base text-slate-600 font-semibold mb-4">{item.c}</p>
@@ -1307,6 +1352,8 @@
                 )}
               </div>
             </div>
+
+            {renderTrustVerification(item)}
 
             {/* Solution ID */}
             <p className="text-xs text-slate-300 text-center">{item.id}</p>
