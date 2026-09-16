@@ -75,3 +75,13 @@
   - `AI 循環碳永續價值鏈與善良管理人雲管家` 無案例佐證時顯示 **0/3**。
   - `GenAIoT平台` 有案例佐證時顯示 **3/4**。
 - `manufacturing.html` 的現有實作維持 `verifiedItems.length` 作為分母；首頁現在改為等價的 `countedSignals.length`。兩個入口在有／無案例佐證時均依相同規則切換分母。
+
+
+## 移除信任分數標籤（2026-09-16）
+
+- 依已核准的規格，僅移除使用者可見的 X/Y 分數標籤：
+  - `public/index.html`：移除 `{verifiedCount}/{countedSignals.length}` 的 badge DOM。
+  - `public/manufacturing.html`：移除 `${score}/${total}` 的圓形 badge DOM。
+- 四列信任項目與通過／累積中顯示邏輯不變。
+- `countable`／`hasData` 及動態分母相關計算保留在兩份實作中，沒有觸碰 API 信任旗標或查詢。
+- 待新版 Preview 部署後，使用 LEO KM-GPT 與一筆無案例佐證方案確認兩個入口都沒有殘留分數標籤。
