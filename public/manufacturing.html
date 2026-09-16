@@ -991,7 +991,7 @@
       if (trust.gov) badges.push(`<span class="badge badge-teal"><i class="fa-solid fa-circle-check mr-1"></i>官方認證</span>`);
       if (trust.cdm) badges.push(`<span class="badge badge-blue"><i class="fa-solid fa-shield-halved mr-1"></i>資安分級</span>`);
       if (trust.awd) badges.push(`<span class="badge badge-amber"><i class="fa-solid fa-award mr-1"></i>${trust.awardLabel}</span>`);
-      if (Number(item?.pgc) >= 2) badges.push(`<span class="badge badge-violet"><i class="fa-solid fa-building-columns mr-1"></i>跨${item.pgc}種公部門計畫</span>`);
+      if (Number(item?.pgc) >= 2) badges.push(`<span class="badge badge-violet"><i class="fa-solid fa-building-columns mr-1"></i>跨${item.pgc}種計畫</span>`);
       return badges.join("");
     }
 
@@ -1026,6 +1026,28 @@
                   : `<span class="text-xs font-bold text-slate-400">累積中</span>`}
               </div>
             `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function getProgramParticipationHtml(item) {
+      const programTypes = Array.isArray(item?.pgList)
+        ? item.pgList.map(value => safeStr(value).trim()).filter(Boolean)
+        : [];
+      if (Number(item?.pgc) < 2 || !programTypes.length) return "";
+
+      return `
+        <section class="mt-4 border border-violet-200 rounded-xl bg-violet-50/60 p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <i class="fa-solid fa-building-columns text-violet-700"></i>
+            <div>
+              <h5 class="text-sm font-black text-violet-900">跨${Number(item.pgc)}種計畫</h5>
+              <p class="text-xs text-violet-700/80 mt-1">依公司名下方案的資料來源計畫彙整</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            ${programTypes.map(programType => `<span class="badge badge-violet">${escapeHtml(programType)}</span>`).join("")}
           </div>
         </section>
       `;
@@ -1333,6 +1355,7 @@
             </section>
             ` : ""}
             ${getTrustVerificationHtml(item)}
+            ${getProgramParticipationHtml(item)}
           </div>
           ` : activeTab === "company" ? getCompanyDetailTabHtml(item) : getDetailCasesTabHtml(item)}
         </div>
@@ -1460,6 +1483,7 @@
           ` : ""}
 
           ${getTrustVerificationHtml(item)}
+            ${getProgramParticipationHtml(item)}
           ` : `
             <section class="card p-6">
               ${activeTab === "company" ? getCompanyDetailTabHtml(item) : getDetailCasesTabHtml(item)}
