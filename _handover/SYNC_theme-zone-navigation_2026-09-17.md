@@ -63,6 +63,35 @@ select
 from solutions;
 -- 結果：266 / 261 / 5
 ```
+## 2026-09-17 生產物流數字補充核對
+
+### 實際 API 篩選邏輯
+`api/solutions.js` 的 Supabase 路徑在建立 `solutionFilters` 時，實際只設定一個 PostgREST `or` 條件：
+
+```js
+const solutionFilters = {
+  or: '(record_status.is.null,record_status.neq.已下架_資料異常)',
+};
+```
+
+`fetchAllSupabasePaged()` 將該條件原樣設定到 `/rest/v1/solutions` 的 query string，並依 `solution_id.asc` 分頁讀取。之後 `const converted = solRows.map(...)` 逐筆轉換輸出；沒有使用 `DISTINCT`、`Set`、`slice`，或另一層過濾來減少方案列數。
+
+等效的實際 SQL 是：
+
+```sql
+select count(*)
+from solutions
+where industry_category = '生產物流'
+  and (record_status is null or record_status <> '已下架_資料異常');
+-- 結果：261
+```
+
+### 對獨立核對結果的說明
+- Supabase 實際分布：正常 144、兩種「疑似已下架」共 115、`已下架_資料異常` 5、`已下架_公司歇業佐證` 2，合計 266。
+- 現行 API 精確排除的只有 `已下架_資料異常` 5 筆，因此回傳 261；`已下架_公司歇業佐證` 2 筆仍在 API 資料中。
+- 這與「排除所有以 `已下架` 開頭狀態」的業務規則不同。若要讓畫面改為 259，需另行核准修改 Airtable `ACTIVE_SOLUTIONS_FILTER` 與 Supabase `solutionFilters`，不能把它當成 PR #161 的前端計數錯誤自行變更。
+- `item.cat` 對應 `row.industry_category`，且 261 筆是 API 回傳列數的一對一計數；前端沒有額外去重或排除。
+
 ## Console 排查
 使用者提供的 Preview console 截圖中只有：
 - Tailwind CDN production 警告
