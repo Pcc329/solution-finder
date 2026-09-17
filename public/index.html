@@ -64,6 +64,17 @@
 
     const REGIONS = ["北部", "中部", "南部", "東部", "其他"];
     const CATEGORIES = ["銷售管理", "行銷推廣", "生產物流", "協作辦公", "人力資源", "資安合規", "研發創新", "醫療照護", "暫無法分類"];
+    const CATEGORY_ICON = {
+      "銷售管理": "fa-chart-line",
+      "行銷推廣": "fa-bullhorn",
+      "生產物流": "fa-truck",
+      "協作辦公": "fa-people-group",
+      "資安合規": "fa-shield-halved",
+      "人力資源": "fa-user-tie",
+      "研發創新": "fa-flask-vial",
+      "醫療照護": "fa-kit-medical",
+    };
+    const DEFAULT_CATEGORY_ICON = "fa-folder";
     const INDUSTRY_VERTICALS = ["旅宿觀光", "製造業", "醫療照護", "建築營造", "文化創意"];
     const PROGRAMS = ["臺灣雲市集", "雲市集工業館", "SME AI平台", "新創嚴選網", "商業服務業專區", "政府軟體採購網", "領域型調查(人工搜查)"];
 
@@ -168,7 +179,8 @@
       const [allData, setAllData] = useState([]);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
-      const [activePage, setActivePage] = useState("home"); // home | list | detail
+      const [activePage, setActivePage] = useState("home"); // home | list | detail | theme-detail
+      const [selectedCategory, setSelectedCategory] = useState(null);
       useEffect(() => {
         window.scrollTo(0, 0);
       }, [activePage]);
@@ -194,10 +206,10 @@
       const [databaseStats, setDatabaseStats] = useState(null);
       const listTopRef = useRef(null);
 
-      const pushHistoryView = (view) => {
+      const pushHistoryView = (view, extraState = {}) => {
         const hash = `#${view}`;
         if (window.location.hash === hash || window.history.state?.view === view) return;
-        window.history.pushState({ view }, "", hash);
+        window.history.pushState({ view, ...extraState }, "", hash);
       };
 
       const goBackInApp = () => {
@@ -206,7 +218,7 @@
 
       useEffect(() => {
         const hash = window.location.hash;
-        if (hash === "#list" || hash === "#detail") {
+        if (hash === "#list" || hash === "#detail" || hash === "#theme-detail") {
           window.history.replaceState({}, "", window.location.pathname);
         }
 
@@ -214,6 +226,13 @@
           if (event.state?.view === "list") {
             setSelectedItem(null);
             setActivePage("list");
+            return;
+          }
+
+          if (event.state?.view === "theme-detail" && event.state.category) {
+            setSelectedItem(null);
+            setSelectedCategory(event.state.category);
+            setActivePage("theme-detail");
             return;
           }
 
@@ -376,6 +395,13 @@
         setCurrentPage(1);
         setSortBy("relevance");
         pushHistoryView("list");
+      };
+
+      const openThemeDetail = (category) => {
+        setSelectedCategory(category);
+        setSelectedItem(null);
+        setActivePage("theme-detail");
+        pushHistoryView("theme-detail", { category });
       };
 
       // helper: 安全轉小寫字串（防止陣列或非字串欄位）
@@ -907,10 +933,131 @@
                 ))}
               </div>
             </div>
+            <section className="mt-10 text-left">
+              <div className="flex items-end justify-between gap-4 mb-4">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 mb-1">主題區導覽</p>
+                  <h2 className="text-xl font-black text-slate-800">依主題區瀏覽</h2>
+                </div>
+                <span className="text-xs text-slate-400">8 個主題區</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {CATEGORIES.filter(category => category !== "暫無法分類").map(category => {
+                  const solutionCount = allData.filter(item => item.cat === category).length;
+                  return (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => openThemeDetail(category)}
+                      className="group min-h-36 rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
+                    >
+                      <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-teal-100 text-teal-700">
+                        <i className={`fa-solid ${CATEGORY_ICON[category] || DEFAULT_CATEGORY_ICON}`}></i>
+                      </span>
+                      <span className="block text-[10px] font-bold tracking-wide text-teal-700">主題區</span>
+                      <span className="mt-1 block text-sm font-black text-slate-800">{category}</span>
+                      <span className="mt-2 block text-xs text-slate-500">{solutionCount.toLocaleString()} 個方案</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
           </div>
         </div>
       );
 
+      const renderThemeDetail = () => {
+        const category = selectedCategory;
+        if (!category) return renderHome();
+
+        const categoryItems = allData.filter(item => item.cat === category);
+        const companyIds = new Set(categoryItems.map(item => item.cid).filter(Boolean));
+        const cdmCompanyIds = new Set(categoryItems.filter(item => item.cdm).map(item => item.cid).filter(Boolean));
+        const govCompanyIds = new Set(categoryItems.filter(item => item.gov).map(item => item.cid).filter(Boolean));
+        const sourceCounts = categoryItems.reduce((counts, item) => {
+          const source = item.p || "未標示來源";
+          counts[source] = (counts[source] || 0) + 1;
+          return counts;
+        }, {});
+        const sortedSources = Object.entries(sourceCounts).sort(([, left], [, right]) => right - left);
+        const leadingSources = sortedSources.slice(0, 4);
+        const otherCount = sortedSources.slice(4).reduce((sum, [, count]) => sum + count, 0);
+        const sourceDistribution = otherCount ? [...leadingSources, ["其他", otherCount]] : leadingSources;
+        const stats = [
+          { label: "收錄方案數", value: categoryItems.length, tone: "bg-slate-50 border-slate-200 text-slate-800" },
+          { label: "供應商家數", value: companyIds.size, tone: "bg-slate-50 border-slate-200 text-slate-800" },
+          { label: "CDM分類家數", value: cdmCompanyIds.size, tone: "bg-teal-50 border-teal-200 text-teal-800" },
+          { label: "官方登錄家數", value: govCompanyIds.size, tone: "bg-emerald-50 border-emerald-200 text-emerald-800" },
+        ];
+
+        return (
+          <div className="mx-auto w-full max-w-4xl px-4 py-8 pb-20 animate-in">
+            <button onClick={goBackInApp} className="mb-6 flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-emerald-700">
+              <i className="fa-solid fa-arrow-left"></i> 返回首頁
+            </button>
+
+            <section className="border-b border-slate-200 pb-8">
+              <div className="flex items-center gap-4">
+                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-teal-100 text-2xl text-teal-700">
+                  <i className={`fa-solid ${CATEGORY_ICON[category] || DEFAULT_CATEGORY_ICON}`}></i>
+                </span>
+                <div>
+                  <span className="text-xs font-bold tracking-wide text-teal-700">主題區</span>
+                  <h1 className="mt-1 text-3xl font-black text-slate-900">{category}</h1>
+                </div>
+              </div>
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-600">
+                收錄 {categoryItems.length.toLocaleString()} 個方案，來自 {companyIds.size.toLocaleString()} 家供應商。
+                {cdmCompanyIds.size > 0 && <> 其中 {cdmCompanyIds.size.toLocaleString()} 家已通過官方 CDM 資安能力分類。</>}
+                {govCompanyIds.size > 0 && <> {govCompanyIds.size.toLocaleString()} 家具備官方能量登錄認證。</>}
+              </p>
+            </section>
+
+            <section className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+              {stats.map(stat => (
+                <div key={stat.label} className={`rounded-xl border p-4 ${stat.tone}`}>
+                  <p className="text-xs font-bold opacity-75">{stat.label}</p>
+                  <p className="mt-2 text-2xl font-black">{stat.value.toLocaleString()}</p>
+                </div>
+              ))}
+            </section>
+
+            <section className="mt-8">
+              <div className="mb-4">
+                <p className="text-xs font-bold text-slate-400">資料來源分布</p>
+                <h2 className="mt-1 text-xl font-black text-slate-800">主要收錄計畫</h2>
+              </div>
+              <div className="space-y-3">
+                {sourceDistribution.map(([source, count]) => {
+                  const percentage = categoryItems.length ? Math.round((count / categoryItems.length) * 100) : 0;
+                  return (
+                    <div key={source}>
+                      <div className="mb-1 flex items-center justify-between gap-4 text-xs">
+                        <span className="font-bold text-slate-600">{source}</span>
+                        <span className="shrink-0 text-slate-400">{count.toLocaleString()} 個方案 · {percentage}%</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                        <div className="h-full rounded-full bg-teal-500" style={{ width: `${percentage}%` }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="mt-10 border-t border-slate-200 pt-8">
+              <button
+                type="button"
+                onClick={() => handleCategoryBrowse(category)}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0d6e52] px-5 py-4 text-sm font-black text-white transition hover:bg-[#1D9E75] sm:w-auto"
+              >
+                瀏覽「{category}」全部 {categoryItems.length.toLocaleString()} 個方案
+                <i className="fa-solid fa-arrow-right"></i>
+              </button>
+            </section>
+          </div>
+        );
+      };
       // ===== PAGINATION COMPONENT =====
       const renderPagination = () => {
         if (totalPages <= 1) return null;
@@ -1463,6 +1610,7 @@
             {activePage === "home" && renderHome()}
             {activePage === "list" && renderList()}
             {activePage === "detail" && renderDetail()}
+            {activePage === "theme-detail" && renderThemeDetail()}
           </main>
           {roiModal && createPortal(
             <ROIModal item={roiModal} onClose={closeROIModal} />,
