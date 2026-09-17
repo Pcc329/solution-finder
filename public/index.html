@@ -86,7 +86,7 @@
     const SENTENCE_TEMPLATES = [
       ({ region, category, scale }) => `搜尋：我想找${region}的${category}方案，適合${scale}的企業...`,
       ({ region, category, scale }) => `搜尋：找${scale}企業適用、${region}地區的${category}系統...`,
-      ({ region, category }) => `搜尋：${region}有哪些${category}相關的數位轉型方案...`,
+      ({ region, category }) => `搜尋：${region}有哪些${category}相關方案...`,
     ];
     const getRandomItem = (items) => items[Math.floor(Math.random() * items.length)];
     const createRandomSearchSentence = (previousSentence = "") => {
