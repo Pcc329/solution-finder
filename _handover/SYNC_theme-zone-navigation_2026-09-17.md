@@ -46,16 +46,23 @@ Preview：[Vercel Preview](https://solution-finder-3h1cxfgjt-patrick0814-6136s-p
 ### 生產物流 261 / 266 核對
 - Preview 的首頁卡片與主題詳情均顯示 261；主題詳情進一步顯示 122 家供應商、8 家 CDM、23 家官方登錄。
 - 前端欄位對應已確認：`api/solutions.js` 的 Supabase 路徑直接輸出 `cat: row.industry_category || ''`；Airtable 路徑直接輸出 `cat: f['industry_category'] || ''`。首頁使用的 `item.cat` 沒有再做分類轉換。
-- 同一 API 同時對兩條資料路徑套用「只排除明確下架、保留 NULL」的 `record_status` 過濾：Airtable 使用 `ACTIVE_SOLUTIONS_FILTER`，Supabase 使用 `(record_status.is.null,record_status.neq.已下架_資料異常)`。
-- 因此，已證實的結論是：PR 畫面的 261 是目前 `/api/solutions` 活躍資料集、按 `industry_category` 精確計數的結果；2026-09-16 直接 Supabase 查詢得到的 266 若未套用相同 `record_status` 條件，會多出 5 筆。這是資料範圍差異，不是 `item.cat` 對應錯欄位。
-- 若要在 SQL Editor 做最終逐筆證明，請以相同條件重跑：
+- 已在 Supabase Production SQL Editor 執行唯讀核對查詢，結果為：原始 `industry_category = '生產物流'` 共 **266** 筆；套用與 API 相同的條件 `record_status is null or record_status <> '已下架_資料異常'` 後為 **261** 筆；被排除的明確下架資料為 **5** 筆。
+- 結論：261／266 的差異不是時間差，也不是 `item.cat` 欄位對應錯誤，而是 `/api/solutions` 對活躍資料的既有 `record_status` 過濾所致。Airtable 使用 `ACTIVE_SOLUTIONS_FILTER`；Supabase 使用 `(record_status.is.null,record_status.neq.已下架_資料異常)`，兩者語意一致。
+- 實際核對 SQL：
 ```sql
-select count(*)
-from solutions
-where industry_category = '生產物流'
-  and (record_status is null or record_status <> '已下架_資料異常');
+select
+  count(*) filter (where industry_category = '生產物流') as raw_count,
+  count(*) filter (
+    where industry_category = '生產物流'
+      and (record_status is null or record_status <> '已下架_資料異常')
+  ) as api_equivalent_count,
+  count(*) filter (
+    where industry_category = '生產物流'
+      and record_status = '已下架_資料異常'
+  ) as excluded_count
+from solutions;
+-- 結果：266 / 261 / 5
 ```
-
 ## Console 排查
 使用者提供的 Preview console 截圖中只有：
 - Tailwind CDN production 警告
