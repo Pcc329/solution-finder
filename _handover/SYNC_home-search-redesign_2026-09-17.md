@@ -73,3 +73,63 @@ public/index.html  | 75 insertions, 16 deletions
 
 1. `b87858ec751b7753e5a4c86efcba602079233bce` feat(api): expose pricing model in solutions response
 2. `51f4cf23d1e42ba43216cc782120b77496008c82` feat(home): redesign search shortcuts and popular filters
+
+
+## 跑馬燈隨機詞庫升級
+
+已依 PPC 確認，將固定四句範例改為前端詞庫加模板的隨機組句；未新增 API 或資料庫查詢。
+
+### industry_category 盤點
+
+盤點來源：Supabase Production `solutions`，條件為 `record_status IS NULL OR record_status NOT LIKE '已下架%'`。
+
+| industry_category | 方案數 | 詞庫決策 |
+| --- | ---: | --- |
+| 銷售管理 | 669 | 納入 |
+| 行銷推廣 | 418 | 納入 |
+| 生產物流 | 259 | 納入 |
+| 協作辦公 | 196 | 納入 |
+| 資安合規 | 146 | 納入 |
+| 人力資源 | 143 | 納入 |
+| 研發創新 | 132 | 納入 |
+| 醫療照護 | 45 | 納入 |
+| NULL | 241 | 排除 |
+| 空字串 | 20 | 排除 |
+| 暫無法分類 | 16 | 排除 |
+| CNC精密加工業、節能減碳、精品咖啡業、行銷數位轉型、製造業、食品製造業(冷鏈) | 各 1 | 排除 |
+
+PPC 已確認使用上述八個代表性類別作為 `POOL_CATEGORY`，並排除缺值、未分類及六個長尾單筆類別。
+
+### 實作
+
+```js
+const POOL_CATEGORY = [
+  "銷售管理", "行銷推廣", "生產物流", "協作辦公",
+  "資安合規", "人力資源", "研發創新", "醫療照護",
+];
+const POOL_REGION = ["北北基", "桃竹苗", "中彰投", "雲嘉南", "高屏", "宜花東", "離島", "全台灣"];
+const POOL_SCALE = ["9人以下", "10~20人", "21~50人", "51~100人", "101~200人", "不限規模"];
+```
+
+- `SENTENCE_TEMPLATES` 有三種可讀句型，每次從模板和對應詞庫隨機取值。
+- `createRandomSearchSentence(previousSentence)` 最多嘗試八次，確保跑馬燈不會連續顯示相同句子。
+- 跑馬燈延用既有 3 秒 interval；`query` 有內容時不建立 interval。
+- 三個 `quickSearchExamples` 在 React state 初始化時獨立產生，之後不會自動變更。
+- 快捷按鈕仍只呼叫既有 `handleQuickSearch(text)`。
+- 第三模板改為「相關方案」，未使用會被既有語意解析轉成無效關鍵字的泛用詞「數位轉型」。
+
+### Preview 驗證
+
+| 項目 | 結果 |
+| --- | --- |
+| 隨機跑馬燈 | 初始：`搜尋：我想找全台灣的人力資源方案，適合9人以下的企業...`；3.2 秒後：`搜尋：找101~200人企業適用、高屏地區的研發創新系統...`。兩次不同。 |
+| 快捷搜尋穩定性 | 三個載入時產生的文字經過跑馬燈輪替後完全未變更。 |
+| 快捷搜尋互動 | 點擊「搜尋：找101~200人企業適用、中彰投地區的人力資源系統...」後，既有流程解析為中部、人力資源、人資，並回傳 2 筆結果。 |
+| 既有區塊 | 熱門篩選與八個主題區導覽仍在首頁且正常顯示。 |
+
+Preview 已 Ready；驗證過程的首頁與搜尋結果截圖保留在本任務操作紀錄。
+
+### 追加 commits
+
+3. `636a7a49b2d6b137d1291f52690df8d0177bc9e0` feat(home): randomize search suggestions
+4. `163e71413333cbb5c76df52d3b2d63ab99b0d23e` fix(home): avoid generic random search keywords
