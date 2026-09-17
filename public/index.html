@@ -60,7 +60,7 @@
     // id, s=方案名, c=公司名, cid, p=program_type, ai, d=target_industry,
     // cat=industry_category, iv=industry_vertical, pr=price, pt=price_tier,
     // mo=monthly_price, mt=monthly_price_tier, r=region, st=is_startup,
-    // city, desc=description, feat=features_list, tags=tech_tags, scale, slogan
+    // city, desc=description, feat=features_list, tags=tech_tags, scale, slogan, pm=pricing_model
 
     const REGIONS = ["北部", "中部", "南部", "東部", "其他"];
     const CATEGORIES = ["銷售管理", "行銷推廣", "生產物流", "協作辦公", "人力資源", "資安合規", "研發創新", "醫療照護", "暫無法分類"];
@@ -77,6 +77,22 @@
     const DEFAULT_CATEGORY_ICON = "fa-folder";
     const INDUSTRY_VERTICALS = ["旅宿觀光", "製造業", "醫療照護", "建築營造", "文化創意"];
     const PROGRAMS = ["臺灣雲市集", "雲市集工業館", "SME AI平台", "新創嚴選網", "商業服務業專區", "政府軟體採購網", "領域型調查(人工搜查)"];
+    const SEARCH_PLACEHOLDER_EXAMPLES = [
+      "搜尋：我想找台中的 AI 智能排班系統，預算三萬...",
+      "搜尋：找五萬以下的醫療照護方案...",
+      "搜尋：找北部的 AI 客服方案...",
+      "搜尋：找適合9人以下企業的銷售管理系統...",
+    ];
+    const QUICK_SEARCH_EXAMPLES = [
+      "找五萬以下的醫療照護方案",
+      "找北部的 AI 客服方案",
+      "找適合9人以下企業的銷售管理系統",
+    ];
+    const HOME_POPULAR_FILTERS = [
+      { id: "startup-program", label: "新創嚴選", className: "bg-amber-50 text-amber-700 border-amber-100 hover:border-amber-300" },
+      { id: "official-provider", label: "官方認證供應商", className: "bg-teal-50 text-teal-700 border-teal-100 hover:border-teal-300" },
+      { id: "free-trial", label: "免費試用", className: "bg-rose-50 text-rose-700 border-rose-100 hover:border-rose-300" },
+    ];
 
     const SORT_OPTIONS = [
       { value: "relevance", label: "相關性" },
@@ -186,9 +202,10 @@
       }, [activePage]);
       const [selectedItem, setSelectedItem] = useState(null);
       const [query, setQuery] = useState("");
+      const [placeholderIndex, setPlaceholderIndex] = useState(0);
       const [isSearching, setIsSearching] = useState(false);
       const [filters, setFilters] = useState({
-        region: [], isAI: null, isStartup: null,
+        region: [], isAI: null, isStartup: null, isGov: null, pricingModel: null,
         category: [], maxPrice: null, keyword: null,
         program: [], industry_vertical: [],
         industryKeyword: null
@@ -205,6 +222,14 @@
       const [showFilterTip, setShowFilterTip] = useState(false);
       const [databaseStats, setDatabaseStats] = useState(null);
       const listTopRef = useRef(null);
+
+      useEffect(() => {
+        if (query) return undefined;
+        const intervalId = window.setInterval(() => {
+          setPlaceholderIndex(index => (index + 1) % SEARCH_PLACEHOLDER_EXAMPLES.length);
+        }, 3000);
+        return () => window.clearInterval(intervalId);
+      }, [query]);
 
       const pushHistoryView = (view, extraState = {}) => {
         const hash = `#${view}`;
@@ -299,7 +324,7 @@
 
       // 3. Fallback 關鍵字比對
       const parseQueryFallback = (text) => {
-        let f = { region: [], isAI: null, isStartup: null, category: [], maxPrice: null, keyword: null, program: [], industry_vertical: [], industryKeyword: null };
+        let f = { region: [], isAI: null, isStartup: null, isGov: null, pricingModel: null, category: [], maxPrice: null, keyword: null, program: [], industry_vertical: [], industryKeyword: null };
         const q = text.toLowerCase();
         if (q.includes("北部") || q.includes("台北") || q.includes("新北")) f.region = ["北部"];
         else if (q.includes("中部") || q.includes("台中")) f.region = ["中部"];
@@ -341,6 +366,8 @@
             region: result.region ? [result.region] : [],
             isAI: result.ai != null ? result.ai : null,
             isStartup: result.startup != null ? result.startup : null,
+            isGov: null,
+            pricingModel: null,
             category: result.category ? [result.category] : [],
             maxPrice: result.maxPrice || null,
             keyword: result.keyword || null,
@@ -375,6 +402,8 @@
             region: result.region ? [result.region] : [],
             isAI: result.ai != null ? result.ai : null,
             isStartup: result.startup != null ? result.startup : null,
+            isGov: null,
+            pricingModel: null,
             category: result.category ? [result.category] : [],
             maxPrice: result.maxPrice || null,
             keyword: result.keyword || null,
@@ -390,6 +419,26 @@
 
       const handleCategoryBrowse = (category) => {
         setFilters(prev => ({ ...prev, category: [category] }));
+        setActivePage("list");
+        setSelectedItem(null);
+        setCurrentPage(1);
+        setSortBy("relevance");
+        pushHistoryView("list");
+      };
+
+      const handlePopularFilter = (filterId) => {
+        const nextFilters = {
+          region: [], isAI: null, isStartup: null, isGov: null, pricingModel: null,
+          category: [], maxPrice: null, keyword: null,
+          program: [], industry_vertical: [], industryKeyword: null
+        };
+
+        if (filterId === "startup-program") nextFilters.program = ["新創嚴選網"];
+        if (filterId === "official-provider") nextFilters.isGov = true;
+        if (filterId === "free-trial") nextFilters.pricingModel = "提供試用";
+
+        setFilters(nextFilters);
+        setQuery("");
         setActivePage("list");
         setSelectedItem(null);
         setCurrentPage(1);
@@ -620,6 +669,9 @@
           if (filters.region.length > 0 && !filters.region.includes(item.r)) return false;
           if (filters.isAI !== null && item.ai !== filters.isAI) return false;
           if (filters.isStartup !== null && item.st !== filters.isStartup) return false;
+          if (filters.isGov !== null && item.gov !== filters.isGov) return false;
+          const pricingModels = Array.isArray(item.pm) ? item.pm : item.pm ? [item.pm] : [];
+          if (filters.pricingModel && !pricingModels.includes(filters.pricingModel)) return false;
           if (filters.category.length > 0 && !(item.cat && filters.category.some(c => item.cat.includes(c)))) return false;
           if (filters.program.length > 0 && !filters.program.includes(item.p)) return false;
           if (filters.industry_vertical.length > 0 && !filters.industry_vertical.includes(item.iv)) return false;
@@ -710,7 +762,7 @@
       };
 
       const clearAll = () => {
-        setFilters({ region: [], isAI: null, isStartup: null, category: [], maxPrice: null, keyword: null, program: [], industry_vertical: [], industryKeyword: null });
+        setFilters({ region: [], isAI: null, isStartup: null, isGov: null, pricingModel: null, category: [], maxPrice: null, keyword: null, program: [], industry_vertical: [], industryKeyword: null });
         setQuery("");
         setSortBy("relevance");
       };
@@ -728,6 +780,8 @@
         if (filters.industry_vertical.length > 0) parts.push(filters.industry_vertical.join(" + "));
         if (filters.isAI) parts.push("AI方案");
         if (filters.isStartup) parts.push("新創");
+        if (filters.isGov) parts.push("官方認證供應商");
+        if (filters.pricingModel) parts.push(filters.pricingModel);
         if (filters.keyword) parts.push(filters.keyword);
         if (filters.industryKeyword) parts.push(filters.industryKeyword);
         if (filters.maxPrice) {
@@ -895,7 +949,7 @@
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder="搜尋：我想找台中的 AI 智能排班系統，預算三萬..."
+                placeholder={SEARCH_PLACEHOLDER_EXAMPLES[placeholderIndex]}
                 className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-slate-800 placeholder:text-slate-400 text-lg font-medium"
               />
               <button onClick={handleSearch} disabled={loading || isSearching}
@@ -910,25 +964,30 @@
                 正在讀取方案資料...
               </div>
             )}
-            <div className="flex flex-wrap justify-center gap-2 mt-6">
-              {["AI 客服方案", "銷售管理系統", "醫療照護系統", "五萬以下 ERP"].map(text => (
-                <button key={text} onClick={() => handleQuickSearch(text)}
-                  className="text-xs text-slate-500 hover:text-[#0d6e52] bg-slate-50 hover:bg-emerald-50 px-4 py-2 rounded-full border border-slate-200 transition-all">
-                  {text}
+            <div className="mt-6 mx-auto w-full max-w-xl space-y-2">
+              {QUICK_SEARCH_EXAMPLES.map(text => (
+                <button
+                  key={text}
+                  type="button"
+                  onClick={() => handleQuickSearch(text)}
+                  className="group flex w-full items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-600 transition-all hover:border-[#1D9E75] hover:bg-emerald-50/40 hover:text-[#0d6e52]"
+                >
+                  <i className="fa-solid fa-magnifying-glass text-slate-400 transition-colors group-hover:text-[#1D9E75]"></i>
+                  <span>{text}</span>
                 </button>
               ))}
             </div>
             <div className="mt-7">
-              <p className="text-xs font-bold text-slate-400 mb-3">熱門分類</p>
+              <p className="text-xs font-bold text-slate-400 mb-3">熱門篩選</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {CATEGORIES.filter(category => category !== "暫無法分類").map(category => (
+                {HOME_POPULAR_FILTERS.map(filter => (
                   <button
-                    key={category}
+                    key={filter.id}
                     type="button"
-                    onClick={() => handleCategoryBrowse(category)}
-                    className="text-xs text-slate-500 hover:text-[#0d6e52] bg-slate-50 hover:bg-emerald-50 px-4 py-2 rounded-full border border-slate-200 transition-all"
+                    onClick={() => handlePopularFilter(filter.id)}
+                    className={`rounded-full border px-4 py-2 text-xs font-bold transition-colors ${filter.className}`}
                   >
-                    {category}
+                    {filter.label}
                   </button>
                 ))}
               </div>
