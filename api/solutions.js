@@ -158,7 +158,7 @@ export default async function handler(req, res) {
           'solution_id,airtable_rec_id,company_id,solution_name,description,description_short,' +
           'slogan,has_ai,program_type,industry_category,price,price_tier,service_region,' +
           'target_industry,target_scale,has_award,has_certification,website_url,score_overall,' +
-          'monthly_price,monthly_price_tier,subscription_months,features_list',
+          'monthly_price,monthly_price_tier,subscription_months,features_list,pricing_model',
           'solution_id.asc',
           solutionFilters
         ),
@@ -322,6 +322,7 @@ export default async function handler(req, res) {
           ds: row.description_short || '',
           desc: row.description || '',
           feat: row.features_list || '',
+          pm: Array.isArray(row.pricing_model) ? row.pricing_model : [],
           tags: co.tech_tags || '',
           scale: emptyToBlank(row.target_scale),
           slogan: row.slogan || '',
@@ -423,6 +424,7 @@ export default async function handler(req, res) {
         ds: f['description_short'] || '',
         desc: f['description'] || '',
         feat: f['features_list'] || '',
+        pm: Array.isArray(f['pricing_model']) ? f['pricing_model'] : [],
         tags: co.tech_tags || '',
         scale: f['target_scale'] || '',
         slogan: f['slogan'] || '',
