@@ -77,17 +77,29 @@
     const DEFAULT_CATEGORY_ICON = "fa-folder";
     const INDUSTRY_VERTICALS = ["旅宿觀光", "製造業", "醫療照護", "建築營造", "文化創意"];
     const PROGRAMS = ["臺灣雲市集", "雲市集工業館", "SME AI平台", "新創嚴選網", "商業服務業專區", "政府軟體採購網", "領域型調查(人工搜查)"];
-    const SEARCH_PLACEHOLDER_EXAMPLES = [
-      "搜尋：我想找台中的 AI 智能排班系統，預算三萬...",
-      "搜尋：找五萬以下的醫療照護方案...",
-      "搜尋：找北部的 AI 客服方案...",
-      "搜尋：找適合9人以下企業的銷售管理系統...",
+    const POOL_CATEGORY = [
+      "銷售管理", "行銷推廣", "生產物流", "協作辦公",
+      "資安合規", "人力資源", "研發創新", "醫療照護",
     ];
-    const QUICK_SEARCH_EXAMPLES = [
-      "找五萬以下的醫療照護方案",
-      "找北部的 AI 客服方案",
-      "找適合9人以下企業的銷售管理系統",
+    const POOL_REGION = ["北北基", "桃竹苗", "中彰投", "雲嘉南", "高屏", "宜花東", "離島", "全台灣"];
+    const POOL_SCALE = ["9人以下", "10~20人", "21~50人", "51~100人", "101~200人", "不限規模"];
+    const SENTENCE_TEMPLATES = [
+      ({ region, category, scale }) => `搜尋：我想找${region}的${category}方案，適合${scale}的企業...`,
+      ({ region, category, scale }) => `搜尋：找${scale}企業適用、${region}地區的${category}系統...`,
+      ({ region, category }) => `搜尋：${region}有哪些${category}相關的數位轉型方案...`,
     ];
+    const getRandomItem = (items) => items[Math.floor(Math.random() * items.length)];
+    const createRandomSearchSentence = (previousSentence = "") => {
+      let sentence = previousSentence;
+      for (let attempt = 0; attempt < 8 && sentence === previousSentence; attempt += 1) {
+        sentence = getRandomItem(SENTENCE_TEMPLATES)({
+          region: getRandomItem(POOL_REGION),
+          category: getRandomItem(POOL_CATEGORY),
+          scale: getRandomItem(POOL_SCALE),
+        });
+      }
+      return sentence;
+    };
     const HOME_POPULAR_FILTERS = [
       { id: "startup-program", label: "新創嚴選", className: "bg-amber-50 text-amber-700 border-amber-100 hover:border-amber-300" },
       { id: "official-provider", label: "官方認證供應商", className: "bg-teal-50 text-teal-700 border-teal-100 hover:border-teal-300" },
@@ -202,7 +214,10 @@
       }, [activePage]);
       const [selectedItem, setSelectedItem] = useState(null);
       const [query, setQuery] = useState("");
-      const [placeholderIndex, setPlaceholderIndex] = useState(0);
+      const [placeholderText, setPlaceholderText] = useState(() => createRandomSearchSentence());
+      const [quickSearchExamples] = useState(() =>
+        Array.from({ length: 3 }, () => createRandomSearchSentence())
+      );
       const [isSearching, setIsSearching] = useState(false);
       const [filters, setFilters] = useState({
         region: [], isAI: null, isStartup: null, isGov: null, pricingModel: null,
@@ -226,7 +241,7 @@
       useEffect(() => {
         if (query) return undefined;
         const intervalId = window.setInterval(() => {
-          setPlaceholderIndex(index => (index + 1) % SEARCH_PLACEHOLDER_EXAMPLES.length);
+          setPlaceholderText(previous => createRandomSearchSentence(previous));
         }, 3000);
         return () => window.clearInterval(intervalId);
       }, [query]);
@@ -949,7 +964,7 @@
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder={SEARCH_PLACEHOLDER_EXAMPLES[placeholderIndex]}
+                placeholder={placeholderText}
                 className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-slate-800 placeholder:text-slate-400 text-lg font-medium"
               />
               <button onClick={handleSearch} disabled={loading || isSearching}
@@ -965,7 +980,7 @@
               </div>
             )}
             <div className="mt-6 mx-auto w-full max-w-xl space-y-2">
-              {QUICK_SEARCH_EXAMPLES.map(text => (
+              {quickSearchExamples.map(text => (
                 <button
                   key={text}
                   type="button"
