@@ -350,3 +350,36 @@ manufacturing 真實問答：機械設備 → 10-50人 → 剛起步 → 資料�
 - index 純文字 commit：`af54b7d69a475c8a15539ce2cbf0ffaa2e442a6b`
 - markup 收斂 commit：`f30a012bfd7f9ed0042e783302b65c9180fd42b6`
 - PR：https://github.com/Pcc329/solution-finder/pull/164
+
+## 2026-09-18 信任 badge 樣式統一補充修正
+規格：列表與詳情頂排的四種信任訊號，統一成既有膠囊尺寸與圓角。
+
+### 實作
+- `public/index.html` 的 `getTrustBadges(item)`：
+  - 官方認證：保留 emerald。
+  - 資安分級：保留 sky。
+  - 獲獎肯定：保留 amber。
+  - 跨 N 種計畫：改用 violet 純 utility class，不再由該 badge 使用 `.badge-violet`。
+  - 四者尺寸統一為 `text-xs px-3 py-1 rounded-full`。
+- 出現條件 `item.gov/item.cdm/item.awd/item.pgc >= 2` 完全不變。
+- `getTrustBadges()` 在列表卡片與詳情頁各被呼叫一次，因此兩處同步生效。
+- `public/manufacturing.html` 已確認：信任 badge 使用共用 `.badge` 基底（inline-flex、999px圓角、統一內距/字級），原本已一致，本輪未修改。
+- `index.html` 的 `.badge-violet` CSS 仍由「跨計畫明細」既有標籤使用；為避免改動規格排除的明細區塊，保留該定義，但 `getTrustBadges()` 已不再依賴它。
+- 下方「信任驗證」四項清單未修改。
+
+### 核對與 Preview
+- `getTrustBadges()` 內目標 class：4 處。
+- 舊 `text-[10px]/px-2/py-0.5/rounded`：0 處。
+- 真實 Preview 搜尋「雲端網路防毒」，中揚資訊方案同時顯示：
+  - 官方認證（emerald）
+  - 資安分級（sky）
+  - 跨3種計畫（violet）
+- 列表與詳情頁均確認為同尺寸膠囊；來源、地區、規模 badge 仍正常。
+- Preview deployment `BN334cSzKhZJZ5BqDYWeV9HE3XpG`：Ready。
+- Browser console error：0。
+
+![信任badge樣式統一](evidence/target-scale-20260918/preview-trust-badges.png)
+
+### Git
+- 程式 commit：`4cd8d46ea9d5e063c47b756e322320b662ed95c2`
+- PR：https://github.com/Pcc329/solution-finder/pull/164
