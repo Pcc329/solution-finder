@@ -7,6 +7,7 @@
   <title>方案探索 | Solution Finder</title>
   <script src="/auth-gate.js"></script>
   <script src="/company-avatar.js"></script>
+  <script src="/target-scale.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -823,14 +824,9 @@
       return String(value);
     };
 
-    function formatScaleDisplay(scaleValue) {
-      const list = Array.isArray(scaleValue) ? scaleValue : (scaleValue ? [scaleValue] : []);
-      if (!list.length) return "";
-      const cleaned = list.map(value => safeStr(value).trim()).filter(Boolean);
-      if (!cleaned.length) return "";
-      if (cleaned.includes("不限規模")) return "不限規模";
-      if (cleaned.length >= 4) return "不限規模";
-      return cleaned.join("、");
+    function getScaleBadgesHtml(value) {
+      return window.compressTargetScale(value).labels
+        .map(label => `<span class="badge badge-muted">${escapeHtml(label)}</span>`).join(" ");
     }
 
     const escapeHtml = value => safeStr(value)
@@ -1319,7 +1315,7 @@
       const category = solutionField(item, "cat", "category");
       const targetIndustry = solutionField(item, "d", "target_industry");
       const scale = solutionField(item, "scale", "scale");
-      const scaleDisplay = formatScaleDisplay(scale);
+      const scaleDisplay = window.compressTargetScale(scale).display;
       const featureLines = safeStr(features)
         .split(/\n|；|;/)
         .map(line => line.trim())
@@ -1426,7 +1422,7 @@
       const features = solutionField(item, "feat", "features");
       const targetIndustry = solutionField(item, "d", "target_industry");
       const scale = solutionField(item, "scale", "scale");
-      const scaleDisplay = formatScaleDisplay(scale);
+      const scaleDisplay = window.compressTargetScale(scale).display;
       const region = solutionField(item, "r", "region");
       const city = solutionField(item, "city", "city");
       const isAi = item.ai === true || item.is_ai === true || item.is_ai === "有";
@@ -1458,7 +1454,7 @@
             <div class="flex flex-wrap gap-2 mb-4">
               ${sourceLabel ? `<span class="badge badge-muted">${escapeHtml(sourceLabel)}</span>` : ""}
               ${location ? `<span class="badge badge-muted"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(location)}</span>` : ""}
-              ${scaleDisplay ? `<span class="badge badge-muted">${escapeHtml(scaleDisplay)}</span>` : ""}
+              ${getScaleBadgesHtml(scale)}
               ${isAi ? '<span class="badge badge-teal"><i class="fa-solid fa-bolt mr-1"></i>AI 方案</span>' : ""}
             </div>
             <h1 class="text-2xl font-black text-slate-900">${escapeHtml(name || "未命名方案")}</h1>
