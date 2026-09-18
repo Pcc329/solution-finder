@@ -1639,7 +1639,7 @@
                 {window.compressTargetScale(item.scale).labels.length > 0 && (
                   <div>
                     <p className="text-xs text-slate-400 mb-1">適用規模</p>
-                    <div className="flex flex-wrap gap-2">{renderScaleBadges(item.scale, "bg-sky-50 text-sky-700 border border-sky-200 text-xs px-2 py-0.5 rounded")}</div>
+                    <p className="text-slate-700 font-medium">{window.compressTargetScale(item.scale).display}</p>
                   </div>
                 )}
                 {item.tags && (
