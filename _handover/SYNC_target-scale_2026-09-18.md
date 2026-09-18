@@ -319,3 +319,34 @@ manufacturing 真實問答：機械設備 → 10-50人 → 剛起步 → 資料�
 +  root.compressTargetScale = compressTargetScale;
 +})(typeof window !== "undefined" ? window : globalThis);
 ```
+
+## 2026-09-18 純文字顯示補充修正
+規格：方案屬性表格的「適用規模」改為純文字，頂排 badge 保留。
+
+### 實作
+- `public/manufacturing.html`：`getInlineDetailHtml()` 與保留的 `renderDetail()` 兩個方案屬性區塊，統一輸出 `escapeHtml(value)` 純文字；`value` 仍來自壓縮後的 `scaleDisplay`。
+- `public/index.html`：確認有相同方案屬性區塊，改用 `window.compressTargetScale(item.scale).display` 純文字。
+- 首頁列表、詳情頂排以及 manufacturing 詳情頂排的規模 badge 呼叫保留。
+- 壓縮 helper、資料庫、API、篩選與排序均未修改。
+
+### 程式核對
+- manufacturing 屬性區 badge 特殊判斷：0 處。
+- manufacturing 純文字屬性輸出：2 處。
+- index 屬性區 badge：0 處；壓縮純文字：1 處。
+- index 頂排/列表 badge：2 處；manufacturing 頂排 badge：1 處。
+- Preview 瀏覽器 console error：0。
+- Vercel deployment `5TQLeueL67SSB71Hvy5kLMjbc3N4`：Ready。
+
+### 真實 Preview 驗證
+使用 MantaGO對話式商務平台：
+- 頂排保留 `10~50人` badge。
+- 方案屬性「適用規模」顯示相同的 `10~50人` 純文字，無底色或邊框。
+- 服務類別、適用產業、技術標籤樣式未變。
+
+![方案屬性適用規模純文字](evidence/target-scale-20260918/preview-property-text.png)
+
+### Git
+- manufacturing 純文字 commit：`ae2448020bc69daf5ad752dd2233e7c3959d2276`
+- index 純文字 commit：`af54b7d69a475c8a15539ce2cbf0ffaa2e442a6b`
+- markup 收斂 commit：`f30a012bfd7f9ed0042e783302b65c9180fd42b6`
+- PR：https://github.com/Pcc329/solution-finder/pull/164
