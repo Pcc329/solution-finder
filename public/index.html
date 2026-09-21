@@ -777,6 +777,7 @@
         setFilters({ region: [], isAI: null, isStartup: null, isGov: null, pricingModel: null, category: [], maxPrice: null, keyword: null, program: [], industry_vertical: [], industryKeyword: null });
         setQuery("");
         setSortBy("relevance");
+        setCurrentPage(1);
       };
 
       const hasActiveFilters = Object.entries(filters).some(([, v]) => {
@@ -1245,7 +1246,30 @@
                 </div>
               </h3>
               {hasActiveFilters && (
-                <button onClick={clearAll} className="text-xs text-red-500 hover:text-red-700 font-bold">清除全部</button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={clearAll}
+                    className="px-3 py-1.5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg font-bold shadow-sm hover:bg-red-100 hover:border-red-300 transition-colors"
+                  >
+                    清除全部
+                  </button>
+                  <div className="relative group">
+                    <span
+                      tabIndex="0"
+                      aria-label="清除全部說明"
+                      className="flex items-center justify-center w-5 h-5 rounded-full border border-slate-300 text-[11px] text-slate-500 font-bold cursor-help hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                    >
+                      ?
+                    </span>
+                    <div
+                      role="tooltip"
+                      className="pointer-events-none invisible absolute right-0 top-full z-50 mt-2 w-64 rounded-lg bg-slate-700 px-3 py-2 text-xs font-medium leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+                    >
+                      <span className="absolute -top-1 right-2 h-2 w-2 rotate-45 bg-slate-700"></span>
+                      會清空關鍵字、已勾選的篩選條件、排序方式，並回到第一頁
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
             <div className="space-y-3">
