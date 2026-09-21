@@ -257,6 +257,16 @@
         if (activePage !== "home") window.history.back();
       };
 
+      const resetToHome = () => {
+        setQuery("");
+        setFilters({ region: [], isAI: null, isStartup: null, isGov: null, pricingModel: null, category: [], maxPrice: null, keyword: null, program: [], industry_vertical: [], industryKeyword: null });
+        setSortBy("relevance");
+        setCurrentPage(1);
+        setSelectedItem(null);
+        setSelectedCategory(null);
+        setActivePage("home");
+      };
+
       useEffect(() => {
         const hash = window.location.hash;
         if (hash === "#list" || hash === "#detail" || hash === "#theme-detail") {
@@ -1064,7 +1074,7 @@
 
         return (
           <div className="mx-auto w-full max-w-4xl px-4 py-8 pb-20 animate-in">
-            <button onClick={goBackInApp} className="mb-6 flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-emerald-700">
+            <button onClick={resetToHome} className="mb-6 flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-emerald-700">
               <i className="fa-solid fa-arrow-left"></i> 返回首頁
             </button>
 
@@ -1692,7 +1702,7 @@
       return (
         <div className="min-h-screen flex flex-col">
           <nav id="global-nav">
-            <div className="global-nav-brand" onClick={goBackInApp}>
+            <div className="global-nav-brand" onClick={resetToHome}>
               <div className="global-nav-logo"><span style={{fontSize: "18px"}}>🔷</span></div>
               <div>
                 <div className="global-nav-kicker">SOLUTION FINDER</div>
