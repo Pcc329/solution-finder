@@ -1373,6 +1373,18 @@
                       <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("industry_vertical", iv)}></i>
                     </span>
                   ))}
+                  {filters.isGov === true && (
+                    <span className="px-3 py-1 text-xs rounded-full border bg-teal-100 border-teal-300 text-teal-800 font-bold flex items-center gap-1">
+                      官方認證供應商
+                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("isGov", true)}></i>
+                    </span>
+                  )}
+                  {filters.pricingModel && (
+                    <span className="px-3 py-1 text-xs rounded-full border bg-rose-100 border-rose-300 text-rose-800 font-bold flex items-center gap-1">
+                      {filters.pricingModel}
+                      <i className="fa-solid fa-xmark cursor-pointer ml-1" onClick={() => toggleFilter("pricingModel", filters.pricingModel)}></i>
+                    </span>
+                  )}
                   {filters.keyword && (
                     <span className="px-3 py-1 text-xs rounded-full border bg-slate-100 border-slate-300 text-slate-700 font-bold flex items-center gap-1">
                       關鍵字：{filters.keyword}
