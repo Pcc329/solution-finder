@@ -1457,6 +1457,7 @@
               ${getScaleBadgesHtml(scale)}
               ${isAi ? '<span class="badge badge-teal"><i class="fa-solid fa-bolt mr-1"></i>AI 方案</span>' : ""}
             </div>
+            ${programType === "資策會產業調查" ? '<p class="text-xs text-slate-500 mb-4">本方案源自資策會產業調查專案，未經政府計畫審核程序。</p>' : ""}
             <h1 class="text-2xl font-black text-slate-900">${escapeHtml(name || "未命名方案")}</h1>
             ${vendor ? `<p class="text-base text-slate-600 font-semibold mt-2">${escapeHtml(vendor)}</p>` : ""}
           </section>
@@ -1964,6 +1965,7 @@
                 ${item.cat ? `<span class="badge badge-muted">${escapeHtml(item.cat)}</span>` : ""}
                 ${getTrustBadgeHtml(item)}
               </div>
+              ${item.p === "資策會產業調查" ? '<p class="text-xs text-slate-500 mt-2">本方案源自資策會產業調查專案，未經政府計畫審核程序。</p>' : ""}
             </article>
             ${isExpanded ? getInlineDetailHtml(item, shouldAnimate) : ""}
           </div>

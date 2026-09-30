@@ -77,7 +77,7 @@
     };
     const DEFAULT_CATEGORY_ICON = "fa-folder";
     const INDUSTRY_VERTICALS = ["旅宿觀光", "製造業", "醫療照護", "建築營造", "文化創意"];
-    const PROGRAMS = ["臺灣雲市集", "雲市集工業館", "SME AI平台", "新創嚴選網", "商業服務業專區", "政府軟體採購網", "領域型調查(人工搜查)"];
+    const PROGRAMS = ["臺灣雲市集", "雲市集工業館", "SME AI平台", "新創嚴選網", "商業服務業專區", "政府軟體採購網", "資策會產業調查"];
     const POOL_CATEGORY = [
       "銷售管理", "行銷推廣", "生產物流", "協作辦公",
       "資安合規", "人力資源", "研發創新", "醫療照護",
@@ -1307,10 +1307,23 @@
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-slate-400 w-12 shrink-0">來源</span>
                 {PROGRAMS.map(p => (
-                  <button key={p} onClick={() => toggleFilter("program", p)}
+                  <React.Fragment key={p}>
+                  <button onClick={() => toggleFilter("program", p)}
                     className={`px-3 py-1 text-xs rounded-full border transition-all ${filters.program.includes(p) ? "bg-amber-100 border-amber-300 text-amber-800 font-bold" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                     {p}
                   </button>
+                  {p === "資策會產業調查" && (
+                    <span className="relative group inline-flex">
+                      <span tabIndex="0" aria-label="資策會產業調查來源說明" aria-describedby="industry-survey-source-tip"
+                        className="flex items-center justify-center w-5 h-5 rounded-full border border-slate-300 text-[11px] text-slate-500 font-bold cursor-help hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-300">?</span>
+                      <span id="industry-survey-source-tip" role="tooltip"
+                        className="pointer-events-none invisible absolute right-0 top-full z-50 mt-2 w-64 rounded-lg bg-slate-700 px-3 py-2 text-xs font-medium leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                        <span className="absolute -top-1 right-2 h-2 w-2 rotate-45 bg-slate-700"></span>
+                        源自資策會產業調查專案，非政府計畫審核名單；收錄不代表推薦或認證。
+                      </span>
+                    </span>
+                  )}
+                  </React.Fragment>
                 ))}
               </div>
               {/* Industry Vertical */}
@@ -1604,6 +1617,7 @@
                     {renderScaleBadges(item.scale, "bg-sky-50 text-sky-700 border border-sky-200 text-xs px-3 py-1 rounded-full")}
                     {getTrustBadges(item)}
                   </div>
+                  {item.p === "資策會產業調查" && <p className="text-xs text-slate-500 mb-4">本方案源自資策會產業調查專案，未經政府計畫審核程序。</p>}
                   <h1 className="text-2xl font-black text-slate-900 mb-2">{item.s || "（未命名方案）"}</h1>
                   <p className="text-base text-slate-600 font-semibold mb-4">{item.c}</p>
                 </div>
