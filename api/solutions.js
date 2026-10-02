@@ -164,7 +164,7 @@ export default async function handler(req, res) {
         ),
         fetchAllSupabasePaged(
           supabaseUrl, supabaseAnonKey, 'companies',
-          'company_id,company_name,region,is_startup,city,tech_tags,industry_vertical,logo_url',
+          'company_id,company_name,region,is_startup,city,tech_tags,industry_vertical,logo_url,it_code_rank,tax_primary_name',
           'company_id.asc'
         ),
         // Schema-sensitive field: a missing column must not fail the complete API response.
@@ -270,6 +270,8 @@ export default async function handler(req, res) {
           tech_tags: emptyToBlank(row.tech_tags),
           industry_vertical_co: row.industry_vertical || '',
           logo_url: row.logo_url || '',
+          tax_primary_name: row.tax_primary_name || '',
+          it_code_rank: row.it_code_rank,
         };
         if (cid) companyByCid[cid] = coData;
       });
@@ -317,6 +319,8 @@ export default async function handler(req, res) {
           mo: parseFloat(row.monthly_price) || null,
           mt: row.monthly_price_tier || '',
           r: co.region || '',
+          tax: co.tax_primary_name || '',
+          itr: (co.it_code_rank === null || co.it_code_rank === undefined) ? null : Number(co.it_code_rank),
           st: co.is_startup || false,
           city: co.city || '',
           ds: row.description_short || '',
@@ -419,6 +423,8 @@ export default async function handler(req, res) {
         mo: parseFloat(f['monthly_price']) || null,
         mt: f['monthly_price_tier'] || '',
         r: co.region || '',
+        tax: '',
+        itr: null,
         st: co.is_startup || false,
         city: co.city || '',
         ds: f['description_short'] || '',
