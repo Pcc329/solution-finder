@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-// ---------- 測試資料（刻意涵蓋各種邊界）----------
+// ---------- 測試資料（刻意涵蓋各種邊界）----------  
 const companies = [
  // company_id, name, region, is_startup, tech_tags, city
  ['C01','客服科技股份有限公司','北部',true ,['AI','CRM'],'台北市'],
