@@ -1,4 +1,4 @@
-// SF MCP v1.0.3 — 唯讀。設計文件：SF_MCP設計評估_定案範圍_2026-10-01.md
+// SF MCP v1.0.4 — 唯讀。設計文件：SF_MCP設計評估_定案範圍_2026-10-01.md
 // 認證：Supabase Auth 為 OAuth 2.1 授權伺服器；每次工具呼叫都以「登入者本人」身分查詢，受 RLS 與白名單約束。
 // 注意：這支函式刻意【沒有任何寫入工具】；也不回傳完整描述(description)、email、手機。
 // 搜尋邏輯移植自 public/index.html（資料庫函式 sf_search_solutions，28 項對照測試與首頁程式碼結果一致）。
@@ -18,12 +18,17 @@ const clip = (v: string | null | undefined, n: number): string => {
 }
 const asText = (obj: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(obj) }] })
 
-const SERVER_VERSION = '1.0.3'
+const SERVER_VERSION = '1.0.4'
 
 // target_industry 在資料庫有兩種存法：多個元素的陣列，或單一字串內以「, 」（雲市集）或「；」（主計總處分類）分隔。
 // 一律攤平成產業清單，才能算出「這個方案列了幾類產業」。
 const flattenIndustries = (arr: unknown): string[] =>
   Array.isArray(arr) ? arr.flatMap((e) => String(e ?? '').split(/；|, /).map((x) => x.trim()).filter(Boolean)) : []
+
+// awards 表：award_category＝層級（國際級／國家級／產業級），award_level＝得獎結果（獲獎、金獎、精品獎…）
+const AWARD_TIERS = ['國際級', '國家級', '產業級']
+const bestAwardTier = (cats: string[]): string | null =>
+  AWARD_TIERS.find((t) => cats.includes(t)) ?? (cats.length ? '其他' : null)
 
 const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 
@@ -90,7 +95,13 @@ const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 - 目前只標示、不影響排序。回答「這家是不是資服業」時，請引用 tax_primary_name 與 it_code_rank 並說明限制；it_code_rank 為 null 時說「不在名冊、未知」，不要當成 0。
 - get_solution 會回傳該公司完整的稅籍代號清單（tax_industries，依申報順序）。
 
-## 九、其他
+## 九、獲獎肯定（公司層級）
+- 官網卡片上的「獲獎肯定」來自 awards 表（公司層級的獲獎紀錄，依 company_id），不是方案欄位 solution.has_award。兩者差很多：有效方案中 has_award=true 僅 49 筆，但公司在 awards 有紀錄的有效方案有 272 筆。
+- 搜尋結果的 has_company_award／company_award_count／company_award_best_level（國際級＞國家級＞產業級）與 get_solution 的 company_awards 才對應官網。回答「有沒有獲獎」請引用這些欄位，不要只看 solution.has_award。
+- 獲獎是「公司」得的，不代表該方案本身得獎；引用時請寫「該公司曾獲○○」。
+- awards 的 award_category 是層級（國家級…），award_level 是得獎結果（獲獎、金獎、精品獎…），不要弄反。
+
+## 十、其他
 - 價格欄位為 0 或空白代表「未提供」，不是免費。max_price 篩選會排除未提供價格的方案。
 - 本工具只回傳簡短描述；聯絡人僅提供姓名、職稱、公司電話。
 - 引用任何數字時，請附上定義與資料缺口，避免使用者誤解。`
@@ -195,6 +206,19 @@ Deno.serve(
               if (tx.error) notes.push(`⚠️ 無法取得稅籍登記資訊（${tx.error.message}）。`)
               else for (const x of (tx.data ?? []) as Array<Record<string, unknown>>) taxMap.set(String(x.company_id), { rank: x.it_code_rank == null ? null : Number(x.it_code_rank), name: (x.tax_primary_name as string) ?? null })
             }
+            const awardMap = new Map<string, { count: number; best: string | null }>()
+            if (cids.length) {
+              const aw = await supabase.from('awards').select('company_id, award_category').in('company_id', cids)
+              if (aw.error) notes.push(`⚠️ 無法取得獲獎資訊（${aw.error.message}），has_company_award 為空。`)
+              else {
+                const byCo = new Map<string, string[]>()
+                for (const x of (aw.data ?? []) as Array<Record<string, unknown>>) {
+                  const k = String(x.company_id)
+                  byCo.set(k, [...(byCo.get(k) ?? []), String(x.award_category ?? '')])
+                }
+                for (const [k, cats] of byCo) awardMap.set(k, { count: cats.length, best: bestAwardTier(cats) })
+              }
+            }
             if (ids.length) {
               const ind = await supabase.from('solutions').select('solution_id, target_industry').in('solution_id', ids)
               if (ind.error) {
@@ -208,6 +232,7 @@ Deno.serve(
               suspected_delisted: rows.filter((r) => String(r.record_status ?? '').startsWith('疑似')).length,
               company_region_missing: rows.filter((r) => !r.region).length,
               in_tax_registry: rows.filter((r) => taxMap.get(String(r.company_id ?? ''))?.rank != null).length,
+              with_company_award: rows.filter((r) => awardMap.has(String(r.company_id ?? ''))).length,
               matches_industry_keyword: a.industry_keyword
                 ? rows.filter((r) => flattenIndustries(indMap.get(String(r.solution_id))).join('｜').includes(a.industry_keyword as string)).length
                 : null,
@@ -244,6 +269,9 @@ Deno.serve(
                 matches_industry_keyword: a.industry_keyword ? inds.join('｜').includes(a.industry_keyword) : null,
                 tax_primary_industry: tax?.name ?? null,
                 it_code_rank: tax?.rank ?? null,
+                has_company_award: awardMap.has(String(r.company_id ?? '')),
+                company_award_count: awardMap.get(String(r.company_id ?? ''))?.count ?? 0,
+                company_award_best_level: awardMap.get(String(r.company_id ?? ''))?.best ?? null,
               })
               }),
             })
@@ -275,7 +303,11 @@ Deno.serve(
             let contacts: unknown = []
             let govRegistered: boolean | null = null
             let taxIndustries: unknown = []
+            let companyAwards: unknown = []
             if (cid) {
+              const aw = await supabase.from('awards').select('award_year, award_category, award_level, award_name, host_org').eq('company_id', cid).order('award_year', { ascending: false }).limit(10)
+              if (aw.error) throw new Error(aw.error.message)
+              companyAwards = aw.data ?? []
               const ti = await supabase.from('company_tax_industry').select('code_rank, code6, code_name, snapshot_date').eq('company_id', cid).order('code_rank')
               if (ti.error) throw new Error(ti.error.message)
               taxIndustries = ti.data ?? []
@@ -311,7 +343,8 @@ Deno.serve(
               contacts,
               gov_registered: govRegistered,
               tax_industries: taxIndustries,
-              notes: ['收錄不等於推薦或認證；方案文字多為廠商自述，未經逐筆查證。', '稅籍行業代號（tax_industries／company.it_code_rank）為營業人自行申報、少更新，只代表登記主業，不代表實際主力業務或品質；it_code_rank 為 null 表示不在名冊。', ...contactNotes],
+              company_awards: companyAwards,
+              notes: ['收錄不等於推薦或認證；方案文字多為廠商自述，未經逐筆查證。', '獲獎（company_awards）是公司層級的紀錄（award_category＝層級、award_level＝得獎結果），不代表此方案本身得獎；solution.has_award 是方案層級的標記，兩者不同，回答「有沒有獲獎」請引用 company_awards。', '稅籍行業代號（tax_industries／company.it_code_rank）為營業人自行申報、少更新，只代表登記主業，不代表實際主力業務或品質；it_code_rank 為 null 表示不在名冊。', ...contactNotes],
             })
           }
         )
