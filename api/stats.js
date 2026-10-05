@@ -104,6 +104,36 @@ export default async function handler(req, res) {
     return all;
   }
 
+  async function fetchMaintenance(supabaseUrl, supabaseAnonKey, days = 7) {
+    try {
+      const resp = await fetch(`${supabaseUrl}/rest/v1/rpc/maintenance_activity`, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ p_days: days }),
+      });
+      if (!resp.ok) throw new Error(`maintenance_activity HTTP ${resp.status}`);
+      const rows = await resp.json();
+      const totals = { solutions: 0, companies: 0 };
+      const items = [];
+      for (const r of Array.isArray(rows) ? rows : []) {
+        if (r.label === '__total__') {
+          if (r.kind === 'solution') totals.solutions = Number(r.item_count) || 0;
+          if (r.kind === 'company') totals.companies = Number(r.item_count) || 0;
+        } else if (r.day) {
+          items.push({ date: String(r.day).slice(0, 10), kind: r.kind, label: r.label, count: Number(r.item_count) || 0 });
+        }
+      }
+      return { windowDays: days, totals, items };
+    } catch (err) {
+      console.error('maintenance_activity failed:', err);
+      return null;
+    }
+  }
+
   function increment(map, key) {
     const normalized = String(key || '').trim();
     if (!normalized) return;
@@ -199,6 +229,9 @@ export default async function handler(req, res) {
         { is_real: 'eq.true' }
       ),
     ]);
+    const maintenance = supabaseUrl && supabaseAnonKey
+      ? await fetchMaintenance(supabaseUrl, supabaseAnonKey, 7)
+      : null;
 
     // Airtable Single Select filters on Chinese values are unreliable; retain active rows and
     // remove only the explicit suspended company status in JavaScript.
@@ -301,6 +334,7 @@ export default async function handler(req, res) {
       newCasesThisWeek,
       newCompaniesThisWeek,
       recentItems,
+      maintenance,
     });
   } catch (err) {
     console.error('Stats API error:', err);

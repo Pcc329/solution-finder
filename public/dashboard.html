@@ -1389,6 +1389,22 @@
         </article>
       </div>
 
+      <article class="recent-secondary-card" aria-label="資料維護近期更新" id="maintenanceCard" style="margin-top:12px;">
+        <h3 class="recent-secondary-title">資料維護 Data maintenance</h3>
+        <p class="recent-list-note" style="margin:4px 0 8px;">近 7 天校正或補充的既有資料（新增＝新建立；維護＝修改既有資料）</p>
+        <div class="recent-metrics">
+          <div class="recent-metric">
+            <span class="recent-metric-value" id="maintSolutionCount">--</span>
+            <span class="recent-metric-label">方案校正（筆）</span>
+          </div>
+          <div class="recent-metric">
+            <span class="recent-metric-value" id="maintCompanyCount">--</span>
+            <span class="recent-metric-label">公司資料補充（家）</span>
+          </div>
+        </div>
+        <div class="update-list" id="maintList"></div>
+      </article>
+
       <h3 class="recent-list-heading">最新寫入項目</h3>
       <p class="recent-list-note">案例與方案依建立時間混合排序</p>
       <div class="update-list" id="latest5List"></div>
@@ -1996,6 +2012,35 @@
       document.getElementById('recentSolutionTotal').textContent = formatNumber(data.total || 0);
       document.getElementById('newCompaniesThisWeek').textContent = `+${data.newCompaniesThisWeek || 0}`;
       document.getElementById('recentCompanyTotal').textContent = formatNumber(data.companyTotal || 0);
+
+      const m = data.maintenance;
+      const solEl = document.getElementById('maintSolutionCount');
+      const comEl = document.getElementById('maintCompanyCount');
+      const maintList = document.getElementById('maintList');
+      if (!m) {
+        solEl.textContent = '—';
+        comEl.textContent = '—';
+        maintList.textContent = '資料維護紀錄暫時無法取得';
+      } else {
+        solEl.textContent = formatNumber(m.totals.solutions || 0);
+        comEl.textContent = formatNumber(m.totals.companies || 0);
+        maintList.textContent = '';
+        const unit = (kind) => (kind === 'company' ? '家' : '筆');
+        const items = (m.items || []).slice(0, 5);
+        if (!items.length) {
+          const empty = document.createElement('div');
+          empty.className = 'update-item';
+          empty.textContent = '近 7 天沒有資料維護紀錄';
+          maintList.appendChild(empty);
+        }
+        items.forEach(it => {
+          const row = document.createElement('div');
+          row.className = 'update-item';
+          const mmdd = it.date.slice(5).replace('-', '/');
+          row.textContent = `${mmdd}　${it.label}　${formatNumber(it.count)} ${unit(it.kind)}`;
+          maintList.appendChild(row);
+        });
+      }
 
       const list = document.getElementById('latest5List');
       const items = data.recentItems || data.latest5 || [];
