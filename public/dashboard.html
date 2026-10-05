@@ -2020,7 +2020,14 @@
       if (!m) {
         solEl.textContent = '—';
         comEl.textContent = '—';
-        maintList.textContent = '資料維護紀錄暫時無法取得';
+        maintList.textContent = '';
+        const unavailable = document.createElement('div');
+        unavailable.className = 'update-item';
+        const unavailableText = document.createElement('span');
+        unavailableText.className = 'update-item-company';
+        unavailableText.textContent = '資料維護紀錄暫時無法取得';
+        unavailable.appendChild(unavailableText);
+        maintList.appendChild(unavailable);
       } else {
         solEl.textContent = formatNumber(m.totals.solutions || 0);
         comEl.textContent = formatNumber(m.totals.companies || 0);
@@ -2030,14 +2037,29 @@
         if (!items.length) {
           const empty = document.createElement('div');
           empty.className = 'update-item';
-          empty.textContent = '近 7 天沒有資料維護紀錄';
+          const emptyText = document.createElement('span');
+          emptyText.className = 'update-item-company';
+          emptyText.textContent = '近 7 天沒有資料維護紀錄';
+          empty.appendChild(emptyText);
           maintList.appendChild(empty);
         }
         items.forEach(it => {
           const row = document.createElement('div');
           row.className = 'update-item';
+          const main = document.createElement('div');
+          main.className = 'update-item-main';
+          const name = document.createElement('span');
+          name.className = 'update-item-name';
+          name.textContent = `${it.label}　${formatNumber(it.count)} ${unit(it.kind)}`;
+          main.appendChild(name);
+          const meta = document.createElement('div');
+          meta.className = 'update-item-meta';
+          const time = document.createElement('span');
+          time.className = 'update-item-time';
           const mmdd = it.date.slice(5).replace('-', '/');
-          row.textContent = `${mmdd}　${it.label}　${formatNumber(it.count)} ${unit(it.kind)}`;
+          time.textContent = mmdd;
+          meta.appendChild(time);
+          row.append(main, meta);
           maintList.appendChild(row);
         });
       }
