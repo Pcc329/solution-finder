@@ -995,7 +995,7 @@
     function getTaxBadgeHtml(item) {
       const out = [];
       if (item?.tax) out.push(`<span class="badge badge-slate" title="財政部營業（稅籍）登記的第 1 個行業代號，由營業人自行申報、不常更新；僅供參考，非品質評分"><i class="fa-solid fa-file-invoice mr-1"></i>稅籍主業：${escapeHtml(item.tax)}</span>`);
-      if (Number(item?.itr) === 1) out.push(`<span class="badge badge-indigo" title="稅籍登記的第 1 個行業代號屬資訊服務業（62／63）"><i class="fa-solid fa-code mr-1"></i>資訊服務為主要登記項目</span>`);
+      if (Number(item?.itr) === 1) out.push(`<span class="badge badge-indigo" title="稅籍登記的第 1 個行業代號屬資訊服務業（62／63）"><i class="fa-solid fa-desktop mr-1"></i>資訊服務為主要登記項目</span>`);
       return out.join("");
     }
 
