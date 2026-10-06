@@ -2,8 +2,11 @@ import crypto from 'node:crypto';
 
 const SESSION_COOKIE_NAME = 'sf_session';
 
-function signExpiry(expiry, secret) {
-  return crypto.createHmac('sha256', secret).update(expiry).digest('hex');
+function signSessionPayload(expiry, userId, secret) {
+  return crypto
+    .createHmac('sha256', secret)
+    .update(`${expiry}.${userId}`)
+    .digest('hex');
 }
 
 export function verifySession(req) {
@@ -11,21 +14,31 @@ export function verifySession(req) {
   const session = req.cookies?.[SESSION_COOKIE_NAME];
   if (!secret || !session) return false;
 
-  const [expiry, signature, ...extra] = String(session).split('.');
+  const [expiry, userId, signature, ...extra] = String(session).split('.');
   const expiryNumber = Number(expiry);
+  const userIdNumber = Number(userId);
   if (
     extra.length ||
     !Number.isSafeInteger(expiryNumber) ||
     expiryNumber <= Date.now() ||
+    !Number.isSafeInteger(userIdNumber) ||
+    userIdNumber <= 0 ||
     !/^[a-f0-9]{64}$/i.test(signature || '')
   ) {
     return false;
   }
 
-  const expectedSignature = signExpiry(expiry, secret);
+  const expectedSignature = signSessionPayload(expiry, userId, secret);
   const providedBuffer = Buffer.from(signature, 'hex');
   const expectedBuffer = Buffer.from(expectedSignature, 'hex');
-  return providedBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(providedBuffer, expectedBuffer);
+  if (
+    providedBuffer.length !== expectedBuffer.length ||
+    !crypto.timingSafeEqual(providedBuffer, expectedBuffer)
+  ) {
+    return false;
+  }
+
+  return { authenticated: true, userId: userIdNumber };
 }
 
 export function verifyApiKey(req) {
@@ -37,12 +50,22 @@ export function verifyApiKey(req) {
   return Boolean(apiKey) && allowlist.includes(apiKey);
 }
 
-export function createSessionValue(expiry, secret) {
-  return `${expiry}.${signExpiry(String(expiry), secret)}`;
+export function createSessionValue(expiry, userId, secret) {
+  const expiryNumber = Number(expiry);
+  const userIdNumber = Number(userId);
+  if (
+    !Number.isSafeInteger(expiryNumber) ||
+    !Number.isSafeInteger(userIdNumber) ||
+    userIdNumber <= 0
+  ) {
+    throw new Error('Invalid session payload');
+  }
+
+  return `${expiryNumber}.${userIdNumber}.${signSessionPayload(expiryNumber, userIdNumber, secret)}`;
 }
 
 export function requireAuth(req, res) {
-  if (verifySession(req) || verifyApiKey(req)) return true;
+  if (verifySession(req)?.authenticated || verifyApiKey(req)) return true;
   res.status(401).json({ error: '未授權，請先登入' });
   return false;
 }
