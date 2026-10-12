@@ -1,5 +1,6 @@
 // api/ask.js — Vercel Serverless Function
 import { requireAuth } from '../_lib/auth.js';
+import { insertSupabase } from '../_lib/supabase-insert.js';
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -14,57 +15,13 @@ export default async function handler(req, res) {
   }
   if (!requireAuth(req, res)) return;
 
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  async function fetchAirtableWithRetry(url, options, table, maxRetries = 3) {
-    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-      const response = await fetch(url, options);
-      if (response.ok) return response;
-
-      if (response.status === 429 && attempt < maxRetries) {
-        const waitMs = 300 * Math.pow(2, attempt);
-        console.error(`[Airtable Rate Limit] retry=${attempt + 1}/${maxRetries} endpoint=${req.url} table=${table} waitMs=${waitMs} time=${new Date().toISOString()}`);
-        await sleep(waitMs);
-        continue;
-      }
-
-      return response;
-    }
-  }
-
-  async function writeLog(token, { question, resultCount, searchQuery, answerLength }) {
-    try {
-      if (!token) return;
-      const timestamp = new Date().toISOString().slice(0, 19) + '.000Z';
-      const logRes = await fetchAirtableWithRetry('https://api.airtable.com/v0/appttP04OnzzC7qxG/tblvnoz1WHtXBzAqA', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fields: {
-            timestamp,
-            question,
-            result_count: resultCount,
-            search_query: searchQuery || '',
-            answer_length: answerLength,
-          },
-        }),
-      }, 'Ask_Logs');
-      if (!logRes.ok) {
-        const errText = await logRes.text();
-        const time = new Date().toISOString();
-        console.error(`[Airtable Error] status=${logRes.status} endpoint=${req.url} table=Ask_Logs time=${time} message=${errText}`);
-        if (logRes.status === 429) {
-          console.error(`[Airtable Rate Limit] status=429 endpoint=${req.url} table=Ask_Logs time=${time}`);
-        }
-      }
-    } catch (err) {
-      console.error('Log write error:', err);
-    }
+  async function writeLog({ question, resultCount, searchQuery, answerLength }) {
+    await insertSupabase('ask_logs', {
+      question,
+      search_query: searchQuery || '',
+      result_count: resultCount,
+      answer_length: answerLength,
+    });
   }
 
   try {
@@ -82,7 +39,6 @@ export default async function handler(req, res) {
     }
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    const airtableToken = process.env.AIRTABLE_TOKEN;
     if (!apiKey) {
       throw new Error('ANTHROPIC_API_KEY not configured');
     }
@@ -164,7 +120,7 @@ export default async function handler(req, res) {
       .join('\n')
       .trim();
 
-    await writeLog(airtableToken, {
+    await writeLog({
       question,
       resultCount: solutions.length,
       searchQuery,
