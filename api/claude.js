@@ -1,6 +1,7 @@
 // api/claude.js — Vercel Serverless Function
 // 接收前端的搜尋語句，用 Claude 解析成篩選條件，回傳 JSON
 import { requireAuth } from '../_lib/auth.js';
+import { insertSupabase } from '../_lib/supabase-insert.js';
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -13,58 +14,11 @@ export default async function handler(req, res) {
   const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
   if (!CLAUDE_API_KEY) return res.status(500).json({ error: 'CLAUDE_API_KEY not configured' });
 
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  async function fetchAirtableWithRetry(url, options, table, maxRetries = 3) {
-    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-      const response = await fetch(url, options);
-      if (response.ok) return response;
-
-      if (response.status === 429 && attempt < maxRetries) {
-        const waitMs = 300 * Math.pow(2, attempt);
-        console.error(`[Airtable Rate Limit] retry=${attempt + 1}/${maxRetries} endpoint=${req.url} table=${table} waitMs=${waitMs} time=${new Date().toISOString()}`);
-        await sleep(waitMs);
-        continue;
-      }
-
-      return response;
-    }
-  }
-
-  async function writeLog(token, { query }) {
-    try {
-      if (!token) return;
-      const logRes = await fetchAirtableWithRetry(
-        'https://api.airtable.com/v0/appttP04OnzzC7qxG/tblLdVCmLwkzDFtMq',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fields: {
-              timestamp: new Date().toISOString().slice(0, 19) + '.000Z',
-              search_query: query,
-              log_type: 'ai_search',
-            },
-          }),
-        },
-        'Search_Logs'
-      );
-      if (!logRes.ok) {
-        const errText = await logRes.text();
-        const time = new Date().toISOString();
-        console.error(`[Airtable Error] status=${logRes.status} endpoint=${req.url} table=Search_Logs time=${time} message=${errText}`);
-        if (logRes.status === 429) {
-          console.error(`[Airtable Rate Limit] status=429 endpoint=${req.url} table=Search_Logs time=${time}`);
-        }
-      }
-    } catch (err) {
-      console.error('Log write error:', err);
-    }
+  async function writeLog({ query }) {
+    await insertSupabase('search_logs', {
+      search_query: query,
+      log_type: 'ai_search',
+    });
   }
 
   try {
@@ -157,8 +111,7 @@ export default async function handler(req, res) {
     const text = data.content[0].text;
     const clean = text.replace(/```json\n?/g, '').replace(/```/g, '').trim();
     const parsed = JSON.parse(clean);
-    const airtableToken = process.env.AIRTABLE_TOKEN;
-    await writeLog(airtableToken, {
+    await writeLog({
       query,
     });
     return res.status(200).json(parsed);
