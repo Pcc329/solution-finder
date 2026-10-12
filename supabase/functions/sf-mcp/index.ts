@@ -1,4 +1,4 @@
-// SF MCP v1.0.4 — 唯讀。設計文件：SF_MCP設計評估_定案範圍_2026-10-01.md
+// SF MCP v1.1.0 — 唯讀。設計文件：SF_MCP設計評估_定案範圍_2026-10-01.md
 // 認證：Supabase Auth 為 OAuth 2.1 授權伺服器；每次工具呼叫都以「登入者本人」身分查詢，受 RLS 與白名單約束。
 // 注意：這支函式刻意【沒有任何寫入工具】；也不回傳完整描述(description)、email、手機。
 // 搜尋邏輯移植自 public/index.html（資料庫函式 sf_search_solutions，28 項對照測試與首頁程式碼結果一致）。
@@ -18,7 +18,7 @@ const clip = (v: string | null | undefined, n: number): string => {
 }
 const asText = (obj: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(obj) }] })
 
-const SERVER_VERSION = '1.0.4'
+const SERVER_VERSION = '1.1.0'
 
 // target_industry 在資料庫有兩種存法：多個元素的陣列，或單一字串內以「, 」（雲市集）或「；」（主計總處分類）分隔。
 // 一律攤平成產業清單，才能算出「這個方案列了幾類產業」。
@@ -29,6 +29,57 @@ const flattenIndustries = (arr: unknown): string[] =>
 const AWARD_TIERS = ['國際級', '國家級', '產業級']
 const bestAwardTier = (cats: string[]): string | null =>
   AWARD_TIERS.find((t) => cats.includes(t)) ?? (cats.length ? '其他' : null)
+
+// <helpers-begin>
+type Row = Record<string, unknown>
+const PAGE = 50
+const SCAN_CAP = 300 // 帶 city 篩選或以廠商彙整時，伺服器端最多掃描符合條件的前 300 筆方案
+
+// 縣市比對：台／臺視為相同（資料庫採官方寫法「臺」，使用者多打「台」）
+const normCity = (s: unknown): string => String(s ?? '').trim().replace(/臺/g, '台')
+
+// 依公司縣市篩選，保留原本的相關性順序；縣市未填的列不會被納入
+const filterByCity = (rows: Row[], cityOf: Map<string, string>, cities: string[]): Row[] => {
+  const want = new Set(cities.map(normCity).filter(Boolean))
+  if (!want.size) return rows
+  return rows.filter((r) => want.has(normCity(cityOf.get(String(r.company_id ?? '')))))
+}
+
+// 依公司彙整；公司順序＝其最前面（最相關）方案的出現順序；沒有公司編號的方案各自成一組
+const groupByCompany = (rows: Row[]): Array<{ key: string; rows: Row[] }> => {
+  const order: string[] = []
+  const map = new Map<string, Row[]>()
+  for (const r of rows) {
+    const cid = String(r.company_id ?? '')
+    const k = cid || `__no_company__:${String(r.solution_id)}`
+    if (!map.has(k)) {
+      map.set(k, [])
+      order.push(k)
+    }
+    map.get(k)!.push(r)
+  }
+  return order.map((k) => ({ key: k, rows: map.get(k)! }))
+}
+
+// 掃描搜尋結果的前 cap 筆（第一頁取得 total_matches，其餘頁平行取得）
+const scanPages = async (
+  fetchPage: (offset: number) => Promise<{ data: Row[] | null; error: { message: string } | null }>,
+  cap: number,
+): Promise<{ rows: Row[]; total: number; truncated: boolean }> => {
+  const first = await fetchPage(0)
+  if (first.error) throw new Error(first.error.message)
+  const rows0 = first.data ?? []
+  const total = rows0.length ? Number(rows0[0].total_matches) : 0
+  const pageCount = Math.ceil(Math.min(total, cap) / PAGE)
+  const rest = await Promise.all(Array.from({ length: Math.max(pageCount - 1, 0) }, (_, i) => fetchPage((i + 1) * PAGE)))
+  const rows = [...rows0]
+  for (const r of rest) {
+    if (r.error) throw new Error(r.error.message)
+    rows.push(...(r.data ?? []))
+  }
+  return { rows: rows.slice(0, cap), total, truncated: total > cap }
+}
+// <helpers-end>
 
 const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 
@@ -101,10 +152,35 @@ const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 - 獲獎是「公司」得的，不代表該方案本身得獎；引用時請寫「該公司曾獲○○」。
 - awards 的 award_category 是層級（國家級…），award_level 是得獎結果（獲獎、金獎、精品獎…），不要弄反。
 
-## 十、其他
+## 十、清單類任務怎麼做才快（避免上百次呼叫）
+- 「某縣市有○○的廠商與方案」：用 search_companies（廠商為單位）或 search_solutions 加 city 參數，**一次呼叫**即可；不要先搜尋再對每一筆呼叫 get_solution 去查城市（結果已含 company_city）。
+- city 比對台／臺視為相同；資料庫採官方寫法「臺」。縣市未填的公司無法判斷，伺服器會在 notes 回報筆數，請在回答中說明。
+- 伺服器端最多掃描符合其他條件的前 300 筆方案；若 notes 顯示超過上限，請加上更具體的關鍵字，不要用翻頁自行補齊。
+- 要看多筆方案的詳情，用 get_solutions（一次最多 20 筆）；只對最後的少數候選才用 get_solution（含聯絡人）。
+- 子字串比對會有誤判（例如 POS 會搜到 Posky、只做電子發票的方案）：請用回傳的 summary 判斷是否真的相關，並在回答中標註哪些不是。
+- 需要匯出檔案時，請先在對話中整理成表格，再用你自己的工具輸出；本資料庫連接器唯讀，不能產生檔案。
+
+## 十一、其他
 - 價格欄位為 0 或空白代表「未提供」，不是免費。max_price 篩選會排除未提供價格的方案。
 - 本工具只回傳簡短描述；聯絡人僅提供姓名、職稱、公司電話。
 - 引用任何數字時，請附上定義與資料缺口，避免使用者誤解。`
+
+const searchFields = {
+  keyword: z.string().max(60).optional().describe('單一最關鍵的詞（子字串比對），例如「客服」「資安」'),
+  query_text: z.string().max(200).optional().describe('使用者的原句，只用來偵測產業別加權'),
+  industry_keyword: z.string().max(30).optional().describe('target_industry 的子字串詞根（區分大小寫），例如「餐飲」「金融」「零售」；詞根對照見 describe_data。這是加權，不是篩選'),
+  region: z.array(z.enum(['北部', '中部', '南部', '東部', '其他'])).max(5).optional().describe('公司所在地（北中南東區，廠商總部）'),
+  city: z.array(z.string().max(10)).max(10).optional().describe('公司所在縣市（廠商總部），例如「臺北市」「新北市」；台／臺皆可。縣市未填的公司無法被篩到，會在 notes 說明筆數'),
+  is_ai: z.boolean().optional().describe('是否為 AI 方案'),
+  is_startup: z.boolean().optional().describe('公司是否為新創'),
+  is_gov: z.boolean().optional().describe('公司是否有政府能量登錄'),
+  pricing_model: z.string().max(20).optional().describe('計價方式，例如「訂閱制」'),
+  category: z.array(z.string().max(20)).max(9).optional().describe('服務類別（子字串比對），9 個值見 describe_data'),
+  program: z.array(z.string().max(40)).max(10).optional().describe('資料來源名稱，完整清單見 data_status'),
+  max_price: z.number().min(0).max(100000000).optional().describe('總費用上限（元）。未提供價格的方案會被排除'),
+  include_delisted: z.boolean().default(false).describe('是否包含已下架（預設排除）'),
+  sort: z.enum(['relevance', 'price_asc', 'price_desc']).default('relevance'),
+}
 
 Deno.serve(
   pipeline(
@@ -112,6 +188,63 @@ Deno.serve(
     [withOAuthProtectedResource(), withSupabase({ auth: 'user' })],
     async (req, { supabase }) => {
       // Edge Function 無狀態：每個請求建立新的 server
+      // 共用：搜尋參數對應資料庫函式、單頁抓取、補充公司資訊（平行查詢）
+      // deno-lint-ignore no-explicit-any
+      const rpcArgs = (a: any) => ({
+        p_keyword: a.keyword,
+        p_query_text: a.query_text,
+        p_industry_keyword: a.industry_keyword,
+        p_region: a.region,
+        p_is_ai: a.is_ai,
+        p_is_startup: a.is_startup,
+        p_is_gov: a.is_gov,
+        p_pricing_model: a.pricing_model,
+        p_category: a.category,
+        p_program: a.program,
+        p_max_price: a.max_price,
+        p_include_delisted: a.include_delisted,
+        p_sort: a.sort,
+      })
+      // deno-lint-ignore no-explicit-any
+      const fetchPage = (a: any) => async (offset: number) => {
+        const r = await supabase.rpc('sf_search_solutions', { ...rpcArgs(a), p_limit: PAGE, p_offset: offset })
+        return { data: (r.data ?? null) as Row[] | null, error: r.error ? { message: r.error.message } : null }
+      }
+      const none = { data: [] as Row[], error: null as { message: string } | null }
+      const enrichRows = async (rows: Row[], needIndustry: boolean, notes: string[]) => {
+        const ids = rows.map((r) => String(r.solution_id))
+        const cids = [...new Set(rows.map((r) => String(r.company_id ?? '')).filter(Boolean))]
+        const [co, aw, ind] = await Promise.all([
+          cids.length ? supabase.from('companies').select('company_id, city, it_code_rank, tax_primary_name').in('company_id', cids) : Promise.resolve(none),
+          cids.length ? supabase.from('awards').select('company_id, award_category').in('company_id', cids) : Promise.resolve(none),
+          needIndustry && ids.length ? supabase.from('solutions').select('solution_id, target_industry').in('solution_id', ids) : Promise.resolve(none),
+        ])
+        const taxMap = new Map<string, { rank: number | null; name: string | null }>()
+        const cityMap = new Map<string, string>()
+        if (co.error) notes.push(`⚠️ 無法取得公司縣市與稅籍登記資訊（${co.error.message}）。`)
+        else {
+          for (const x of (co.data ?? []) as Row[]) {
+            const k = String(x.company_id)
+            taxMap.set(k, { rank: x.it_code_rank == null ? null : Number(x.it_code_rank), name: (x.tax_primary_name as string) ?? null })
+            cityMap.set(k, String(x.city ?? ''))
+          }
+        }
+        const awardMap = new Map<string, { count: number; best: string | null }>()
+        if (aw.error) notes.push(`⚠️ 無法取得獲獎資訊（${aw.error.message}），has_company_award 為空。`)
+        else {
+          const byCo = new Map<string, string[]>()
+          for (const x of (aw.data ?? []) as Row[]) {
+            const k = String(x.company_id)
+            byCo.set(k, [...(byCo.get(k) ?? []), String(x.award_category ?? '')])
+          }
+          for (const [k, cats] of byCo) awardMap.set(k, { count: cats.length, best: bestAwardTier(cats) })
+        }
+        const indMap = new Map<string, unknown>()
+        if (ind.error) notes.push(`⚠️ 無法取得產業別資訊（${ind.error.message}），industries_count 為空。`)
+        else for (const x of (ind.data ?? []) as Row[]) indMap.set(String(x.solution_id), x.target_industry)
+        return { taxMap, cityMap, awardMap, indMap }
+      }
+
       const handler = createMcpHandler(() => {
         const server = new McpServer({ name: 'sf-mcp', version: SERVER_VERSION })
 
@@ -130,49 +263,39 @@ Deno.serve(
           'search_solutions',
           {
             description:
-              '搜尋產業策略智庫的方案，篩選與排序邏輯與官網首頁一致。把使用者的需求拆成：一個最關鍵的 keyword + 其他篩選參數（對照表請見 describe_data）。回傳符合筆數與前幾名方案摘要；total_matches 是符合的總筆數。若使用 region，請在回答中說明定義為「公司所在地」（廠商總部，不是客戶位置）並引用回傳的 notes。keyword 整詞比對得到 0 筆時，請改用更短的詞；需求含多種能力時請分次搜尋再用 id 取交集。',
+              '搜尋產業策略智庫的方案，篩選與排序邏輯與官網首頁一致。把使用者的需求拆成：一個最關鍵的 keyword + 其他篩選參數（對照表請見 describe_data）。回傳符合筆數與前幾名方案摘要；total_matches 是符合的總筆數。若使用 region，請在回答中說明定義為「公司所在地」（廠商總部，不是客戶位置）並引用回傳的 notes。需要「某縣市的方案／廠商」請直接用 city 參數（例如 city=["臺北市"]），不要逐筆開詳情去查城市。keyword 整詞比對得到 0 筆時，請改用更短的詞；需求含多種能力時請分次搜尋再用 id 取交集。要以廠商為單位的清單請改用 search_companies。',
             inputSchema: z.object({
-              keyword: z.string().max(60).optional().describe('單一最關鍵的詞（子字串比對），例如「客服」「資安」'),
-              query_text: z.string().max(200).optional().describe('使用者的原句，只用來偵測產業別加權'),
-              industry_keyword: z.string().max(30).optional().describe('target_industry 的子字串詞根（區分大小寫），例如「餐飲」「金融」「零售」；詞根對照見 describe_data。這是加權，不是篩選'),
-              region: z.array(z.enum(['北部', '中部', '南部', '東部', '其他'])).max(5).optional().describe('公司所在地'),
-              is_ai: z.boolean().optional().describe('是否為 AI 方案'),
-              is_startup: z.boolean().optional().describe('公司是否為新創'),
-              is_gov: z.boolean().optional().describe('公司是否有政府能量登錄'),
-              pricing_model: z.string().max(20).optional().describe('計價方式，例如「訂閱制」'),
-              category: z.array(z.string().max(20)).max(9).optional().describe('服務類別（子字串比對），9 個值見 describe_data'),
-              program: z.array(z.string().max(40)).max(10).optional().describe('資料來源名稱，完整清單見 data_status'),
-              max_price: z.number().min(0).max(100000000).optional().describe('總費用上限（元）。未提供價格的方案會被排除'),
-              include_delisted: z.boolean().default(false).describe('是否包含已下架（預設排除）'),
-              sort: z.enum(['relevance', 'price_asc', 'price_desc']).default('relevance'),
+              ...searchFields,
               limit: z.number().int().min(1).max(50).default(20),
               offset: z.number().int().min(0).max(5000).default(0),
             }),
             annotations: { readOnlyHint: true },
           },
           async (a) => {
-            const { data, error } = await supabase.rpc('sf_search_solutions', {
-              p_keyword: a.keyword,
-              p_query_text: a.query_text,
-              p_industry_keyword: a.industry_keyword,
-              p_region: a.region,
-              p_is_ai: a.is_ai,
-              p_is_startup: a.is_startup,
-              p_is_gov: a.is_gov,
-              p_pricing_model: a.pricing_model,
-              p_category: a.category,
-              p_program: a.program,
-              p_max_price: a.max_price,
-              p_include_delisted: a.include_delisted,
-              p_sort: a.sort,
-              p_limit: a.limit,
-              p_offset: a.offset,
-            })
-            if (error) throw new Error(error.message)
-            const rows = (data ?? []) as Array<Record<string, unknown>>
-            const total = rows.length ? Number(rows[0].total_matches) : 0
-
             const notes: string[] = []
+            const wantCity = ((a.city ?? []) as string[]).map(normCity).filter(Boolean)
+            let rows: Row[] = []
+            let total = 0
+            if (wantCity.length) {
+              // 城市篩選在伺服器端一次完成：掃描前 300 筆符合其他條件的方案，再依公司縣市過濾
+              const sc = await scanPages(fetchPage(a), SCAN_CAP)
+              const cres = await supabase.from('companies').select('company_id, city').in('company_id', [...new Set(sc.rows.map((r) => String(r.company_id ?? '')).filter(Boolean))])
+              if (cres.error) throw new Error(cres.error.message)
+              const cityOf = new Map<string, string>(((cres.data ?? []) as Row[]).map((x) => [String(x.company_id), String(x.city ?? '')]))
+              const kept = filterByCity(sc.rows, cityOf, wantCity)
+              const missing = sc.rows.filter((r) => !normCity(cityOf.get(String(r.company_id ?? '')))).length
+              total = kept.length
+              rows = kept.slice(a.offset, a.offset + a.limit)
+              notes.push(`城市篩選依「公司所在地（縣市，廠商總部）」比對，台／臺視為相同。掃描符合其他條件的前 ${sc.rows.length} 筆方案，屬於 ${wantCity.join('、')} 的有 ${total} 筆。`)
+              if (missing) notes.push(`掃描範圍內另有 ${missing} 筆方案的公司縣市未填或沒有公司編號，無法判斷是否在該縣市，未納入上述筆數；引用時請說明。`)
+              if (sc.truncated) notes.push(`⚠️ 符合其他條件的方案共 ${sc.total} 筆，超過掃描上限 ${SCAN_CAP} 筆，後面未掃描的部分可能還有符合者；請加上更具體的關鍵字或條件再查。`)
+            } else {
+              const r = await supabase.rpc('sf_search_solutions', { ...rpcArgs(a), p_limit: a.limit, p_offset: a.offset })
+              if (r.error) throw new Error(r.error.message)
+              rows = (r.data ?? []) as Row[]
+              total = rows.length ? Number(rows[0].total_matches) : 0
+            }
+
             if (a.region && a.region.length) {
               const cov = await supabase.rpc('sf_data_coverage')
               const row = (cov.data as Array<Record<string, unknown>> | null)?.[0]
@@ -181,7 +304,6 @@ Deno.serve(
                   `地區篩選的定義是「公司所在地」（與官網首頁一致）。目前有效方案中有 ${row.company_region_missing} 筆（共 ${row.active_solutions} 筆）的公司所在地未填，不會被納入此數字，實際可能更多。`
                 )
               } else {
-                // 取不到缺口資訊時不可靜默略過：明確警告，並要求回答時說明
                 notes.push(
                   `⚠️ 無法取得「公司所在地未填」的筆數（${cov.error?.message ?? '無資料'}）。地區篩選只涵蓋有填寫公司所在地的方案，實際筆數可能更多；引用此數字時請務必說明這個限制。`
                 )
@@ -196,45 +318,16 @@ Deno.serve(
               notes.push(`還有更多結果；可用 offset=${a.offset + rows.length} 取得下一頁。`)
             }
 
-            // 補上「列了幾類產業」，讓使用者能分辨專用與通用方案（失敗時明確告知，不靜默略過）
-            const ids = rows.map((r) => String(r.solution_id))
-            const indMap = new Map<string, unknown>()
-            const taxMap = new Map<string, { rank: number | null; name: string | null }>()
-            const cids = [...new Set(rows.map((r) => String(r.company_id ?? '')).filter(Boolean))]
-            if (cids.length) {
-              const tx = await supabase.from('companies').select('company_id, it_code_rank, tax_primary_name').in('company_id', cids)
-              if (tx.error) notes.push(`⚠️ 無法取得稅籍登記資訊（${tx.error.message}）。`)
-              else for (const x of (tx.data ?? []) as Array<Record<string, unknown>>) taxMap.set(String(x.company_id), { rank: x.it_code_rank == null ? null : Number(x.it_code_rank), name: (x.tax_primary_name as string) ?? null })
-            }
-            const awardMap = new Map<string, { count: number; best: string | null }>()
-            if (cids.length) {
-              const aw = await supabase.from('awards').select('company_id, award_category').in('company_id', cids)
-              if (aw.error) notes.push(`⚠️ 無法取得獲獎資訊（${aw.error.message}），has_company_award 為空。`)
-              else {
-                const byCo = new Map<string, string[]>()
-                for (const x of (aw.data ?? []) as Array<Record<string, unknown>>) {
-                  const k = String(x.company_id)
-                  byCo.set(k, [...(byCo.get(k) ?? []), String(x.award_category ?? '')])
-                }
-                for (const [k, cats] of byCo) awardMap.set(k, { count: cats.length, best: bestAwardTier(cats) })
-              }
-            }
-            if (ids.length) {
-              const ind = await supabase.from('solutions').select('solution_id, target_industry').in('solution_id', ids)
-              if (ind.error) {
-                notes.push(`⚠️ 無法取得產業別資訊（${ind.error.message}），結果中的 industries_count 為空。`)
-              } else {
-                for (const x of (ind.data ?? []) as Array<Record<string, unknown>>) indMap.set(String(x.solution_id), x.target_industry)
-              }
-            }
+            const enr = await enrichRows(rows, true, notes)
             const pageSummary = {
               normal: rows.filter((r) => !String(r.record_status ?? '').startsWith('疑似')).length,
               suspected_delisted: rows.filter((r) => String(r.record_status ?? '').startsWith('疑似')).length,
               company_region_missing: rows.filter((r) => !r.region).length,
-              in_tax_registry: rows.filter((r) => taxMap.get(String(r.company_id ?? ''))?.rank != null).length,
-              with_company_award: rows.filter((r) => awardMap.has(String(r.company_id ?? ''))).length,
+              company_city_missing: rows.filter((r) => !enr.cityMap.get(String(r.company_id ?? ''))).length,
+              in_tax_registry: rows.filter((r) => enr.taxMap.get(String(r.company_id ?? ''))?.rank != null).length,
+              with_company_award: rows.filter((r) => enr.awardMap.has(String(r.company_id ?? ''))).length,
               matches_industry_keyword: a.industry_keyword
-                ? rows.filter((r) => flattenIndustries(indMap.get(String(r.solution_id))).join('｜').includes(a.industry_keyword as string)).length
+                ? rows.filter((r) => flattenIndustries(enr.indMap.get(String(r.solution_id))).join('｜').includes(a.industry_keyword as string)).length
                 : null,
             }
             return asText({
@@ -244,36 +337,109 @@ Deno.serve(
               page_summary: pageSummary,
               notes: [...notes, '筆數統計（正常／疑似／未填地區／命中產業詞）請直接引用 page_summary，不要自行點算。'],
               results: rows.map((r) => {
-                const inds = flattenIndustries(indMap.get(String(r.solution_id)))
-                const tax = taxMap.get(String(r.company_id ?? ''))
-                return ({
-                id: r.solution_id,
-                name: r.solution_name,
-                company: r.company_name,
-                company_id: r.company_id,
-                source: r.program_type,
-                category: r.industry_category,
-                company_region: r.region || null,
-                is_ai: r.has_ai,
-                is_startup: r.is_startup,
-                is_gov_registered: r.is_gov,
-                price: r.price || null,
-                monthly_price: r.monthly_price || null,
-                pricing_model: r.pricing_model,
-                slogan: clip(r.slogan as string, 80),
-                summary: clip(r.description_short as string, 160),
-                status: r.record_status || '正常',
-                score: r.score,
-                industries_count: indMap.has(String(r.solution_id)) ? inds.length : null,
-                industries_sample: inds.slice(0, 3),
-                matches_industry_keyword: a.industry_keyword ? inds.join('｜').includes(a.industry_keyword) : null,
+                const cid = String(r.company_id ?? '')
+                const inds = flattenIndustries(enr.indMap.get(String(r.solution_id)))
+                const tax = enr.taxMap.get(cid)
+                return {
+                  id: r.solution_id,
+                  name: r.solution_name,
+                  company: r.company_name,
+                  company_id: r.company_id,
+                  source: r.program_type,
+                  category: r.industry_category,
+                  company_city: enr.cityMap.get(cid) || null,
+                  company_region: r.region || null,
+                  is_ai: r.has_ai,
+                  is_startup: r.is_startup,
+                  is_gov_registered: r.is_gov,
+                  price: r.price || null,
+                  monthly_price: r.monthly_price || null,
+                  pricing_model: r.pricing_model,
+                  slogan: clip(r.slogan as string, 80),
+                  summary: clip(r.description_short as string, 160),
+                  status: r.record_status || '正常',
+                  score: r.score,
+                  industries_count: enr.indMap.has(String(r.solution_id)) ? inds.length : null,
+                  industries_sample: inds.slice(0, 3),
+                  matches_industry_keyword: a.industry_keyword ? inds.join('｜').includes(a.industry_keyword) : null,
+                  tax_primary_industry: tax?.name ?? null,
+                  it_code_rank: tax?.rank ?? null,
+                  has_company_award: enr.awardMap.has(cid),
+                  company_award_count: enr.awardMap.get(cid)?.count ?? 0,
+                  company_award_best_level: enr.awardMap.get(cid)?.best ?? null,
+                }
+              }),
+            })
+          }
+        )
+
+        server.registerTool(
+          'search_companies',
+          {
+            description:
+              '以「廠商」為單位的搜尋，適合「某縣市有○○的廠商與其方案 list 給我」這類清單需求：一次呼叫就回傳符合條件的廠商，以及每家廠商底下符合的方案（最多 5 筆）、公司縣市、稅籍主業與是否獲獎。參數與 search_solutions 相同（含 city）。伺服器端最多掃描符合條件的前 300 筆方案，超過會在 notes 說明。沒有公司編號的方案會各自單獨列為一筆「廠商不明」。limit／offset 以廠商數計算。',
+            inputSchema: z.object({
+              ...searchFields,
+              limit: z.number().int().min(1).max(50).default(20),
+              offset: z.number().int().min(0).max(5000).default(0),
+            }),
+            annotations: { readOnlyHint: true },
+          },
+          async (a) => {
+            const notes: string[] = []
+            const wantCity = ((a.city ?? []) as string[]).map(normCity).filter(Boolean)
+            const sc = await scanPages(fetchPage(a), SCAN_CAP)
+            const enr = await enrichRows(sc.rows, false, notes)
+            let rows = sc.rows
+            if (wantCity.length) {
+              rows = filterByCity(sc.rows, enr.cityMap, wantCity)
+              const missing = sc.rows.filter((r) => !normCity(enr.cityMap.get(String(r.company_id ?? '')))).length
+              notes.push(`城市篩選依「公司所在地（縣市，廠商總部）」比對，台／臺視為相同。`)
+              if (missing) notes.push(`掃描範圍內另有 ${missing} 筆方案的公司縣市未填或沒有公司編號，無法判斷是否在該縣市，未納入；引用時請說明。`)
+            }
+            if (sc.truncated) notes.push(`⚠️ 符合其他條件的方案共 ${sc.total} 筆，超過掃描上限 ${SCAN_CAP} 筆，後面未掃描的部分可能還有符合者；請加上更具體的關鍵字或條件。`)
+            if (rows.some((r) => String(r.record_status ?? '').startsWith('疑似'))) notes.push('部分方案 status 為「疑似已下架」，尚未逐筆驗證，引用時請標註。')
+            const groups = groupByCompany(rows)
+            const pageGroups = groups.slice(a.offset, a.offset + a.limit)
+            if (groups.length > a.offset + pageGroups.length) notes.push(`還有更多廠商；可用 offset=${a.offset + pageGroups.length} 取得下一頁。`)
+            const companies = pageGroups.map((g) => {
+              const first = g.rows[0]
+              const cid = String(first.company_id ?? '')
+              const tax = enr.taxMap.get(cid)
+              const aw = enr.awardMap.get(cid)
+              const suspected = g.rows.filter((r) => String(r.record_status ?? '').startsWith('疑似')).length
+              return {
+                company_id: cid || null,
+                company: (first.company_name as string) || (cid ? null : '（資料庫沒有廠商名稱）'),
+                company_city: enr.cityMap.get(cid) || null,
+                company_region: (first.region as string) || null,
                 tax_primary_industry: tax?.name ?? null,
                 it_code_rank: tax?.rank ?? null,
-                has_company_award: awardMap.has(String(r.company_id ?? '')),
-                company_award_count: awardMap.get(String(r.company_id ?? ''))?.count ?? 0,
-                company_award_best_level: awardMap.get(String(r.company_id ?? ''))?.best ?? null,
-              })
-              }),
+                has_company_award: !!aw,
+                company_award_best_level: aw?.best ?? null,
+                solutions_count: g.rows.length,
+                normal_count: g.rows.length - suspected,
+                suspected_delisted_count: suspected,
+                solutions: g.rows.slice(0, 5).map((r) => ({
+                  id: r.solution_id,
+                  name: r.solution_name,
+                  source: r.program_type,
+                  price: r.price || null,
+                  pricing_model: r.pricing_model,
+                  status: r.record_status || '正常',
+                  score: r.score,
+                })),
+              }
+            })
+            return asText({
+              companies_total: groups.length,
+              solutions_total: rows.length,
+              scanned_solutions: sc.rows.length,
+              scan_truncated: sc.truncated,
+              returned: companies.length,
+              offset: a.offset,
+              notes: [...notes, '筆數請直接引用本回傳的 companies_total／solutions_total 與各公司的 normal_count，不要自行點算。'],
+              companies,
             })
           }
         )
@@ -282,7 +448,7 @@ Deno.serve(
           'get_solution',
           {
             description:
-              '取得單一方案的詳細資料：方案欄位、公司資料、聯絡人（僅姓名、職稱、公司電話）、是否有政府能量登錄。solution_id 來自 search_solutions 的 id。不回傳完整描述、email、手機。',
+              '取得單一方案的詳細資料：方案欄位、公司資料、聯絡人（僅姓名、職稱、公司電話）、是否有政府能量登錄。solution_id 來自 search_solutions 的 id。不回傳完整描述、email、手機。若要查多筆請改用 get_solutions（批次），不要逐筆呼叫本工具。',
             inputSchema: z.object({ solution_id: z.string().min(1).max(60) }),
             annotations: { readOnlyHint: true },
           },
@@ -305,24 +471,23 @@ Deno.serve(
             let taxIndustries: unknown = []
             let companyAwards: unknown = []
             if (cid) {
-              const aw = await supabase.from('awards').select('award_year, award_category, award_level, award_name, host_org').eq('company_id', cid).order('award_year', { ascending: false }).limit(10)
+              // 五個查詢互不相依，平行執行
+              const [aw, ti, co, ct, gv] = await Promise.all([
+                supabase.from('awards').select('award_year, award_category, award_level, award_name, host_org').eq('company_id', cid).order('award_year', { ascending: false }).limit(10),
+                supabase.from('company_tax_industry').select('code_rank, code6, code_name, snapshot_date').eq('company_id', cid).order('code_rank'),
+                supabase.from('companies').select('company_id, company_name, region, city, is_startup, tech_tags, it_code_rank, tax_primary_code, tax_primary_name').eq('company_id', cid).maybeSingle(),
+                supabase.from('contacts').select('contact_name, title, office_phone').eq('company_id', cid).limit(5),
+                supabase.from('gov_registrations').select('company_id', { count: 'exact', head: true }).eq('company_id', cid),
+              ])
               if (aw.error) throw new Error(aw.error.message)
-              companyAwards = aw.data ?? []
-              const ti = await supabase.from('company_tax_industry').select('code_rank, code6, code_name, snapshot_date').eq('company_id', cid).order('code_rank')
               if (ti.error) throw new Error(ti.error.message)
-              taxIndustries = ti.data ?? []
-              const co = await supabase
-                .from('companies')
-                .select('company_id, company_name, region, city, is_startup, tech_tags, it_code_rank, tax_primary_code, tax_primary_name')
-                .eq('company_id', cid)
-                .maybeSingle()
               if (co.error) throw new Error(co.error.message)
-              company = co.data
-              const ct = await supabase.from('contacts').select('contact_name, title, office_phone').eq('company_id', cid).limit(5)
               if (ct.error) throw new Error(ct.error.message)
-              contacts = ct.data ?? []
-              const gv = await supabase.from('gov_registrations').select('company_id', { count: 'exact', head: true }).eq('company_id', cid)
               if (gv.error) throw new Error(gv.error.message)
+              companyAwards = aw.data ?? []
+              taxIndustries = ti.data ?? []
+              company = co.data
+              contacts = ct.data ?? []
               govRegistered = (gv.count ?? 0) > 0
             }
             const contactNotes = (contacts as unknown[]).length
@@ -345,6 +510,75 @@ Deno.serve(
               tax_industries: taxIndustries,
               company_awards: companyAwards,
               notes: ['收錄不等於推薦或認證；方案文字多為廠商自述，未經逐筆查證。', '獲獎（company_awards）是公司層級的紀錄（award_category＝層級、award_level＝得獎結果），不代表此方案本身得獎；solution.has_award 是方案層級的標記，兩者不同，回答「有沒有獲獎」請引用 company_awards。', '稅籍行業代號（tax_industries／company.it_code_rank）為營業人自行申報、少更新，只代表登記主業，不代表實際主力業務或品質；it_code_rank 為 null 表示不在名冊。', ...contactNotes],
+            })
+          }
+        )
+
+        server.registerTool(
+          'get_solutions',
+          {
+            description:
+              '批次取得多筆方案的精簡詳情（一次最多 20 筆）。內部只做 4 次資料庫查詢，比逐筆呼叫 get_solution 快得多。回傳方案欄位（描述已縮短）、公司縣市與稅籍主業、公司獲獎（層級與筆數）與是否有政府能量登錄；不含聯絡人（需要聯絡人請對少數候選用 get_solution）。solution_ids 來自 search_solutions／search_companies 的 id。',
+            inputSchema: z.object({ solution_ids: z.array(z.string().min(1).max(60)).min(1).max(20) }),
+            annotations: { readOnlyHint: true },
+          },
+          async ({ solution_ids }) => {
+            const ids = [...new Set(solution_ids)]
+            const sol = await supabase
+              .from('solutions')
+              .select('solution_id, solution_name, company_id, program_type, industry_category, has_ai, price, monthly_price, pricing_model, service_region, target_scale, website_url, slogan, description_short, features_list, record_status')
+              .in('solution_id', ids)
+            if (sol.error) throw new Error(sol.error.message)
+            const found = (sol.data ?? []) as Row[]
+            const cids = [...new Set(found.map((r) => String(r.company_id ?? '')).filter(Boolean))]
+            const [co, aw, gv] = await Promise.all([
+              cids.length ? supabase.from('companies').select('company_id, company_name, city, region, is_startup, it_code_rank, tax_primary_name').in('company_id', cids) : Promise.resolve(none),
+              cids.length ? supabase.from('awards').select('company_id, award_category, award_level, award_name, award_year').in('company_id', cids) : Promise.resolve(none),
+              cids.length ? supabase.from('gov_registrations').select('company_id').in('company_id', cids) : Promise.resolve(none),
+            ])
+            if (co.error) throw new Error(co.error.message)
+            if (aw.error) throw new Error(aw.error.message)
+            if (gv.error) throw new Error(gv.error.message)
+            const coMap = new Map<string, Row>(((co.data ?? []) as Row[]).map((x) => [String(x.company_id), x]))
+            const awMap = new Map<string, Row[]>()
+            for (const x of (aw.data ?? []) as Row[]) {
+              const k = String(x.company_id)
+              awMap.set(k, [...(awMap.get(k) ?? []), x])
+            }
+            const govSet = new Set(((gv.data ?? []) as Row[]).map((x) => String(x.company_id)))
+            const byId = new Map<string, Row>(found.map((r) => [String(r.solution_id), r]))
+            const results = ids.filter((id) => byId.has(id)).map((id) => {
+              const r = byId.get(id)!
+              const cid = String(r.company_id ?? '')
+              const c1 = coMap.get(cid)
+              const awards = awMap.get(cid) ?? []
+              return {
+                id: r.solution_id,
+                name: r.solution_name,
+                source: r.program_type,
+                category: r.industry_category,
+                status: r.record_status || '正常',
+                is_ai: r.has_ai,
+                price: r.price || null,
+                monthly_price: r.monthly_price || null,
+                pricing_model: r.pricing_model,
+                service_region: r.service_region,
+                target_scale: r.target_scale,
+                website_url: r.website_url || null,
+                slogan: clip(r.slogan as string, 120),
+                summary: clip(r.description_short as string, 300),
+                features: clip(r.features_list as string, 400),
+                company: c1 ? { id: cid, name: c1.company_name, city: c1.city || null, region: c1.region || null, is_startup: c1.is_startup, tax_primary_industry: c1.tax_primary_name ?? null, it_code_rank: c1.it_code_rank ?? null } : { id: cid || null, name: null },
+                company_awards: { count: awards.length, best_level: bestAwardTier(awards.map((x) => String(x.award_category ?? ''))), latest: awards.slice(0, 3).map((x) => `${x.award_year ?? '?'} ${x.award_category ?? ''} ${x.award_name ?? ''}`.trim()) },
+                gov_registered: govSet.has(cid),
+              }
+            })
+            return asText({
+              requested: ids.length,
+              found: results.length,
+              not_found: ids.filter((id) => !byId.has(id)),
+              results,
+              notes: ['收錄不等於推薦或認證；方案文字多為廠商自述。獲獎是公司層級，不代表方案本身得獎。', '本工具不含聯絡人；需要聯絡窗口請對少數候選使用 get_solution。'],
             })
           }
         )
