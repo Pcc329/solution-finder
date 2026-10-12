@@ -242,3 +242,19 @@ ROLLBACK; -- 預設演練；確認刪除範圍後，由 PPC 改為 COMMIT。
 - [ ] 三張表各新增 1 筆測試、前兩表 source=api：待 PPC 執行唯讀 SQL 確認。
 
 在上述 Preview 實測確認前，不宣稱線上遷移已驗收，不 merge。
+
+## Preview 實測結果
+
+2026-10-12，PPC 回報已完成 Preview 實測與資料庫驗證：
+
+| 表 | 成功寫入筆數 |
+| --- | --- |
+| `ask_logs` | 1 |
+| `search_logs` | 2 |
+| `feedback_submissions` | 1 |
+
+以上線上寫入驗證與測試資料清除均由 PPC 完成；Codex 本次沒有重新送出測試或執行 SQL。上方「待 PPC 執行」是初版交接時的狀態，本段為追加的最新實測紀錄。
+
+測試資料已由 PPC 以含筆數自檢的交易清除。**本 SYNC 原本提供的清除 SQL 未使用**；PPC 改用以 `source='api'` 與日期為條件、含筆數自檢的版本。
+
+另依 PPC 要求，`public/feedback.html` 第 181 行提示文字由「回饋內容會寫入內部 Airtable 回饋表；此頁面不含任何前端憑證。」改為「回饋內容會寫入內部資料庫；此頁面不含任何前端憑證。」。只替換這一句，HTML 結構與互動邏輯不變；`public/strategy-guide.html` 第 740 行與其他既有改動均未修改。
