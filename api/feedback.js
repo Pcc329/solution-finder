@@ -1,7 +1,5 @@
 import { requireAuth } from '../_lib/auth.js';
-
-const BASE_ID = 'appttP04OnzzC7qxG';
-const FEEDBACK_TABLE_ID = 'tbly0aNVLiogY9Eu1';
+import { insertSupabase } from '../_lib/supabase-insert.js';
 
 const ALLOWED_MILESTONES = new Set([
   'M1 AI語意搜尋',
@@ -41,37 +39,8 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: '提交過於頻繁，請稍後再試' });
   }
 
-  const token = process.env.AIRTABLE_TOKEN;
-  if (!token) {
-    return res.status(500).json({ error: 'AIRTABLE_TOKEN not configured' });
-  }
-
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  function logAirtableError(table, status, body) {
-    const time = new Date().toISOString();
-    console.error(`[Airtable Error] status=${status} endpoint=${req.url} table=${table} time=${time} message=${body}`);
-    if (status === 429) {
-      console.error(`[Airtable Rate Limit] status=429 endpoint=${req.url} table=${table} time=${time}`);
-    }
-  }
-
-  async function fetchAirtableWithRetry(url, options, table, maxRetries = 3) {
-    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-      const response = await fetch(url, options);
-      if (response.ok) return response;
-
-      if (response.status === 429 && attempt < maxRetries) {
-        const waitMs = 300 * Math.pow(2, attempt);
-        console.error(`[Airtable Rate Limit] retry=${attempt + 1}/${maxRetries} endpoint=${req.url} table=${table} waitMs=${waitMs} time=${new Date().toISOString()}`);
-        await sleep(waitMs);
-        continue;
-      }
-
-      return response;
-    }
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not configured' });
   }
 
   function parseBody() {
@@ -126,36 +95,18 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: '會否引用不在允許範圍內' });
     }
 
-    const fields = {
-      Name: name,
-      里程碑: milestone,
-      回報內容: detail,
-    };
-    if (department) fields['部門'] = department;
-    if (score !== null) fields['評分'] = score;
-    if (relevantCount !== null) fields['相關筆數'] = relevantCount;
-    if (pathChoice) fields['路徑選擇'] = pathChoice;
-    if (wouldCite) fields['會否引用'] = wouldCite;
+    const stored = await insertSupabase('feedback_submissions', {
+      name,
+      department,
+      milestone,
+      detail,
+      score,
+      relevant_count: relevantCount,
+      path_choice: pathChoice,
+      would_cite: wouldCite,
+    });
 
-    const response = await fetchAirtableWithRetry(
-      `https://api.airtable.com/v0/${BASE_ID}/${FEEDBACK_TABLE_ID}`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          records: [{ fields }],
-          typecast: true,
-        }),
-      },
-      'Feedback'
-    );
-
-    if (!response.ok) {
-      const bodyText = await response.text();
-      logAirtableError('Feedback', response.status, bodyText);
+    if (!stored) {
       return res.status(502).json({ error: 'Storage write failed' });
     }
 
