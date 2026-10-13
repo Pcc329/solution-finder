@@ -19,7 +19,6 @@ async function loadSolutions(programs, { source = 'supabase' } = {}) {
     DB_SOURCE_SOLUTIONS: source,
     SUPABASE_URL: 'https://synthetic-supabase.invalid',
     SUPABASE_ANON_KEY: 'synthetic-anon',
-    AIRTABLE_TOKEN: 'synthetic-airtable',
     API_KEYS_ALLOWLIST: 'synthetic-auth',
   };
   const originalEnv = Object.fromEntries(Object.keys(env).map(key => [key, process.env[key]]));
@@ -34,16 +33,6 @@ async function loadSolutions(programs, { source = 'supabase' } = {}) {
       requests.push({ url, options });
       const table = url.pathname.split('/').at(-1);
       const activeRows = rows.filter(row => !String(row.record_status || '').startsWith('已下架'));
-      if (source === 'airtable') {
-        if (table === 'Solutions') {
-          assert.equal(url.searchParams.get('filterByFormula'), "NOT(LEFT({record_status}, 3) = '已下架')");
-          return { ok: true, json: async () => ({ records: activeRows.map(row => ({ id: row.solution_id, fields: row })) }) };
-        }
-        assert.equal(table, 'Companies');
-        return { ok: true, json: async () => ({ records: [{ id: 'synthetic-company', fields: {
-          company_id: '12345678', company_name: 'Synthetic company',
-        } }] }) };
-      }
       assert.equal(url.origin, env.SUPABASE_URL);
       assert.equal(options.headers.apikey, env.SUPABASE_ANON_KEY);
       assert.equal(options.headers.Range, '0-999');
@@ -72,7 +61,7 @@ async function loadSolutions(programs, { source = 'supabase' } = {}) {
     await handler(req, res);
     assert.equal(res.statusCode, 200);
     // Existing requests only; no data_sources lookup or other new request.
-    assert.equal(requests.length, source === 'supabase' ? 7 : 2);
+    assert.equal(requests.length, 7);
     assert.ok(requests.every(request => !request.options.method || request.options.method === 'GET'));
     return res.body;
   } finally {
@@ -153,10 +142,10 @@ test('p labels and solution rows remain present even when sources do not count',
   assert.ok(rows.every(row => row.src === 'Synthetic data source'));
 });
 
-test('Airtable read branch retains its existing p, pgc=0 and pgList=[] behavior', async () => {
+test('legacy Airtable source flag is ignored; the same Supabase program evidence is returned', async () => {
   const sources = [...allowed, ...excluded];
   const rows = await loadSolutions(sources, { source: 'airtable' });
   assert.equal(rows.length, sources.length);
   assert.deepEqual(rows.map(row => row.p), sources);
-  assertPrograms(rows, []);
+  assertPrograms(rows, allowed);
 });

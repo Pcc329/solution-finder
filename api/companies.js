@@ -1,65 +1,11 @@
 // api/companies.js — Vercel Serverless Function
 import { requireAuth } from '../_lib/auth.js';
-const DEFAULT_COMPANIES_SOURCE = 'airtable';
-const ACTIVE_SOLUTIONS_FILTER = "NOT(LEFT({record_status}, 3) = '已下架')";
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 's-maxage=300');
 
   if (!requireAuth(req, res)) return;
-
-  const TOKEN = process.env.AIRTABLE_TOKEN;
-  const BASE_ID = 'appttP04OnzzC7qxG';
-
-  function logAirtableError(table, status, body) {
-    const time = new Date().toISOString();
-    console.error(`[Airtable Error] status=${status} endpoint=${req.url} table=${table} time=${time} message=${body}`);
-    if (status === 429) {
-      console.error(`[Airtable Rate Limit] status=429 endpoint=${req.url} table=${table} time=${time}`);
-    }
-  }
-
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  async function fetchAirtableWithRetry(url, headers, table, maxRetries = 3) {
-    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-      const response = await fetch(url, { headers });
-      if (response.ok) return response;
-
-      if (response.status === 429 && attempt < maxRetries) {
-        const waitMs = 300 * Math.pow(2, attempt);
-        console.error(`[Airtable Rate Limit] retry=${attempt + 1}/${maxRetries} endpoint=${req.url} table=${table} waitMs=${waitMs} time=${new Date().toISOString()}`);
-        await sleep(waitMs);
-        continue;
-      }
-
-      return response;
-    }
-  }
-
-  async function fetchAll(table, filterByFormula = '') {
-    let allRecords = [];
-    let offset = null;
-    do {
-      let url = `https://api.airtable.com/v0/${BASE_ID}/${table}?pageSize=100`;
-      if (offset) url += `&offset=${offset}`;
-      if (filterByFormula) url += `&filterByFormula=${encodeURIComponent(filterByFormula)}`;
-      const response = await fetchAirtableWithRetry(url, { Authorization: `Bearer ${TOKEN}` }, table);
-      if (!response.ok) {
-        const body = await response.text();
-        logAirtableError(table, response.status, body);
-        throw new Error(`Airtable error (${table}): ${response.status} — ${body}`);
-      }
-      const data = await response.json();
-      allRecords = allRecords.concat(data.records || []);
-      offset = data.offset || null;
-    } while (offset);
-    return allRecords;
-  }
 
   function normalizeCid(value) {
     if (Array.isArray(value)) return String(value[0] || '').replace(/^\uFEFF/, '').trim();
@@ -70,12 +16,6 @@ export default async function handler(req, res) {
     return value === true || value === 'checked' || value === 'true' || value === 'True' || value === '有';
   }
 
-  function parseYear(value) {
-    const text = String(value || '').trim();
-    const match = text.match(/\d{4}/);
-    return match ? Number(match[0]) : null;
-  }
-
   function parseScore(value) {
     if (value === null || value === undefined || value === '') return null;
     const n = Number(value);
@@ -84,14 +24,6 @@ export default async function handler(req, res) {
 
   function addTag(tags, value) {
     if (value && !tags.includes(value)) tags.push(value);
-  }
-
-  function solutionCompanyKeys(fields, companyByRecId) {
-    const raw = fields?.['company_id'];
-    if (Array.isArray(raw)) {
-      return raw.map(item => companyByRecId[item]?.cid || normalizeCid(item)).filter(Boolean);
-    }
-    return [normalizeCid(raw)].filter(Boolean);
   }
 
   function tagFromFields(company) {
@@ -126,12 +58,6 @@ export default async function handler(req, res) {
       );
     }
     return companies;
-  }
-
-  function getCompaniesSource() {
-    const source = String(process.env.DB_SOURCE_COMPANIES || DEFAULT_COMPANIES_SOURCE).trim().toLowerCase();
-    if (source === 'airtable' || source === 'supabase') return source;
-    throw new Error('DB_SOURCE_COMPANIES must be "airtable" or "supabase"');
   }
 
   async function fetchAllSupabase(url, anonKey) {
@@ -193,164 +119,66 @@ export default async function handler(req, res) {
   }
 
   try {
-    const source = getCompaniesSource();
-
-    if (source === 'supabase') {
-      const supabaseUrl = process.env.SUPABASE_URL;
-      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseAnonKey) {
-        return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
-      }
-
-      const [records, solutions] = await Promise.all([
-        fetchAllSupabase(supabaseUrl, supabaseAnonKey),
-        fetchSupabaseSolutions(supabaseUrl, supabaseAnonKey),
-      ]);
-      const companyByCid = {};
-      const companies = records.map(row => {
-        const techTags = Array.isArray(row.tech_tags) ? row.tech_tags : [];
-        const industryVertical = row.industry_vertical ?? '';
-        const cid = normalizeCid(row.company_id);
-        const item = {
-          id: row.airtable_rec_id ?? '',
-          cid,
-          name: row.company_name ?? '',
-          is_startup: row.is_startup === true,
-          has_award: (row.award_count ?? 0) > 0,
-          award_count: row.award_count ?? 0,
-          // Count from the filtered Solutions query below, not the unfiltered view aggregate.
-          solution_count: 0,
-          contact_count: row.contact_count ?? 0,
-          industry: industryVertical || '資訊服務',
-          industry_vertical: industryVertical,
-          city: row.city ?? '',
-          est_year: row.est_year ?? null,
-          tech_tags: techTags,
-          score_sum: 0,
-          score_count: 0,
-          tags: [],
-        };
-        tagFromFields(item);
-        if (cid) companyByCid[cid] = item;
-        return item;
-      });
-
-      solutions.forEach(sol => {
-        const cid = normalizeCid(sol.company_id);
-        const company = companyByCid[cid];
-        if (!company) return;
-
-        company.solution_count += 1;
-        const hasAi = isChecked(sol.has_ai);
-        const text = [
-          sol.solution_name,
-          sol.industry_category,
-          sol.description,
-          sol.features_list,
-        ].join(' ');
-        const score = parseScore(sol.score_overall);
-        if (score !== null) {
-          company.score_sum += score;
-          company.score_count += 1;
-        }
-        if (hasAi || /AI|人工智慧|智慧/.test(text)) addTag(company.tags, 'AI工具');
-        if (/ERP|進銷存|企業資源/.test(text)) addTag(company.tags, 'ERP');
-        if (/資安|資訊安全|防毒|弱點|防護|備份/.test(text)) addTag(company.tags, '資安');
-      });
-
-      const filter = String(req.query?.filter || '').trim();
-      const sortedCompanies = companies
-        .sort((a, b) => b.solution_count - a.solution_count || a.name.localeCompare(b.name, 'zh-Hant'));
-      const filteredCompanies = applyFilter(sortedCompanies, filter);
-      const limitedCompanies = (filter ? filteredCompanies : filteredCompanies.slice(0, 200))
-        .map(item => ({
-          id: item.id,
-          name: item.name,
-          is_startup: item.is_startup,
-          has_award: item.has_award,
-          award_count: item.award_count,
-          solution_count: item.solution_count,
-          contact_count: item.contact_count,
-          industry: item.industry,
-          city: item.city,
-          est_year: item.est_year,
-          tech_tags: (Array.isArray(item.tech_tags) && item.tech_tags.length) ? item.tech_tags : '',
-          avg_score: item.score_count > 0
-            ? Number((item.score_sum / item.score_count).toFixed(1))
-            : null,
-          tags: item.tags,
-        }));
-
-      return res.status(200).json(limitedCompanies);
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
     }
 
-    const [companyRecords, solutionRecords] = await Promise.all([
-      fetchAll('Companies'),
-      fetchAll('Solutions', ACTIVE_SOLUTIONS_FILTER),
+    const [records, solutions] = await Promise.all([
+      fetchAllSupabase(supabaseUrl, supabaseAnonKey),
+      fetchSupabaseSolutions(supabaseUrl, supabaseAnonKey),
     ]);
-
     const companyByCid = {};
-    const companyByRecId = {};
-    const companies = [];
-
-    companyRecords.forEach(rec => {
-      const f = rec.fields || {};
-      const cid = normalizeCid(f['company_id']);
-      const awardCount = Array.isArray(f['Awards']) ? f['Awards'].length : 0;
-      const linkedSolutionCount = Array.isArray(f['Solutions']) ? f['Solutions'].length : 0;
-      const industryVertical = f['industry_vertical'] || '';
-      const techTags = f['tech_tags'] || '';
+    const companies = records.map(row => {
+      const techTags = Array.isArray(row.tech_tags) ? row.tech_tags : [];
+      const industryVertical = row.industry_vertical ?? '';
+      const cid = normalizeCid(row.company_id);
       const item = {
-        id: rec.id,
+        id: row.airtable_rec_id ?? '',
         cid,
-        name: f['company_name'] || '',
-        is_startup: f['is_startup'] === 'checked' || f['is_startup_auto'] === '新創',
-        has_award: awardCount > 0,
-        award_count: awardCount,
-        // Count from the filtered Solutions query below, not the unfiltered Companies link count.
+        name: row.company_name ?? '',
+        is_startup: row.is_startup === true,
+        has_award: (row.award_count ?? 0) > 0,
+        award_count: row.award_count ?? 0,
+        // Count from the filtered Solutions query below, not the unfiltered view aggregate.
         solution_count: 0,
-        linked_solution_count: linkedSolutionCount,
+        contact_count: row.contact_count ?? 0,
+        industry: industryVertical || '資訊服務',
+        industry_vertical: industryVertical,
+        city: row.city ?? '',
+        est_year: row.est_year ?? null,
+        tech_tags: techTags,
         score_sum: 0,
         score_count: 0,
-        contact_count: Number(f['contact_count'] || f['contacts_count'] || 0) || 0,
-        industry: industryVertical || f['industry'] || '資訊服務',
-        industry_vertical: industryVertical,
-        city: f['city'] || '',
-        est_year: parseYear(f['established_date']),
-        tech_tags: techTags,
         tags: [],
       };
       tagFromFields(item);
       if (cid) companyByCid[cid] = item;
-      companyByRecId[rec.id] = item;
-      companies.push(item);
+      return item;
     });
 
-    solutionRecords.forEach(rec => {
-      const f = rec.fields || {};
-      const hasAi = isChecked(f['has_ai']);
-      const text = [
-        f['solution_name'],
-        f['industry_category'],
-        f['industry_vertical'],
-        f['description'],
-        f['features_list'],
-        f['tech_tags'],
-      ].join(' ');
+    solutions.forEach(sol => {
+      const cid = normalizeCid(sol.company_id);
+      const company = companyByCid[cid];
+      if (!company) return;
 
-      solutionCompanyKeys(f, companyByRecId).forEach(cid => {
-        const company = companyByCid[cid] || companyByRecId[cid];
-        if (!company) return;
-        company.solution_count += 1;
-        const score = parseScore(f['score_overall']);
-        if (score !== null) {
-          company.score_sum += score;
-          company.score_count += 1;
-        }
-        if (hasAi || /AI|人工智慧|智慧/.test(text)) addTag(company.tags, 'AI工具');
-        if (/ERP|進銷存|企業資源/.test(text)) addTag(company.tags, 'ERP');
-        if (/資安|資訊安全|防毒|弱點|防護|備份/.test(text)) addTag(company.tags, '資安');
-      });
+      company.solution_count += 1;
+      const hasAi = isChecked(sol.has_ai);
+      const text = [
+        sol.solution_name,
+        sol.industry_category,
+        sol.description,
+        sol.features_list,
+      ].join(' ');
+      const score = parseScore(sol.score_overall);
+      if (score !== null) {
+        company.score_sum += score;
+        company.score_count += 1;
+      }
+      if (hasAi || /AI|人工智慧|智慧/.test(text)) addTag(company.tags, 'AI工具');
+      if (/ERP|進銷存|企業資源/.test(text)) addTag(company.tags, 'ERP');
+      if (/資安|資訊安全|防毒|弱點|防護|備份/.test(text)) addTag(company.tags, '資安');
     });
 
     const filter = String(req.query?.filter || '').trim();
@@ -369,7 +197,7 @@ export default async function handler(req, res) {
         industry: item.industry,
         city: item.city,
         est_year: item.est_year,
-        tech_tags: item.tech_tags,
+        tech_tags: (Array.isArray(item.tech_tags) && item.tech_tags.length) ? item.tech_tags : '',
         avg_score: item.score_count > 0
           ? Number((item.score_sum / item.score_count).toFixed(1))
           : null,
