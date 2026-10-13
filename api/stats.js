@@ -1,70 +1,8 @@
 // api/stats.js — Vercel Serverless Function
-const DEFAULT_SOLUTIONS_SOURCE = 'airtable';
-const DEFAULT_COMPANIES_SOURCE = 'airtable';
 const CASES_TABLE = 'cases';
-const ACTIVE_SOLUTIONS_FILTER = "NOT(LEFT({record_status}, 3) = '已下架')";
-const SUSPENDED_COMPANY_STATUS = '暫停營業';
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
-
-  const TOKEN = process.env.AIRTABLE_TOKEN;
-  const BASE_ID = 'appttP04OnzzC7qxG';
-
-  function logAirtableError(table, status, body) {
-    const time = new Date().toISOString();
-    console.error(`[Airtable Error] status=${status} endpoint=${req.url} table=${table} time=${time} message=${body}`);
-    if (status === 429) {
-      console.error(`[Airtable Rate Limit] status=429 endpoint=${req.url} table=${table} time=${time}`);
-    }
-  }
-
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  async function fetchAirtableWithRetry(url, headers, table, maxRetries = 3) {
-    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-      const response = await fetch(url, { headers });
-      if (response.ok) return response;
-
-      if (response.status === 429 && attempt < maxRetries) {
-        const waitMs = 300 * Math.pow(2, attempt);
-        console.error(`[Airtable Rate Limit] retry=${attempt + 1}/${maxRetries} endpoint=${req.url} table=${table} waitMs=${waitMs} time=${new Date().toISOString()}`);
-        await sleep(waitMs);
-        continue;
-      }
-
-      return response;
-    }
-  }
-
-  async function fetchAll(table, filterByFormula = '') {
-    let allRecords = [];
-    let offset = null;
-    do {
-      let url = `https://api.airtable.com/v0/${BASE_ID}/${table}?pageSize=100`;
-      if (offset) url += `&offset=${offset}`;
-      if (filterByFormula) url += `&filterByFormula=${encodeURIComponent(filterByFormula)}`;
-      const response = await fetchAirtableWithRetry(url, { Authorization: `Bearer ${TOKEN}` }, table);
-      if (!response.ok) {
-        const body = await response.text();
-        logAirtableError(table, response.status, body);
-        throw new Error(`Airtable error: ${response.status} — ${body}`);
-      }
-      const data = await response.json();
-      allRecords = allRecords.concat(data.records);
-      offset = data.offset || null;
-    } while (offset);
-    return allRecords;
-  }
-
-  function getSource(envName, defaultSource) {
-    const source = String(process.env[envName] || defaultSource).trim().toLowerCase();
-    if (source === 'airtable' || source === 'supabase') return source;
-    throw new Error(`${envName} must be "airtable" or "supabase"`);
-  }
 
   async function fetchAllSupabasePaged(url, anonKey, table, selectCols, orderBy, filters = {}) {
     const endpoint = new URL(`/rest/v1/${table}`, url);
@@ -179,14 +117,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const solutionsSource = getSource('DB_SOURCE_SOLUTIONS', DEFAULT_SOLUTIONS_SOURCE);
-    const companiesSource = getSource('DB_SOURCE_COMPANIES', DEFAULT_COMPANIES_SOURCE);
     // Recent case activity is sourced from Supabase so is_real can be enforced server-side.
-    const needsSupabase = true;
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
-    if (needsSupabase && (!supabaseUrl || !supabaseAnonKey)) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       return res.status(500).json({ error: 'SUPABASE_URL or SUPABASE_ANON_KEY not configured' });
     }
 
@@ -200,26 +135,22 @@ export default async function handler(req, res) {
     };
 
     const [solutionRecords, companyRecords, caseRecords] = await Promise.all([
-      solutionsSource === 'supabase'
-        ? fetchAllSupabasePaged(
-          supabaseUrl,
-          supabaseAnonKey,
-          'solutions',
-          'solution_id,company_id,solution_name,has_ai,industry_category,program_type,data_source,price,price_tier,created_at',
-          'solution_id.asc',
-          activeSolutionsFilter
-        )
-        : fetchAll('Solutions', ACTIVE_SOLUTIONS_FILTER),
-      companiesSource === 'supabase'
-        ? fetchAllSupabasePaged(
-          supabaseUrl,
-          supabaseAnonKey,
-          'companies',
-          'company_id,company_name,region,is_startup,city,company_status,created_at',
-          'company_id.asc',
-          activeCompaniesFilter
-        )
-        : fetchAll('Companies'),
+      fetchAllSupabasePaged(
+        supabaseUrl,
+        supabaseAnonKey,
+        'solutions',
+        'solution_id,company_id,solution_name,has_ai,industry_category,program_type,data_source,price,price_tier,created_at',
+        'solution_id.asc',
+        activeSolutionsFilter
+      ),
+      fetchAllSupabasePaged(
+        supabaseUrl,
+        supabaseAnonKey,
+        'companies',
+        'company_id,company_name,region,is_startup,city,company_status,created_at',
+        'company_id.asc',
+        activeCompaniesFilter
+      ),
       fetchAllSupabasePaged(
         supabaseUrl,
         supabaseAnonKey,
@@ -233,11 +164,7 @@ export default async function handler(req, res) {
       ? await fetchMaintenance(supabaseUrl, supabaseAnonKey, 7)
       : null;
 
-    // Airtable Single Select filters on Chinese values are unreliable; retain active rows and
-    // remove only the explicit suspended company status in JavaScript.
-    const companies = companiesSource === 'airtable'
-      ? companyRecords.filter(rec => getFields(rec)['company_status'] !== SUSPENDED_COMPANY_STATUS)
-      : companyRecords;
+    const companies = companyRecords;
     const solutions = solutionRecords;
     const cases = caseRecords;
 
