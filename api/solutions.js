@@ -4,6 +4,19 @@ import { requireAuth } from '../_lib/auth.js';
 const DEFAULT_SOLUTIONS_SOURCE = 'airtable';
 const ACTIVE_SOLUTIONS_FILTER = "NOT(LEFT({record_status}, 3) = '已下架')";
 
+// 「跨N種計畫」只計入可佐證政府計畫參與的資料來源（允許清單，2026-10-13 PPC 決定）。
+// 判斷標準：出現在該來源，能否佐證公司通過某政府計畫審核。
+// 不計入：SME AI平台、政府軟體採購網（政府平台收錄／採購資格）、資策會產業調查、案例反推補建（非政府／內部）。
+// 新增來源預設不計入，需人工判斷後加入本清單。
+const PROGRAM_EVIDENCE_SOURCES = new Set([
+  '臺灣雲市集',
+  '雲市集工業館',
+  '新創嚴選網',
+  '商業服務業專區',
+  '農業雲市集-數位館',
+  '新北產業AI化輔導計畫',
+]);
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
@@ -287,7 +300,7 @@ export default async function handler(req, res) {
       solRows.forEach(row => {
         const cid = normalizeCid(row.company_id);
         const pt = (row.program_type || '').trim();
-        if (!cid || !pt) return;
+        if (!cid || !pt || !PROGRAM_EVIDENCE_SOURCES.has(pt)) return;
         if (!programTypesByCid.has(cid)) programTypesByCid.set(cid, new Set());
         programTypesByCid.get(cid).add(pt);
       });
