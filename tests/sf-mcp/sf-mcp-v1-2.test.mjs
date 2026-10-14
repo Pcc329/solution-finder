@@ -34,7 +34,7 @@ function mockDb({ rpc = {}, tables = {}, touch, fromError, throwRpc, throwTouch 
   const calls = []
   return {
     calls,
-    auth: { getUser: async () => ({ data: { user: { id: 'mock-user', email: 'never-expose@example.invalid' } }, error: null }) },
+    auth: { getUser: async () => ({ data: { user: { id: 'mock-user', email: 'signed-in-user@example.invalid' } }, error: null }) },
     async rpc(name, args) {
       calls.push({ rpc: name, args })
       if (name === 'sf_mcp_touch') {
@@ -124,7 +124,8 @@ for (const [name, args] of [
     assert.notEqual(result.isError, true)
     assert.equal(db.calls[0].rpc, 'sf_mcp_touch')
     assert.equal(db.calls.filter((c) => c.rpc === 'sf_mcp_touch').length, 1)
-    assert.doesNotMatch(result.content[0].text, /never-expose@example/)
+    if (name === 'whoami') assert.equal(result.structuredContent.email, 'signed-in-user@example.invalid')
+    else assert.doesNotMatch(result.content[0].text, /signed-in-user@example/)
     for (const c of db.calls.filter((c) => c.table)) {
       const selection = c.operations.find(([method]) => method === 'select')[1]
       if (selection !== '*') assert.doesNotMatch(selection, /\b(description|email|mobile)\b/)
@@ -226,7 +227,8 @@ test('solution empty RPC page reports counting limitation without extra RPC', as
   assert.match(data.next_step[0], /offset=0/)
   assert.equal(db.calls.length, 2)
 })
-test('handler error is sanitized Chinese JSON; actual SDK skips output validation for isError', async () => {
+test('handler error is sanitized Chinese JSON; actual SDK skips output validation for isError', async (t) => {
+  t.mock.method(console, 'error', () => {})
   const { result, data, server, tool } = await callTool(mockDb({ throwRpc: true }), 'search_solutions')
   assert.equal(result.isError, true)
   assert.equal(result.structuredContent, undefined)
@@ -235,14 +237,37 @@ test('handler error is sanitized Chinese JSON; actual SDK skips output validatio
   await server.validateToolOutput(tool, result, 'search_solutions')
   await assert.rejects(server.validateToolOutput(tool, { content: result.content }, 'search_solutions'), /no structured content/)
 })
+test('handler failure logs the actual error only to console, not to the user response', async (t) => {
+  t.mock.method(console, 'error', () => {})
+  const rawError = 'SELECT secret FROM private; postgresql://user:password@host/db\nstack'
+  const { result } = await callTool(mockDb({ throwRpc: true }), 'search_solutions')
+  assert.equal(console.error.mock.callCount(), 1)
+  assert.deepEqual(console.error.mock.calls[0].arguments, ['[sf-mcp] search_solutions 失敗：', rawError])
+  assert.equal(result.isError, true)
+  assert.equal(result.structuredContent, undefined)
+  assert.doesNotMatch(result.content[0].text, /SELECT|secret|private|postgresql|password|stack/)
+})
+test('non-Error handler failure is logged using String(err), while response remains sanitized', async (t) => {
+  t.mock.method(console, 'error', () => {})
+  const db = mockDb()
+  db.auth.getUser = async () => { throw 'private authentication failure' }
+  const { result } = await callTool(db, 'whoami')
+  assert.deepEqual(console.error.mock.calls[0].arguments, ['[sf-mcp] whoami 失敗：', 'private authentication failure'])
+  assert.equal(result.isError, true)
+  assert.doesNotMatch(result.content[0].text, /private authentication failure/)
+})
 for (const options of [{ touch: { error: { message: 'private' }, data: null } }, { throwTouch: true }, { touch: { data: [{ over_limit: true, limit_per_minute: 30 }], error: null } }]) {
   test(`touch fail-open / observe-only: ${JSON.stringify(options)}`, async (t) => {
     t.mock.method(console, 'error', () => {})
     t.mock.method(console, 'warn', () => {})
     const { result, data } = await callTool(mockDb(options), 'whoami')
     assert.notEqual(result.isError, true)
-    assert.deepEqual(data, { id: 'mock-user', server_version: '1.2.0' })
+    assert.deepEqual(data, { id: 'mock-user', email: 'signed-in-user@example.invalid', server_version: '1.2.0' })
     assert.equal(console.error.mock.callCount() + console.warn.mock.callCount(), 1)
+    if (options.touch?.error || options.throwTouch) {
+      assert.deepEqual(console.error.mock.calls[0].arguments, ['[sf-mcp] whoami sf_mcp_touch 失敗：', options.throwTouch ? 'private connection string' : 'private'])
+      assert.doesNotMatch(result.content[0].text, /private/)
+    }
   })
 }
 test('injected enforce=true blocks before handler, with deterministic retry seconds', async () => {
@@ -272,11 +297,11 @@ test('describe topics index/default, all and every section preserve v1.1 except 
     assert.equal(data.text, guide.split(/\n(?=## )/)[i + 1])
   }
 })
-test('protected five handlers retain query/body logic, except removal of whoami email output', () => {
+test('protected five handlers retain original query/body logic including whoami own email', () => {
   const before = execFileSync('git', ['show', 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e:supabase/functions/sf-mcp/index.ts'], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n')
   for (const name of ['get_solution', 'get_solutions', 'data_status', 'whoami', 'count_solutions']) {
     const body = (text) => text.split(`'${name}',\n`)[1].split(/\n\s+async /)[1].split('\n        )')[0].trim()
-    assert.equal(body(source), body(before).replace(', email: data.user?.email', ''))
+    assert.equal(body(source), body(before))
   }
 })
 test('migration hash pinned, skill exact appendix hash, old scanning removed, no business writes/private RPC', () => {
