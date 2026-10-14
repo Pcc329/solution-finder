@@ -41,15 +41,15 @@
 - 第 177 行 `searchMeta`：summary_line 使用 RPC 全體總數（不是當頁長度），status_scope、必讀 notes 最多三條、notes_more；合併範圍提醒以保留衝突、部分失敗與疑似下架提醒。
 - 第 209 行 `toolOutputs`：八工具的 Zod outputSchema；第 224 行中文 title 對照。
 - 第 235 行 `createSfServer`：抽出每次請求建立 server 的工廠，仍由原 OAuth/RLS middleware 取得登入者 client，未改認證或資料權限。
-- 第 236 行 `runTool(name, handler)`：八工具一律先呼叫 touch，再執行 handler；touch 失敗只記 sanitized console.error，超量且開關 false 只 warn。測試注入 true 與固定秒數，驗證阻擋訊息與 next_step。
+- 第 236 行 `runTool(name, handler)`：八工具一律先呼叫 touch，再執行 handler；依 PR #256 審查修正，touch 與 handler 失敗均在後台 console.error 記錄實際錯誤，工具回應維持消毒後內容。超量且開關 false 只 warn；測試注入 true 與固定秒數，驗證阻擋訊息與 next_step。
 - 第 272 行 `enrichRows`：只取當頁公司／方案的稅籍、獲獎、產業別；移除 city select／cityMap，縣市改由 RPC 原樣提供。部分失敗不回傳原始資料庫錯誤；未知獲獎資訊回 null，不假冒「沒有獲獎」。
 - 第 305 行 `registerTool`：統一加 title、outputSchema、runTool，八工具都經過此入口。
 - 第 331 行 `search_solutions`：單次 sf_search_solutions，新增 p_cities、p_normal_only；總數來自 total_matches／suspected_total／city_unknown_count。
 - 第 408 行 `search_companies`：單次 sf_search_companies；先保留總數，再排除 company_key=null 的計數列；不在 Edge 重新分組，無公司編號的獨立組不合併。
-- 第 651 行起 `whoami`：保留 auth.getUser 查詢，只移除舊 email 輸出，符合本次不得回傳 email 的較明確限制。
+- 第 651 行起 `whoami`：保留 auth.getUser 查詢；依 PR #256 審查釐清，恢復登入者本人的 email 輸出與 outputSchema，第三方聯絡人／公司 email 仍不回傳。
 - 第 683 行 `Deno.serve`：維持 withOAuthProtectedResource／withSupabase(auth:user) 與 createMcpHandler 流程。
 
-`get_solution`、`get_solutions`、`data_status`、`whoami`、`count_solutions` 的業務查詢及 handler 本體已與基準逐字比對測試；除 whoami 移除 email 回傳外相同。聯絡人仍只查 contact_name、title、office_phone；未新增完整 description、email、手機查詢。
+`get_solution`、`get_solutions`、`data_status`、`whoami`、`count_solutions` 的業務查詢及 handler 本體已與基準逐字比對測試，包含恢復後的 whoami 本人 email，均相同。聯絡人仍只查 contact_name、title、office_phone；未新增完整 description、第三方 email、手機查詢。
 
 ## SDK 支援與錯誤 schema
 
@@ -216,3 +216,56 @@ Mock RPC 故意拋出含 SQL、連線字串與 stack 的例外；實際工具回
 2. 重新連線後查 tools/list 的版本／title／normal_only／topic／outputSchema。
 3. Claude 以真實 MCP 查帶／不帶縣市的兩種搜尋、推薦 normal_only、計數、分頁、零筆、資料詳情與用量；依上方兩項 RPC 邊界一起核對。
 4. 本 PR 不自行 merge，不執行資料庫指令，也不宣稱真實環境已通過。
+
+## PR #256 審查修正
+
+本段與程式碼、測試更新以同一筆追加 commit 提交至原分支 `feat/sf-mcp-v1-2-2026-10-14`，不開新 PR、不 merge。前述 31 項測試是初版結果，本輪重新驗證為 **33/33 通過**。
+
+### 後台錯誤日誌
+
+runTool 的三處失敗處理更新如下，使用者回應內容與 fail-open 行為維持不變：
+
+```ts
+// touch 回傳 error
+console.error(`[sf-mcp] ${name} sf_mcp_touch 失敗：`, touch.error.message)
+
+// touch 拋出例外
+} catch (err) {
+  console.error(`[sf-mcp] ${name} sf_mcp_touch 失敗：`, err instanceof Error ? err.message : String(err))
+}
+
+// handler 拋出例外
+} catch (err) {
+  console.error(`[sf-mcp] ${name} 失敗：`, err instanceof Error ? err.message : String(err))
+  return toolError(`「${toolTitles[name]}」暫時無法完成，請稍後再試。`)
+}
+```
+
+原始錯誤只寫入後台 console.error，不放入 content／structuredContent；不把 Error 的 stack 或整個 Error 物件寫入日誌，僅使用 message（非 Error 時使用 String）。
+
+### whoami 本人 email
+
+依 PPC 釐清：「不得回傳 email」限制第三方資料，不限制已驗證登入者本人的帳號。
+
+```ts
+// outputSchema
+whoami: z.object({ id: z.string().optional(), email: z.string().optional(), server_version: z.string() })
+
+// handler：原 auth.getUser 查詢不變
+return asText({ id: data.user?.id, email: data.user?.email, server_version: SERVER_VERSION })
+```
+
+其餘七個工具不新增 email 輸出或查詢。第三方聯絡人欄位仍只含姓名、職稱、公司電話。
+
+### 本輪測試
+
+- 新增：handler 拋出含 SQL／連線字串的 Error 時，console.error 精確收到工具名稱與原始 message；回應仍無原始訊息，沒有錯誤 structuredContent。
+- 新增：handler 拋出非 Error 值時，使用 String(err) 記錄，回應維持消毒。
+- 補強：touch.error.message 與 touch throw 的日誌參數逐一核對，且回應不含 touch 原始錯誤。
+- 補強：八工具逐一檢查，只有 whoami 回傳登入者本人 email；其他工具不洩漏該值，也不查第三方 email／mobile。
+- 五個受保護 handler 與原 main 基準的完整本體比對通過（whoami 現在與原版一致）。
+- `npm test`：33 tests、33 pass、0 fail。
+- `node --check tests/sf-mcp/sf-mcp-v1-2.test.mjs`：exit 0。
+- 隔離 Edge 核心的固定 SDK／Zod strict TypeScript 檢查：exit 0。
+- `git diff --check`：exit 0。
+- 遷移檔與 Skill hash 的既有測試仍通過；沒有執行資料庫指令、沒有部署或真實環境驗證。

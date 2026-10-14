@@ -1,7 +1,7 @@
 // SF MCP v1.2.0 — 唯讀工具；搜尋由資料庫篩選、計數後分頁，提供結構化輸出與下一步建議。
 // sf_mcp_touch 僅記錄登入者用量；第一階段不阻擋，沒有業務資料寫入工具。
 // 認證：Supabase Auth 為 OAuth 2.1 授權伺服器；每次工具呼叫都以「登入者本人」身分查詢，受 RLS 與白名單約束。
-// 注意：這支函式刻意【沒有任何寫入工具】；也不回傳完整描述(description)、email、手機。
+// 注意：沒有業務資料寫入工具；不回傳完整描述(description)、第三方 email、手機；whoami 可回傳登入者本人 email。
 // 搜尋邏輯移植自 public/index.html（資料庫函式 sf_search_solutions，28 項對照測試與首頁程式碼結果一致）。
 // 依賴套件鎖定確切版本（公開的認證端點，避免依賴自動漂移到剛發布的版本）；升級前須重新測試。
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
@@ -218,7 +218,7 @@ const toolOutputs = {
   get_solutions: z.object({ requested: count, found: count, not_found: z.array(z.string()), results: z.array(rowSchema), notes: z.array(z.string()) }),
   data_status: z.object({ totals: rowSchema, coverage_gaps_among_active: rowSchema, non_normal_reasons: z.array(rowSchema),
     server_version: z.string(), by_source: z.array(rowSchema), notes: z.array(z.string()) }),
-  whoami: z.object({ id: z.string().optional(), server_version: z.string() }),
+  whoami: z.object({ id: z.string().optional(), email: z.string().optional(), server_version: z.string() }),
   count_solutions: z.object({ total: count.nullable(), active: count.nullable() }),
 }
 const toolTitles = {
@@ -236,18 +236,19 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
       const runTool = <A,>(name: keyof typeof toolTitles, handler: (args: A) => Promise<ReturnType<typeof asText>>) => async (args: A) => {
         try {
           const touch = await supabase.rpc('sf_mcp_touch')
-          if (touch.error) console.error('sf_mcp_touch 失敗；工具照常執行。')
+          if (touch.error) console.error(`[sf-mcp] ${name} sf_mcp_touch 失敗：`, touch.error.message)
           else if (touch.data?.[0]?.over_limit) {
             const limit = Number(touch.data[0].limit_per_minute)
             if (rateLimitEnforce) return toolError(`每分鐘最多 ${limit} 次查詢，請約 ${60 - now().getSeconds()} 秒後再試`, ['稍候再試', '合併查詢條件以減少呼叫次數'])
             console.warn('sf_mcp_touch 超過本分鐘用量；目前僅記錄，不阻擋。')
           }
-        } catch {
-          console.error('sf_mcp_touch 失敗；工具照常執行。')
+        } catch (err) {
+          console.error(`[sf-mcp] ${name} sf_mcp_touch 失敗：`, err instanceof Error ? err.message : String(err))
         }
         try {
           return await handler(args)
-        } catch {
+        } catch (err) {
+          console.error(`[sf-mcp] ${name} 失敗：`, err instanceof Error ? err.message : String(err))
           return toolError(`「${toolTitles[name]}」暫時無法完成，請稍後再試。`)
         }
       }
@@ -657,7 +658,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
           async () => {
             const { data, error } = await supabase.auth.getUser()
             if (error) throw new Error(error.message)
-            return asText({ id: data.user?.id, server_version: SERVER_VERSION })
+            return asText({ id: data.user?.id, email: data.user?.email, server_version: SERVER_VERSION })
           }
         )
 
