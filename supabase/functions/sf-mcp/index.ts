@@ -1,4 +1,5 @@
-// SF MCP v1.1.0 — 唯讀。設計文件：SF_MCP設計評估_定案範圍_2026-10-01.md
+// SF MCP v1.2.0 — 唯讀工具；搜尋由資料庫篩選、計數後分頁，提供結構化輸出與下一步建議。
+// sf_mcp_touch 僅記錄登入者用量；第一階段不阻擋，沒有業務資料寫入工具。
 // 認證：Supabase Auth 為 OAuth 2.1 授權伺服器；每次工具呼叫都以「登入者本人」身分查詢，受 RLS 與白名單約束。
 // 注意：這支函式刻意【沒有任何寫入工具】；也不回傳完整描述(description)、email、手機。
 // 搜尋邏輯移植自 public/index.html（資料庫函式 sf_search_solutions，28 項對照測試與首頁程式碼結果一致）。
@@ -16,9 +17,13 @@ const clip = (v: string | null | undefined, n: number): string => {
   const s = (v ?? '').trim()
   return s.length > n ? s.slice(0, n) + '…' : s
 }
-const asText = (obj: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(obj) }] })
+const asText = (obj: Record<string, unknown>) => {
+  const text = JSON.stringify(obj)
+  return { structuredContent: JSON.parse(text) as Record<string, unknown>, content: [{ type: 'text' as const, text }] }
+}
 
-const SERVER_VERSION = '1.1.0'
+const SERVER_VERSION = '1.2.0'
+const RATE_LIMIT_ENFORCE = false
 
 // target_industry 在資料庫有兩種存法：多個元素的陣列，或單一字串內以「, 」（雲市集）或「；」（主計總處分類）分隔。
 // 一律攤平成產業清單，才能算出「這個方案列了幾類產業」。
@@ -30,56 +35,7 @@ const AWARD_TIERS = ['國際級', '國家級', '產業級']
 const bestAwardTier = (cats: string[]): string | null =>
   AWARD_TIERS.find((t) => cats.includes(t)) ?? (cats.length ? '其他' : null)
 
-// <helpers-begin>
 type Row = Record<string, unknown>
-const PAGE = 50
-const SCAN_CAP = 300 // 帶 city 篩選或以廠商彙整時，伺服器端最多掃描符合條件的前 300 筆方案
-
-// 縣市比對：台／臺視為相同（資料庫採官方寫法「臺」，使用者多打「台」）
-const normCity = (s: unknown): string => String(s ?? '').trim().replace(/臺/g, '台')
-
-// 依公司縣市篩選，保留原本的相關性順序；縣市未填的列不會被納入
-const filterByCity = (rows: Row[], cityOf: Map<string, string>, cities: string[]): Row[] => {
-  const want = new Set(cities.map(normCity).filter(Boolean))
-  if (!want.size) return rows
-  return rows.filter((r) => want.has(normCity(cityOf.get(String(r.company_id ?? '')))))
-}
-
-// 依公司彙整；公司順序＝其最前面（最相關）方案的出現順序；沒有公司編號的方案各自成一組
-const groupByCompany = (rows: Row[]): Array<{ key: string; rows: Row[] }> => {
-  const order: string[] = []
-  const map = new Map<string, Row[]>()
-  for (const r of rows) {
-    const cid = String(r.company_id ?? '')
-    const k = cid || `__no_company__:${String(r.solution_id)}`
-    if (!map.has(k)) {
-      map.set(k, [])
-      order.push(k)
-    }
-    map.get(k)!.push(r)
-  }
-  return order.map((k) => ({ key: k, rows: map.get(k)! }))
-}
-
-// 掃描搜尋結果的前 cap 筆（第一頁取得 total_matches，其餘頁平行取得）
-const scanPages = async (
-  fetchPage: (offset: number) => Promise<{ data: Row[] | null; error: { message: string } | null }>,
-  cap: number,
-): Promise<{ rows: Row[]; total: number; truncated: boolean }> => {
-  const first = await fetchPage(0)
-  if (first.error) throw new Error(first.error.message)
-  const rows0 = first.data ?? []
-  const total = rows0.length ? Number(rows0[0].total_matches) : 0
-  const pageCount = Math.ceil(Math.min(total, cap) / PAGE)
-  const rest = await Promise.all(Array.from({ length: Math.max(pageCount - 1, 0) }, (_, i) => fetchPage((i + 1) * PAGE)))
-  const rows = [...rows0]
-  for (const r of rest) {
-    if (r.error) throw new Error(r.error.message)
-    rows.push(...(r.data ?? []))
-  }
-  return { rows: rows.slice(0, cap), total, truncated: total > cap }
-}
-// <helpers-end>
 
 const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 
@@ -92,6 +48,7 @@ const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 - 正常：在來源平台上架中。
 - 疑似已下架_…：名單層級的證據顯示可能已下架，尚未逐筆驗證。search_solutions 預設仍會回傳，請在回答中標註。
 - 已下架_…：已確認失效。預設排除，除非 include_delisted=true。
+- 回答格式：每筆疑似下架標『⚠疑似下架』，最後一句總說明；被問到才說明原因。推薦類問題請用 normal_only=true。
 
 ## 三、「地區」有三種意思，回答前必須說明採用哪一種
 1. 公司所在地（companies.region：北部／中部／南部／東部／其他）。這是官網首頁「地區」篩選的定義，也是 search_solutions 的 region 參數所用。
@@ -155,7 +112,6 @@ const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 ## 十、清單類任務怎麼做才快（避免上百次呼叫）
 - 「某縣市有○○的廠商與方案」：用 search_companies（廠商為單位）或 search_solutions 加 city 參數，**一次呼叫**即可；不要先搜尋再對每一筆呼叫 get_solution 去查城市（結果已含 company_city）。
 - city 比對台／臺視為相同；資料庫採官方寫法「臺」。縣市未填的公司無法判斷，伺服器會在 notes 回報筆數，請在回答中說明。
-- 伺服器端最多掃描符合其他條件的前 300 筆方案；若 notes 顯示超過上限，請加上更具體的關鍵字，不要用翻頁自行補齊。
 - 要看多筆方案的詳情，用 get_solutions（一次最多 20 筆）；只對最後的少數候選才用 get_solution（含聯絡人）。
 - 子字串比對會有誤判（例如 POS 會搜到 Posky、只做電子發票的方案）：請用回傳的 summary 判斷是否真的相關，並在回答中標註哪些不是。
 - 需要匯出檔案時，請先在對話中整理成表格，再用你自己的工具輸出；本資料庫連接器唯讀，不能產生檔案。
@@ -163,7 +119,7 @@ const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 ## 十一、其他
 - 價格欄位為 0 或空白代表「未提供」，不是免費。max_price 篩選會排除未提供價格的方案。
 - 本工具只回傳簡短描述；聯絡人僅提供姓名、職稱、公司電話。
-- 引用任何數字時，請附上定義與資料缺口，避免使用者誤解。`
+- 引用數字時優先使用 summary_line；定義與缺口用一句帶過，被問到再展開。`
 
 const searchFields = {
   keyword: z.string().max(60).optional().describe('單一最關鍵的詞（子字串比對），例如「客服」「資安」'),
@@ -179,18 +135,125 @@ const searchFields = {
   program: z.array(z.string().max(40)).max(10).optional().describe('資料來源名稱，完整清單見 data_status'),
   max_price: z.number().min(0).max(100000000).optional().describe('總費用上限（元）。未提供價格的方案會被排除'),
   include_delisted: z.boolean().default(false).describe('是否包含已下架（預設排除）'),
+  normal_only: z.boolean().default(false).describe('只列正常方案（排除疑似已下架與已下架）。推薦類問題請帶 true；盤點、計數類請維持預設'),
   sort: z.enum(['relevance', 'price_asc', 'price_desc']).default('relevance'),
 }
 
-Deno.serve(
-  pipeline(
-    // 1. OAuth 探索（RFC 9728）  2. 驗證使用者權杖，並取得「以該使用者身分」的 Supabase 用戶端
-    [withOAuthProtectedResource(), withSupabase({ auth: 'user' })],
-    async (req, { supabase }) => {
+const topics = ['index', 'data', 'status', 'region', 'ranking', 'mapping', 'industry', 'tips', 'tax', 'awards', 'lists', 'other', 'all'] as const
+const guideSections = DATA_GUIDE.split(/\n(?=## )/).slice(1)
+const describeTopic = (topic: typeof topics[number]) => {
+  if (topic === 'all') return DATA_GUIDE
+  if (topic !== 'index') return guideSections[topics.indexOf(topic) - 1]
+  const index = guideSections.map((section) => {
+    const [heading, ...body] = section.split('\n')
+    const first = body.find((line) => line.trim())?.replace(/^[-\d. ]+/, '') ?? ''
+    return `${heading.replace(/^## /, '')}：${first.split('。')[0]}。`
+  }).join('\n')
+  return `${index}\n\n${guideSections.slice(0, 2).join('\n')}`
+}
+
+type SearchArgs = z.output<ReturnType<typeof searchInput>>
+const searchInput = () => z.object({
+  ...searchFields,
+  limit: z.number().int().min(1).max(50).default(20),
+  offset: z.number().int().min(0).max(5000).default(0),
+})
+const nextSteps = (a: SearchArgs, unknown: number): string[] => {
+  const steps: string[] = []
+  if ((a.keyword?.length ?? 0) >= 4) steps.push(`改用較短的關鍵字（例如「${a.keyword!.slice(0, 2)}」）`)
+  if (a.city?.length) {
+    steps.push('拿掉縣市篩選，或改用 region')
+    if (unknown > 0) steps.push(`另有 ${unknown} 筆縣市未填，未納入`)
+  }
+  const filters = ['category', 'program', 'max_price', 'is_ai', 'is_startup', 'is_gov']
+    .filter((key) => {
+      const value = a[key as keyof SearchArgs]
+      return Array.isArray(value) ? value.length > 0 : value != null
+    })
+  if (filters.length) steps.push(`放寬篩選條件（目前帶了：${filters.join('、')}）`)
+  if (a.normal_only) steps.push('改為包含疑似下架方案再查')
+  return steps.length ? steps : ['改用其他關鍵字或放寬搜尋條件再查']
+}
+const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: number, failures: string[], companies?: number) => {
+  const status_scope = a.normal_only ? '只含正常' : a.include_delisted ? '含已下架' : '正常＋疑似下架'
+  const context = [...(a.city ?? []), ...(a.keyword ? [`關鍵字「${a.keyword}」`] : [])].join('，')
+  const normal = total - suspected
+  const distribution = a.include_delisted && !a.normal_only
+    ? `非疑似下架 ${normal}（含已下架）、疑似下架 ${suspected}`
+    : `正常 ${normal}、疑似下架 ${suspected}`
+  const summary_line = `${context ? context + '：' : ''}${companies == null ? '' : `${companies} 家廠商、`}${total} 筆方案（${distribution}）${unknown ? `；另有 ${unknown} 筆縣市未填未納入` : ''}。`
+  const scopeNotes: string[] = []
+  if (a.city?.length) scopeNotes.push('縣市指公司總部所在地。')
+  if (a.normal_only && a.include_delisted) scopeNotes.push('normal_only 優先於 include_delisted，只列正常方案。')
+  // 合併範圍提醒，為疑似下架與部分失敗各保留一條，必讀資訊不被截斷。
+  const notes = scopeNotes.length ? [scopeNotes.join('')] : []
+  if (failures.length) notes.push(failures.join(''))
+  if (suspected > 0) notes.push('疑似下架方案請在回答中逐筆標「⚠疑似下架」，最後一句總說明即可；使用者問到才說明原因（原因可用 data_status 查）。')
+  const notes_more: string[] = []
+  if (a.region?.length) notes_more.push('地區指公司總部所在地，未填公司地區的方案不會納入；缺口可用 data_status 查詢。')
+  if (a.max_price != null) notes_more.push('max_price 會排除未提供價格（0 或空白）的方案。')
+  if (a.industry_keyword) notes_more.push('industry_keyword 是產業加權，不是篩選。')
+  if (a.include_delisted && !a.normal_only) notes_more.push('結果含已下架；RPC 未另提供已下架總數，totals.normal 為非疑似筆數（含已下架），請勿解讀為全數正常。')
+  return { summary_line, status_scope, notes, notes_more }
+}
+
+const count = z.number().int().nonnegative()
+const rowSchema = z.record(z.string(), z.unknown())
+const searchOutput = {
+  summary_line: z.string(),
+  status_scope: z.enum(['只含正常', '正常＋疑似下架', '含已下架']),
+  returned: count, offset: count, next_offset: count.nullable(),
+  next_step: z.array(z.string()).nullable(),
+  page_summary: rowSchema, notes: z.array(z.string()).max(3), notes_more: z.array(z.string()),
+}
+const toolOutputs = {
+  describe_data: z.object({ topic: z.enum(topics), text: z.string() }),
+  search_solutions: z.object({ ...searchOutput, total_matches: count,
+    totals: z.object({ matches: count, normal: count, suspected_delisted: count, city_unknown: count }), results: z.array(rowSchema) }),
+  search_companies: z.object({ ...searchOutput, companies_total: count, solutions_total: count,
+    totals: z.object({ companies: count, solutions: count, normal: count, suspected_delisted: count, city_unknown: count }), companies: z.array(rowSchema) }),
+  get_solution: z.object({ found: z.boolean(), message: z.string().optional(), solution: rowSchema.optional(),
+    company: rowSchema.nullable().optional(), contacts: z.array(rowSchema).optional(), gov_registered: z.boolean().nullable().optional(),
+    tax_industries: z.array(rowSchema).optional(), company_awards: z.array(rowSchema).optional(), notes: z.array(z.string()).optional() }),
+  get_solutions: z.object({ requested: count, found: count, not_found: z.array(z.string()), results: z.array(rowSchema), notes: z.array(z.string()) }),
+  data_status: z.object({ totals: rowSchema, coverage_gaps_among_active: rowSchema, non_normal_reasons: z.array(rowSchema),
+    server_version: z.string(), by_source: z.array(rowSchema), notes: z.array(z.string()) }),
+  whoami: z.object({ id: z.string().optional(), server_version: z.string() }),
+  count_solutions: z.object({ total: count.nullable(), active: count.nullable() }),
+}
+const toolTitles = {
+  describe_data: '資料說明', search_solutions: '搜尋方案', search_companies: '依廠商搜尋',
+  get_solution: '方案詳情', get_solutions: '批次方案詳情', data_status: '資料現況', whoami: '我是誰', count_solutions: '方案筆數',
+}
+const toolError = (error: string, next_step = ['稍候再試', '確認查詢條件，或聯絡資料維護者']) => ({
+  isError: true as const,
+  content: [{ type: 'text' as const, text: JSON.stringify({ error, next_step }) }],
+})
+
+// 保留使用者身分的 Supabase client；可注入開關與時間，只供離線測試限流分支。
+// deno-lint-ignore no-explicit-any
+export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_ENFORCE, now = () => new Date() } = {}) => {
+      const runTool = <A,>(name: keyof typeof toolTitles, handler: (args: A) => Promise<ReturnType<typeof asText>>) => async (args: A) => {
+        try {
+          const touch = await supabase.rpc('sf_mcp_touch')
+          if (touch.error) console.error('sf_mcp_touch 失敗；工具照常執行。')
+          else if (touch.data?.[0]?.over_limit) {
+            const limit = Number(touch.data[0].limit_per_minute)
+            if (rateLimitEnforce) return toolError(`每分鐘最多 ${limit} 次查詢，請約 ${60 - now().getSeconds()} 秒後再試`, ['稍候再試', '合併查詢條件以減少呼叫次數'])
+            console.warn('sf_mcp_touch 超過本分鐘用量；目前僅記錄，不阻擋。')
+          }
+        } catch {
+          console.error('sf_mcp_touch 失敗；工具照常執行。')
+        }
+        try {
+          return await handler(args)
+        } catch {
+          return toolError(`「${toolTitles[name]}」暫時無法完成，請稍後再試。`)
+        }
+      }
       // Edge Function 無狀態：每個請求建立新的 server
-      // 共用：搜尋參數對應資料庫函式、單頁抓取、補充公司資訊（平行查詢）
-      // deno-lint-ignore no-explicit-any
-      const rpcArgs = (a: any) => ({
+      // 共用：搜尋參數對應資料庫函式、當頁補充資訊（平行查詢）。
+      const rpcArgs = (a: SearchArgs) => ({
         p_keyword: a.keyword,
         p_query_text: a.query_text,
         p_industry_keyword: a.industry_keyword,
@@ -205,32 +268,25 @@ Deno.serve(
         p_include_delisted: a.include_delisted,
         p_sort: a.sort,
       })
-      // deno-lint-ignore no-explicit-any
-      const fetchPage = (a: any) => async (offset: number) => {
-        const r = await supabase.rpc('sf_search_solutions', { ...rpcArgs(a), p_limit: PAGE, p_offset: offset })
-        return { data: (r.data ?? null) as Row[] | null, error: r.error ? { message: r.error.message } : null }
-      }
       const none = { data: [] as Row[], error: null as { message: string } | null }
       const enrichRows = async (rows: Row[], needIndustry: boolean, notes: string[]) => {
         const ids = rows.map((r) => String(r.solution_id))
         const cids = [...new Set(rows.map((r) => String(r.company_id ?? '')).filter(Boolean))]
         const [co, aw, ind] = await Promise.all([
-          cids.length ? supabase.from('companies').select('company_id, city, it_code_rank, tax_primary_name').in('company_id', cids) : Promise.resolve(none),
+          cids.length ? supabase.from('companies').select('company_id, it_code_rank, tax_primary_name').in('company_id', cids) : Promise.resolve(none),
           cids.length ? supabase.from('awards').select('company_id, award_category').in('company_id', cids) : Promise.resolve(none),
           needIndustry && ids.length ? supabase.from('solutions').select('solution_id, target_industry').in('solution_id', ids) : Promise.resolve(none),
         ])
         const taxMap = new Map<string, { rank: number | null; name: string | null }>()
-        const cityMap = new Map<string, string>()
-        if (co.error) notes.push(`⚠️ 無法取得公司縣市與稅籍登記資訊（${co.error.message}）。`)
+        if (co.error) notes.push('無法取得稅籍登記資訊，相關欄位未知。')
         else {
           for (const x of (co.data ?? []) as Row[]) {
             const k = String(x.company_id)
             taxMap.set(k, { rank: x.it_code_rank == null ? null : Number(x.it_code_rank), name: (x.tax_primary_name as string) ?? null })
-            cityMap.set(k, String(x.city ?? ''))
           }
         }
         const awardMap = new Map<string, { count: number; best: string | null }>()
-        if (aw.error) notes.push(`⚠️ 無法取得獲獎資訊（${aw.error.message}），has_company_award 為空。`)
+        if (aw.error) notes.push('無法取得獲獎資訊，相關欄位未知。')
         else {
           const byCo = new Map<string, string[]>()
           for (const x of (aw.data ?? []) as Row[]) {
@@ -240,102 +296,70 @@ Deno.serve(
           for (const [k, cats] of byCo) awardMap.set(k, { count: cats.length, best: bestAwardTier(cats) })
         }
         const indMap = new Map<string, unknown>()
-        if (ind.error) notes.push(`⚠️ 無法取得產業別資訊（${ind.error.message}），industries_count 為空。`)
+        if (ind.error) notes.push('無法取得產業別資訊，相關欄位未知。')
         else for (const x of (ind.data ?? []) as Row[]) indMap.set(String(x.solution_id), x.target_industry)
-        return { taxMap, cityMap, awardMap, indMap }
+        return { taxMap, awardMap, indMap, awardsKnown: !aw.error, industriesKnown: !ind.error }
       }
 
-      const handler = createMcpHandler(() => {
         const server = new McpServer({ name: 'sf-mcp', version: SERVER_VERSION })
+        const registerTool = <S extends z.ZodType>(name: keyof typeof toolOutputs,
+          config: { description: string; inputSchema: S; annotations: { readOnlyHint: boolean } },
+          handler: (args: z.output<S>) => Promise<ReturnType<typeof asText>>) => {
+          const run = runTool(name, handler)
+          server.registerTool(name, { ...config, inputSchema: config.inputSchema as z.ZodType, title: toolTitles[name], outputSchema: toolOutputs[name] }, async (args) => run(args as z.output<S>))
+        }
 
-        server.registerTool(
+        registerTool(
           'describe_data',
           {
             description:
               '資料定義與使用原則：資料來源、狀態詞、「北部」等地區的多種定義、關鍵字/類別/產業的口語對照表、排序規則。第一次搜尋前、或需要回答筆數與比例時，請先讀這份說明。',
-            inputSchema: z.object({}),
+            inputSchema: z.object({ topic: z.enum(topics).default('index') }),
             annotations: { readOnlyHint: true },
           },
-          async () => ({ content: [{ type: 'text' as const, text: DATA_GUIDE }] })
+          async ({ topic }) => asText({ topic, text: describeTopic(topic) })
         )
 
-        server.registerTool(
+        registerTool(
           'search_solutions',
           {
-            description:
-              '搜尋產業策略智庫的方案，篩選與排序邏輯與官網首頁一致。把使用者的需求拆成：一個最關鍵的 keyword + 其他篩選參數（對照表請見 describe_data）。回傳符合筆數與前幾名方案摘要；total_matches 是符合的總筆數。若使用 region，請在回答中說明定義為「公司所在地」（廠商總部，不是客戶位置）並引用回傳的 notes。需要「某縣市的方案／廠商」請直接用 city 參數（例如 city=["臺北市"]），不要逐筆開詳情去查城市。keyword 整詞比對得到 0 筆時，請改用更短的詞；需求含多種能力時請分次搜尋再用 id 取交集。要以廠商為單位的清單請改用 search_companies。',
-            inputSchema: z.object({
-              ...searchFields,
-              limit: z.number().int().min(1).max(50).default(20),
-              offset: z.number().int().min(0).max(5000).default(0),
-            }),
+            description: '搜尋方案；先由資料庫篩選與計數，再依 limit／offset 分頁。keyword 放一個最關鍵的詞；縣市直接帶 city，勿逐筆開詳情查縣市。推薦請帶 normal_only=true；盤點維持預設。總數引用 summary_line，詳情批次使用 get_solutions。',
+            inputSchema: searchInput(),
             annotations: { readOnlyHint: true },
           },
           async (a) => {
-            const notes: string[] = []
-            const wantCity = ((a.city ?? []) as string[]).map(normCity).filter(Boolean)
-            let rows: Row[] = []
-            let total = 0
-            if (wantCity.length) {
-              // 城市篩選在伺服器端一次完成：掃描前 300 筆符合其他條件的方案，再依公司縣市過濾
-              const sc = await scanPages(fetchPage(a), SCAN_CAP)
-              const cres = await supabase.from('companies').select('company_id, city').in('company_id', [...new Set(sc.rows.map((r) => String(r.company_id ?? '')).filter(Boolean))])
-              if (cres.error) throw new Error(cres.error.message)
-              const cityOf = new Map<string, string>(((cres.data ?? []) as Row[]).map((x) => [String(x.company_id), String(x.city ?? '')]))
-              const kept = filterByCity(sc.rows, cityOf, wantCity)
-              const missing = sc.rows.filter((r) => !normCity(cityOf.get(String(r.company_id ?? '')))).length
-              total = kept.length
-              rows = kept.slice(a.offset, a.offset + a.limit)
-              notes.push(`城市篩選依「公司所在地（縣市，廠商總部）」比對，台／臺視為相同。掃描符合其他條件的前 ${sc.rows.length} 筆方案，屬於 ${wantCity.join('、')} 的有 ${total} 筆。`)
-              if (missing) notes.push(`掃描範圍內另有 ${missing} 筆方案的公司縣市未填或沒有公司編號，無法判斷是否在該縣市，未納入上述筆數；引用時請說明。`)
-              if (sc.truncated) notes.push(`⚠️ 符合其他條件的方案共 ${sc.total} 筆，超過掃描上限 ${SCAN_CAP} 筆，後面未掃描的部分可能還有符合者；請加上更具體的關鍵字或條件再查。`)
-            } else {
-              const r = await supabase.rpc('sf_search_solutions', { ...rpcArgs(a), p_limit: a.limit, p_offset: a.offset })
-              if (r.error) throw new Error(r.error.message)
-              rows = (r.data ?? []) as Row[]
-              total = rows.length ? Number(rows[0].total_matches) : 0
-            }
-
-            if (a.region && a.region.length) {
-              const cov = await supabase.rpc('sf_data_coverage')
-              const row = (cov.data as Array<Record<string, unknown>> | null)?.[0]
-              if (row) {
-                notes.push(
-                  `地區篩選的定義是「公司所在地」（與官網首頁一致）。目前有效方案中有 ${row.company_region_missing} 筆（共 ${row.active_solutions} 筆）的公司所在地未填，不會被納入此數字，實際可能更多。`
-                )
-              } else {
-                notes.push(
-                  `⚠️ 無法取得「公司所在地未填」的筆數（${cov.error?.message ?? '無資料'}）。地區篩選只涵蓋有填寫公司所在地的方案，實際筆數可能更多；引用此數字時請務必說明這個限制。`
-                )
-              }
-            }
-            if (a.max_price) notes.push('max_price 會排除未提供價格（0 或空白）的方案。')
-            if (a.include_delisted) notes.push('結果包含已下架方案，請看 status 欄位。')
-            if (rows.some((r) => String(r.record_status ?? '').startsWith('疑似'))) {
-              notes.push('部分結果的 status 為「疑似已下架」，尚未逐筆驗證，引用時請標註。')
-            }
-            if (total > a.offset + rows.length) {
-              notes.push(`還有更多結果；可用 offset=${a.offset + rows.length} 取得下一頁。`)
-            }
-
-            const enr = await enrichRows(rows, true, notes)
+            const res = await supabase.rpc('sf_search_solutions', {
+              ...rpcArgs(a), p_cities: a.city, p_normal_only: a.normal_only, p_limit: a.limit, p_offset: a.offset,
+            })
+            if (res.error) throw new Error(res.error.message)
+            const rows = (res.data ?? []) as Row[]
+            // 此 RPC 空頁不帶總數列；不以額外查詢推算資料庫沒有回傳的計數。
+            const total = Number(rows[0]?.total_matches ?? 0)
+            const suspected = Number(rows[0]?.suspected_total ?? 0)
+            const unknown = Number(rows[0]?.city_unknown_count ?? 0)
+            const failures: string[] = []
+            if (!rows.length && a.offset > 0) failures.push('此頁無資料且 RPC 未回傳總數；請以 offset=0 重查，勿將此頁總數解讀為全庫無結果。')
+            if (!rows.length && a.city?.length) failures.push('方案 RPC 空頁未回傳縣市未填筆數；city_unknown=0 不代表已確認沒有缺口，可改用 search_companies 取得該計數。')
+            const enr = await enrichRows(rows, true, failures)
             const pageSummary = {
               normal: rows.filter((r) => !String(r.record_status ?? '').startsWith('疑似')).length,
               suspected_delisted: rows.filter((r) => String(r.record_status ?? '').startsWith('疑似')).length,
               company_region_missing: rows.filter((r) => !r.region).length,
-              company_city_missing: rows.filter((r) => !enr.cityMap.get(String(r.company_id ?? ''))).length,
+              company_city_missing: rows.filter((r) => !r.company_city).length,
               in_tax_registry: rows.filter((r) => enr.taxMap.get(String(r.company_id ?? ''))?.rank != null).length,
-              with_company_award: rows.filter((r) => enr.awardMap.has(String(r.company_id ?? ''))).length,
-              matches_industry_keyword: a.industry_keyword
-                ? rows.filter((r) => flattenIndustries(enr.indMap.get(String(r.solution_id))).join('｜').includes(a.industry_keyword as string)).length
+              with_company_award: enr.awardsKnown ? rows.filter((r) => enr.awardMap.has(String(r.company_id ?? ''))).length : null,
+              matches_industry_keyword: a.industry_keyword && enr.industriesKnown
+                ? rows.filter((r) => flattenIndustries(enr.indMap.get(String(r.solution_id))).join('｜').includes(a.industry_keyword!)).length
                 : null,
             }
             return asText({
+              ...searchMeta(a, total, suspected, unknown, failures),
               total_matches: total,
-              returned: rows.length,
-              offset: a.offset,
+              totals: { matches: total, normal: total - suspected, suspected_delisted: suspected, city_unknown: unknown },
+              returned: rows.length, offset: a.offset,
+              next_offset: total > a.offset + rows.length ? a.offset + rows.length : null,
+              next_step: rows.length ? null : [...(a.offset > 0 ? ['改用 offset=0 重新查詢'] : []), ...nextSteps(a, unknown)],
               page_summary: pageSummary,
-              notes: [...notes, '筆數統計（正常／疑似／未填地區／命中產業詞）請直接引用 page_summary，不要自行點算。'],
               results: rows.map((r) => {
                 const cid = String(r.company_id ?? '')
                 const inds = flattenIndustries(enr.indMap.get(String(r.solution_id)))
@@ -347,7 +371,7 @@ Deno.serve(
                   company_id: r.company_id,
                   source: r.program_type,
                   category: r.industry_category,
-                  company_city: enr.cityMap.get(cid) || null,
+                  company_city: r.company_city || null,
                   company_region: r.region || null,
                   is_ai: r.has_ai,
                   is_startup: r.is_startup,
@@ -361,11 +385,11 @@ Deno.serve(
                   score: r.score,
                   industries_count: enr.indMap.has(String(r.solution_id)) ? inds.length : null,
                   industries_sample: inds.slice(0, 3),
-                  matches_industry_keyword: a.industry_keyword ? inds.join('｜').includes(a.industry_keyword) : null,
+                  matches_industry_keyword: a.industry_keyword && enr.industriesKnown ? inds.join('｜').includes(a.industry_keyword) : null,
                   tax_primary_industry: tax?.name ?? null,
                   it_code_rank: tax?.rank ?? null,
-                  has_company_award: enr.awardMap.has(cid),
-                  company_award_count: enr.awardMap.get(cid)?.count ?? 0,
+                  has_company_award: enr.awardsKnown ? enr.awardMap.has(cid) : null,
+                  company_award_count: enr.awardsKnown ? enr.awardMap.get(cid)?.count ?? 0 : null,
                   company_award_best_level: enr.awardMap.get(cid)?.best ?? null,
                 }
               }),
@@ -373,78 +397,69 @@ Deno.serve(
           }
         )
 
-        server.registerTool(
+        registerTool(
           'search_companies',
           {
-            description:
-              '以「廠商」為單位的搜尋，適合「某縣市有○○的廠商與其方案 list 給我」這類清單需求：一次呼叫就回傳符合條件的廠商，以及每家廠商底下符合的方案（最多 5 筆）、公司縣市、稅籍主業與是否獲獎。參數與 search_solutions 相同（含 city）。伺服器端最多掃描符合條件的前 300 筆方案，超過會在 notes 說明。沒有公司編號的方案會各自單獨列為一筆「廠商不明」。limit／offset 以廠商數計算。',
-            inputSchema: z.object({
-              ...searchFields,
-              limit: z.number().int().min(1).max(50).default(20),
-              offset: z.number().int().min(0).max(5000).default(0),
-            }),
+            description: '以廠商為單位搜尋，資料庫先完成縣市篩選、全體計數與公司分組，再分頁；每家公司最多列 5 筆符合方案。limit／offset 以廠商數計算。無公司編號的方案各自獨立成組。總數引用 summary_line，推薦請帶 normal_only=true。',
+            inputSchema: searchInput(),
             annotations: { readOnlyHint: true },
           },
           async (a) => {
-            const notes: string[] = []
-            const wantCity = ((a.city ?? []) as string[]).map(normCity).filter(Boolean)
-            const sc = await scanPages(fetchPage(a), SCAN_CAP)
-            const enr = await enrichRows(sc.rows, false, notes)
-            let rows = sc.rows
-            if (wantCity.length) {
-              rows = filterByCity(sc.rows, enr.cityMap, wantCity)
-              const missing = sc.rows.filter((r) => !normCity(enr.cityMap.get(String(r.company_id ?? '')))).length
-              notes.push(`城市篩選依「公司所在地（縣市，廠商總部）」比對，台／臺視為相同。`)
-              if (missing) notes.push(`掃描範圍內另有 ${missing} 筆方案的公司縣市未填或沒有公司編號，無法判斷是否在該縣市，未納入；引用時請說明。`)
-            }
-            if (sc.truncated) notes.push(`⚠️ 符合其他條件的方案共 ${sc.total} 筆，超過掃描上限 ${SCAN_CAP} 筆，後面未掃描的部分可能還有符合者；請加上更具體的關鍵字或條件。`)
-            if (rows.some((r) => String(r.record_status ?? '').startsWith('疑似'))) notes.push('部分方案 status 為「疑似已下架」，尚未逐筆驗證，引用時請標註。')
-            const groups = groupByCompany(rows)
-            const pageGroups = groups.slice(a.offset, a.offset + a.limit)
-            if (groups.length > a.offset + pageGroups.length) notes.push(`還有更多廠商；可用 offset=${a.offset + pageGroups.length} 取得下一頁。`)
-            const companies = pageGroups.map((g) => {
-              const first = g.rows[0]
-              const cid = String(first.company_id ?? '')
+            const res = await supabase.rpc('sf_search_companies', {
+              ...rpcArgs(a), p_cities: a.city, p_normal_only: a.normal_only, p_limit: a.limit, p_offset: a.offset,
+            })
+            if (res.error) throw new Error(res.error.message)
+            const raw = (res.data ?? []) as Row[]
+            const companiesTotal = Number(raw[0]?.companies_total ?? 0)
+            const total = Number(raw[0]?.solutions_total ?? 0)
+            const suspected = Number(raw[0]?.suspected_total ?? 0)
+            const unknown = Number(raw[0]?.city_unknown_count ?? 0)
+            const rows = raw.filter((r) => r.company_key != null)
+            const failures: string[] = []
+            const enr = await enrichRows(rows, false, failures)
+            const companies = rows.map((r) => {
+              const cid = String(r.company_id ?? '')
               const tax = enr.taxMap.get(cid)
               const aw = enr.awardMap.get(cid)
-              const suspected = g.rows.filter((r) => String(r.record_status ?? '').startsWith('疑似')).length
+              const suspectedCount = Number(r.suspected_count ?? 0)
+              const solutionCount = Number(r.solutions_count ?? 0)
               return {
                 company_id: cid || null,
-                company: (first.company_name as string) || (cid ? null : '（資料庫沒有廠商名稱）'),
-                company_city: enr.cityMap.get(cid) || null,
-                company_region: (first.region as string) || null,
+                company: r.company_name || (cid ? null : '（資料庫沒有廠商名稱）'),
+                company_city: r.company_city || null,
+                company_region: r.company_region || null,
                 tax_primary_industry: tax?.name ?? null,
                 it_code_rank: tax?.rank ?? null,
-                has_company_award: !!aw,
+                has_company_award: enr.awardsKnown ? !!aw : null,
                 company_award_best_level: aw?.best ?? null,
-                solutions_count: g.rows.length,
-                normal_count: g.rows.length - suspected,
-                suspected_delisted_count: suspected,
-                solutions: g.rows.slice(0, 5).map((r) => ({
-                  id: r.solution_id,
-                  name: r.solution_name,
-                  source: r.program_type,
-                  price: r.price || null,
-                  pricing_model: r.pricing_model,
-                  status: r.record_status || '正常',
-                  score: r.score,
+                solutions_count: solutionCount,
+                normal_count: solutionCount - suspectedCount,
+                suspected_delisted_count: suspectedCount,
+                solutions: ((r.solutions ?? []) as Row[]).map((s) => ({
+                  id: s.id, name: s.name, source: s.source, price: s.price || null,
+                  pricing_model: s.pricing_model, status: s.status || '正常', score: s.score,
                 })),
               }
             })
             return asText({
-              companies_total: groups.length,
-              solutions_total: rows.length,
-              scanned_solutions: sc.rows.length,
-              scan_truncated: sc.truncated,
-              returned: companies.length,
-              offset: a.offset,
-              notes: [...notes, '筆數請直接引用本回傳的 companies_total／solutions_total 與各公司的 normal_count，不要自行點算。'],
+              ...searchMeta(a, total, suspected, unknown, failures, companiesTotal),
+              companies_total: companiesTotal, solutions_total: total,
+              totals: { companies: companiesTotal, solutions: total, normal: total - suspected, suspected_delisted: suspected, city_unknown: unknown },
+              returned: companies.length, offset: a.offset,
+              next_offset: companiesTotal > a.offset + companies.length ? a.offset + companies.length : null,
+              next_step: companies.length ? null : [...(a.offset > 0 ? ['改用 offset=0 重新查詢'] : []), ...nextSteps(a, unknown)],
+              page_summary: {
+                companies: companies.length,
+                solutions: companies.reduce((n, c) => n + c.solutions_count, 0),
+                normal: companies.reduce((n, c) => n + c.normal_count, 0),
+                suspected_delisted: companies.reduce((n, c) => n + c.suspected_delisted_count, 0),
+              },
               companies,
             })
           }
         )
 
-        server.registerTool(
+        registerTool(
           'get_solution',
           {
             description:
@@ -514,7 +529,7 @@ Deno.serve(
           }
         )
 
-        server.registerTool(
+        registerTool(
           'get_solutions',
           {
             description:
@@ -583,7 +598,7 @@ Deno.serve(
           }
         )
 
-        server.registerTool(
+        registerTool(
           'data_status',
           {
             description:
@@ -632,7 +647,7 @@ Deno.serve(
           }
         )
 
-        server.registerTool(
+        registerTool(
           'whoami',
           {
             description: '顯示目前以哪個帳號連線到產業策略智庫（用來確認連線與身分）',
@@ -642,11 +657,11 @@ Deno.serve(
           async () => {
             const { data, error } = await supabase.auth.getUser()
             if (error) throw new Error(error.message)
-            return asText({ id: data.user?.id, email: data.user?.email, server_version: SERVER_VERSION })
+            return asText({ id: data.user?.id, server_version: SERVER_VERSION })
           }
         )
 
-        server.registerTool(
+        registerTool(
           'count_solutions',
           {
             description: '回傳方案筆數：total 為資料庫全部筆數（含已下架）、active 為前台可見筆數（排除已下架）。用來驗證資料存取權限。',
@@ -663,8 +678,14 @@ Deno.serve(
         )
 
         return server
-      })
+}
 
+Deno.serve(
+  pipeline(
+    // OAuth 與 RLS 使用者身分維持原流程；每個請求建立獨立的 server。
+    [withOAuthProtectedResource(), withSupabase({ auth: 'user' })],
+    async (req, { supabase }) => {
+      const handler = createMcpHandler(() => createSfServer(supabase))
       return handler.fetch(req)
     }
   )
