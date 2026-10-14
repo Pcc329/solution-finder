@@ -1,0 +1,11 @@
+{
+  "name": "sf-mcp-tests",
+  "private": true,
+  "scripts": {
+    "test": "node --test sf-mcp-v1-2.test.mjs"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/server": "2.0.0",
+    "zod": "4.6.5"
+  }
+}
