@@ -204,6 +204,113 @@
       );
     }
 
+    const contactTelHref = (value) => {
+      const phone = String(value ?? "").replace(/#/g, ",").replace(/[^\d+,]/g, "");
+      return /\d/.test(phone) ? `tel:${phone}` : null;
+    };
+
+    const contactEmailHref = (value) => {
+      const email = String(value ?? "").trim();
+      return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)
+        ? `mailto:${email}` : null;
+    };
+
+    function ContactInfoRow({ label, value, href }) {
+      const text = String(value ?? "").trim();
+      return (
+        <div className="flex flex-col gap-1 py-2 sm:flex-row sm:gap-4">
+          <dt className="text-[13px] text-slate-500 sm:w-[84px] sm:shrink-0">{label}</dt>
+          <dd className={`min-w-0 text-sm ${text ? "text-slate-700" : "text-slate-400"}`} style={{ overflowWrap: "anywhere" }}>
+            {text ? (href ? <a className="text-emerald-700 underline hover:text-emerald-800" href={href}>{text}</a> : text) : "暫無資訊"}
+          </dd>
+        </div>
+      );
+    }
+
+    function ContactInfoCard({ item, cache, pending }) {
+      const [contactOpen, setContactOpen] = useState(false);
+      const [contactEntry, setContactEntry] = useState({ status: "idle" });
+      const [contactRetry, setContactRetry] = useState(0);
+      const companyId = String(item.cid ?? "").trim();
+
+      useEffect(() => {
+        if (!contactOpen || !companyId) return;
+        let current = true;
+        if (cache.has(companyId)) {
+          setContactEntry({ status: "ready", data: cache.get(companyId) });
+          return;
+        }
+        setContactEntry({ status: "loading" });
+        if (!pending.has(companyId)) {
+          const request = (async () => {
+            try {
+              const response = await fetch(`/api/company-detail?company_id=${encodeURIComponent(companyId)}`);
+              if (!response.ok) {
+                return { status: response.status === 401 ? "auth" : response.status === 429 ? "limited" : "error" };
+              }
+              const data = await response.json();
+              cache.set(companyId, data);
+              return { status: "ready", data };
+            } catch {
+              return { status: "error" };
+            } finally {
+              pending.delete(companyId);
+            }
+          })();
+          pending.set(companyId, request);
+        }
+        pending.get(companyId).then(entry => {
+          if (current) setContactEntry(entry);
+        });
+        return () => { current = false; };
+      }, [contactOpen, companyId, contactRetry, cache, pending]);
+
+      const contacts = Array.isArray(contactEntry.data?.contacts) && contactEntry.data.contacts.length
+        ? contactEntry.data.contacts : [{}];
+      const ready = !companyId || contactEntry.status === "ready";
+      const busy = !ready && ["idle", "loading"].includes(contactEntry.status);
+      const message = contactEntry.status === "auth" ? "登入已過期，請重新整理頁面後再查看。"
+        : contactEntry.status === "limited" ? "查詢過於頻繁，請稍後再試。"
+        : "聯絡資訊暫時無法載入。";
+
+      return (
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-4">
+          <button type="button" aria-expanded={contactOpen} aria-controls="contact-info-body"
+            onClick={() => setContactOpen(open => !open)}
+            className="w-full min-h-[60px] flex items-center justify-between gap-3 px-5 py-3.5 text-left rounded-2xl hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-600">
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="w-9 h-9 shrink-0 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center" aria-hidden="true"><i className="fa-regular fa-address-card"></i></span>
+              <span><span className="block text-sm font-bold text-slate-900">聯絡資訊</span><span className="block text-xs text-slate-500 mt-0.5">聯絡人、公司電話、稅籍主業、Email、手機</span></span>
+            </span>
+            <i aria-hidden="true" className={`fa-solid fa-chevron-down shrink-0 text-slate-500 transition-transform motion-reduce:transition-none ${contactOpen ? "rotate-180" : ""}`}></i>
+          </button>
+          <div id="contact-info-body" hidden={!contactOpen} aria-live="polite" aria-busy={busy && contactOpen} className="border-t border-slate-200 px-5 pt-1.5 pb-3.5">
+            {ready ? (
+              <React.Fragment>
+                {contacts.map((contact, index) => (
+                  <dl key={index} className="py-2 border-b border-slate-100 last:border-b-0">
+                    <ContactInfoRow label="聯絡人" value={contact.contact_name ? `${contact.contact_name}${contact.title ? `（${contact.title}）` : ""}` : ""} />
+                    <ContactInfoRow label="公司電話" value={contact.office_phone} href={contactTelHref(contact.office_phone)} />
+                    <ContactInfoRow label="Email" value={contact.email} href={contactEmailHref(contact.email)} />
+                    <ContactInfoRow label="手機" value={contact.mobile} href={contactTelHref(contact.mobile)} />
+                  </dl>
+                ))}
+                <dl className="border-t border-slate-200 mt-1 pt-1"><ContactInfoRow label="稅籍主業" value={item.tax} /></dl>
+              </React.Fragment>
+            ) : busy ? (
+              <div className="flex items-center gap-2.5 py-3.5 text-sm text-slate-500" role="status"><i className="fa-solid fa-spinner animate-spin motion-reduce:animate-none text-emerald-700" aria-hidden="true"></i>正在載入聯絡資訊…</div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2.5 py-3.5 text-sm text-slate-500">
+                <span>{message}</span>
+                {contactEntry.status !== "auth" && <button type="button" onClick={() => setContactRetry(value => value + 1)} className="min-h-[44px] px-3 py-1 border border-slate-200 rounded-lg text-emerald-700 hover:bg-emerald-50">重試</button>}
+              </div>
+            )}
+            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">聯絡資料來自廠商於各計畫平台登錄時提供，可能已異動，聯繫前請以廠商官網為準。</p>
+          </div>
+        </section>
+      );
+    }
+
     function App() {
       const [allData, setAllData] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -238,6 +345,8 @@
       const [showFilterTip, setShowFilterTip] = useState(false);
       const [databaseStats, setDatabaseStats] = useState(null);
       const listTopRef = useRef(null);
+      const companyDetailCache = useRef(new Map());
+      const companyDetailPending = useRef(new Map());
 
       useEffect(() => {
         if (query) return undefined;
@@ -1635,6 +1744,8 @@
               </div>
               {item.slogan && <p className="text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 italic">「{item.slogan}」</p>}
             </div>
+
+            <ContactInfoCard key={item.id || item.s} item={item} cache={companyDetailCache.current} pending={companyDetailPending.current} />
 
             {/* Price card */}
             <div className="grid grid-cols-2 gap-4 mb-4">
