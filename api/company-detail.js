@@ -2,9 +2,37 @@
 import { requireAuth } from '../_lib/auth.js';
 const OVERFLOW_CAPITAL_THRESHOLD = 2147483647;
 const VERIFIED_MATCH_METHODS = new Set(['EXACT', 'PARTIAL', 'PARTIAL_GROUP']);
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 30;
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+  if (!record || now - record.windowStart >= RATE_LIMIT_WINDOW_MS) {
+    // Discard expired windows so inactive IPs do not accumulate indefinitely.
+    for (const [key, value] of rateLimitMap) {
+      if (now - value.windowStart >= RATE_LIMIT_WINDOW_MS) rateLimitMap.delete(key);
+    }
+    rateLimitMap.set(ip, { windowStart: now, count: 1 });
+    return true;
+  }
+  if (record.count >= RATE_LIMIT_MAX_REQUESTS) return false;
+  record.count += 1;
+  return true;
+}
 
 function textOrBlank(value) {
   return value ?? '';
+}
+
+function isMaskedMobile(value) {
+  return /^09\d{2}0{6}$/.test(String(value ?? '').replace(/\D/g, ''));
+}
+
+function isInvalidEmail(value) {
+  const email = String(value ?? '').trim();
+  return !email.includes('@') || ['nan', 'none', 'null', '-', 'n/a'].includes(email.toLowerCase());
 }
 
 function normalizeCapital(value) {
@@ -30,6 +58,10 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+  if (!checkRateLimit(clientIp)) {
+    return res.status(429).json({ error: '查詢過於頻繁，請稍後再試' });
   }
   if (!requireAuth(req, res)) return;
 
@@ -82,7 +114,7 @@ export default async function handler(req, res) {
     }
 
     const [contacts, awards] = await Promise.all([
-      fetchSupabase('contacts', 'contact_name,title,office_phone'),
+      fetchSupabase('contacts', 'contact_name,title,office_phone,email,mobile'),
       fetchSupabase('awards', 'award_name,award_level,host_org,award_year,match_method'),
     ]);
 
@@ -101,6 +133,8 @@ export default async function handler(req, res) {
         contact_name: textOrBlank(contact.contact_name),
         title: textOrBlank(contact.title),
         office_phone: textOrBlank(contact.office_phone),
+        email: isInvalidEmail(contact.email) ? '' : String(contact.email).trim(),
+        mobile: isMaskedMobile(contact.mobile) ? '' : textOrBlank(contact.mobile),
       })),
       awards: awards.map(award => ({
         award_name: textOrBlank(award.award_name),
