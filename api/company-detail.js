@@ -30,6 +30,11 @@ function isMaskedMobile(value) {
   return /^09\d{2}0{6}$/.test(String(value ?? '').replace(/\D/g, ''));
 }
 
+function isMaskedOfficePhone(value) {
+  const mainNumber = String(value ?? '').split('#')[0].replace(/\D/g, '');
+  return /^\d{4}0{6}$/.test(mainNumber);
+}
+
 function isInvalidEmail(value) {
   const email = String(value ?? '').trim();
   return !email.includes('@') || ['nan', 'none', 'null', '-', 'n/a'].includes(email.toLowerCase());
@@ -132,7 +137,7 @@ export default async function handler(req, res) {
       contacts: contacts.map(contact => ({
         contact_name: textOrBlank(contact.contact_name),
         title: textOrBlank(contact.title),
-        office_phone: textOrBlank(contact.office_phone),
+        office_phone: isMaskedOfficePhone(contact.office_phone) ? '' : textOrBlank(contact.office_phone),
         email: isInvalidEmail(contact.email) ? '' : String(contact.email).trim(),
         mobile: isMaskedMobile(contact.mobile) ? '' : textOrBlank(contact.mobile),
       })),
