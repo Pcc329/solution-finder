@@ -2,7 +2,7 @@
 
 ## 目前狀態
 
-程式已實作並建立一般 PR；**驗收尚未完成，請勿將本文件視為完整驗收通過**。Vercel Preview 停在共用密碼登入頁，已請使用者於瀏覽器完成登入。沒有取得有效 Preview 登入狀態，因此沒有擷取受保護的聯絡資訊，也沒有以 mock 或歷史快取替代線上驗收。
+程式已實作並建立一般 PR。使用者完成 Preview 登入後，已以即時 API 與實際 UI 完成資料、延遲載入、快取、429 重試、空值、鍵盤與響應式驗證。**目前只剩登出後的 401 UI 尚待使用者清除 Preview 登入 Cookie 後驗證**。沒有以 mock 或歷史快取替代線上驗收。
 
 ## Git 與部署
 
@@ -14,7 +14,7 @@
 - Preview：https://solution-finder-ekwzinkq6-patrick0814-6136s-projects.vercel.app/
 - Vercel deployment：https://vercel.com/patrick0814-6136s-projects/solution-finder/7wKccz9fauDjzKJSMoRC25iv4y8g
 - Vercel 狀態：Ready，Source commit 為 `5194147`。
-- 已執行的線上 API 驗證時間：2026-10-15 12:12–12:13，Asia/Taipei（UTC+08:00）。
+- 線上驗證時間：2026-10-15 12:12–12:13（未登入／限流）、12:44–12:54（登入後資料與 UI），Asia/Taipei（UTC+08:00）。
 - PR #256 已合併在 main 的既有歷史中；本次從 main 獨立開分支，未修改該 PR 的分支。
 
 ## 改動檔案與實作位置
@@ -51,40 +51,69 @@
 - OPTIONS：HTTP 204。
 - POST：HTTP 405，body 為 `{"error":"Method not allowed"}`。
 
-規格要求先擷取順立 contacts 後才進行聯絡資料／前端驗證；目前無有效 Preview session，尚未能取得該 contacts 回應。此處不填入推測值或其他環境的資料。完成登入後，應先擷取此 API 的真實 contacts、遮罩 email／mobile，再接續下表。
+登入後先於 12:44:37 取得順立真實 contacts，再接續其他資料與 UI 驗證。以下為該回應的 contacts 部分（email 已遮罩，mobile 原值為空）：
+
+```json
+[
+  {
+    "contact_name": "江欣倫",
+    "title": "業務助理",
+    "office_phone": "02-xxxx-xxxx #109",
+    "email": "s***@cyberbiz.io",
+    "mobile": ""
+  }
+]
+```
+
+逐一比對此回應與同日改動前線上 API 的公司資料及 awards，除 contacts 新增欄位外完全一致。
 
 ## 五組資料驗證
 
 | 組別 | 目標 | 目前結果 |
 |---|---|---|
-| 順立智慧 | SOL-0852／54688786 | 待 Preview 登入；尚未驗證江欣倫（業務助理）、公司電話與實際 email／mobile |
-| 鉅碼科技 | SOL-0936／66258228 | 待 Preview 登入；尚未驗證李慈晏（業務總監）與公司電話 |
-| email 與手機皆有值 | 待從 Preview 即時資料選定 | 尚未選定，不以規格例子或歷史檔案冒充實際資料 |
-| contacts 空陣列 | 待從 Preview 即時 API 選定 | 尚未選定；需驗證四欄暫無資訊、稅籍主業照常顯示 |
-| item.cid 為空 | 待從 Preview solutions 即時資料選定 | 尚未選定；需驗證零 company-detail 請求及空值顯示 |
+| 順立智慧 | 規格 SOL-0852／54688786；Cyberbiz 電商一站式開店系統｜專業版，前端 ID `recSJDpPgvmokqngm` | 江欣倫（業務助理）、02-xxxx-xxxx #109；email `s***@cyberbiz.io`；手機為「暫無資訊」；公司電話 href `tel:02xxxxxxxx,109` |
+| 鉅碼科技 | 規格 SOL-0936／66258228；Hahago Ads商家行銷導客雲端數位行銷入門方案，前端 ID `recHxpd47ZmyTvDsj` | 李慈晏（業務總監）、03-xxxxxxx#68；公司電話 href `tel:03xxxxxxx,68` |
+| email 與手機皆有值 | 鉅碼科技／66258228（同一公司兼作第三組驗證） | email `n***@gimmatek.com`、手機 `09xx-xxx-000`；讀取真實 DOM 比對 mailto 解碼後等於顯示地址，兩個 tel href 等於各自電話套用規格轉換後的結果，均通過；未實際撥號或寄信 |
+| contacts 空陣列 | 燦亞智能／95459961；ERP管理系統，前端 ID `rec3N0ZCfP4kR3tsI` | API contacts 長度 0；四欄皆「暫無資訊」，稅籍主業「未分類其他資訊服務」，卡片無連結、無錯誤 |
+| item.cid 為空 | 療管家CRM系統，前端 ID `recfdEOjgLm6I9WcV`；Preview solutions 中 cid、company、tax 均為空 | 展開立即顯示四欄空值，稅籍主業也正確顯示「暫無資訊」；沒有 spinner 或連結；該操作區間無 company-detail 請求 |
 
 後續新增驗證紀錄時，任何 email、手機均須遮罩，且不得將含完整值的截圖或測試資料提交至公開 repository。
 
 ## 驗收逐項結果
 
-- [ ] 已登入順立 API：每位聯絡人具有 contact_name、title、office_phone、email、mobile 五個 key。
+- [x] 已登入順立 API：每位聯絡人具有 contact_name、title、office_phone、email、mobile 五個 key。
 - [x] 未登入同一 API：401（真實 Preview）。
 - [x] 同一 IP 一分鐘內第 31 次請求：429（真實 Preview，前 30 次皆 401，證明限流在認證之前）。
-- [ ] 公司資料、awards 與改動前線上回應一致；程式映射未改，但尚未完成 Preview 資料比對。
-- [ ] 卡片位於 Header 與 Price 之間且預設收合；原始碼位置已核對，待瀏覽器操作驗收。
-- [ ] 未展開前 Network 無 company-detail 請求。
-- [ ] 首次展開恰好一次請求；收合重開不增加。
-- [ ] 同公司另一方案不重抓；不同公司重抓一次。
-- [ ] SOL-0852 真實資料顯示符合規格。
-- [ ] SOL-0936 真實資料顯示符合規格。
-- [ ] 至少一間 email 與 mobile 皆有值的公司，mailto／tel 連結可用，記錄已遮罩。
-- [ ] contacts 空陣列的真實公司，顯示正確且不報錯。
-- [ ] cid 為空的真實方案，顯示正確、不報錯且不發請求。
+- [x] 公司資料、awards 與改動前同日線上回應一致。
+- [x] 卡片位於 Header 與 Price 之間且預設收合，實際畫面已確認。
+- [x] 未展開前無 company-detail 請求；以 Vercel Request Logs 核對實際 HTTP 請求，非攔截器或 mock。
+- [x] 首次展開恰好一次請求；收合重開不增加。
+- [x] 同公司另一方案不重抓；不同公司重抓一次。
+- [x] SOL-0852 對應方案真實資料顯示符合規格。
+- [x] SOL-0936 對應方案真實資料顯示符合規格。
+- [x] 鉅碼 email 與 mobile 皆有值，mailto／tel 連結目標符合真實值與轉換規則，記錄已遮罩。
+- [x] 燦亞 contacts 空陣列，顯示正確且不報錯。
+- [x] 療管家 cid 為空，顯示正確、不報錯且不發請求。
 - [ ] 登出後展開顯示登入已過期。
-- [ ] 觸發 429 後前端顯示限流訊息，且重試可恢復。
-- [ ] Tab 聚焦、Enter／Space 切換與 aria-expanded 正確。
-- [ ] 375px 欄位上下排列、長 email 斷行、無水平捲動。
-- [ ] 其他詳情區塊外觀與行為不變。
+- [x] 真實 429 後前端顯示限流訊息與重試按鈕，視窗結束後重試成功恢復；錯誤未被快取。
+- [x] 從返回按鈕按 Tab 聚焦收合按鈕，Enter 展開、Space 收合，aria-expanded 分別為 true／false。
+- [x] 375px viewport 下鉅碼欄位上下排列；clientWidth 與 scrollWidth 同為 360（另 15px 為瀏覽器垂直捲軸），無水平捲動。另以 210px viewport／121px 值欄寬測試同一筆真實 email：自動分成兩行（2 個 client rect、高 39px）、右界 158px 小於 clientWidth 195px，確認較長於可用欄寬的地址能斷行；未注入假地址。
+- [x] 實際檢視標題、費用、介紹與其他詳情區塊正常；差異也確認原區塊未改。
+
+## 請求與錯誤狀態證據
+
+瀏覽器工具沒有 Network 讀取 API，故以同一 Preview deployment 的 Vercel **Request Logs**（非僅 console Runtime Logs）確認實際 HTTP 流量：
+
+- 12:44:37.05：先行擷取順立 API。
+- 12:45:59.83：先行擷取鉅碼 API。
+- 12:46:30.98：主頁首次展開順立，恰好一筆 GET 200；先前搜尋與進入詳情未觸發此請求。
+- 收合重開及切換到順立「CYBERBIZ 智能POS系統」（`recVmMLR0RFnKaoyG`）後再展開，立即有資料、沒有 spinner，且沒有額外 HTTP 請求。
+- 12:47:24.49：另行 API 查詢七法候選資料；12:47:41.63：另行 API 查詢燦亞空聯絡人資料。這兩筆與 UI 快取驗證分開辨認。
+- 12:47:51.38：主頁第一次展開不同公司的鉅碼，新增一筆 GET 200。
+- 12:48:52.76：主頁第一次展開燦亞，新增一筆 GET 200。
+- 12:49:02.70：另開的手機驗證頁展開鉅碼，HTTP 304（瀏覽器條件請求，fetch 取得可用 JSON）。主頁與手機分頁各自有獨立頁面快取，符合頁面生命週期範圍。
+- 隨後搜尋、展開缺 cid 的療管家，沒有新增 company-detail 請求，直接顯示空值。
+- 12:50:38：同一 IP 的連續 31 次未登入請求再次確認前 30 次 401、第 31 次 429。隨後主頁第一次展開七法，實際取得 429，顯示「查詢過於頻繁，請稍後再試。」及「重試」。固定視窗結束後點重試，真實聯絡資料成功載入，證明錯誤未快取。
 
 ## 其他檢查與限制
 
@@ -92,4 +121,4 @@
 - `git diff --check` 通過；產品差異僅兩個指定檔案（137 行新增、1 行刪除）。
 - 確認 `_lib/auth.js`、`api/auth.js`、`api/solutions.js`、`public/manufacturing.html` 無差異；未修改 sf-mcp、migration、資料結構、RLS 或欄位授權，未新增套件或 CDN。
 - 執行既有 program-badge／airtable-write 回歸套件共 64 項通過；其中有替身測試，因此**不作為本次規格的驗收證據**。
-- 待接續：在保留的 Preview 分頁登入，先擷取並遮罩順立 contacts，再完成上列所有未勾選項目並更新本文件及 PR 描述。
+- 尚待接續：在主頁已保留、預設收合的精誠資訊 BrandStudio 方案（本頁未快取該公司）驗證登出後展開顯示登入已過期。既有 logout API 僅接受 POST，網站沒有登出按鈕；臨時 data: 表單被瀏覽器 URL 安全政策拒絕，未繞過限制，已請使用者清除此 Preview 的 sf_session 後再驗證。
