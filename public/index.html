@@ -212,7 +212,7 @@
     const contactEmailHref = (value) => {
       const email = String(value ?? "").trim();
       return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)
-        ? `mailto:${encodeURIComponent(email)}` : null;
+        ? `mailto:${email}` : null;
     };
 
     function ContactInfoRow({ label, value, href }) {
@@ -1745,7 +1745,7 @@
               {item.slogan && <p className="text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 italic">「{item.slogan}」</p>}
             </div>
 
-            <ContactInfoCard key={item.id} item={item} cache={companyDetailCache.current} pending={companyDetailPending.current} />
+            <ContactInfoCard key={item.id || item.s} item={item} cache={companyDetailCache.current} pending={companyDetailPending.current} />
 
             {/* Price card */}
             <div className="grid grid-cols-2 gap-4 mb-4">

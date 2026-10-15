@@ -26,6 +26,15 @@ function textOrBlank(value) {
   return value ?? '';
 }
 
+function isMaskedMobile(value) {
+  return /^09\d{2}0{6}$/.test(String(value ?? '').replace(/\D/g, ''));
+}
+
+function isInvalidEmail(value) {
+  const email = String(value ?? '').trim();
+  return !email.includes('@') || ['nan', 'none', 'null', '-', 'n/a'].includes(email.toLowerCase());
+}
+
 function normalizeCapital(value) {
   if (value === null || value === undefined || value === '') return null;
   const capital = Number(value);
@@ -124,8 +133,8 @@ export default async function handler(req, res) {
         contact_name: textOrBlank(contact.contact_name),
         title: textOrBlank(contact.title),
         office_phone: textOrBlank(contact.office_phone),
-        email: textOrBlank(contact.email),
-        mobile: textOrBlank(contact.mobile),
+        email: isInvalidEmail(contact.email) ? '' : String(contact.email).trim(),
+        mobile: isMaskedMobile(contact.mobile) ? '' : textOrBlank(contact.mobile),
       })),
       awards: awards.map(award => ({
         award_name: textOrBlank(award.award_name),
