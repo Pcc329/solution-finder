@@ -4,16 +4,20 @@
 
 程式已實作並建立一般 PR。已以即時 API 與實際 UI 完成資料、延遲載入、快取、429 重試、空值、鍵盤、響應式及登出後 401 畫面驗證。最後一項使用原頁從未展開過的 Shopass 公司，實際發出一筆 GET 401，並顯示登入已過期，沒有命中成功快取。沒有以 mock 或歷史快取替代線上驗收。**證據界線：HTTP 次數與狀態來自 Vercel Request Logs，未直接擷取 Chrome DevTools Network 面板。**
 
+Merge 前追加的資料品質過濾及兩項 review 建議也已完成。新版 Preview 驗證鉅碼遮罩手機被清空、人工智能真實手機保留、大創新零售 placeholder email 被清空，詳細新舊即時 API 比對與 UI 結果見文末。先前鉅碼的 `09xx-xxx-000` 為來源遮罩值，已排除，最新可用手機範例改為人工智能公司。
+
 ## Git 與部署
 
 - Repository：Pcc329/solution-finder
 - 實際最新 main 基準：`fd4e6d4549d74d2afb957583a8bbd48f31150b26`（與規格基準一致）
 - 獨立 branch：`feat/contact-info-card`
-- 實作 commit：`5194147bb4f87907a6f1cf2054f16f4349dd80ba`
+- 首版實作 commit：`5194147bb4f87907a6f1cf2054f16f4349dd80ba`
+- Merge 前補充 commit：接在 `d31cd184a7e996ec78dbd2381b93c5859509f2b5` 後的 PR 最新一筆，將兩個程式檔及本 SYNC 合併為一個補充 commit；沒有另開 PR。
 - 一般 PR：https://github.com/Pcc329/solution-finder/pull/257 （非 Draft，base 為 main）
-- Preview：https://solution-finder-ekwzinkq6-patrick0814-6136s-projects.vercel.app/
-- Vercel deployment：https://vercel.com/patrick0814-6136s-projects/solution-finder/7wKccz9fauDjzKJSMoRC25iv4y8g
-- Vercel 狀態：Ready，Source commit 為 `5194147`。
+- 最新分支 Preview：https://solution-finder-git-feat-cont-e70f1a-patrick0814-6136s-projects.vercel.app/
+- 資料品質修正的實測固定 Preview：https://solution-finder-pyjzmuouc-patrick0814-6136s-projects.vercel.app/
+- 資料品質修正 deployment：https://vercel.com/patrick0814-6136s-projects/solution-finder/Gjy2BoqeVsdSbZzcPtNPFq2m4LAj （Ready，實測 Source `d63ae9d89a2d78af2c9df8ef765743406aac91b8`，最終補充 commit 的兩個程式檔 blob 與此一致）
+- 首版驗證及資料品質對照 Preview：https://solution-finder-ekwzinkq6-patrick0814-6136s-projects.vercel.app/ （deployment `7wKccz9fauDjzKJSMoRC25iv4y8g`，Source `5194147`）
 - 線上驗證時間：2026-10-15 12:12–12:13（未登入／限流）、12:44–12:54（登入後資料與 UI）、13:06:25.340（登出後首次展開 GET 401），Asia/Taipei（UTC+08:00）。
 - PR #256 已合併在 main 的既有歷史中；本次從 main 獨立開分支，未修改該 PR 的分支。
 
@@ -25,14 +29,16 @@
 |---|---|---|
 | `api/company-detail.js:5` | `rateLimitMap`、限流常數 | in-memory 固定視窗，60 × 1000 ms，每 IP 上限 30 次 |
 | `api/company-detail.js:9` | `checkRateLimit(ip)` | 同一視窗第 31 次起拒絕；新視窗清除過期 IP 記錄 |
-| `api/company-detail.js:43` | `handler(req, res)` | OPTIONS → method → 限流 → requireAuth → 參數檢查；IP 來源沿用 feedback 的 forwarded-for 第一段／socket／unknown |
-| `api/company-detail.js:108` | `fetchSupabase('contacts', ...)` | select 為 `contact_name,title,office_phone,email,mobile` |
-| `api/company-detail.js:123` | contacts 映射 | `email`、`mobile` 均經既有 `textOrBlank()`，其他回傳欄位與 awards 映射不變 |
+| `api/company-detail.js:29` | `isMaskedMobile(value)` | 先移除非數字，再用 `/^09\d{2}0{6}$/` 判斷來源遮罩值 |
+| `api/company-detail.js:33` | `isInvalidEmail(value)` | trim 後不含 @，或小寫為 nan／none／null／-／n/a，均視為無效 |
+| `api/company-detail.js:53` | `handler(req, res)` | OPTIONS → method → 限流 → requireAuth → 參數檢查；IP 來源沿用 feedback 的 forwarded-for 第一段／socket／unknown |
+| `api/company-detail.js:117` | `fetchSupabase('contacts', ...)` | select 為 `contact_name,title,office_phone,email,mobile` |
+| `api/company-detail.js:132` | contacts 映射 | 無效 email 與來源遮罩 mobile 回空字串；有效 email 回 trim 後字串，其他 mobile 保留既有 `textOrBlank()`；其他欄位與 awards 映射不變 |
 | `public/index.html:207` | `contactTelHref(value)` | `#` 轉 `,`，僅保留數字、`+`、`,`；至少一個數字才建立 tel 連結 |
-| `public/index.html:212` | `contactEmailHref(value)` | trim 後檢查基本 mailbox@domain 格式及網域分隔點，拒絕空白、額外 @、角括號；地址以 encodeURIComponent 編碼後建立 mailto |
+| `public/index.html:212` | `contactEmailHref(value)` | trim 後保留原 regex 檢查；符合格式時直接回傳 `mailto:${email}`，不使用 encodeURIComponent |
 | `public/index.html:218` | `ContactInfoRow` | JSX 自動跳脫；空值灰字；sm 以下上下排列、桌機標籤 84px；值可 anywhere 斷行 |
 | `public/index.html:230` | `ContactInfoCard` | B 版卡片、狀態顯示、重試、聯絡人四欄與共享稅籍主業 |
-| `public/index.html:231` | `contactOpen` state | 預設 false；以方案 ID 作 component key，切換方案重設收合 |
+| `public/index.html:231` | `contactOpen` state | 預設 false；component key 為 `item.id || item.s`，切換方案重設收合 |
 | `public/index.html:232` | `contactEntry` state | idle／loading／ready／auth／limited／error |
 | `public/index.html:233` | `contactRetry` state | 點重試觸發新的請求；錯誤不寫入成功快取 |
 | `public/index.html:236` | 延遲載入 effect | 僅展開且 cid 有值才抓；cleanup 防止舊請求更新離開的方案 |
@@ -42,9 +48,9 @@
 
 欄位使用規格已確認的 `contacts.email`、`contacts.mobile`，未另查 schema，未新增或更名欄位。卡片內值皆由 JSX 輸出，未新增 dangerouslySetInnerHTML。原 Babel script tag 屬性未改。
 
-## 真實 Preview API 驗證記錄
+## 真實 Preview API 驗證記錄（首版）
 
-驗證對象為上述 Preview 的 `/api/company-detail?company_id=54688786`，不帶 cookie 或 API key。2026-10-15 12:12:06.903 至 12:12:20.337，同一 IP 順序送出 31 次 GET：
+驗證對象為首版對照 Preview（ekwzinkq6）的 `/api/company-detail?company_id=54688786`，不帶 cookie 或 API key。2026-10-15 12:12:06.903 至 12:12:20.337，同一 IP 順序送出 31 次 GET：
 
 - 第 1–30 次：HTTP 401。
 - 第 31 次：HTTP 429，body 為 `{"error":"查詢過於頻繁，請稍後再試"}`。
@@ -67,13 +73,13 @@
 
 逐一比對此回應與同日改動前線上 API 的公司資料及 awards，除 contacts 新增欄位外完全一致。
 
-## 五組資料驗證
+## 五組資料驗證（含最新資料品質修正）
 
 | 組別 | 目標 | 目前結果 |
 |---|---|---|
 | 順立智慧 | 規格 SOL-0852／54688786；Cyberbiz 電商一站式開店系統｜專業版，前端 ID `recSJDpPgvmokqngm` | 江欣倫（業務助理）、02-xxxx-xxxx #109；email `s***@cyberbiz.io`；手機為「暫無資訊」；公司電話 href `tel:02xxxxxxxx,109` |
-| 鉅碼科技 | 規格 SOL-0936／66258228；Hahago Ads商家行銷導客雲端數位行銷入門方案，前端 ID `recHxpd47ZmyTvDsj` | 李慈晏（業務總監）、03-xxxxxxx#68；公司電話 href `tel:03xxxxxxx,68` |
-| email 與手機皆有值 | 鉅碼科技／66258228（同一公司兼作第三組驗證） | email `n***@gimmatek.com`、手機 `09xx-xxx-000`；讀取真實 DOM 比對 mailto 解碼後等於顯示地址，兩個 tel href 等於各自電話套用規格轉換後的結果，均通過；未實際撥號或寄信 |
+| 鉅碼科技 | 規格 SOL-0936／66258228；Hahago Ads商家行銷導客雲端數位行銷入門方案，前端 ID `recHxpd47ZmyTvDsj` | 李慈晏（業務總監）、03-xxxxxxx#68；公司電話 href `tel:03xxxxxxx,68`；最新 API mobile 空字串，UI「暫無資訊」，email `n***@gimmatek.com` 正常 |
+| email 與手機皆有值 | 人工智能股份有限公司／55790788；QbiAI全通路智能客服平台，前端 ID `recIpLJU4FDT217LK` | email `Q***@gmail.com`、手機 `09xx-xxx-016`，不符合來源遮罩規則；新舊 API 手機相同，DOM tel 與實際 API 手機依規格轉換後逐字比對一致，mailto 等於直接串接顯示地址；未實際撥號或寄信 |
 | contacts 空陣列 | 燦亞智能／95459961；ERP管理系統，前端 ID `rec3N0ZCfP4kR3tsI` | API contacts 長度 0；四欄皆「暫無資訊」，稅籍主業「未分類其他資訊服務」，卡片無連結、無錯誤 |
 | item.cid 為空 | 療管家CRM系統，前端 ID `recfdEOjgLm6I9WcV`；Preview solutions 中 cid、company、tax 均為空 | 展開立即顯示四欄空值，稅籍主業也正確顯示「暫無資訊」；沒有 spinner 或連結；該操作區間無 company-detail 請求 |
 
@@ -91,7 +97,7 @@
 - [x] 同公司另一方案不重抓；不同公司重抓一次。
 - [x] SOL-0852 對應方案真實資料顯示符合規格。
 - [x] SOL-0936 對應方案真實資料顯示符合規格。
-- [x] 鉅碼 email 與 mobile 皆有值，mailto／tel 連結目標符合真實值與轉換規則，記錄已遮罩。
+- [x] 最新改以人工智能公司驗證非遮罩手機及有效 email，mailto／tel 目標正確；鉅碼來源遮罩手機已按追加需求排除，記錄皆遮罩。
 - [x] 燦亞 contacts 空陣列，顯示正確且不報錯。
 - [x] 療管家 cid 為空，顯示正確、不報錯且不發請求。
 - [x] 登出後，在未重新整理的原頁首次展開此前未快取的 Shopass 公司；一筆真實 GET 401，顯示「登入已過期，請重新整理頁面後再查看。」詳見下方請求 ID 與證據來源。
@@ -147,7 +153,33 @@
 ## 其他檢查與限制
 
 - `node --check api/company-detail.js` 通過。
-- `git diff --check` 通過；產品差異僅兩個指定檔案（137 行新增、1 行刪除）。
+- `git diff --check` 通過；相對原 main 的產品差異仍僅兩個指定檔案（146 行新增、1 行刪除）。
 - 確認 `_lib/auth.js`、`api/auth.js`、`api/solutions.js`、`public/manufacturing.html` 無差異；未修改 sf-mcp、migration、資料結構、RLS 或欄位授權，未新增套件或 CDN。
 - 執行既有 program-badge／airtable-write 回歸套件共 64 項通過；其中有替身測試，因此**不作為本次規格的驗收證據**。
 - 登出前提及 401 UI 已完成；原始碼無需額外修改。使用者要求的 Chrome Network 面板直接證據仍受工具介面限制，實際 HTTP 請求證據已改以有 company_id 與 Request ID 的 Vercel Request Logs 保存，兩者不混稱。
+
+## Merge 前追加：無效聯絡資料過濾與 review 修正
+
+本次僅修改 `api/company-detail.js`、`public/index.html`，及使用者要求更新的本 SYNC；不修改資料庫、認證、限流、查詢參數、其餘聯絡欄位或其他檔案。
+
+- `isMaskedMobile` 與 `isInvalidEmail` 為兩個具名函式，僅在 contacts 輸出映射時使用，日後可獨立移除。
+- mobile 僅為判斷而去除非數字：符合 `/^09\d{2}0{6}$/` 才回空字串；其他原始格式與空值處理均保留。
+- email trim 後不含 @ 或符合指定 placeholder（不分大小寫）則回空字串，否則回 trim 後地址。未額外更動 API 允許的 email 格式條件。
+- 前端 mailto 直接使用 `mailto:${email}`，既有 regex 未改；ContactInfoCard key 使用 `item.id || item.s`。
+
+驗證彙整時間：**2026-10-15 14:03:20 +08:00**。新舊 Preview 均在登入後即時讀取 API；改動前 Preview 只用於確認原值，正式結果於最新分支 Preview 的 API 與 UI 驗證，沒有以 CSV、離線歷史檔案或 mock 替代。
+
+| 情境 | 即時對照與新版驗收結果 |
+|---|---|
+| 鉅碼遮罩手機／66258228 | 改動前手機去除非數字後符合指定遮罩 regex；新版 mobile 為空字串。UI 手機「暫無資訊」，僅保留公司電話 tel 連結，email 與改動前 trim 後一致且仍有 mailto。 |
+| 真實手機／人工智能 55790788 | 舊 API 的手機為 10 碼台灣手機且不符合遮罩 regex；新版逐字保留。方案 `recIpLJU4FDT217LK` 的 DOM 手機與 API 一致，tel 目標與規格轉換結果完全相同。手機記錄為 `09xx-xxx-016`，email 記錄為 `Q***@gmail.com`；mailto href 等於直接 `mailto:` 加上顯示地址。 |
+| placeholder／大創新零售 90147315 | 舊 Preview API contacts 的 email **確實為 `-`**；新版對應 email 為空字串。方案「惜食智取雲」`recpNo4tx8v9dYacv` 展開後 Email「暫無資訊」、mailto 數量 0，原 placeholder 不顯示。 |
+
+- [x] 鉅碼：遮罩手機改為「暫無資訊」，email 照常顯示。
+- [x] 人工智能：非遮罩手機照常顯示，tel 正確。
+- [x] 大創新零售：原 email `-` 被清空，UI「暫無資訊」，無 mailto。
+- [x] 三組資料的 contact_name／title／office_phone 新舊逐欄完全一致；鉅碼與大創的其他公司資料及 awards 也逐字比對一致。
+- [x] 312 個直接執行具名函式的斷言通過，涵蓋所有 100 種手機前綴、格式分隔、相鄰有效尾碼、各 placeholder／大小寫及 null 邊界。這是純函式檢查，不是 API mock，也不替代上列 Preview 驗收。
+- [x] API 語法、差異空白檢查通過，沒有新增套件、測試資料檔或外部資源。
+
+實測產品 blob：`api/company-detail.js` = `e6e607ad756224721de84b3a5e328bf0a2933b3c`；`public/index.html` = `decfd660f9038b67eaa080645703016282bc8023`。驗收後只更新本文件，兩個產品 blob 保持一致；最終整理成接在 `d31cd18` 後的一個補充 commit。
