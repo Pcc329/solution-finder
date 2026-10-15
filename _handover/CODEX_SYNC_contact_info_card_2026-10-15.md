@@ -115,10 +115,19 @@
 - 隨後搜尋、展開缺 cid 的療管家，沒有新增 company-detail 請求，直接顯示空值。
 - 12:50:38：同一 IP 的連續 31 次未登入請求再次確認前 30 次 401、第 31 次 429。隨後主頁第一次展開七法，實際取得 429，顯示「查詢過於頻繁，請稍後再試。」及「重試」。固定視窗結束後點重試，真實聯絡資料成功載入，證明錯誤未快取。
 
+### 401 UI 第一次接續驗證：未通過前提，不算驗收成功
+
+- 使用者回覆已登出後，依要求保持原頁不重新整理，從精誠詳情經頁內返回搜尋，再搜尋並進入本頁此前從未展開的「一等一科技／U-Office Force 雲端辦公室軟體」。
+- solution_id：`recg25O0Suilw67PH`；company_id：`28293999`。
+- 初始 aria-expanded 為 false；首次展開確實發出一筆 GET。Vercel Request Logs 記錄時間 2026-10-15 12:59:48.33（Asia/Taipei），實際 HTTP **200**，畫面顯示聯絡資料，因此不計為 401 通過。
+- 同網域 `/api/session-check` 以及附新 verification query 的即時檢查仍回應 `{"authenticated":true}`。因此尚未達成清除此 Preview 登入狀態的前提；沒有用成功快取冒充 401 測試。
+- 已另開同網域登入狀態檢查分頁供使用者確認 false，原 App 未重新整理。下一筆改用從未在本頁展開的「一個好朋友／Shopass數位共榮護照OMO電商會員系統」，solution_id `recvOVaf88wEB4WHZ`、company_id `24948357`，目前停在收合狀態。
+- 瀏覽器工具沒有讀取 Chrome DevTools Network 面板的介面；既有 HTTP 狀態與次數使用 Vercel Request Logs 核對，未宣稱已直接讀取 Network 面板。
+
 ## 其他檢查與限制
 
 - `node --check api/company-detail.js` 通過。
 - `git diff --check` 通過；產品差異僅兩個指定檔案（137 行新增、1 行刪除）。
 - 確認 `_lib/auth.js`、`api/auth.js`、`api/solutions.js`、`public/manufacturing.html` 無差異；未修改 sf-mcp、migration、資料結構、RLS 或欄位授權，未新增套件或 CDN。
 - 執行既有 program-badge／airtable-write 回歸套件共 64 項通過；其中有替身測試，因此**不作為本次規格的驗收證據**。
-- 尚待接續：在主頁已保留、預設收合的精誠資訊 BrandStudio 方案（本頁未快取該公司）驗證登出後展開顯示登入已過期。既有 logout API 僅接受 POST，網站沒有登出按鈕；臨時 data: 表單被瀏覽器 URL 安全政策拒絕，未繞過限制，已請使用者清除此 Preview 的 sf_session 後再驗證。
+- 尚待接續：確認此 Preview 的 session-check 為 false 後，於保留的 Shopass 方案第一次展開聯絡資訊，記錄實際 401 請求及登入過期 UI。既有 logout API 僅接受 POST，網站沒有登出按鈕；臨時 data: 表單被瀏覽器 URL 安全政策拒絕，未繞過限制，已請使用者清除此 Preview 的 sf_session 後再驗證。
