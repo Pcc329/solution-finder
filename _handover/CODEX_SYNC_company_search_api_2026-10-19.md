@@ -4,17 +4,19 @@
 
 - Repo：https://github.com/Pcc329/solution-finder
 - 已 `git pull --ff-only origin main`，實際基準：`d392cbc1702e23536227df453ffda22980e4479a`（PR #259 merge 後），與指定基準相同。
-- Branch：`feat/company-search-api`。程式 commit：`7ec3831f1268b42820a711628a3f2314ed5f201a`。
+- Branch：`feat/company-search-api`。程式 commit：見本 PR 的 `feat: route company search through companies action` commit（後續文件更新不改程式）。
 - 一般 [PR #260](https://github.com/Pcc329/solution-finder/pull/260)：open、非 Draft、不 merge、不啟用 auto-merge。
-- 依附件及 v2.1 範本實作。變更限新增 `api/company-search.js`、`tests/company-search.test.mjs` 與本 SYNC。
-- 無前端、既有 API、認證 helper、寫入 helper、Vercel 設定或資料庫結構／權限變更，無新增套件。
+- 依附件及 v2.1 範本實作；使用者另核准跨檔路由整併。相對 main 共五檔：新增 `_lib/company-search.js`、`tests/company-search.test.mjs`、本 SYNC；最小修改 `api/companies.js`、`vercel.json`。原先新增的 `api/company-search.js` 已移除。
+- `api/companies.js` 只新增 import 及 handler 第一行的 search action 分派；其餘程式逐字保留。`vercel.json` 僅新增一條 rewrite，既有 entries 保留。
+- 函式數：12（變更前後皆為 12，以 main 的 `api/*.js` 與本分支檔案數核對）。
+- 無前端、認證 helper、寫入 helper、資料庫結構／權限變更，無新增套件。
 - 本功能先於 Preview 完成驗收，PPC 向組長報告後才由人類決定 merge；Codex 不 merge、不啟用 auto-merge。
 
 ## 實作與位置
 
 | 檔案／helper | 行號 | 用途 |
 |---|---|---|
-| `api/company-search.js` `checkRateLimit` | 12 | 獨立 Map，每 60 秒 60 次，第 61 次為 429；清除過期視窗 |
+| `_lib/company-search.js` `checkRateLimit` | 12 | 獨立 Map，每 60 秒 60 次，第 61 次為 429；清除過期視窗 |
 | `normalizeQuery` | 27 | 全形英數與空白正規化，去頭尾與壓縮連續空白 |
 | `toCore` | 33 | 依序去一次公司後綴，再移除所有空白 |
 | `sanitizeForIlike` | 37 | 移除規格列出的 PostgREST 特殊字元 |
@@ -30,7 +32,9 @@
 | `briefCompany`／`quoteFilterValue` | 172／180 | 候選三欄白名單與批次篩選值跳脫 |
 | `searchCompany` | 184 | 統編精確查詢；名稱先取最多 20 筆判斷唯一等 core，否則回最多 10 筆候選；查無再取前兩字提示最多 5 筆 |
 | `handler` | 224 | 固定檢查順序與錯誤回應 |
-| `tests/company-search.test.mjs` | 全檔 | 13 項 mock fetch 測試與子案例 |
+| `api/companies.js` | 3／5 | import 搜尋模組及最前方 search action 分派 |
+| `vercel.json` | 19 | `/api/company-search` → `/api/companies?action=search`；q 保留待 Preview 實測 |
+| `tests/company-search.test.mjs` | 全檔 | 15 項 mock fetch 測試與子案例；匯入 `_lib` |
 
 檢查順序：OPTIONS 204（228）→ 非 GET 405（229）→ 限流（231）→ requireAuth（232）→ 參數檢查（233–234）。
 
@@ -40,10 +44,10 @@
 
 ## 本機驗證
 
-- `node --test tests/*.test.mjs`：138/138 PASS（原有 125＋新增 13）。
+- `node --test tests/*.test.mjs`：140/140 PASS（原有 125＋新增 15）。
 - `node --test tests/sf-mcp/sf-mcp-v1-2.test.mjs`：33/33 PASS。
-- 總計 171/171 PASS，無新增套件。
-- `node --check api/company-search.js`、`git diff --check`：PASS。
+- 總計 173/173 PASS，無新增套件。
+- `node --check _lib/company-search.js`、`git diff --check`：PASS。
 
 | # | 測試內容 | 結果 |
 |---|---|---|
@@ -60,6 +64,8 @@
 | 11 | 每次 200 恰一筆且 await；寫入錯誤回應不變；非 200 不寫 | PASS；含讀取必要表失敗、設定缺失的 500 |
 | 12 | 全部讀取皆用 anon；有效工作階段亦同 | PASS |
 | 13 | 第 61 次 429，先限流再認證；OPTIONS／方法檢查在前；60 秒到期重置 | PASS |
+| 14 | 與 main `d392cbc` 實際 handler 比對：無 action、q、其他 action、全部公司圖譜篩選、未認證及設定缺失 | PASS；HTTP、JSON 字串及欄位順序、標頭、讀取與 log 完全相同 |
+| 15 | companies search action 轉交 q，成功／400 回應與直接 handler 相同，不帶圖譜快取標頭 | PASS |
 
 ## 五之二：PPC 在 Preview 前提供的正式欄位查詢結果
 
@@ -100,18 +106,12 @@
 
 ## 第三段：真實 Preview 驗收
 
-### 部署受阻：Hobby 方案 12 個函式上限
+### 部署與路由整併
 
-- 查核時間：2026-10-19 16:03–16:04（Asia/Taipei）。
-- 部署 commit：`7ec3831f1268b42820a711628a3f2314ed5f201a`。
-- [Vercel 部署與錯誤](https://vercel.com/patrick0814-6136s-projects/solution-finder/4BjRSHRbV5pqezodNcKiBbpBF5ns)：Error，GitHub Vercel status failure。
-- 部署紀錄先顯示 `Build Completed in /vercel/output [1s]`，再於 `Deploying outputs...` 失敗；不是 JavaScript 語法或編譯失敗。
-- Vercel 錯誤原文：`No more than 12 Serverless Functions can be added to a Deployment on the Hobby plan.`
-- main 原有 12 個 `api/*.js`，本次新增 company-search 後為 13 個，超過目前部署上限。
-- 系統配發的失敗部署網址：https://solution-finder-8pf7mhpfv-patrick0814-6136s-projects.vercel.app/ 。此部署未 Ready，不能作為功能驗收網址。
-- 分支 alias：https://solution-finder-git-feat-comp-3433e3-patrick0814-6136s-projects.vercel.app/ 。同樣不可聲稱新 API 已可用。
-- 尚未對新 API 進行真實 Preview 驗收，亦未產生本次九筆 company_search 驗收紀錄。以下 HTTP／JSON 結果仍待驗。
-- 已依使用者「要動其他檔案先停下說明」停止跨檔修正。後續需 PPC 調整部署方案以容納第 13 個函式，或另行核准涉及既有路由／檔案的整併方案；尚未修改任何額外檔案或部署設定。
+- 初版新增第 13 個函式，Vercel Hobby 在輸出部署時拒絕。使用者已明確核准改走既有 companies 的 action 分派，不升級方案。
+- 搜尋邏輯移至 `_lib/company-search.js`，default／named handler 及各具名 helper 皆匯出；API 函式數回到 12。
+- 公開驗收入口維持 `/api/company-search?q=…`，經 rewrite 注入 action=search；尚待新 Preview Ready 後實測 q 保留。
+- 以下 HTTP／JSON 結果仍待驗；尚未產生本次九筆 company_search 驗收紀錄。
 
 | # | 查詢 | HTTP | match_type／result_count／summary | 狀態 |
 |---|---|---|---|---|
@@ -143,4 +143,4 @@
 - [ ] 已在真實 Preview 環境驗證，證據見第三、五之二段。
 - [x] 僅完成 mock／本機驗證，尚未真實環境驗證。
 
-本 PR 尚未完成真實驗收。先處理部署函式數量上限，再安排 Preview 驗證；維持 open、不 merge，待 PPC 向組長報告後才由人類決定 merge。
+本 PR 尚未完成真實驗收。已整併路由並通過本機測試，待新 Preview 部署後安排真實驗證；維持 open、不 merge，待 PPC 向組長報告後才由人類決定 merge。
