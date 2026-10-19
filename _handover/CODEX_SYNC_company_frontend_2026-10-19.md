@@ -203,3 +203,11 @@ from public.contact_access_logs;
 
 - [x] 已在真實 Preview 環境驗證，證據見第三段；ROI 入口原本隱藏的限制已明列。
 - [ ] 僅完成 mock／本機驗證，尚未真實環境驗證。
+
+## PPC 後續調整：公司頁的疑似下架呈現
+
+- 本次程式差異只在 `public/index.html` 的 `renderCompany`，其他頁面、函式與元件均不變；另外更新本 SYNC。未修改 API、資料庫或任何測試檔。
+- 以 `status === 'suspected'` 且 `status_label` 包含「平台停止服務」判斷，沒有依平台名稱或 program_type 寫死。每個符合條件的分組標題下僅顯示一次 slate 灰色 info 說明；該類方案列不顯示狀態標籤。
+- 其他 suspected 顯示灰色小字「未確認」，title 保留原 status_label；正常綠徽章、已下架灰徽章維持原樣。統計改名「未逐筆確認」，仍使用 summary.suspected，維持中性灰色；頁尾換成 PPC 指定文字。
+- 本機檢查通過：整份 index.html 移除 renderCompany 後與調整前 `2a1b8df` 全文一致；JSX 語法、受保護函式、script 標籤及既有公司頁補充測試 16/16 通過。repo 外暫時資料確認任意平台名稱、同組多筆僅一則說明、非停止服務原因的未確認 title／樣式、null 原因、正常／下架徽章、統計與頁尾。
+- 本次 Preview 驗收：待新部署 Ready 後，驗證精誠（24542716）、順立（54688786）及其他疑似下架原因；完成後補上結果。
