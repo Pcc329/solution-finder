@@ -191,10 +191,20 @@ COMMIT
 - 固定分支 Preview：https://solution-finder-git-feat-cont-677095-patrick0814-6136s-projects.vercel.app/
 - 部署：https://vercel.com/patrick0814-6136s-projects/solution-finder/84GXEBivpAfebHL2PaKGGGPGtXEx
 - 部署 commit：`7519a55`，2026-10-19 12:22:59（Asia/Taipei）Ready，GitHub Vercel status success。
-- 驗證時間／查詢紀錄筆數：等待使用者在新 Preview 自行登入後驗證；尚未取得存取表筆數。
-- 表不存在時展開 SOL-0852／公司 `54688786`：待 Preview 驗證。
-- API 200、前台正常、Vercel 只有一行安全寫入錯誤碼：待 Preview 驗證。
-- 尚未通知 PPC 執行 migration；須先完成上述反向測試。
+- 驗證時間：2026-10-19 12:42:21–12:42:24（Asia/Taipei）。資料來源為真實 Preview 與對應 Vercel request log，無 mock。
+- 使用者自行登入後，搜尋順立、開啟 SOL-0852「Cyberbiz 電商一站式開店系統｜專業版」（前端 ID `recSJDpPgvmokqngm`），展開聯絡資訊。
+- Vercel 確認 `GET /api/company-detail`、Search Params `company_id=54688786`，HTTP **200**。該次恰好 1 次 `POST /rest/v1/contact_access_logs`；新表尚不存在，未建立紀錄。
+- UI 聯絡人、公司電話（含分機）、Email 正常顯示；手機仍為「暫無資訊」，無錯誤訊息。未將真實聯絡值放入本文件。
+- 該次僅 1 行寫入錯誤，內容如下（另外 1 行為冷啟動時 Node 既有 `DEP0169 url.parse()` 棄用提示，非紀錄寫入錯誤）：
+
+```text
+[Supabase Error] status=404 table=contact_access_logs code=PGRST205 time=2026-10-19T04:42:24.891Z
+```
+
+- `PGRST205` 為 PostgREST 回報表不存在；API 仍成功回傳聯絡資料，符合四之二。沒有 `missing_hash_salt`，未讀取或輸出 salt。
+- Request ID：`5nwr9-1792384941838-669590f7bf55`。
+- [該次 Vercel 請求紀錄](https://vercel.com/patrick0814-6136s-projects/solution-finder/84GXEBivpAfebHL2PaKGGGPGtXEx/logs?selectedLogId=5nwr9-1792384941838-669590f7bf55)。此證據來自 Vercel，不是 Chrome Network 面板。
+- 反向測試通過後已通知 PPC 可執行 migration，並另開一次執行檔尾獨立驗證；等待完成後才進行第三段真實寫入驗收。
 
 ## 第三段：PPC 執行 migration 後的真實驗收
 
@@ -229,6 +239,6 @@ COMMIT
 ## 五之三：驗證方式聲明（僅勾選一項）
 
 - [ ] 已在真實 Preview 環境驗證，證據見第三、五之二段。
-- [x] 僅完成 mock／本機驗證，尚未真實環境驗證。
+- [x] 已完成 mock／本機驗證，尚未完成 migration 後的真實環境驗證（真實 Preview 反向測試已通過，見四之二）。
 
 本 PR 尚未完成驗收；接續安排真實 Preview 驗證及 PPC migration，維持 open，不 merge。
