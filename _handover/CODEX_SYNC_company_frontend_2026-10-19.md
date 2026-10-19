@@ -60,6 +60,46 @@
 - 兩頁所有 script／link 標籤與 Babel script 屬性皆相同。快速範例、熱門篩選與八個主題區的事件綁定保留。
 - API 檔只還原快取字串即與基準全文相同；search action 分派完全保留。函式數仍為 12。
 
+### 核准的兩個測試檔差異與測試數量
+
+PPC 核准範圍僅為 Cache-Control 預期值及對應測試名稱。以下為相對基準 `771a24b` 的完整變更行；沒有新增、刪除、跳過測試，也沒有修改其他斷言。基準 handler 仍透過原 git revision 載入，只將公司圖譜的舊快取字串換成新規格，再執行原本完整的回應比較；其他 API 的基準不變。
+
+`tests/company-search.test.mjs`：
+
+```diff
+-test('14. companies without search action preserves the actual main graph response and reads', async () => {
++test('14. companies without search action preserves main graph response and reads with private cache policy', async () => {
+@@
+-  const resolved = source.replace("'../_lib/auth.js'", JSON.stringify(new URL('../_lib/auth.js', import.meta.url).href));
++  // PR 3 intentionally changes only the graph Cache-Control policy from the pinned main baseline.
++  const resolved = source.replace("'s-maxage=300'", "'private, no-store'")
++    .replace("'../_lib/auth.js'", JSON.stringify(new URL('../_lib/auth.js', import.meta.url).href));
+```
+
+`tests/supabase-read-equivalence.test.mjs`：
+
+```diff
+-  const imported = source.replace("'../_lib/auth.js'", JSON.stringify(authUrl));
++  // PR 3 changes only companies' cache policy; all bodies, requests and other headers retain parity.
++  const imported = (api === 'companies' ? source.replace("'s-maxage=300'", "'private, no-store'") : source)
++    .replace("'../_lib/auth.js'", JSON.stringify(authUrl));
+```
+
+「修改前」指本 PR 已套用新 API 快取規則、尚未調整測試預期的狀態；「修改後」為核准調整後的執行結果。測試數按 Node runner 實際展開的案例計算，包含迴圈產生的案例。
+
+| 測試範圍 | 修改前數量 | 修改前通過／失敗 | 修改後數量 | 修改後通過／失敗 |
+|---|---:|---:|---:|---:|
+| company-search.test.mjs | 15 | 14／1 | 15 | 15／0 |
+| supabase-read-equivalence.test.mjs | 54 | 36／18 | 54 | 54／0 |
+| 上述兩檔合計 | 69 | 50／19 | 69 | 69／0 |
+| 根測試 tests/*.test.mjs（含上述兩檔） | 140 | 121／19 | 140 | 140／0 |
+| sf-mcp/sf-mcp-v1-2.test.mjs | 33 | 33／0 | 33 | 33／0 |
+| 正式 repo 測試總計 | 173 | 154／19 | 173 | 173／0 |
+
+- 前後根測試及 MCP 執行皆為 skipped=0。原執行紀錄保存在 repo 外 `_company_frontend_validation/root-tests.txt`、`root-final.txt`、`mcp-tests.txt`、`mcp-final.txt`；未將原始執行輸出納入 PR。
+- 另以唯讀比對將上述核准行還原，兩檔全文皆與 `git show 771a24b:<path>` 相同（僅正規化換行）。含 `assert.*` 的程式行分別為 96 行、30 行，逐行相同；所有其他測試內容、斷言、條件與測試資料均保留。
+- 本次補充提交只修改本 SYNC；兩個測試檔維持已核准的差異，未再調整任何程式或斷言。
+
 ## 三、真實 Preview 驗收
 
 - 分支 Preview：https://solution-finder-git-feat-comp-9792c6-patrick0814-6136s-projects.vercel.app/
