@@ -210,4 +210,16 @@ from public.contact_access_logs;
 - 以 `status === 'suspected'` 且 `status_label` 包含「平台停止服務」判斷，沒有依平台名稱或 program_type 寫死。每個符合條件的分組標題下僅顯示一次 slate 灰色 info 說明；該類方案列不顯示狀態標籤。
 - 其他 suspected 顯示灰色小字「未確認」，title 保留原 status_label；正常綠徽章、已下架灰徽章維持原樣。統計改名「未逐筆確認」，仍使用 summary.suspected，維持中性灰色；頁尾換成 PPC 指定文字。
 - 本機檢查通過：整份 index.html 移除 renderCompany 後與調整前 `2a1b8df` 全文一致；JSX 語法、受保護函式、script 標籤及既有公司頁補充測試 16/16 通過。repo 外暫時資料確認任意平台名稱、同組多筆僅一則說明、非停止服務原因的未確認 title／樣式、null 原因、正常／下架徽章、統計與頁尾。
-- 本次 Preview 驗收：待新部署 Ready 後，驗證精誠（24542716）、順立（54688786）及其他疑似下架原因；完成後補上結果。
+- 程式提交 `0b63f55`；[Vercel Ready 部署](https://vercel.com/patrick0814-6136s-projects/solution-finder/6wji9PUGEBHcwNnnFHmf1W2V55L5)。於 2026-10-19 17:58–18:01（Asia/Taipei）使用原分支 Preview 真實資料驗收，沿用已登入狀態。
+
+| Preview 樣本 | 實際結果 |
+|---|---|
+| 精誠 24542716／臺灣雲市集 | 組標題下 1 則指定說明與 info 圖示；1 筆方案列沒有狀態標籤；未逐筆確認統計為 1 |
+| 順立 54688786／臺灣雲市集 | 6 筆方案共用 1 則指定說明，各列均沒有狀態標籤；未逐筆確認統計為 6，沒有逐列重複原因 |
+| 永訊智庫 82800698／新創嚴選網 SOL-0146 | 真實原因為「疑似已下架_新創嚴選網方案未持續上架未逐筆驗證」；顯示灰色小字「未確認」，title 完整保留原因；該組沒有平台停止服務說明 |
+| 永訊智庫同頁的混合狀態 | 新創嚴選網 SOL-0732 保持正常綠徽章；臺灣雲市集 SOL-0144 顯示組層級說明、列無狀態標籤；未逐筆確認統計為 2 |
+
+- DOM 計算樣式：說明及「未確認」皆為 slate 灰色 `rgb(100, 116, 139)`；「未確認」12px、透明背景、圓角 0px，class 僅 `text-xs text-slate-500`。正常徽章仍為 `rounded-full px-2 py-1 text-xs font-bold bg-emerald-50 text-emerald-800`。已下架徽章與原字串、class 相同，另以本機暫時資料確認。
+- 非平台原因的真實樣本由 [SQL Editor 唯讀 SELECT](https://supabase.com/dashboard/project/apdbvjruevjprslhhvlx/sql/a8a55941-5477-427a-b463-6ed2a1033568) 找到：僅查 solution_id、company_id、company_name、record_status，篩選 `record_status like '疑似%'` 且不含「平台停止服務」，limit 5；再回 Preview 查公司驗證。未執行任何資料或結構修改。
+- 截圖保存在 repo 外 `_company_frontend_validation/screenshots/company-status-24542716.png`、`company-status-54688786.png`、`company-status-82800698.png`，皆未展開聯絡卡，不含實際聯絡資訊；未將截圖加入 PR。
+- 本次僅重跑相關的 16 項公司流程／既有功能補充檢查及狀態呈現暫時資料驗證，均通過；未修改或增刪 repo 的正式測試，前述正式測試總數維持 173。
