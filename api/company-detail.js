@@ -1,5 +1,7 @@
 // api/company-detail.js - Vercel Serverless Function
-import { requireAuth } from '../_lib/auth.js';
+import crypto from 'node:crypto';
+import { requireAuth, verifySession } from '../_lib/auth.js';
+import { insertSupabase } from '../_lib/supabase-insert.js';
 const OVERFLOW_CAPITAL_THRESHOLD = 2147483647;
 const VERIFIED_MATCH_METHODS = new Set(['EXACT', 'PARTIAL', 'PARTIAL_GROUP']);
 const rateLimitMap = new Map();
@@ -53,6 +55,27 @@ function awardConfidence(matchMethod) {
   if (VERIFIED_MATCH_METHODS.has(method)) return 'verified';
   if (method === 'AI_EXTRACT') return 'ai_extracted';
   return '';
+}
+
+function hashForLog(value) {
+  const salt = process.env.LOG_HASH_SALT;
+  return salt ? crypto.createHmac('sha256', salt).update(value).digest('hex') : null;
+}
+
+function buildAccessLogRow(req, companyId, contacts, clientIp) {
+  const sessionAuth = verifySession(req);
+  if (!process.env.LOG_HASH_SALT) {
+    console.error('[Contact Access Log Error] code=missing_hash_salt');
+  }
+  return {
+    company_id: companyId,
+    contact_count: contacts.length,
+    has_email: contacts.some(contact => Boolean(contact.email)),
+    has_mobile: contacts.some(contact => Boolean(contact.mobile)),
+    auth_method: sessionAuth ? 'session' : 'api_key',
+    session_hash: sessionAuth ? hashForLog(req.cookies.sf_session) : null,
+    ip_hash: hashForLog(clientIp),
+  };
 }
 
 export default async function handler(req, res) {
@@ -123,7 +146,7 @@ export default async function handler(req, res) {
       fetchSupabase('awards', 'award_name,award_level,host_org,award_year,match_method'),
     ]);
 
-    return res.status(200).json({
+    const responseBody = {
       company_id: textOrBlank(company.company_id),
       company_name: textOrBlank(company.company_name),
       logo_url: textOrBlank(company.logo_url),
@@ -148,7 +171,16 @@ export default async function handler(req, res) {
         award_year: textOrBlank(award.award_year),
         confidence: awardConfidence(award.match_method),
       })),
-    });
+    };
+
+    // Await before responding: Vercel may stop execution after the response.
+    // Keep all logging failures isolated from the existing response.
+    try {
+      await insertSupabase('contact_access_logs', buildAccessLogRow(req, companyId, responseBody.contacts, clientIp));
+    } catch {
+      console.error('[Contact Access Log Error] code=unknown');
+    }
+    return res.status(200).json(responseBody);
   } catch (err) {
     console.error('Company detail API error:', err);
     return res.status(500).json({ error: err.message });
