@@ -211,14 +211,14 @@ COMMIT
 
 | 驗收項目 | 狀態 |
 |---|---|
-| 原 migration 獨立 SQL：RLS=true／公開授權 0／policy 0／欄位 12 列／索引 5 列 | PPC 已回報 PASS；此為使用者提供的結果摘要，未冒稱 Codex 直接查詢 |
-| append-only migration：service_role_privileges 恰為 INSERT,SELECT | 本機 PASS；待 PPC 執行與獨立驗證 |
-| SOL-0852：新增 1 筆、contact_count>=1、session、兩 hash 64 字元十六進位 | 待 PPC |
-| 同家收合再展開不新增；另一家展開新增 1 筆 | 待 PPC |
-| manufacturing 公司面板新增 1 筆 | 待 PPC |
-| 登出 401 不新增 | 待 PPC |
-| anon REST 讀取 401／403 或空陣列 | 待 PPC |
-| 聯絡資訊卡抽查 2 家，顯示與既有一致 | 待 Preview／PPC |
+| 原 migration 獨立 SQL：RLS=true／公開授權 0／policy 0／欄位 12 列／索引 5 列 | PASS；PPC 回報後，Codex 已於 SQL Editor 以只讀 SELECT 直接查核 |
+| append-only migration：service_role_privileges 恰為 INSERT,SELECT | PASS；PPC 回報 COMMIT、七種有效權限僅 INSERT／SELECT 為 true；Codex 再查直接授權確為 INSERT,SELECT |
+| SOL-0852：新增 1 筆、contact_count>=1、session、兩 hash 64 字元十六進位 | PASS；0→1，id=1，contact_count=1，兩 hash 長度 64、hex 檢查 true |
+| 同家收合再展開不新增；另一家展開新增 1 筆 | PASS；快取重開維持 1 筆；卓碼 42714922 展開後 1→2 |
+| manufacturing 公司面板新增 1 筆 | PASS；塔台智能 54931699 公司介紹面板開啟後 2→3，contact_count=2 |
+| 登出 401 不新增 | 待 PPC 登出後，由 Codex 展開未快取公司並重查筆數 |
+| anon REST 讀取 401／403 或空陣列 | 待 PPC 回報實際 anon REST 請求結果 |
+| 聯絡資訊卡抽查 2 家，顯示與既有一致 | PASS；順立有效公司電話含分機與 Email 正常；卓碼公司電話／手機仍為暫無資訊，Email 正常 |
 
 ## 五之二：欄位存在性與 select 比對
 
@@ -236,14 +236,14 @@ COMMIT
 
 公司 select 維持：`company_id,company_name,logo_url,ceo_name,capital,established_date,website,company_intro,employee_range,company_type`。
 
-- [ ] 正式 SQL 12 列逐欄原始輸出：尚待補入。PPC 已回報原 migration COMMIT、正式欄位 12 列與索引 5 列皆符合預期；上方逐欄 12 列仍僅為本機 PostgreSQL 輸出。
+- [x] 正式 SQL 12 列逐欄原始輸出：Codex 已在 SQL Editor 直接以只讀 SELECT 查詢，結果見下方「第三段真實驗收證據」。上方 migration 模擬的逐欄輸出仍僅為本機資料。
 
 ## 五之三：驗證方式聲明（僅勾選一項）
 
 - [ ] 已在真實 Preview 環境驗證，證據見第三、五之二段。
-- [x] 已完成 mock／本機驗證，尚未完成 migration 後的真實環境驗證（真實 Preview 反向測試已通過，見四之二）。
+- [x] 已完成 mock／本機驗證及部分真實 Preview 驗證，完整真實驗收仍待登出 401 與 anon REST 兩項；不得將此勾選誤解為全部 PASS。
 
-本 PR 尚未完成驗收；待 PPC 執行新增 append-only migration，再接續第三段真實 Preview 驗證，維持 open，不 merge。
+本 PR 尚未完成全部驗收；兩份 migration 皆由 PPC 執行完成，剩餘登出 401 與 anon REST 兩項，維持 open，不 merge。
 
 ## 追加修正：service_role append-only 權限
 
@@ -386,8 +386,96 @@ COMMIT
 
 ```
 
-### 後續順序
+### PPC 執行狀態
 
-請 PPC 只執行新增的 `20261019b_contact_access_logs_append_only.sql` 至 COMMIT，再另開一次執行其「獨立驗證」SELECT，預期 INSERT,SELECT；不要重跑原建表 migration、不要執行回滾 SQL。PPC 確認後才接續第三段真實寫入、快取、manufacturing、登出與 anon 權限驗收。
+PPC 已回報新增的 `20261019b_contact_access_logs_append_only.sql` COMMIT，獨立驗證 service_role_privileges = INSERT,SELECT；七種有效權限僅 INSERT、SELECT 為 true，其餘五項皆 false。第三段已依此結果接續執行，未重跑原 migration、未執行正式回滾或清理 SQL。
 
 補充檢查：追加修正後重跑 contact-access-log 七項測試 7/7 PASS；git diff --check PASS。此次只新增 append-only migration 並更新本 SYNC。
+
+## 第三段真實驗收證據（2026-10-19，Asia/Taipei）
+
+### 來源與範圍
+
+- 使用上方同一個固定部署 Preview `solution-finder-hhrssq8wy-...`；API 程式與目前 PR head 完全相同，`git diff 7519a55 -- api/company-detail.js` 為空。後續 commit 僅追加 migration 與交接文件。
+- 頁面使用者登入工作階段；Codex 未取得或輸出 cookie、密碼、salt。
+- 真實記錄查核透過 [Supabase SQL Editor 的獨立驗收 snippet](https://supabase.com/dashboard/project/apdbvjruevjprslhhvlx/sql/93d988b6-5e0b-4e50-ab12-a691c0095b89)，只執行 SELECT。兩份正式 migration 都是 PPC 執行。
+- 初始資料：2026-10-19 14:19:30.939，`total_rows=0`、`max_id=NULL`。Preview 載入方案總數 2,268。
+
+### 真實紀錄與快取
+
+| 操作 | 前→後筆數 | 結果 |
+|---|---|---|
+| 重新整理 Preview 清除前端快取，搜尋順立並展開 SOL-0852 | 0→1 | id=1，company_id=54688786，contact_count=1 |
+| 同家收合再展開 | 1→1 | SQL 重查仍只有 id=1；快取命中，無新增紀錄 |
+| 搜尋卓碼、展開「VPosAPP 線上商圈系統」聯絡資訊 | 1→2 | id=2，company_id=42714922，contact_count=1 |
+| manufacturing：選金屬加工／10–50人／剛起步／生產排程／30萬以下；產生推薦，展開 SARA 入門版並點公司介紹 | 2→3 | id=3，company_id=54931699（塔台智能），contact_count=2 |
+
+資料庫實際 SELECT 結果（created_at 轉為台北時間，雜湊僅保留前 8 碼）：
+
+| id | company_id | contact_count | has_email | has_mobile | auth_method | ip_len | sess_len | ip_hex | sess_hex | ip_prefix | sess_prefix | created_at（UTC+8） |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 54688786 | 1 | true | false | session | 64 | 64 | true | true | c4e7101c | 08d316ed | 2026-10-19 14:20:13.843145 |
+| 2 | 42714922 | 1 | true | false | session | 64 | 64 | true | true | c4e7101c | 08d316ed | 2026-10-19 14:21:40.039378 |
+| 3 | 54931699 | 2 | true | true | session | 64 | 64 | true | true | c4e7101c | 08d316ed | 2026-10-19 14:22:56.331649 |
+
+使用的只讀 SQL：
+
+```sql
+SELECT id, company_id, contact_count, has_email, has_mobile, auth_method,
+       length(ip_hash) AS ip_len, length(session_hash) AS sess_len,
+       ip_hash ~ '^[0-9a-f]{64}$' AS ip_hex,
+       session_hash ~ '^[0-9a-f]{64}$' AS sess_hex,
+       left(ip_hash,8) AS ip_prefix, left(session_hash,8) AS sess_prefix,
+       created_at, count(*) OVER () AS total_rows
+FROM public.contact_access_logs ORDER BY id DESC LIMIT 10;
+```
+
+Vercel 真實請求紀錄（台北時間；均為 GET /api/company-detail，HTTP 200）：
+
+| 公司 | 請求時間 | HTTP |
+|---|---|---|
+| 順立 54688786 | 14:20:11.63 | 200 |
+| 卓碼 42714922 | 14:21:38.34 | 200 |
+| 塔台 54931699 | 14:22:54.71 | 200 |
+
+三次請求未出現 Supabase 寫入錯誤；第一筆僅有 Node 既有 DEP0169 棄用提示。此為 Vercel request logs，不冒稱 Chrome Network 證據。
+
+### 聯絡卡抽查
+
+- 順立：聯絡人、有效公司電話與分機、Email、稅籍主業正常顯示；手機為「暫無資訊」。與反向測試及 PR #257／#258 行為一致。
+- 卓碼：聯絡人、Email、稅籍主業正常；來源遮罩公司電話與手機仍為「暫無資訊」，無電話連結。無前端變更。
+- manufacturing：塔台公司基本資料、公司介紹、聯絡窗口正常載入，兩筆聯絡人使 contact_count=2。
+
+### 正式欄位與權限查核
+
+Codex 直接在正式 SQL Editor 執行規格五之二 SELECT，12 列輸出：
+
+```text
+table_name          column_name    data_type
+contact_access_logs id             bigint
+contact_access_logs created_at     timestamp with time zone
+contact_access_logs company_id     text
+contact_access_logs contact_count  smallint
+contact_access_logs has_email      boolean
+contact_access_logs has_mobile     boolean
+contact_access_logs auth_method    text
+contact_access_logs session_hash   text
+contact_access_logs ip_hash        text
+search_logs         input_type     text
+search_logs         match_type     text
+search_logs         result_count   integer
+(12 rows)
+```
+
+2026-10-19 14:23:30.984504 再查正式 RLS／授權／policy／索引：
+
+```text
+rls  public_grants policies service_role_privileges new_indexes
+true 0             0        INSERT,SELECT            5
+(1 row)
+```
+
+### 尚待完成
+
+- 登出：已請 PPC 在該 Preview 頁 Console 呼叫 POST /api/logout，待回覆 200 後由 Codex 開啟另一個未快取公司面板，核對 401 與紀錄仍為 3。
+- anon REST：已請 PPC 使用該專案 anon key 對 contact_access_logs 發出真實 GET，回報 HTTP 狀態與 body；不得提供 key。
