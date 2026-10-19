@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import handler from '../api/company-search.js';
+import { execFileSync } from 'node:child_process';
+import handler from '../_lib/company-search.js';
+import companiesHandler from '../api/companies.js';
+import { fixture as graphFixture } from './fixtures/supabase-read.fixture.mjs';
 import { createSessionValue } from '../_lib/auth.js';
 
 const company = { company_id: '10000001', company_name: '合成科技股份有限公司', city: '測試市',
@@ -99,14 +102,14 @@ async function invoke(q = company.company_id, options = {}) {
     };
     const identity = options.identity ?? `synthetic-client-${++requestCounter}`;
     const req = {
-      method: options.method ?? 'GET', query: q === undefined ? {} : { q },
+      method: options.method ?? 'GET', query: { ...(q === undefined ? {} : { q }), ...options.query },
       headers: { ...(options.socket ? {} : { 'x-forwarded-for': `${identity}, synthetic-proxy` }),
         ...(options.auth === false || options.auth === 'session' ? {} : { 'x-api-key': env.API_KEYS_ALLOWLIST }) },
       socket: { remoteAddress: identity },
       cookies: options.auth === 'session'
         ? { sf_session: createSessionValue(Date.now() + 60_000, env.SESSION_SECRET) } : {},
     };
-    await handler(req, res);
+    await (options.handler ?? handler)(req, res);
     return { res, calls, logs, responseHeaders, writes: calls.filter(call => call.method === 'POST'),
       reads: calls.filter(call => call.method !== 'POST') };
   } finally {
@@ -325,4 +328,76 @@ test('13. the sixty-first request is limited before auth; methods precede limiti
   assert.equal(options.responseHeaders['Access-Control-Allow-Methods'], 'GET, OPTIONS');
   assert.equal((await invoke(undefined, { identity, now, method: 'POST', auth: false })).res.statusCode, 405);
   assert.equal((await invoke(undefined, { identity, now: now + 60_000 })).res.statusCode, 200);
+});
+
+test('14. companies without search action preserves the actual main graph response and reads', async () => {
+  const source = execFileSync('git', ['show', 'd392cbc1702e23536227df453ffda22980e4479a:api/companies.js'],
+    { cwd: new URL('../', import.meta.url), encoding: 'utf8' });
+  const resolved = source.replace("'../_lib/auth.js'", JSON.stringify(new URL('../_lib/auth.js', import.meta.url).href));
+  const baseline = (await import(`data:text/javascript;base64,${Buffer.from(resolved).toString('base64')}`)).default;
+  async function graph(api, query, authenticated = true, configured = true) {
+    const env = { SUPABASE_URL: 'https://synthetic-supabase.invalid', SUPABASE_ANON_KEY: 'synthetic-anon',
+      API_KEYS_ALLOWLIST: 'synthetic-graph-key' };
+    const savedEnv = Object.fromEntries(Object.keys(env).map(key => [key, process.env[key]]));
+    const savedFetch = globalThis.fetch, savedLog = console.log;
+    const requests = [], logs = [];
+    const res = { statusCode: null, headers: {}, body: null,
+      setHeader(key, value) { this.headers[key] = value; },
+      status(value) { this.statusCode = value; return this; },
+      json(value) { this.body = value; return this; } };
+    try {
+      Object.assign(process.env, env);
+      if (!configured) delete process.env.SUPABASE_URL;
+      console.log = (...args) => logs.push(args.join(' '));
+      globalThis.fetch = async (input, options) => {
+        const url = new URL(input), table = url.pathname.split('/').at(-1);
+        assert.equal(url.origin, env.SUPABASE_URL);
+        assert.ok(['companies_with_counts', 'solutions'].includes(table));
+        requests.push({ url: url.href, ...options });
+        let rows = structuredClone(graphFixture[table]);
+        if (url.searchParams.has('or')) rows = rows.filter(row => !String(row.record_status || '').startsWith('已下架'));
+        if (options.headers.Range) {
+          const [start, end] = options.headers.Range.split('-').map(Number);
+          rows = rows.slice(start, end + 1);
+        } else {
+          const start = Number(url.searchParams.get('offset') || 0);
+          rows = rows.slice(start, start + Number(url.searchParams.get('limit') || rows.length));
+        }
+        const select = url.searchParams.get('select');
+        if (select !== '*') rows = rows.map(row => Object.fromEntries(select.split(',').map(key => [key, row[key] ?? null])));
+        return { ok: true, status: 200, json: async () => rows };
+      };
+      await api({ method: 'GET', query, headers: authenticated ? { 'x-api-key': env.API_KEYS_ALLOWLIST } : {}, cookies: {} }, res);
+      return { statusCode: res.statusCode, headers: res.headers, body: JSON.stringify(res.body), requests, logs };
+    } finally {
+      globalThis.fetch = savedFetch; console.log = savedLog;
+      for (const [key, value] of Object.entries(savedEnv)) {
+        if (value === undefined) delete process.env[key]; else process.env[key] = value;
+      }
+    }
+  }
+  for (const query of [{}, { q: 'synthetic ignored query' }, { action: 'other' },
+    ...['startup', 'award', 'large', 'ai', 'erp', 'sec', 'unknown'].map(filter => ({ filter }))]) {
+    const before = await graph(baseline, query);
+    assert.equal(before.statusCode, 200);
+    assert.deepEqual(await graph(companiesHandler, query), before);
+  }
+  for (const [authenticated, configured, status] of [[false, true, 401], [true, false, 500]]) {
+    const before = await graph(baseline, {}, authenticated, configured);
+    assert.equal(before.statusCode, status);
+    assert.deepEqual(await graph(companiesHandler, {}, authenticated, configured), before);
+  }
+});
+
+test('15. companies search action dispatches q before graph headers and performs one search log write', async () => {
+  for (const [q, status] of [[company.company_id, 200], ['a', 400]]) {
+    const direct = await invoke(q);
+    const routed = await invoke(q, { handler: companiesHandler, query: { action: 'search' } });
+    assert.equal(routed.res.statusCode, status);
+    assert.deepEqual(routed.res.body, direct.res.body);
+    assert.deepEqual(routed.responseHeaders, direct.responseHeaders);
+    assert.equal(routed.responseHeaders['Cache-Control'], undefined);
+    assert.equal(routed.writes.length, status === 200 ? 1 : 0);
+    assert.deepEqual(routed.calls.map(call => call.url.href), direct.calls.map(call => call.url.href));
+  }
 });

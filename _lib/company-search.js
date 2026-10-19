@@ -1,6 +1,6 @@
-// api/company-search.js - Vercel Serverless Function
-import { requireAuth } from '../_lib/auth.js';
-import { insertSupabase } from '../_lib/supabase-insert.js';
+// Company search handler, dispatched through api/companies.js.
+import { requireAuth } from './auth.js';
+import { insertSupabase } from './supabase-insert.js';
 
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -253,3 +253,10 @@ export default async function handler(req, res) {
   }
   return res.status(200).json(result);
 }
+
+export {
+  handler, checkRateLimit, normalizeQuery, toCore, sanitizeForIlike, parseQuery,
+  textOrBlank, numberOrNull, classifyStatus, logReadError, fetchSupabaseRows,
+  buildCompanyProfile, buildSolution, summarizeSolutions, buildExactResult,
+  briefCompany, quoteFilterValue, searchCompany,
+};
