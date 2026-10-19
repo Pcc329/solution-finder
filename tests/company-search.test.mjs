@@ -330,10 +330,12 @@ test('13. the sixty-first request is limited before auth; methods precede limiti
   assert.equal((await invoke(undefined, { identity, now: now + 60_000 })).res.statusCode, 200);
 });
 
-test('14. companies without search action preserves the actual main graph response and reads', async () => {
+test('14. companies without search action preserves main graph response and reads with private cache policy', async () => {
   const source = execFileSync('git', ['show', 'd392cbc1702e23536227df453ffda22980e4479a:api/companies.js'],
     { cwd: new URL('../', import.meta.url), encoding: 'utf8' });
-  const resolved = source.replace("'../_lib/auth.js'", JSON.stringify(new URL('../_lib/auth.js', import.meta.url).href));
+  // PR 3 intentionally changes only the graph Cache-Control policy from the pinned main baseline.
+  const resolved = source.replace("'s-maxage=300'", "'private, no-store'")
+    .replace("'../_lib/auth.js'", JSON.stringify(new URL('../_lib/auth.js', import.meta.url).href));
   const baseline = (await import(`data:text/javascript;base64,${Buffer.from(resolved).toString('base64')}`)).default;
   async function graph(api, query, authenticated = true, configured = true) {
     const env = { SUPABASE_URL: 'https://synthetic-supabase.invalid', SUPABASE_ANON_KEY: 'synthetic-anon',
