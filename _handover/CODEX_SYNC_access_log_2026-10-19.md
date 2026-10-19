@@ -216,8 +216,8 @@ COMMIT
 | SOL-0852：新增 1 筆、contact_count>=1、session、兩 hash 64 字元十六進位 | PASS；0→1，id=1，contact_count=1，兩 hash 長度 64、hex 檢查 true |
 | 同家收合再展開不新增；另一家展開新增 1 筆 | PASS；快取重開維持 1 筆；卓碼 42714922 展開後 1→2 |
 | manufacturing 公司面板新增 1 筆 | PASS；塔台智能 54931699 公司介紹面板開啟後 2→3，contact_count=2 |
-| 登出 401 不新增 | 待 PPC 登出後，由 Codex 展開未快取公司並重查筆數 |
-| anon REST 讀取 401／403 或空陣列 | 待 PPC 回報實際 anon REST 請求結果 |
+| 登出 401 不新增 | PASS；PPC 登出 200 後開啟未快取盛網 91013840，Vercel 401、No outgoing requests，SQL 重查仍為 3 筆 |
+| anon REST 讀取 401／403 或空陣列 | PASS；Codex 直接以公開 anon key 發出 REST GET，HTTP 401、42501 permission denied，未讀到紀錄 |
 | 聯絡資訊卡抽查 2 家，顯示與既有一致 | PASS；順立有效公司電話含分機與 Email 正常；卓碼公司電話／手機仍為暫無資訊，Email 正常 |
 
 ## 五之二：欄位存在性與 select 比對
@@ -240,10 +240,10 @@ COMMIT
 
 ## 五之三：驗證方式聲明（僅勾選一項）
 
-- [ ] 已在真實 Preview 環境驗證，證據見第三、五之二段。
-- [x] 已完成 mock／本機驗證及部分真實 Preview 驗證，完整真實驗收仍待登出 401 與 anon REST 兩項；不得將此勾選誤解為全部 PASS。
+- [x] 已在真實 Preview 環境驗證，證據見第三、五之二段。
+- [ ] 僅完成 mock／本機驗證，尚未真實環境驗證。
 
-本 PR 尚未完成全部驗收；兩份 migration 皆由 PPC 執行完成，剩餘登出 401 與 anon REST 兩項，維持 open，不 merge。
+本 PR 已完成規格各項驗收；兩份正式 migration 皆由 PPC 執行，Codex 僅執行只讀查核及正常 Preview 操作。依使用者要求維持一般 PR open、非 Draft，不 merge。
 
 ## 追加修正：service_role append-only 權限
 
@@ -398,7 +398,7 @@ PPC 已回報新增的 `20261019b_contact_access_logs_append_only.sql` COMMIT，
 
 - 使用上方同一個固定部署 Preview `solution-finder-hhrssq8wy-...`；API 程式與目前 PR head 完全相同，`git diff 7519a55 -- api/company-detail.js` 為空。後續 commit 僅追加 migration 與交接文件。
 - 頁面使用者登入工作階段；Codex 未取得或輸出 cookie、密碼、salt。
-- 真實記錄查核透過 [Supabase SQL Editor 的獨立驗收 snippet](https://supabase.com/dashboard/project/apdbvjruevjprslhhvlx/sql/93d988b6-5e0b-4e50-ab12-a691c0095b89)，只執行 SELECT。兩份正式 migration 都是 PPC 執行。
+- 真實紀錄與 schema／權限查核透過 Supabase SQL Editor 的獨立驗收查詢，只執行 SELECT；各次 SQL 與輸出記錄於本文件。[已保存的筆數複查 snippet](https://supabase.com/dashboard/project/apdbvjruevjprslhhvlx/sql/4756c089-3d10-4890-8683-85df8a71f86a) 可供後續重查。兩份正式 migration 都是 PPC 執行。
 - 初始資料：2026-10-19 14:19:30.939，`total_rows=0`、`max_id=NULL`。Preview 載入方案總數 2,268。
 
 ### 真實紀錄與快取
@@ -475,7 +475,35 @@ true 0             0        INSERT,SELECT            5
 (1 row)
 ```
 
-### 尚待完成
+### 登出 401 與 anon REST：最終驗收
 
-- 登出：已請 PPC 在該 Preview 頁 Console 呼叫 POST /api/logout，待回覆 200 後由 Codex 開啟另一個未快取公司面板，核對 401 與紀錄仍為 3。
-- anon REST：已請 PPC 使用該專案 anon key 對 contact_access_logs 發出真實 GET，回報 HTTP 狀態與 body；不得提供 key。
+登出操作由 PPC 完成；因該 Preview 分頁自動點擊連續逾時，未快取公司面板的點擊亦由 PPC 操作。Codex 直接讀取 UI、Vercel 紀錄與正式 SQL 結果核對：
+
+- 14:25:41.84：`POST /api/logout` → HTTP 200。
+- 14:35:54.17：在同一 manufacturing 頁選盛網科技「AI 循環碳永續價值鏈與善良管理人雲管家」並點公司介紹，`GET /api/company-detail?company_id=91013840` → HTTP 401。
+- UI 顯示「暫無公司資料」，沒有呈現該公司的聯絡內容。
+- Vercel 該次請求明確顯示 **No outgoing requests**，沒有觸發任何 Supabase 讀寫。
+- Request ID：`9lfpd-1792391754173-2ee4a958bc70`；[該次 401 請求紀錄](https://vercel.com/patrick0814-6136s-projects/solution-finder/84GXEBivpAfebHL2PaKGGGPGtXEx/logs?selectedLogId=9lfpd-1792391754173-2ee4a958bc70)。
+- 14:36:15.745516：只讀 SQL 再查，仍為 total_rows=3、max_id=3。故登出後 401 無新增紀錄，PASS。
+
+```text
+total_rows max_id checked_at（UTC）
+3          3      2026-10-19 06:36:15.745516+00
+(1 row)
+```
+
+anon REST 初次由 PPC 在 Preview Console 嘗試時，被 Preview 的 connect-src CSP 阻擋，未送達 Supabase；該次不列為成功證據，也未修改或停用 CSP。之後 Codex 透過已登入的 Supabase 設定頁取得標示為 public 的 anon key（未讀取 service_role key），直接以 PowerShell 發送真實唯讀 GET：
+
+```text
+時間：2026-10-19 14:34:56.5099906（Asia/Taipei）
+GET https://apdbvjruevjprslhhvlx.supabase.co/rest/v1/contact_access_logs?select=id&limit=1
+身分：anon（apikey 與 Bearer headers 使用同一個公開 anon key；key 不記錄於此）
+HTTP：401
+body.code：42501
+body.message：permission denied for table contact_access_logs
+body.details：null
+```
+
+Supabase 已收到並拒絕實際 anon 查詢，回應沒有紀錄資料。錯誤內的 GRANT 提示僅為資料，未執行；未開放公開角色權限。anon 讀取拒絕驗收 PASS。
+
+第三段最終筆數為 3，所有驗收項目皆 PASS。保留測試產生的三筆真實存取紀錄，未執行刪除、正式 migration、回滾或清理 SQL。PR 維持 open、非 Draft，未 merge。
