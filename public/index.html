@@ -460,6 +460,9 @@
           if (!["exact", "partial", "none"].includes(result.match_type)
             || (result.match_type === "exact" && !result.company)) throw new Error("Invalid search response");
           const view = result.match_type === "exact" ? "company" : "company-search";
+          if (activePage === "detail" && selectedItem) {
+            window.history.replaceState({ ...window.history.state, view: "detail", companySolution: selectedItem }, "", "#detail");
+          }
           setCompanyResult(result);
           setShowDelisted(false);
           setSelectedItem(null);
