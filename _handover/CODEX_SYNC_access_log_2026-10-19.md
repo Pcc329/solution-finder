@@ -4,7 +4,8 @@
 
 - Repo：https://github.com/Pcc329/solution-finder
 - 已 `git pull --ff-only origin main`，實際基準：`4d47b897f9dfc13f9315dcd12f8802c69332f09c`，與指定基準相同。
-- Branch：`feat/contact-access-log`。程式 commit 與一般 PR：建立後補入；不 merge。
+- Branch：`feat/contact-access-log`。程式 commit：`7519a55138d3391d0dc34cd0f0262de461cde593`。
+- 一般 [PR #259](https://github.com/Pcc329/solution-finder/pull/259)：OPEN、非 Draft，不 merge。
 - 本次附件與下載資料夾的 `codex_規格書範本_v2.md` v2.1 已核對；repo 本身無 `sop/` 目錄。
 - 使用者另已確認 SYNC 可作為第 4 個檔案。產品變更只有下列三檔，無新增套件宣告。
 - 正式 Supabase migration 由 PPC 執行；Codex 未執行正式 migration，亦未讀取或輸出 LOG_HASH_SALT。
@@ -55,7 +56,8 @@ return res.status(200).json(responseBody);
 
 ### 第一次：原檔成功、獨立驗證與 service_role 寫入探針
 
-```textBEGIN
+```text
+BEGIN
 CREATE TABLE
 COMMENT
 COMMENT
@@ -126,7 +128,7 @@ ROLLBACK
 (1 row)
 
 
-```n
+```
 ### 第二次：故意授權給 anon，自檢失敗且整筆回滾
 
 ```text
@@ -164,7 +166,7 @@ CONTEXT:  PL/pgSQL function inline_code_block line 29 at RAISE
 (1 row)
 
 
-```n
+```
 ### 第三次：直接執行檔尾回滾 SQL
 
 ```text
@@ -185,7 +187,11 @@ COMMIT
 
 ## 四之二：真實 Preview 反向測試
 
-- Preview URL、部署 commit、驗證時間：待分支部署後補入。
+- Preview：https://solution-finder-hhrssq8wy-patrick0814-6136s-projects.vercel.app/
+- 固定分支 Preview：https://solution-finder-git-feat-cont-677095-patrick0814-6136s-projects.vercel.app/
+- 部署：https://vercel.com/patrick0814-6136s-projects/solution-finder/84GXEBivpAfebHL2PaKGGGPGtXEx
+- 部署 commit：`7519a55`，2026-10-19 12:22:59（Asia/Taipei）Ready，GitHub Vercel status success。
+- 驗證時間／查詢紀錄筆數：等待使用者在新 Preview 自行登入後驗證；尚未取得存取表筆數。
 - 表不存在時展開 SOL-0852／公司 `54688786`：待 Preview 驗證。
 - API 200、前台正常、Vercel 只有一行安全寫入錯誤碼：待 Preview 驗證。
 - 尚未通知 PPC 執行 migration；須先完成上述反向測試。
