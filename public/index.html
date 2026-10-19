@@ -1948,7 +1948,7 @@
                             <div className="mt-1 flex flex-wrap items-center gap-2">
                               <span className="text-xs text-slate-400 font-mono break-all">{solution.solution_id}</span>
                               {!isPlatformStopped(solution) && (solution.status === "suspected"
-                                ? <span title={solution.status_label || undefined} className="text-xs text-slate-500">未確認</span>
+                                ? <span title={solution.status_label || undefined} className="text-xs text-slate-500">{(solution.status_label || "").includes("未持續上架") ? "平台上已找不到" : "未確認"}</span>
                                 : <span title={solution.status_label || undefined} className={`rounded-full px-2 py-1 text-xs font-bold ${statusClass}`}>{statusLabel}</span>)}
                               {solution.has_ai && <span className="rounded-full bg-yellow-50 px-2 py-1 text-xs font-bold text-yellow-800">AI</span>}
                             </div>
