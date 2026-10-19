@@ -223,3 +223,17 @@ from public.contact_access_logs;
 - 非平台原因的真實樣本由 [SQL Editor 唯讀 SELECT](https://supabase.com/dashboard/project/apdbvjruevjprslhhvlx/sql/a8a55941-5477-427a-b463-6ed2a1033568) 找到：僅查 solution_id、company_id、company_name、record_status，篩選 `record_status like '疑似%'` 且不含「平台停止服務」，limit 5；再回 Preview 查公司驗證。未執行任何資料或結構修改。
 - 截圖保存在 repo 外 `_company_frontend_validation/screenshots/company-status-24542716.png`、`company-status-54688786.png`、`company-status-82800698.png`，皆未展開聯絡卡，不含實際聯絡資訊；未將截圖加入 PR。
 - 本次僅重跑相關的 16 項公司流程／既有功能補充檢查及狀態呈現暫時資料驗證，均通過；未修改或增刪 repo 的正式測試，前述正式測試總數維持 173。
+
+### 後續文案細分：平台上已找不到
+
+- 程式提交 `4c9ddeb`，只改 `public/index.html` 公司頁的 1 行文字判斷：非「平台停止服務」類的 suspected，status_label 含「未持續上架」時顯示「平台上已找不到」，其他仍為「未確認」。這項規則取代前次驗收時一律顯示「未確認」的文字對應；完整 title、class 及其他邏輯不變。
+- 將該文字運算式還原後，整份 index.html 與調整前 `1ed296b` 全文一致；JSX 語法、受保護函式及 script 標籤檢查通過，`git diff --check` 通過。未修改或新增測試檔，未宣稱重跑完整測試。
+- [Vercel Ready 部署](https://vercel.com/patrick0814-6136s-projects/solution-finder/C799dc8CbktCt15zfg9K2LJeXGKy)；於 2026-10-19 18:20（Asia/Taipei）在分支 Preview 查詢愛吠的狗娛樂（42816532），使用真實資料驗收：
+
+| 方案 | 顯示文字 | title |
+|---|---|---|
+| SOL-MOE-0612 | 平台上已找不到 | 疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證 |
+| SOL-MOE-0613 | 平台上已找不到 | 疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證 |
+
+- 兩筆皆維持 `text-xs text-slate-500`，實際 12px、灰色 `rgb(100, 116, 139)`、透明背景、圓角 0px。同頁臺灣雲市集組仍只顯示平台停止服務說明，SOL-0442 列沒有狀態標籤。
+- 截圖保存在 repo 外 `_company_frontend_validation/screenshots/company-listing-42816532.png`，同時顯示兩筆指定方案及新文案，未展開聯絡卡、不含實際聯絡資訊。本次交付僅 index.html 與本 SYNC，推送原 PR #261，不 merge。
