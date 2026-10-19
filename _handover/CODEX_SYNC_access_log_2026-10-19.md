@@ -7,7 +7,7 @@
 - Branch：`feat/contact-access-log`。程式 commit：`7519a55138d3391d0dc34cd0f0262de461cde593`。
 - 一般 [PR #259](https://github.com/Pcc329/solution-finder/pull/259)：OPEN、非 Draft，不 merge。
 - 本次附件與下載資料夾的 `codex_規格書範本_v2.md` v2.1 已核對；repo 本身無 `sop/` 目錄。
-- 使用者另已確認 SYNC 可作為第 4 個檔案。產品變更只有下列三檔，無新增套件宣告。
+- 使用者另已確認 SYNC 可作為第 4 個檔案，並在原 migration COMMIT 後要求新增 append-only migration 作為第 5 檔。產品程式及既有 migration 不再變更，無新增套件宣告。
 - 正式 Supabase migration 由 PPC 執行；Codex 未執行正式 migration，亦未讀取或輸出 LOG_HASH_SALT。
 
 ## 改動清單與位置
@@ -18,6 +18,7 @@
 | `api/company-detail.js` | `buildAccessLogRow`：有效 session 優先；過濾後 contacts 計算筆數與存在旗標；無 salt 一行安全錯誤 | 65–80 |
 | `api/company-detail.js` | `handler`：既有 payload 保存為 responseBody，await insertSupabase 並隔離任何紀錄錯誤 | 149、178–183 |
 | `migrations/20261019_contact_access_logs.sql` | 新表、9 欄中文 COMMENT、4 索引、RLS／REVOKE／service_role 權限；search_logs 三個 nullable 欄與 1 索引；自檢、驗證、回滾、180 天清理註解 | 全檔 |
+| `migrations/20261019b_contact_access_logs_append_only.sql` | 收回 service_role 的 UPDATE、DELETE、TRUNCATE、TRIGGER、REFERENCES；直接及有效權限皆須恰為 INSERT、SELECT；附獨立驗證與回滾 | 全檔 |
 | `tests/contact-access-log.test.mjs` | mock fetch 的七項測試，與 main 原始 handler 做完整 JSON 比對 | 全檔 |
 | `_handover/CODEX_SYNC_access_log_2026-10-19.md` | 本交接紀錄 | 全檔 |
 
@@ -204,13 +205,14 @@ COMMIT
 - `PGRST205` 為 PostgREST 回報表不存在；API 仍成功回傳聯絡資料，符合四之二。沒有 `missing_hash_salt`，未讀取或輸出 salt。
 - Request ID：`5nwr9-1792384941838-669590f7bf55`。
 - [該次 Vercel 請求紀錄](https://vercel.com/patrick0814-6136s-projects/solution-finder/84GXEBivpAfebHL2PaKGGGPGtXEx/logs?selectedLogId=5nwr9-1792384941838-669590f7bf55)。此證據來自 Vercel，不是 Chrome Network 面板。
-- 反向測試通過後已通知 PPC 可執行 migration，並另開一次執行檔尾獨立驗證；等待完成後才進行第三段真實寫入驗收。
+- 反向測試通過後已通知 PPC 執行原 migration；PPC 已回報 COMMIT 與獨立驗證符合預期。發現 Supabase 預設 ALL 後，依使用者要求先補 append-only migration，待 PPC 執行後才進行第三段真實寫入驗收。
 
 ## 第三段：PPC 執行 migration 後的真實驗收
 
 | 驗收項目 | 狀態 |
 |---|---|
-| 獨立 SQL：RLS=true／公開授權 0／policy 0／service_role INSERT／search_logs 三欄 | 待 PPC |
+| 原 migration 獨立 SQL：RLS=true／公開授權 0／policy 0／欄位 12 列／索引 5 列 | PPC 已回報 PASS；此為使用者提供的結果摘要，未冒稱 Codex 直接查詢 |
+| append-only migration：service_role_privileges 恰為 INSERT,SELECT | 本機 PASS；待 PPC 執行與獨立驗證 |
 | SOL-0852：新增 1 筆、contact_count>=1、session、兩 hash 64 字元十六進位 | 待 PPC |
 | 同家收合再展開不新增；另一家展開新增 1 筆 | 待 PPC |
 | manufacturing 公司面板新增 1 筆 | 待 PPC |
@@ -234,11 +236,158 @@ COMMIT
 
 公司 select 維持：`company_id,company_name,logo_url,ceo_name,capital,established_date,website,company_intro,employee_range,company_type`。
 
-- [ ] PPC 執行 migration 後，正式 SQL 12 列欄位驗證輸出：待 PPC。上方 12 列僅為本機 PostgreSQL 輸出，不代表正式 schema。
+- [ ] 正式 SQL 12 列逐欄原始輸出：尚待補入。PPC 已回報原 migration COMMIT、正式欄位 12 列與索引 5 列皆符合預期；上方逐欄 12 列仍僅為本機 PostgreSQL 輸出。
 
 ## 五之三：驗證方式聲明（僅勾選一項）
 
 - [ ] 已在真實 Preview 環境驗證，證據見第三、五之二段。
 - [x] 已完成 mock／本機驗證，尚未完成 migration 後的真實環境驗證（真實 Preview 反向測試已通過，見四之二）。
 
-本 PR 尚未完成驗收；接續安排真實 Preview 驗證及 PPC migration，維持 open，不 merge。
+本 PR 尚未完成驗收；待 PPC 執行新增 append-only migration，再接續第三段真實 Preview 驗證，維持 open，不 merge。
+
+## 追加修正：service_role append-only 權限
+
+PPC 已執行原 migration 並回報正式結果：RLS=true、public_grants=0、policies=0、欄位 12 列、索引 5 列。然而 Supabase 預設 ALL 使 service_role 保有 DELETE、REFERENCES、TRIGGER、TRUNCATE、UPDATE；單純 GRANT SELECT, INSERT 不會撤銷這些既有權限。依使用者要求新增後續 migration，不修改已執行的原檔。
+
+- 新檔：`migrations/20261019b_contact_access_logs_append_only.sql`。
+- 單一 BEGIN／COMMIT；撤銷 UPDATE、DELETE、TRUNCATE、TRIGGER、REFERENCES。
+- DO 自檢要求直接授權與有效表權限皆恰為 INSERT、SELECT，並檢查不得殘留欄位 UPDATE／REFERENCES 權限；不符即整筆回滾。
+- 檔尾獨立驗證預期 `service_role_privileges = INSERT,SELECT`，且七種有效表權限只有 INSERT、SELECT 為 true。
+- 回滾 SQL 僅恢復本次撤銷的五種權限，不刪資料；會重新放開修改／刪除，僅供 PPC 必要時手動執行。
+- 原檔 180 天清理 SQL 之後須由 PPC 以管理者身分執行，service_role 不再能 DELETE。
+
+### insertSupabase 不需要 UPDATE 的證據
+
+`_lib/supabase-insert.js:14–24` 使用一般 `POST /rest/v1/${table}`、`Prefer: return=minimal` 與 JSON row。endpoint 未設定任何 query parameters；沒有 upsert、on_conflict 或 resolution=merge-duplicates。`api/company-detail.js:178` 直接呼叫該 helper，故寫入不需要 UPDATE 權限；helper 與 API 程式於此次追加修正均未改動。
+
+除靜態確認外，本機以 `SET ROLE service_role` 在僅有 INSERT、SELECT 的狀態實際執行 INSERT（identity 自動產生）成功，再 SELECT 得到 1 筆；UPDATE、DELETE、TRUNCATE 都得到 SQLSTATE 42501，既有測試列內容保持原樣。
+
+### 本機 PostgreSQL 16 輸出
+
+使用既有隔離 cluster，新建本次專用測試資料庫。先設定預設 ALL，再執行原 migration 重現 PPC 狀態，接續執行新 migration。另驗證檔尾回滾、在 REVOKE 後注入 UPDATE 可被自檢攔下並整筆回滾，最後重套新 migration 成功。全程僅本機 loopback，結束已關閉伺服器；未操作正式 Supabase。
+
+```text
+BEFORE: inherited Supabase-style default ALL
+                 service_role_privileges
+---------------------------------------------------------
+ DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+(1 row)
+
+ privilege  | allowed
+------------+---------
+ DELETE     | t
+ INSERT     | t
+ REFERENCES | t
+ SELECT     | t
+ TRIGGER    | t
+ TRUNCATE   | t
+ UPDATE     | t
+(7 rows)
+
+
+MIGRATION AND INDEPENDENT VERIFICATION
+BEGIN
+REVOKE
+DO
+COMMIT
+ service_role_privileges
+-------------------------
+ INSERT,SELECT
+(1 row)
+
+ privilege  | allowed
+------------+---------
+ DELETE     | f
+ INSERT     | t
+ REFERENCES | f
+ SELECT     | t
+ TRIGGER    | f
+ TRUNCATE   | f
+ UPDATE     | f
+(7 rows)
+
+
+ACTUAL INSERT AND SELECT AS service_role (no UPDATE permission)
+SET
+INSERT 0 1
+ inserted_rows
+---------------
+             1
+(1 row)
+
+RESET
+
+REJECTED UPDATE
+SET
+ERROR:  42501: permission denied for table contact_access_logs
+LOCATION:  aclcheck_error, aclchk.c:2814
+
+REJECTED DELETE
+SET
+ERROR:  42501: permission denied for table contact_access_logs
+LOCATION:  aclcheck_error, aclchk.c:2814
+
+REJECTED TRUNCATE
+SET
+ERROR:  42501: permission denied for table contact_access_logs
+LOCATION:  aclcheck_error, aclchk.c:2814
+
+DATA PRESERVED
+          company_id           | contact_count
+-------------------------------+---------------
+ synthetic-append-only-company |             0
+(1 row)
+
+
+FOOTER ROLLBACK RESTORES PRIOR ALL
+BEGIN
+GRANT
+COMMIT
+                       string_agg
+---------------------------------------------------------
+ DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+(1 row)
+
+
+INJECT UPDATE AFTER REVOKE: SELF-CHECK ROLLBACK
+BEGIN
+REVOKE
+GRANT
+ROLLBACK
+ERROR:  自檢失敗：service_role 授權 {INSERT,SELECT,UPDATE}、有效表權限 {INSERT,SELECT,UPDATE}（皆應僅為 INSERT,SELECT），且不得有欄位 UPDATE／REFERENCES 權限
+CONTEXT:  PL/pgSQL function inline_code_block line 20 at RAISE
+                       string_agg
+---------------------------------------------------------
+ DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+(1 row)
+
+
+REAPPLY ORIGINAL APPEND-ONLY MIGRATION
+BEGIN
+REVOKE
+DO
+COMMIT
+ service_role_privileges
+-------------------------
+ INSERT,SELECT
+(1 row)
+
+ privilege  | allowed
+------------+---------
+ DELETE     | f
+ INSERT     | t
+ REFERENCES | f
+ SELECT     | t
+ TRIGGER    | f
+ TRUNCATE   | f
+ UPDATE     | f
+(7 rows)
+
+
+```
+
+### 後續順序
+
+請 PPC 只執行新增的 `20261019b_contact_access_logs_append_only.sql` 至 COMMIT，再另開一次執行其「獨立驗證」SELECT，預期 INSERT,SELECT；不要重跑原建表 migration、不要執行回滾 SQL。PPC 確認後才接續第三段真實寫入、快取、manufacturing、登出與 anon 權限驗收。
+
+補充檢查：追加修正後重跑 contact-access-log 七項測試 7/7 PASS；git diff --check PASS。此次只新增 append-only migration 並更新本 SYNC。
