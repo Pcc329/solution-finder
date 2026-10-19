@@ -4,7 +4,8 @@
 
 - Repo：https://github.com/Pcc329/solution-finder
 - 已 `git pull --ff-only origin main`，實際基準：`d392cbc1702e23536227df453ffda22980e4479a`（PR #259 merge 後），與指定基準相同。
-- Branch：`feat/company-search-api`。程式 commit／一般 PR：建立後補入。
+- Branch：`feat/company-search-api`。程式 commit：`7ec3831f1268b42820a711628a3f2314ed5f201a`。
+- 一般 [PR #260](https://github.com/Pcc329/solution-finder/pull/260)：open、非 Draft、不 merge、不啟用 auto-merge。
 - 依附件及 v2.1 範本實作。變更限新增 `api/company-search.js`、`tests/company-search.test.mjs` 與本 SYNC。
 - 無前端、既有 API、認證 helper、寫入 helper、Vercel 設定或資料庫結構／權限變更，無新增套件。
 - 本功能先於 Preview 完成驗收，PPC 向組長報告後才由人類決定 merge；Codex 不 merge、不啟用 auto-merge。
@@ -99,7 +100,18 @@
 
 ## 第三段：真實 Preview 驗收
 
-Preview URL／部署 commit／驗證時間：待部署後補入。
+### 部署受阻：Hobby 方案 12 個函式上限
+
+- 查核時間：2026-10-19 16:03–16:04（Asia/Taipei）。
+- 部署 commit：`7ec3831f1268b42820a711628a3f2314ed5f201a`。
+- [Vercel 部署與錯誤](https://vercel.com/patrick0814-6136s-projects/solution-finder/4BjRSHRbV5pqezodNcKiBbpBF5ns)：Error，GitHub Vercel status failure。
+- 部署紀錄先顯示 `Build Completed in /vercel/output [1s]`，再於 `Deploying outputs...` 失敗；不是 JavaScript 語法或編譯失敗。
+- Vercel 錯誤原文：`No more than 12 Serverless Functions can be added to a Deployment on the Hobby plan.`
+- main 原有 12 個 `api/*.js`，本次新增 company-search 後為 13 個，超過目前部署上限。
+- 系統配發的失敗部署網址：https://solution-finder-8pf7mhpfv-patrick0814-6136s-projects.vercel.app/ 。此部署未 Ready，不能作為功能驗收網址。
+- 分支 alias：https://solution-finder-git-feat-comp-3433e3-patrick0814-6136s-projects.vercel.app/ 。同樣不可聲稱新 API 已可用。
+- 尚未對新 API 進行真實 Preview 驗收，亦未產生本次九筆 company_search 驗收紀錄。以下 HTTP／JSON 結果仍待驗。
+- 已依使用者「要動其他檔案先停下說明」停止跨檔修正。後續需 PPC 調整部署方案以容納第 13 個函式，或另行核准涉及既有路由／檔案的整併方案；尚未修改任何額外檔案或部署設定。
 
 | # | 查詢 | HTTP | match_type／result_count／summary | 狀態 |
 |---|---|---|---|---|
@@ -131,4 +143,4 @@ Preview URL／部署 commit／驗證時間：待部署後補入。
 - [ ] 已在真實 Preview 環境驗證，證據見第三、五之二段。
 - [x] 僅完成 mock／本機驗證，尚未真實環境驗證。
 
-本 PR 尚未完成真實驗收；後續先安排 Preview 驗證，不 merge。
+本 PR 尚未完成真實驗收。先處理部署函式數量上限，再安排 Preview 驗證；維持 open、不 merge，待 PPC 向組長報告後才由人類決定 merge。
