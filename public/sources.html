@@ -487,6 +487,52 @@
         justify-content: space-between;
       }
     }
+
+    #structure { --co:var(--primary); --co-soft:#e3f3ef; --co-ink:var(--primary-dark); --so:#4f46b8; --so-soft:#ecebfb; --so-ink:#352e8c; --re:#9a5b13; --re-soft:#fbf0e1; --re-ink:#6e400a; min-width:0; }
+    #structure .structure-lead { color:var(--muted); line-height:1.8; margin:0 0 16px; }
+    #structure .card { padding:20px; margin-bottom:16px; min-width:0; }
+    #structure h3 { margin:0 0 8px; font-size:18px; }
+    #structure .sub { color:var(--muted); font-size:14px; line-height:1.7; }
+    #structure .legend { display:flex; flex-wrap:wrap; gap:8px 16px; font-size:13px; color:var(--muted); margin-bottom:12px; }
+    #structure .legend span { display:inline-flex; align-items:center; gap:6px; }
+    #structure .legend i { width:14px; height:14px; border-radius:4px; display:inline-block; border:2px solid; }
+    #structure .lg-co { background:var(--co-soft); border-color:var(--co); }
+    #structure .lg-so { background:var(--so-soft); border-color:var(--so); }
+    #structure .lg-re { background:var(--re-soft); border-color:var(--re); }
+    #structure .erwrap { overflow-x:auto; max-width:100%; border:1px solid var(--border); border-radius:12px; background:var(--bg); }
+    #structure svg.er { display:block; min-width:900px; width:100%; height:auto; }
+    #structure .ent rect.box { stroke-width:1.5; }
+    #structure .ent.co rect.box { fill:var(--co-soft); stroke:var(--co); }
+    #structure .ent.so rect.box { fill:var(--so-soft); stroke:var(--so); }
+    #structure .ent.re rect.box { fill:var(--re-soft); stroke:var(--re); }
+    #structure .ent text { font-family:inherit; }
+    #structure .ent .t { font-size:15px; font-weight:700; }
+    #structure .ent.co .t { fill:var(--co-ink); }
+    #structure .ent.so .t { fill:var(--so-ink); }
+    #structure .ent.re .t { fill:var(--re-ink); }
+    #structure .ent .s { font-size:11.5px; fill:var(--muted); }
+    #structure .ent { cursor:pointer; }
+    #structure .ent:hover rect.box, #structure .ent.sel rect.box { stroke-width:3; }
+    #structure .ent:focus-visible rect.box { stroke:var(--blue); stroke-width:3; }
+    #structure .ent:focus-visible, #structure .erwrap:focus-visible, #structure summary:focus-visible { outline:3px solid var(--blue); outline-offset:3px; }
+    #structure .rel { stroke:var(--muted); stroke-width:1.5; fill:none; }
+    #structure .rel.hi { stroke:var(--text); stroke-width:2.5; }
+    #structure .card-lbl { font-size:11.5px; fill:var(--text); font-weight:600; }
+    #structure .dim { opacity:.25; }
+    #structure .detail { margin-top:14px; border-radius:12px; border:1px solid var(--border); padding:16px; background:var(--card); min-height:96px; }
+    #structure .detail h3 { font-size:16px; }
+    #structure .detail p, #structure .detail ul { font-size:14px; line-height:1.7; color:var(--text); }
+    #structure .detail ul { padding-left:20px; }
+    #structure .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; margin-left:8px; vertical-align:middle; }
+    #structure .tg-co { background:var(--co-soft); color:var(--co-ink); }
+    #structure .tg-so { background:var(--so-soft); color:var(--so-ink); }
+    #structure .tg-re { background:var(--re-soft); color:var(--re-ink); }
+    #structure .faq details { border-top:1px solid var(--border); padding:12px 0; }
+    #structure .faq details:first-of-type { border-top:0; }
+    #structure .faq summary { cursor:pointer; font-weight:600; min-height:44px; padding:10px 0; }
+    #structure .faq p { margin:8px 0 0; color:var(--muted); font-size:14px; line-height:1.8; }
+    #structure .note, #structure .updated { font-size:12px; line-height:1.7; color:var(--muted); }
+    #structure .updated { text-align:right; margin-top:12px; }
   </style>
 </head>
 <body>
@@ -560,6 +606,45 @@
         </article>
 
       </div>
+    </section>
+
+    <section class="section" id="structure" aria-label="資料結構">
+      <h2 class="section-head">資料怎麼連在一起</h2>
+  <p class="structure-lead">資料庫以「公司」為中心：一家公司可以在多個平台上架多個方案，聯絡人、獲獎、登記資料都屬於公司。點選圖中任一方塊，下方會說明它是什麼、從哪裡來。</p>
+
+  <section class="card" aria-labelledby="h-er">
+    <h3 id="h-er">資料結構圖</h3>
+    <p class="sub">線上的「1」與「多」表示數量關係，例如「公司 1 ── 多 方案」代表一家公司可以有多個方案。</p>
+    <div class="legend" aria-hidden="true">
+      <span><i class="lg-co"></i>公司相關</span><span><i class="lg-so"></i>方案相關</span><span><i class="lg-re"></i>參考資料</span>
+    </div>
+    <div class="erwrap" tabindex="0" role="region" aria-label="資料結構圖，可左右捲動">
+      <svg class="er" viewBox="0 0 960 520" role="group" aria-labelledby="structure-title structure-desc">
+        <title id="structure-title">產業資料庫資料結構圖</title>
+        <desc id="structure-desc">公司為中心，連到方案、聯絡人、獲獎、政府能量登錄、資安分類、稅籍行業；方案連到來源平台與狀態查證紀錄；導入案例連到提供廠商與產業分類。</desc>
+        <g id="structure-rels"></g>
+        <g id="structure-ents"></g>
+      </svg>
+    </div>
+    <div class="detail" id="structure-detail" aria-live="polite"></div>
+    <p class="updated">最後更新：2026-10-19</p>
+  </section>
+
+  <section class="card faq" aria-labelledby="h-faq">
+    <h3 id="h-faq">常見問題</h3>
+    <details open><summary>在資料庫「查到公司」，就代表它有某個平台的方案嗎？</summary>
+      <p>不一定。公司和方案是兩層：公司存在，只代表它至少有一個方案被收錄；每個方案各自標示來自哪個平台。要確認某家公司有沒有臺灣雲市集的方案，請看方案的「來源平台」，不是看公司本身。</p></details>
+    <details><summary>為什麼聯絡人是掛在公司底下，不是掛在方案底下？</summary>
+      <p>聯絡窗口通常是公司的業務或客服，同一家公司的多個方案常由同一位窗口負責。掛在公司底下，同一位聯絡人不會因為方案多而重複出現；也因此，同一家公司不同方案的「聯絡資訊」會顯示相同內容。</p></details>
+    <details><summary>資料庫有方案的「上架年度」嗎？</summary>
+      <p>目前沒有。來源平台大多只提供「現在架上有什麼」，沒有歷年紀錄；臺灣雲市集已停止服務，當年的年度也無法考證。如果有各年度的入選名單，可以用來和資料庫比對。</p></details>
+    <details><summary>「疑似下架」和「已下架」有什麼不同？</summary>
+      <p>「已下架」是逐筆確認過的；「疑似下架」是依平台整體狀況推定（例如平台停止服務），尚未逐筆驗證。每次查證都會留下「狀態查證紀錄」，不會直接刪除方案。</p></details>
+    <details><summary>查不到某家公司，代表它不存在嗎？</summary>
+      <p>不代表。資料庫只收錄「在合作平台上有方案」的公司，查不到只表示本資料庫未收錄。</p></details>
+  </section>
+
+  <p class="note">圖中未列出的內部資料（搜尋與問答紀錄、回饋表單、系統與存取紀錄等）僅供系統維運使用，不對外提供。</p>
     </section>
 
     <section class="section" aria-label="組合路徑">
@@ -864,6 +949,80 @@
     });
 
     syncSourceCounts();
+
+    function initDataStructure() {
+      const E={
+        company:{x:390,y:200,w:180,h:70,k:"co",t:"公司",s:"以統編識別",
+          d:"一家廠商。以統一編號識別，是整個資料庫的中心。",
+          li:["來源：各合作平台上的廠商資料，並以財政部稅籍登記資料補充所在地與行業","一家公司可以在多個平台上架多個方案"]},
+        contact:{x:70,y:40,w:170,h:60,k:"co",t:"聯絡人",s:"公司窗口",
+          d:"公司的聯絡窗口：姓名、職稱、公司電話、Email、手機。",
+          li:["屬於公司，不屬於單一方案","在方案頁點開「聯絡資訊」時才載入","來源端遮罩或無效的號碼會顯示「暫無資訊」"]},
+        award:{x:70,y:150,w:170,h:60,k:"co",t:"獲獎",s:"公司榮譽紀錄",
+          d:"公司獲得的獎項紀錄，網站上的「獲獎肯定」標示即來自這裡。",li:["屬於公司層級","部分由 AI 協助比對，會標示信心程度"]},
+        gov:{x:70,y:260,w:170,h:60,k:"co",t:"政府能量登錄",s:"是否登錄",
+          d:"公司是否在政府的服務能量登錄名單上。",li:["屬於公司層級","搜尋時可依此篩選"]},
+        cdm:{x:70,y:370,w:170,h:60,k:"co",t:"資安分類",s:"資安服務類別",
+          d:"資安廠商所屬的服務類別。",li:["屬於公司層級","一家公司可屬於多個類別"]},
+        tax:{x:390,y:400,w:180,h:60,k:"co",t:"稅籍行業",s:"登記行業 1～4 順位",
+          d:"財政部稅籍登記的營業項目，最多 4 個行業代號。",li:["網站上的「稅籍主業」與「資訊服務為主要登記項目」標示由此判斷","不在稅籍名冊中的公司，此項為空"]},
+        solution:{x:700,y:200,w:180,h:70,k:"so",t:"方案",s:"平台上架的產品",
+          d:"一個在合作平台上架的產品或服務，含名稱、價格、功能與狀態。",
+          li:["每個方案屬於一家公司、來自一個來源平台","狀態分為正常、疑似下架、已下架","同一產品若在兩個平台上架，會是兩筆方案"]},
+        source:{x:700,y:40,w:180,h:60,k:"so",t:"來源平台",s:"目前 9 個",
+          d:"方案的資料來源，例如臺灣雲市集、新創嚴選網、商業服務業專區。",
+          li:["資料來源說明頁列出每個平台的主辦單位與收錄方式","「跨 N 種計畫」只計入能佐證是政府計畫的來源"]},
+        review:{x:700,y:370,w:180,h:60,k:"so",t:"狀態查證紀錄",s:"上下架查證",
+          d:"每次查證方案是否仍上架的紀錄：查證時間、依據、查證前後狀態。",li:["方案不會直接刪除，而是留下查證紀錄","「疑似下架」與「已下架」的依據都記在這裡"]},
+        case:{x:390,y:40,w:180,h:60,k:"re",t:"導入案例",s:"企業實際導入",
+          d:"企業實際導入數位方案的案例，可連到提供服務的廠商。",li:["案例的提供廠商連到「公司」","依產業分類整理"]}
+      };
+      const R=[
+        ["company","contact","1","多",[ [390,215],[240,70] ]],
+        ["company","award","1","多",[ [390,225],[240,180] ]],
+        ["company","gov","1","多",[ [390,245],[240,290] ]],
+        ["company","cdm","1","多",[ [390,262],[240,400] ]],
+        ["company","tax","1","1～4",[ [480,270],[480,400] ]],
+        ["company","solution","1","多",[ [570,235],[700,235] ]],
+        ["source","solution","1","多",[ [790,100],[790,200] ]],
+        ["solution","review","1","多",[ [790,270],[790,370] ]],
+        ["company","case","1","多",[ [480,200],[480,100] ]]
+      ];
+      const NS="http://www.w3.org/2000/svg";
+      const rels=document.getElementById("structure-rels"),ents=document.getElementById("structure-ents");
+      function createStructureElement(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+      R.forEach(([a,b,ca,cb,[[x1,y1],[x2,y2]]],i)=>{
+        const g=createStructureElement("g",{"data-a":a,"data-b":b},rels);
+        createStructureElement("path",{d:`M${x1} ${y1} L${x2} ${y2}`,class:"rel"},g);
+        const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len,ox=-uy*10,oy=ux*10;
+        const t1=createStructureElement("text",{x:x1+ux*18+ox,y:y1+uy*18+oy+4,class:"card-lbl","text-anchor":"middle"},g);t1.textContent=ca;
+        const t2=createStructureElement("text",{x:x2-ux*22+ox,y:y2-uy*22+oy+4,class:"card-lbl","text-anchor":"middle"},g);t2.textContent=cb;
+      });
+      for(const id in E){const v=E[id];
+        const g=createStructureElement("g",{class:`ent ${v.k}`,"data-id":id,tabindex:"0",role:"button","aria-pressed":"false","aria-label":`${v.t}：${v.s}`},ents);
+        createStructureElement("rect",{class:"box",x:v.x,y:v.y,width:v.w,height:v.h,rx:12},g);
+        const t=createStructureElement("text",{class:"t",x:v.x+v.w/2,y:v.y+v.h/2-4,"text-anchor":"middle"},g);t.textContent=v.t;
+        const s=createStructureElement("text",{class:"s",x:v.x+v.w/2,y:v.y+v.h/2+15,"text-anchor":"middle"},g);s.textContent=v.s;
+        g.addEventListener("click",()=>selectStructureEntity(id));
+        g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();selectStructureEntity(id);}});
+      }
+      const tagName={co:"公司相關",so:"方案相關",re:"參考資料"};
+      function selectStructureEntity(id){
+        const v=E[id];
+        const linked=new Set([id]);
+        rels.querySelectorAll("g").forEach(g=>{const hit=g.dataset.a===id||g.dataset.b===id;g.querySelector("path").classList.toggle("hi",hit);g.classList.toggle("dim",!hit);if(hit){linked.add(g.dataset.a);linked.add(g.dataset.b);}});
+        ents.querySelectorAll(".ent").forEach(g=>{g.classList.toggle("sel",g.dataset.id===id);g.setAttribute("aria-pressed",String(g.dataset.id===id));g.classList.toggle("dim",!linked.has(g.dataset.id));});
+        const rel=R.filter(r=>r[0]===id||r[1]===id).map(r=>{const other=r[0]===id?r[1]:r[0];const me=r[0]===id?r[2]:r[3],ot=r[0]===id?r[3]:r[2];return `${v.t}（${me}）── ${E[other].t}（${ot}）`;});
+        document.getElementById("structure-detail").innerHTML=`<h3>${v.t}<span class="tag tg-${v.k}">${tagName[v.k]}</span></h3><p>${v.d}</p><ul>${v.li.map(x=>`<li>${x}</li>`).join("")}${rel.length?`<li>關聯：${rel.join("；")}</li>`:""}</ul>`;
+      }
+      selectStructureEntity("company");
+    }
+
+    try {
+      initDataStructure();
+    } catch {
+      console.warn('資料結構圖暫時無法初始化，其他資料來源資訊仍可使用。');
+    }
   </script>
 </body>
 </html>

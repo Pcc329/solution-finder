@@ -15,7 +15,8 @@
     { "source": "/api/manufacturing-recommend", "destination": "/api/manufacturing-recommend" },
     { "source": "/api/login", "destination": "/api/auth?action=login" },
     { "source": "/api/logout", "destination": "/api/auth?action=logout" },
-    { "source": "/api/session-check", "destination": "/api/auth?action=session-check" }
+    { "source": "/api/session-check", "destination": "/api/auth?action=session-check" },
+    { "source": "/api/company-search", "destination": "/api/companies?action=search" }
   ],
   "headers": [
     {

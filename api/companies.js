@@ -1,9 +1,11 @@
 // api/companies.js — Vercel Serverless Function
 import { requireAuth } from '../_lib/auth.js';
+import companySearchHandler from '../_lib/company-search.js';
 export default async function handler(req, res) {
+  if (req.query?.action === 'search') return companySearchHandler(req, res);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
-  res.setHeader('Cache-Control', 's-maxage=300');
+  res.setHeader('Cache-Control', 'private, no-store');
 
   if (!requireAuth(req, res)) return;
 
