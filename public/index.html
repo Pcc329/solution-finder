@@ -1938,7 +1938,8 @@
               {solutions.length === 0 && <p className="text-sm text-slate-500">目前沒有收錄方案。</p>}
               <div className="space-y-4" aria-live="polite">
                 {orderedGroups.map(([source, rows]) => {
-                  const visible = rows.filter(row => showDelisted || row.status !== "delisted");
+                  const visible = rows.filter(row => showDelisted || row.status !== "delisted")
+                    .sort((a, b) => Number(isMissingSolutionName(a.name)) - Number(isMissingSolutionName(b.name)));
                   if (!visible.length) return null;
                   return <section key={source} className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label={source}>
                     <h3 className="flex justify-between gap-3 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-700"><span>{source}</span><span className="shrink-0">{visible.length} 筆</span></h3>
@@ -1953,8 +1954,8 @@
                         const statusClass = solution.status === "delisted" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-800";
                         return <li key={solution.solution_id || solution.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5">
                           <div className="min-w-0 flex-1">
-                            {item ? <button type="button" onClick={() => openCompanySolution(item)} className="min-h-[44px] text-left font-bold text-indigo-800 underline decoration-indigo-200 underline-offset-4 hover:text-indigo-600 break-words">{solution.name}</button>
-                              : <p className="font-bold text-slate-600 break-words">{solution.name}</p>}
+                            {item ? <button type="button" onClick={() => openCompanySolution(item)} className={`min-h-[44px] text-left font-bold text-indigo-800 underline decoration-indigo-200 underline-offset-4 hover:text-indigo-600 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</button>
+                              : <p className={`font-bold text-slate-600 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</p>}
                             <div className="mt-1 flex flex-wrap items-center gap-2">
                               <span className="text-xs text-slate-400 font-mono break-all">{solution.solution_id}</span>
                               {!isPlatformStopped(solution) && (solution.status === "suspected"
