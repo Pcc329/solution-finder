@@ -69,3 +69,27 @@ test('price and company groups put missing names last without reordering the gro
     assert.deepEqual([...rows].sort(sort).map(row => row.s), expected, mode);
   }
 });
+
+test('openROIModal normalizes stored names and preserves the missing style flag', () => {
+  const source = read('public/index.html');
+  const definition = source.match(/const openROIModal = (\(item\) => \{[\s\S]*?\n      \});/)[1];
+  let modal;
+  const roiContext = vm.createContext({ setROIModal: value => { modal = value; } });
+  vm.runInContext(read('public/solution-name.js'), roiContext);
+  const open = vm.runInContext(`(${definition})`, roiContext);
+  for (const name of [null, undefined, '', '  ', '缺', ' 缺 ', '缺漏', '待補', '無', '-', '—', 'N/A', 'NA', 'null', '?', '？', '律果簽', 'HackMD', 'AI', ' AI ']) {
+    for (const item of [{ s: name, name: 'must not override s', mo: 120 }, { name, monthlyPrice: 120 }]) {
+      open(item);
+      assert.equal(modal.name, displaySolutionName(name));
+      assert.equal(modal.nameMissing, isMissingSolutionName(name));
+      assert.equal(modal.mo, 120);
+    }
+  }
+  const classExpression = source.match(/<p className=\{(`text-xs text-slate-500 mt-1 [^\n]+?`)\}/)[1];
+  open({ s: null });
+  roiContext.item = modal;
+  assert.match(vm.runInContext(classExpression, roiContext), /sf-name-missing/);
+  open({ s: 'HackMD' });
+  roiContext.item = modal;
+  assert.doesNotMatch(vm.runInContext(classExpression, roiContext), /sf-name-missing/);
+});

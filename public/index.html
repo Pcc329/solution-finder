@@ -157,7 +157,7 @@
             <div className="flex justify-between items-start mb-5">
               <div>
                 <h3 className="font-black text-slate-800 text-lg">ROI 試算</h3>
-                <p className={`text-xs text-slate-500 mt-1 ${isMissingSolutionName(item.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(item.name)}</p>
+                <p className={`text-xs text-slate-500 mt-1 ${item.nameMissing || isMissingSolutionName(item.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(item.name)}</p>
               </div>
               <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl">✕</button>
             </div>
@@ -1005,8 +1005,10 @@
       };
 
       const openROIModal = (item) => {
+        const name = Object.prototype.hasOwnProperty.call(item, "s") ? item.s : item.name;
         setROIModal({
-          name: Object.prototype.hasOwnProperty.call(item, "s") ? item.s : item.name,
+          name: displaySolutionName(name),
+          nameMissing: isMissingSolutionName(name),
           mo: item.mo || item.monthlyPrice || 0,
         });
       };
