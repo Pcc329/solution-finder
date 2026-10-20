@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" role="img" aria-label="資服產業資料庫">
+  <rect width="44" height="44" rx="10" fill="#0D9488"/>
+  <g stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round">
+    <line x1="13" y1="29" x2="22" y2="14"/>
+    <line x1="22" y1="14" x2="31" y2="29"/>
+    <line x1="13" y1="29" x2="31" y2="29"/>
+  </g>
+  <circle cx="22" cy="14" r="4" fill="#FFFFFF"/>
+  <circle cx="13" cy="29" r="4" fill="#FFFFFF"/>
+  <circle cx="31" cy="29" r="4" fill="#FFFFFF"/>
+</svg>
