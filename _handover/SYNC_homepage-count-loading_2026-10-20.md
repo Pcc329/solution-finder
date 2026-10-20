@@ -27,13 +27,24 @@
 - 與分支起點比對，確認 public/index.html 僅有指定一行的運算式差異；既有 script 標籤與樣式不變。
 - `git diff --check` 通過。
 
-## Preview 截圖狀態
+## Preview 截圖驗收（完成）
 
-- Vercel check：success。
-- 部署完成：2026-10-20 17:02（Asia/Taipei），對應程式碼提交 4fc55a3。
+- Vercel 程式碼部署 check：success，2026-10-20 17:02（Asia/Taipei），對應程式碼提交 `4fc55a3`。
+- 後續提交 `a263fe2f1a68defff7db765abb99a5d1a8027070` 僅新增 SYNC，首頁程式碼相同；本次從分支 Preview 實際驗收。
 - 部署紀錄：https://vercel.com/patrick0814-6136s-projects/solution-finder/3j4VCvksdzwnEbBsLZzTuZ1EB6Rn
-- 固定 Preview：https://solution-finder-ik11zeo55-patrick0814-6136s-projects.vercel.app/
-- 分支 Preview：https://solution-finder-git-fix-homep-c26b62-patrick0814-6136s-projects.vercel.app/
-- 實際開啟分支 Preview 後，頁面要求共用密碼登入；尚未登入的方案 API 回傳 401。
-- 已請使用者手動登入並保留 Chrome 分頁。載入中與載入完成的實際 Preview 截圖仍待擷取，尚未完成這項驗收。
-- 未略過登入、未用模擬資料或修改頁面文字冒充 Preview 截圖。
+- 程式碼固定 Preview：https://solution-finder-ik11zeo55-patrick0814-6136s-projects.vercel.app/
+- 實際驗收的分支 Preview：https://solution-finder-git-fix-homep-c26b62-patrick0814-6136s-projects.vercel.app/
+- 使用者手動登入後重新載入頁面，直接擷取真實資料請求期間的畫面及資料載入完成畫面。
+- 載入中：首頁標題區顯示「收錄 — 筆數位轉型方案與 — 家資服業者」；同次重新載入的 accessibility tree 顯示「資料載入中...」按鈕停用及「正在讀取方案資料...」。
+- 載入完成：首頁標題區顯示「收錄 2,268 筆數位轉型方案與 1,102 家資服業者」。實際數量隨資料庫更新而變化。
+- 兩張截圖均為瀏覽器原始 viewport JPEG，1265 × 490；頁面 clientWidth 與 scrollWidth 皆 1265，無水平溢位。
+- 沒有模擬 API 回覆、修改 DOM／React 狀態、略過登入或後製截圖。載入狀態透過正常重新載入捕捉。
+- 本次最後提交僅補 SYNC 與兩張截圖，不再修改首頁程式碼。
+
+### 載入中
+
+![Preview：方案資料載入中，方案數顯示破折號](evidence/homepage-count-loading-20261020/loading.jpg)
+
+### 載入完成
+
+![Preview：方案載入完成後顯示 2,268 筆](evidence/homepage-count-loading-20261020/loaded.jpg)
