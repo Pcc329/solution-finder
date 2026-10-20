@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { stripTypeScriptTypes } from 'node:module'
+import vm from 'node:vm'
 import { test } from 'node:test'
 import { createMcpHandler } from '@modelcontextprotocol/server'
 
@@ -13,10 +14,35 @@ const testSource = source.split('Deno.serve(')[0]
   .replace(/^import .*\n/gm, (line) => {
     if (line.includes('npm:@modelcontextprotocol/server@2.0.0')) return `import { McpServer } from '${import.meta.resolve('@modelcontextprotocol/server')}'\n`
     if (line.includes('npm:zod@4.6.5')) return `import { z } from '${import.meta.resolve('zod')}'\n`
-    if (line.includes("../../../public/solution-name.js")) return `import '${new URL("public/solution-name.js", root).href}'\n`
     return ''
   })
-const { createSfServer } = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(testSource)).toString('base64')}`)
+const { createSfServer, isMissingSolutionName: mcpIsMissingSolutionName, displaySolutionName: mcpDisplaySolutionName, solutionNamePlaceholders } = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(testSource + '\nexport { isMissingSolutionName, displaySolutionName, solutionNamePlaceholders }')).toString('base64')}`)
+
+test('standalone Edge Function imports only npm/jsr packages, with no local or dynamic imports', () => {
+  const imports = [...source.matchAll(/^import\s+(?:[^'"\n]*?from\s+)?['"]([^'"]+)['"]/gm)].map(match => match[1])
+  assert.equal(imports.length, 5)
+  for (const specifier of imports) assert.match(specifier, /^(npm|jsr):/)
+  assert.doesNotMatch(source, /\bimport\s*\(|\bexport\s+[^\n]*\bfrom\s*['"]/)
+})
+
+test('browser and inline MCP definitions independently load identical placeholder lists and behavior', () => {
+  const browserLists = []
+  class CapturedSet extends Set {
+    constructor(values) { super(values); browserLists.push([...values]) }
+  }
+  const browser = vm.createContext({ Set: CapturedSet })
+  vm.runInContext(readFileSync(new URL('public/solution-name.js', root), 'utf8'), browser)
+  const expected = ['缺', '缺漏', '待補', '無', '-', '—', 'N/A', 'NA', 'null', '?', '？']
+  assert.equal(browserLists.length, 1)
+  assert.deepEqual(browserLists[0], expected)
+  assert.deepEqual([...solutionNamePlaceholders], browserLists[0])
+  const values = [null, undefined, '', '  ', '\t\n', ...expected, ...expected.map(value => ` \t${value}\n `),
+    '律果簽', 'HackMD', 'AI', ' AI ', '缺工管理', 'NA 平台', 'Null Analytics', 'n/a', 'NULL', 0, false]
+  for (const value of values) {
+    assert.equal(mcpIsMissingSolutionName(value), browser.isMissingSolutionName(value), `classification: ${JSON.stringify(value)}`)
+    assert.equal(mcpDisplaySolutionName(value), browser.displaySolutionName(value), `display: ${JSON.stringify(value)}`)
+  }
+})
 
 const solution = (extra = {}) => ({
   solution_id: 'SOL-MOCK-1', solution_name: 'Mock AI 方案', company_id: 'MOCK-C1', company_name: 'Mock 廠商',

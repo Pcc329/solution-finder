@@ -1,4 +1,4 @@
-// Runtime-neutral: classic browser script and the MCP Edge Function share this definition.
+// Browser helper; keep aligned with the inline MCP definitions via the parity tests.
 (() => {
   const placeholders = new Set(['缺', '缺漏', '待補', '無', '-', '—', 'N/A', 'NA', 'null', '?', '？']);
 

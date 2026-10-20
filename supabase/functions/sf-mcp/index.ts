@@ -5,18 +5,22 @@
 // 搜尋邏輯移植自 public/index.html（資料庫函式 sf_search_solutions，28 項對照測試與首頁程式碼結果一致）。
 // 依賴套件鎖定確切版本（公開的認證端點，避免依賴自動漂移到剛發布的版本）；升級前須重新測試。
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import '../../../public/solution-name.js'
-
-// Same runtime-neutral helpers used by the classic browser pages; no duplicate placeholder list.
-const { isMissingSolutionName, displaySolutionName } = globalThis as unknown as {
-  isMissingSolutionName: (name: unknown) => boolean
-  displaySolutionName: (name: unknown) => string
-}
-
 import { createMcpHandler, McpServer } from 'npm:@modelcontextprotocol/server@2.0.0'
 import { pipeline } from 'npm:@supabase/middleware@0.5.0'
 import { withOAuthProtectedResource, withSupabase } from 'npm:@supabase/server@1.7.0'
 import { z } from 'npm:zod@4.6.5'
+
+// Dashboard deployment pastes only index.ts. Keep these definitions inline and
+// aligned with public/solution-name.js; the parity tests load both independently.
+const solutionNamePlaceholders = new Set(['缺', '缺漏', '待補', '無', '-', '—', 'N/A', 'NA', 'null', '?', '？'])
+
+function isMissingSolutionName(name: unknown) {
+  return name == null || (typeof name === 'string' && (!name.trim() || solutionNamePlaceholders.has(name.trim())))
+}
+
+function displaySolutionName(name: unknown) {
+  return isMissingSolutionName(name) ? '（名稱未提供）' : name
+}
 
 const ACTIVE_FILTER = 'record_status.is.null,record_status.not.like.已下架*'
 
