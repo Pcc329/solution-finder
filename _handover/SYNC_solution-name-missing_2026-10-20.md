@@ -6,7 +6,8 @@
 
 - Branch：`fix/solution-name-missing-2026-10-19`
 - Base：執行 `git fetch origin main` 後確認最新 `origin/main`、`FETCH_HEAD` 與本任務起點皆為 `d392cbc1702e23536227df453ffda22980e4479a`。
-- 實作 commit：[7d42a40c2d2da0a2684b135798aba1a56ab6a268](https://github.com/Pcc329/solution-finder/commit/7d42a40c2d2da0a2684b135798aba1a56ab6a268)
+- 初次實作 commit：[7d42a40c2d2da0a2684b135798aba1a56ab6a268](https://github.com/Pcc329/solution-finder/commit/7d42a40c2d2da0a2684b135798aba1a56ab6a268)
+- 審查修正 commit：[6db3be291535400e4d8e33babf1049611d84da93](https://github.com/Pcc329/solution-finder/commit/6db3be291535400e4d8e33babf1049611d84da93)
 - PR：[https://github.com/Pcc329/solution-finder/pull/262](https://github.com/Pcc329/solution-finder/pull/262)，base `main`，保持 open，未 merge。
 - 開始前已執行 `git status`：原工作目錄 `solution-finder-contact-info` 在 `feat/company-frontend`，沒有未提交修改。仍另建同層 worktree `solution-name-missing`，避免切換或修改另一個對話使用的分支。
 - 原工作目錄維持乾淨，HEAD 維持 `25c607c8ba3988042d35e395bb6c6c653b0a5d22`；未 commit、覆蓋或帶入「查公司」功能。
@@ -16,7 +17,7 @@
 
 | 檔案 | 變更 |
 | --- | --- |
-| `public/solution-name.js`（新增） | 同一處定義 11 個佔位字，提供 `isMissingSolutionName`、`displaySolutionName`；classic browser script 與 MCP 共用 |
+| `public/solution-name.js`（新增） | 同一處定義 11 個佔位字，提供 `isMissingSolutionName`、`displaySolutionName`；供各前端頁面共用；MCP 另在單一 index.ts 內定義相同邏輯 |
 | `public/solution-name.css`（新增） | `.sf-name-missing`：`#6b7280`、字重 `400`，覆蓋既有粗體／文字色 |
 | `public/index.html` | 引入 helper/CSS；卡片、詳情、ROI 名稱；AI 摘要輸入名稱；名稱排序及既有同組排序 |
 | `public/compare.html` | 比較表名稱、AI 比較輸入名稱 |
@@ -24,28 +25,28 @@
 | `public/diagnosis.html` | 舊探索頁卡片、AI 摘要輸入名稱、同分同價排序；雖已有 redirect，仍處理原始頁面 |
 | `public/manufacturing.html` | 方案卡片、詳情、AI 推薦輸入名稱、同分排序 |
 | `supabase/functions/sf-mcp/index.ts` | 版本 1.2.1；四種名稱輸出、明確的 name_missing schema；摘要與 42501 處理 |
-| `tests/solution-name.test.mjs`（新增） | 27 項：缺值、完整佔位字、正常名稱保留、排序、共用資源引入 |
+| `tests/solution-name.test.mjs`（新增） | 28 項（含 ROI state／樣式回歸）：缺值、完整佔位字、正常名稱保留、排序、共用資源引入 |
 | `tests/sf-mcp/sf-mcp-v1-2.test.mjs` | 保留既有回歸；新增四種名稱輸出與 schema、八工具未授權、縣市、摘要、分數與 RPC 順序測試 |
 | `_handover/SYNC_solution-name-missing_2026-10-20.md`（新增） | 本交接文件 |
 | `_handover/solution-name-missing_mock.png`（新增） | 24 組瀏覽器 mock 顯示截圖 |
 | `_handover/solution-name-missing_mock-responses.json`（新增） | 實際 SDK mock 呼叫的四工具完整回應、未授權回應與 mock 伺服器日誌 |
 
-佔位字集中於 `public/solution-name.js:3`：`缺`、`缺漏`、`待補`、`無`、`-`、`—`、`N/A`、`NA`、`null`、`?`、`？`。以 trim 後的值判斷；正常名稱回傳原值，不自行 trim 或改名。MCP 以相對匯入載入同一檔案，沒有另一份佔位字清單。
+佔位字集中於 `public/solution-name.js:3`：`缺`、`缺漏`、`待補`、`無`、`-`、`—`、`N/A`、`NA`、`null`、`?`、`？`。以 trim 後的值判斷；正常名稱回傳原值，不自行 trim 或改名。依 PR #262 審查修正，MCP 在 `supabase/functions/sf-mcp/index.ts:15` 內嵌相同清單與兩個函式，讓 Supabase Dashboard 可只貼上單一 index.ts。兩份定義由測試分別載入，斷言清單完全相同且對相同測試值的判斷與顯示結果一致；Edge Function 僅保留 npm:/jsr: 匯入，不依賴本地相對路徑。
 
 ### 前端所有名稱顯示點（本 PR 行號）
 
 | 檔案＋行號 | 顯示位置 |
 | --- | --- |
-| `public/index.html:160` | ROI 試算視窗名稱；`openROIModal` 在 `:1009` 保留原始缺值，交由顯示元素統一判斷 |
-| `public/index.html:1635` | 首頁搜尋方案卡片 |
-| `public/index.html:1742` | 首頁方案詳情標題 |
+| `public/index.html:160` | ROI 試算視窗名稱；`openROIModal` 在 `:1010` 先以 `displaySolutionName` 正規化 state.name，並在 `:1011` 保留 nameMissing 旗標以維持缺漏樣式 |
+| `public/index.html:1637` | 首頁搜尋方案卡片 |
+| `public/index.html:1744` | 首頁方案詳情標題 |
 | `public/compare.html:389` | 比較表的方案名稱列 |
 | `public/dashboard.html:2087` | 近期更新列表的方案名稱（`type !== 'case'`） |
 | `public/diagnosis.html:641` | 舊智能探索方案卡片 |
 | `public/manufacturing.html:1472` | 方案探索詳情標題 |
 | `public/manufacturing.html:1964` | 方案探索推薦卡片（兩種來源共用） |
 
-額外的 AI 文字顯示輸入也先經過 helper，避免把原始佔位字送去生成摘要：`public/index.html:1031`、`public/compare.html:432`、`public/diagnosis.html:695`、`public/manufacturing.html:2442`。只建立顯示用 payload，不修改 allData、原始資料或 sessionStorage 中的方案。
+額外的 AI 文字顯示輸入也先經過 helper，避免把原始佔位字送去生成摘要：`public/index.html:1033`、`public/compare.html:432`、`public/diagnosis.html:695`、`public/manufacturing.html:2442`。只建立顯示用 payload，不修改 allData、原始資料或 sessionStorage 中的方案。
 
 已檢索 `public/` 全部 HTML/JS；其餘 `item.name` 為獎項、分類、案例或公司名稱，`item.s` 的其他用途為搜尋比對、評分、key 或原始比較資料，不是直接顯示點。`sources.html`、`strategy-guide.html`、`feedback.html` 沒有方案名稱列表。
 
@@ -53,12 +54,12 @@
 
 ### MCP 名稱輸出與 schema
 
-- `supabase/functions/sf-mcp/index.ts:383`：`search_solutions.results[]`。
-- `supabase/functions/sf-mcp/index.ts:454`：`search_companies.companies[].solutions[]`。
-- `supabase/functions/sf-mcp/index.ts:530`：`get_solution.solution`；既有 `solution_name` 改為統一顯示，另附同值的 `name` 與布林 `name_missing`。
-- `supabase/functions/sf-mcp/index.ts:590`：`get_solutions.results[]`。
-- `:210` 起的 solution/company outputSchema 明確要求 `name: string`、`name_missing: boolean`；詳情另保留 `solution_name: string`。其他原有欄位透過 passthrough 保留。
-- `:32`：`SERVER_VERSION = '1.2.1'`。未更動工具輸入 schema／參數。
+- `supabase/functions/sf-mcp/index.ts:387`：`search_solutions.results[]`。
+- `supabase/functions/sf-mcp/index.ts:458`：`search_companies.companies[].solutions[]`。
+- `supabase/functions/sf-mcp/index.ts:534`：`get_solution.solution`；既有 `solution_name` 改為統一顯示，另附同值的 `name` 與布林 `name_missing`。
+- `supabase/functions/sf-mcp/index.ts:594`：`get_solutions.results[]`。
+- `:214` 起的 solution/company outputSchema 明確要求 `name: string`、`name_missing: boolean`；詳情另保留 `solution_name: string`。其他原有欄位透過 passthrough 保留。
+- `:36`：`SERVER_VERSION = '1.2.1'`。未更動工具輸入 schema／參數。
 
 ## 3. 「查公司」分支的後續套用位置
 
@@ -88,16 +89,16 @@
 | 其他 touch 錯誤 | PASS；一般錯誤、連線例外仍執行工具並記錄；原有限流 observe-only 行為保留 |
 | summary_line 台北市 → 臺北市 | PASS；兩搜尋工具均驗證臺北市、臺中市、臺東縣；RPC 原輸入及 keyword 保持不變 |
 | describe_data 完整第一句 | PASS；目錄 11 節皆取完整句，略過無句尾的引導標題；mapping 不再顯示「需求 → keyword：。」；all 與各節原文保持相同 |
-| 既有測試、搜尋案例產生器 | PASS；全部 216 項測試成功，28 組產生器成功；產生的 SQL 未執行，因此不宣稱完成資料庫 parity 實測 |
+| 既有測試、搜尋案例產生器 | PASS；全部 219 項測試成功，28 組產生器成功；產生的 SQL 未執行，因此不宣稱完成資料庫 parity 實測 |
 | SERVER_VERSION | PASS；1.2.1，whoami 的實際 SDK mock 回傳亦驗證此版本 |
 | 禁止變更項目 | PASS；無資料庫／遷移／套件／API／輸入參數修改，保留搜尋分數及 MCP RPC 順序；未改顯示已下架方案開關 |
 
-測試命令與輸出摘要（實作 commit 7d42a40；所有測試採合成資料，沒有正式網路／資料庫查詢）：
+測試命令與輸出摘要（審查修正 commit 6db3be2；所有測試採合成資料，沒有正式網路／資料庫查詢）：
 
 ```text
 node --test tests/*.test.mjs tests/sf-mcp/sf-mcp-v1-2.test.mjs
-tests 216
-pass 216
+tests 219
+pass 219
 fail 0
 cancelled 0
 skipped 0
@@ -120,7 +121,7 @@ git diff --check
 exit 0
 ```
 
-瀏覽器驗證以實際來源碼的 JSX／HTML 名稱元素搭配本次共用 CSS 渲染，並解析全站內嵌腳本；不是完整網站端到端流程，也未模擬正式 OAuth。截圖：[mock 顯示驗證](solution-name-missing_mock.png)。完整本機輸出在同層 `_solution_name_validation/all-tests.txt`，該 QA 目錄未納入 PR。Node 的既有 module-type／experimental warnings 不影響通過；沒有為消除警告而改套件或專案模組設定。
+瀏覽器驗證以實際來源碼的 JSX／HTML 名稱元素搭配本次共用 CSS 渲染，並解析全站內嵌腳本；不是完整網站端到端流程，也未模擬正式 OAuth。截圖：[mock 顯示驗證](solution-name-missing_mock.png)。完整本機輸出在同層 `_solution_name_validation/review-tests.txt`，該 QA 目錄未納入 PR。Node 的既有 module-type／experimental warnings 不影響通過；沒有為消除警告而改套件或專案模組設定。
 
 ## 5. MCP mock 範例回應
 
@@ -161,3 +162,16 @@ exit 0
 ```
 
 伺服器 mock 日誌：`[sf-mcp] count_solutions sf_mcp_touch 失敗： private permission detail`。用戶回應沒有上述技術內容，工具 handler 未執行。
+
+
+## 6. PR #262 審查修正
+
+修正 commit：[6db3be291535400e4d8e33babf1049611d84da93](https://github.com/Pcc329/solution-finder/commit/6db3be291535400e4d8e33babf1049611d84da93)。沿用本 PR、同一分支，沒有另開 PR 或 merge。
+
+1. **Dashboard 單檔部署**：移除 `import '../../../public/solution-name.js'` 與讀取 globalThis 的型別轉換。在 `index.ts:15`、`:17`、`:21` 直接定義佔位字清單、`isMissingSolutionName`、`displaySolutionName`。保留的五個匯入全部為 `npm:`／`jsr:`，不新增本地相對匯入。
+2. **獨立定義一致性測試**：MCP 測試先載入實際 index.ts 的內嵌函式；另於獨立 VM 載入瀏覽器 helper 並捕捉其 Set 初始化清單。斷言兩份完整清單（含順序）一致，再以 null／undefined／空白、全部佔位字及其前後空白、正常名稱、大小寫與非字串邊界值逐一比對兩個函式的結果。MCP 測試載入器已移除原本的 public helper 匯入改寫，避免測試掩蓋部署依賴。
+3. **ROI state 名稱**：`openROIModal` 的 name 明確改為 `displaySolutionName(name)`；有 `s` 欄位時以 s 為準，否則讀 name。另保存 `nameMissing`，因為 state.name 已是顯示文字，畫面需靠原始判斷旗標保留 `sf-name-missing`。測試直接執行實際 openROIModal，驗證兩種欄位輸入、缺值／佔位字／正常名稱、月費與缺漏 class。
+
+本次變更檔案：`supabase/functions/sf-mcp/index.ts`、`public/index.html`、`public/solution-name.js`（更新說明註解）、`tests/sf-mcp/sf-mcp-v1-2.test.mjs`、`tests/solution-name.test.mjs` 與本 SYNC。上文的現況說明、行號及測試數均已同步更新。
+
+驗證結果：全部 219 項測試通過（原 216 項及本次新增三項）；瀏覽器 mock 再驗證 9 個內嵌腳本解析、24 組名稱元素渲染均通過；`git diff --check` 通過。既有 28 組搜尋案例產生器前次已通過，本次未改搜尋邏輯，未重跑或執行其 SQL。仍僅完成本機 mock／靜態驗證，沒有正式 Dashboard 部署或正式環境實測。
