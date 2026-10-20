@@ -93,3 +93,32 @@ test('openROIModal normalizes stored names and preserves the missing style flag'
   roiContext.item = modal;
   assert.doesNotMatch(vm.runInContext(classExpression, roiContext), /sf-name-missing/);
 });
+
+const companySource = read('public/index.html').split('const renderCompany = () => {')[1].split('// ===== DETAIL PAGE =====')[0];
+for (const [name, expected] of [[null, '（名稱未提供）'], ['缺', '（名稱未提供）'], ['HackMD', 'HackMD']]) {
+  for (const tag of ['button', 'p']) {
+    test(`company solution list ${tag}: ${JSON.stringify(name)} renders ${expected} with correct missing style`, () => {
+      const nameLines = companySource.split('\n').filter(line => line.includes('displaySolutionName(solution.name)'));
+      assert.equal(nameLines.length, 2, 'both clickable and plain solution names must use the helper');
+      const line = nameLines.find(line => line.includes(`<${tag} `));
+      assert.ok(line);
+      const expression = line.match(/\{(displaySolutionName\(solution\.name\))\}<\//)[1];
+      const classExpression = line.match(/className=\{(`[^\n]+?`)\}/)[1];
+      context.solution = { name };
+      assert.equal(vm.runInContext(expression, context), expected);
+      assert.equal(vm.runInContext(classExpression, context).includes('sf-name-missing'), name !== 'HackMD');
+    });
+  }
+}
+
+test('company solution list keeps the delisted filter and stable missing-last order within each source', () => {
+  const visibleExpression = companySource.match(/const visible = ([\s\S]*?);/)[1];
+  const rows = [{ name: '缺', status: 'normal', id: 'a' }, { name: 'AI', status: 'normal', id: 'b' },
+    { name: null, status: 'delisted', id: 'c' }, { name: 'HackMD', status: 'normal', id: 'd' }];
+  context.rows = rows;
+  context.showDelisted = false;
+  assert.deepEqual(Array.from(vm.runInContext(visibleExpression, context), row => row.id), ['b', 'd', 'a']);
+  context.showDelisted = true;
+  assert.deepEqual(Array.from(vm.runInContext(visibleExpression, context), row => row.id), ['b', 'd', 'a', 'c']);
+  assert.deepEqual(rows.map(row => row.id), ['a', 'b', 'c', 'd'], 'source data stays unchanged');
+});
