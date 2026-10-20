@@ -1180,7 +1180,7 @@
               資服產業資料庫
             </h1>
             <p className="text-slate-600 text-lg mb-4 max-w-xl mx-auto font-medium leading-relaxed">
-              收錄 <span className="text-slate-900 font-bold">{loading ? "—" : allData.length.toLocaleString()}</span> 筆數位轉型方案與 <span className="text-slate-900 font-bold">{databaseStats?.companyTotal?.toLocaleString() ?? "—"}</span> 家資服業者
+              收錄 <span className="text-slate-900 font-bold">{loading || error ? "—" : allData.length.toLocaleString()}</span> 筆數位轉型方案與 <span className="text-slate-900 font-bold">{databaseStats?.companyTotal?.toLocaleString() ?? "—"}</span> 家資服業者
             </p>
             {databaseStats && (
               <p className="text-sm text-slate-500 mb-8" aria-label="資料庫更新數據">
