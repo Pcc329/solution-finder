@@ -1925,6 +1925,9 @@
                 ))}
               </dl>
             </section>
+            <div className="mb-5">
+              <ContactInfoCard key={company.company_id} item={{ cid: company.company_id, tax: company.tax_primary_name }} cache={companyDetailCache.current} pending={companyDetailPending.current} />
+            </div>
             {renderCompanyError()}
             {allDelisted && <p role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">此公司收錄的方案皆已下架。</p>}
             <section className="mb-5" aria-label="公司方案">
@@ -1980,7 +1983,6 @@
               <h2 className="text-base font-bold text-slate-800 mb-3">獲獎紀錄</h2>
               <ul className="space-y-2 text-sm text-slate-600">{awards.map((award, index) => <li key={index}>{award.award_name}{award.award_year && <span className="ml-2 text-slate-400">{award.award_year}</span>}</li>)}</ul>
             </section>}
-            <ContactInfoCard key={company.company_id} item={{ cid: company.company_id, tax: company.tax_primary_name }} cache={companyDetailCache.current} pending={companyDetailPending.current} />
             <p className="mt-6 text-xs leading-relaxed text-slate-500">未逐筆確認（資料庫標記為疑似下架）：平台停止服務或方案未持續上架，尚未逐筆驗證。本資料庫沒有方案的上架年度。</p>
           </div>
         );
