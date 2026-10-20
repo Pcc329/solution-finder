@@ -540,8 +540,9 @@
             const data = await res.json();
             const total = Number(data?.total);
             const newThisMonth = Number(data?.newThisMonth);
+            const companyTotal = Number(data?.companyTotal);
             if (!Number.isFinite(total) || !Number.isFinite(newThisMonth)) return;
-            if (isCurrent) setDatabaseStats({ total, newThisMonth });
+            if (isCurrent) setDatabaseStats({ total, newThisMonth, companyTotal: Number.isFinite(companyTotal) ? companyTotal : null });
           } catch {
             // The homepage remains usable when the optional stats endpoint is unavailable.
           }
@@ -1176,10 +1177,10 @@
           <div className="relative z-10 w-full max-w-5xl">
             <p className="text-[11px] tracking-[0.16em] uppercase text-slate-400 mb-3">SOLUTION FINDER</p>
             <h1 className="text-3xl md:text-5xl font-black mb-5 leading-tight tracking-tight">
-              資服產業資料庫<br /><span className="text-[#1D9E75]">查公司，或描述需求找方案。</span>
+              資服產業資料庫
             </h1>
             <p className="text-slate-600 text-lg mb-4 max-w-xl mx-auto font-medium leading-relaxed">
-              輸入您的數位轉型需求，AI 將從 <span className="text-slate-900 font-bold">{allData.length.toLocaleString()}</span> 筆方案中精選最佳路徑。
+              收錄 <span className="text-slate-900 font-bold">{allData.length.toLocaleString()}</span> 筆數位轉型方案與 <span className="text-slate-900 font-bold">{databaseStats?.companyTotal?.toLocaleString() ?? "—"}</span> 家資服業者
             </p>
             {databaseStats && (
               <p className="text-sm text-slate-500 mb-8" aria-label="資料庫更新數據">
