@@ -93,4 +93,6 @@
 
 ### 最新 Preview 驗收
 
-待本次程式提交部署後，以 96979933（中華電信）查詢確認來源順序，完成後補入實際結果。
+- [最新程式部署](https://vercel.com/patrick0814-6136s-projects/solution-finder/63fzGPzsQwj94qDTCmLJCussSDjS)：Ready，程式提交 `bfb0a53525861a5ef0a0f13daf25ac6aeba4584f`。
+- [固定分支 Preview](https://solution-finder-git-feat-comp-3739ce-patrick0814-6136s-projects.vercel.app/)：隨同一 PR 更新。
+- 該固定網域要求登入（401），已開啟頁籤請使用者自行登入；登入後接續查詢 96979933（中華電信）確認來源順序，尚未宣稱最新排序的真實 Preview 驗收完成。
