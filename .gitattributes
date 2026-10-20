@@ -1,3 +1,5 @@
 migrations/20261012_create_airtable_replacement_tables.sql -text
 migrations/20261014_sf_mcp_v1_2.sql -text
 docs/sf-mcp-skill/SKILL.md -text
+public/brand/logo-mark.svg text eol=lf
+public/favicon.svg text eol=lf
