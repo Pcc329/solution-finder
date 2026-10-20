@@ -21,4 +21,17 @@
 
 ## Preview 驗證
 
-待本次樣式修正部署後，補上實際首頁數字、部署網址及桌機／375px 截圖。
+- 樣式修正 commit：`33c1f8a081e5ea247d1c530487d3ecd4bd010b37`。
+- Vercel 狀態：部署成功（GitHub commit status 的 Vercel check 為 `success`）。
+- 部署紀錄：https://vercel.com/patrick0814-6136s-projects/solution-finder/Cu8cm14GigpLwF2utXes7bZYrkLt
+- Preview：https://solution-finder-git-feat-home-fc784c-patrick0814-6136s-projects.vercel.app/
+- 檢查日期：2026-10-20（Asia/Taipei）。
+- 實際瀏覽結果：Preview 顯示「內部系統登入」，資料 API 回傳 `401`，需先完成共用密碼登入。
+- 首頁實際方案數、業者數與桌機／375px 截圖：尚未完成；已請使用者在 Preview 分頁登入，完成後才能據實記錄。未將未登入時的初始值或測試資料當成正式數字。
+
+## 已完成檢查
+
+- 完整 JSX 經 Babel classic React preset 編譯成功。
+- 兩個數字的 span 樣式均為 `text-slate-900 font-bold`。
+- 千分位、零值、stats 未載入／失敗與缺少業者數時的「—」顯示檢查通過。
+- `git diff --check` 通過。
