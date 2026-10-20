@@ -113,6 +113,7 @@ for (const [name, expected] of [[null, '（名稱未提供）'], ['缺', '（名
 
 test('company solution list keeps the delisted filter and stable missing-last order within each source', () => {
   const visibleExpression = companySource.match(/const visible = ([\s\S]*?);/)[1];
+  vm.runInContext(companySource.match(/const statusOrder = [^;]+;/)[0], context);
   const rows = [{ name: '缺', status: 'normal', id: 'a' }, { name: 'AI', status: 'normal', id: 'b' },
     { name: null, status: 'delisted', id: 'c' }, { name: 'HackMD', status: 'normal', id: 'd' }];
   context.rows = rows;

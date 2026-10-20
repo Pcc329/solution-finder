@@ -1888,7 +1888,11 @@
           groups.get(source).push(solution);
         }
         const activeCount = rows => rows.filter(row => row.status !== "delisted").length;
-        const orderedGroups = Array.from(groups).sort((a, b) => activeCount(b[1]) - activeCount(a[1]) || a[0].localeCompare(b[0], "zh-Hant"));
+        const statusCount = (rows, status) => rows.filter(row => row.status === status).length;
+        const orderedGroups = Array.from(groups).sort((a, b) =>
+          statusCount(b[1], "normal") - statusCount(a[1], "normal") ||
+          statusCount(b[1], "suspected") - statusCount(a[1], "suspected"));
+        const statusOrder = { normal: 0, suspected: 1, delisted: 2 };
         const platformCount = orderedGroups.filter(([, rows]) => activeCount(rows) > 0).length;
         const listedTotal = (summary.total || 0) - (summary.delisted || 0);
         const allDelisted = solutions.length > 0 && listedTotal === 0;
@@ -1942,7 +1946,8 @@
               <div className="space-y-4" aria-live="polite">
                 {orderedGroups.map(([source, rows]) => {
                   const visible = rows.filter(row => showDelisted || row.status !== "delisted")
-                    .sort((a, b) => Number(isMissingSolutionName(a.name)) - Number(isMissingSolutionName(b.name)));
+                    .sort((a, b) => statusOrder[a.status] - statusOrder[b.status] ||
+                      Number(isMissingSolutionName(a.name)) - Number(isMissingSolutionName(b.name)));
                   if (!visible.length) return null;
                   return <section key={source} className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label={source}>
                     <h3 className="flex justify-between gap-3 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-700"><span>{source}</span><span className="shrink-0">{visible.length} 筆</span></h3>
