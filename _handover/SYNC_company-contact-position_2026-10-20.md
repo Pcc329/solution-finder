@@ -51,6 +51,13 @@
 - [Vercel 部署](https://vercel.com/patrick0814-6136s-projects/solution-finder/3JN44nHGM6FUaMt41UrpkGMAjBnz)：Ready；Source `50f6051`，分支 `feat/company-contact-position`。
 - [Preview](https://solution-finder-r5p12dw80-patrick0814-6136s-projects.vercel.app/)
 - [分支 Preview](https://solution-finder-git-feat-comp-3739ce-patrick0814-6136s-projects.vercel.app/)
-- 新 Preview 網域顯示內部系統登入，API 回傳 401；已請使用者在瀏覽器自行登入，未讀取或繞過密碼／session。
-- 96979933（中華電信）桌機及 375px 截圖：待登入後接續驗收，尚未宣稱完成。
-- 截圖時保持聯絡資訊卡片收合，避免保存真實聯絡資料。
+- 驗收日期：2026-10-20（Asia/Taipei）。使用者自行登入新 Preview 後，以頁面「查公司」輸入 `96979933`，實際即時查詢得到「中華電信股份有限公司」。未以 mock 替代 Preview。
+- 四個統計值為：收錄方案 26、正常 5、未逐筆確認 21、來源平台數 3。
+- 桌機 viewport 1920 × 855、手機 viewport 375 × 855，兩者均確認公司檔案（含四個統計卡）→聯絡資訊卡片→方案與來源，沒有水平溢出。此公司沒有全下架，提示未顯示，符合原條件。
+- 桌機：公司檔案 bottom 423、聯絡卡 top 443／bottom 511、方案區 top 531；兩段卡片間距皆為 20px。
+- 375px：公司檔案 bottom 596.5、聯絡卡 top 616.5／bottom 700.5、方案區 top 720.5；兩段卡片間距皆為 20px。
+- 擷取前確認 `aria-expanded="false"` 與聯絡內容 `hidden=true`；全程未展開聯絡卡，截圖不包含真實聯絡資料。
+- 兩張截圖保存於 repo 外 `../_company_contact_position_validation/`，避免將額外圖檔納入程式變更：
+  - `company-96979933-desktop.jpg`：桌機。
+  - `company-96979933-375.jpg`：375px 寬。
+- 截圖已隨最終回覆交付；驗收後已重設瀏覽器 viewport。
