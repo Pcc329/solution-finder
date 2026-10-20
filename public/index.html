@@ -322,6 +322,13 @@
       }, [activePage]);
       const [selectedItem, setSelectedItem] = useState(null);
       const [query, setQuery] = useState("");
+      const [companyQuery, setCompanyQuery] = useState("");
+      const [companyResult, setCompanyResult] = useState(null);
+      const [companyLoading, setCompanyLoading] = useState(false);
+      const [companyError, setCompanyError] = useState(null);
+      const [showDelisted, setShowDelisted] = useState(false);
+      const companyRequest = useRef(0);
+      const companyRequestPending = useRef(false);
       const [placeholderText, setPlaceholderText] = useState(() => createRandomSearchSentence());
       const [quickSearchExamples] = useState(() =>
         Array.from({ length: 3 }, () => createRandomSearchSentence())
@@ -378,11 +385,32 @@
 
       useEffect(() => {
         const hash = window.location.hash;
-        if (hash === "#list" || hash === "#detail" || hash === "#theme-detail") {
+        if (hash === "#list" || hash === "#detail" || hash === "#theme-detail" || hash === "#company-search" || hash === "#company") {
           window.history.replaceState({}, "", window.location.pathname);
         }
 
         const handlePopState = (event) => {
+          companyRequest.current += 1;
+          companyRequestPending.current = false;
+          setCompanyLoading(false);
+          setCompanyError(null);
+          if ((event.state?.view === "company-search" || event.state?.view === "company") && event.state.companyResult) {
+            const result = event.state.companyResult;
+            if ((event.state.view === "company" && result.match_type === "exact" && result.company)
+              || (event.state.view === "company-search" && ["partial", "none"].includes(result.match_type))) {
+              setCompanyQuery(event.state.companyQuery || result.query || "");
+              setCompanyResult(result);
+              setShowDelisted(false);
+              setSelectedItem(null);
+              setActivePage(event.state.view);
+              return;
+            }
+          }
+          if (event.state?.view === "detail" && event.state.companySolution) {
+            setSelectedItem(event.state.companySolution);
+            setActivePage("detail");
+            return;
+          }
           if (event.state?.view === "list") {
             setSelectedItem(null);
             setActivePage("list");
@@ -404,6 +432,83 @@
         window.addEventListener("popstate", handlePopState);
         return () => window.removeEventListener("popstate", handlePopState);
       }, []);
+
+      const handleCompanySearch = async (value = companyQuery) => {
+        if (companyRequestPending.current) return;
+        const input = String(value).trim();
+        setCompanyQuery(String(value));
+        if (!input) {
+          setCompanyError({ message: "請輸入統編或公司名稱", retry: false });
+          return;
+        }
+        const requestId = ++companyRequest.current;
+        companyRequestPending.current = true;
+        setCompanyLoading(true);
+        setCompanyError(null);
+        try {
+          const response = await fetch(`/api/company-search?q=${encodeURIComponent(input)}`);
+          const result = await response.json();
+          if (requestId !== companyRequest.current) return;
+          if (!response.ok) {
+            const message = response.status === 400 ? (result.error || "查詢失敗，請稍後再試。")
+              : response.status === 401 ? "登入已過期，請重新整理頁面後再查詢。"
+              : response.status === 429 ? "查詢過於頻繁，請稍後再試。"
+              : "查詢失敗，請稍後再試。";
+            setCompanyError({ message, retry: ![400, 401, 429].includes(response.status), query: input });
+            return;
+          }
+          if (!["exact", "partial", "none"].includes(result.match_type)
+            || (result.match_type === "exact" && !result.company)) throw new Error("Invalid search response");
+          const view = result.match_type === "exact" ? "company" : "company-search";
+          if (activePage === "detail" && selectedItem) {
+            window.history.replaceState({ ...window.history.state, view: "detail", companySolution: selectedItem }, "", "#detail");
+          }
+          setCompanyResult(result);
+          setShowDelisted(false);
+          setSelectedItem(null);
+          setActivePage(view);
+          const state = { companyQuery: String(value), companyResult: result };
+          pushHistoryView(view, state);
+          // Repeated searches in the same view replace its snapshot; Back restores the preceding view.
+          window.history.replaceState({ view, ...state }, "", `#${view}`);
+          window.scrollTo(0, 0);
+        } catch {
+          if (requestId === companyRequest.current) {
+            setCompanyError({ message: "查詢失敗，請稍後再試。", retry: true, query: input });
+          }
+        } finally {
+          if (requestId === companyRequest.current) {
+            companyRequestPending.current = false;
+            setCompanyLoading(false);
+          }
+        }
+      };
+
+      const renderCompanyError = () => companyError && (
+        <div className="mt-3 text-sm text-red-700" role="alert" id="company-query-error">
+          <p>{companyError.message}</p>
+          {companyError.retry && <button type="button" onClick={() => handleCompanySearch(companyError.query)} disabled={companyLoading}
+            className="mt-2 min-h-[44px] rounded-lg border border-red-200 px-4 font-bold hover:bg-red-50 disabled:opacity-50">重試</button>}
+        </div>
+      );
+
+      const renderCompanySearchForm = (id) => (
+        <form onSubmit={event => { event.preventDefault(); handleCompanySearch(); }} aria-busy={companyLoading}>
+          <label htmlFor={id} className="sr-only">統編或公司名稱</label>
+          <div className="flex gap-2">
+            <input id={id} value={companyQuery} onChange={event => { setCompanyQuery(event.target.value); setCompanyError(null); }}
+              aria-invalid={Boolean(companyError)} aria-describedby={companyError ? "company-query-error" : undefined}
+              placeholder="統編（8 碼）或公司名稱" autoComplete="off"
+              className="min-w-0 flex-1 min-h-[48px] rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" />
+            <button type="submit" disabled={companyLoading}
+              className="min-h-[48px] shrink-0 rounded-xl bg-[#4F46B8] px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-800 disabled:opacity-60 disabled:cursor-not-allowed">
+              {companyLoading && <i aria-hidden="true" className="fa-solid fa-spinner fa-spin mr-2"></i>}
+              {companyLoading ? "查詢中…" : "查詢"}
+            </button>
+          </div>
+          {renderCompanyError()}
+        </form>
+      );
 
       // 1. 抓資料
       useEffect(() => {
@@ -1053,18 +1158,15 @@
 
       // ===== HOME PAGE =====
       const renderHome = () => (
-        <div className="bg-white text-slate-900 py-32 px-6 border-t border-slate-100 flex flex-col items-center text-center animate-in min-h-screen relative overflow-hidden">
+        <div className="bg-white text-slate-900 py-12 md:py-16 px-4 md:px-6 border-t border-slate-100 flex flex-col items-center text-center animate-in min-h-screen relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <div className="absolute top-10 left-10 w-64 h-64 bg-[#1D9E75] rounded-full blur-[120px]"></div>
             <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#0d6e52] rounded-full blur-[150px]"></div>
           </div>
-          <div className="relative z-10 w-full max-w-2xl">
-            <div className="bg-emerald-50 p-6 rounded-3xl mb-8 inline-block shadow-xl border border-emerald-100">
-              <span style={{fontSize: "4rem", lineHeight: "1"}}>💡</span>
-            </div>
+          <div className="relative z-10 w-full max-w-5xl">
             <p className="text-[11px] tracking-[0.16em] uppercase text-slate-400 mb-3">SOLUTION FINDER</p>
-            <h1 className="text-5xl md:text-7xl font-black mb-8 leading-tight tracking-tight">
-              資服產業資料庫<br /><span className="text-[#1D9E75]">即時語意分析。</span>
+            <h1 className="text-3xl md:text-5xl font-black mb-5 leading-tight tracking-tight">
+              資服產業資料庫<br /><span className="text-[#1D9E75]">查公司，或描述需求找方案。</span>
             </h1>
             <p className="text-slate-600 text-lg mb-4 max-w-xl mx-auto font-medium leading-relaxed">
               輸入您的數位轉型需求，AI 將從 <span className="text-slate-900 font-bold">{allData.length.toLocaleString()}</span> 筆方案中精選最佳路徑。
@@ -1076,19 +1178,37 @@
                 累計方案 <span className="font-bold text-slate-700">{databaseStats.total.toLocaleString()}</span> 筆
               </p>
             )}
-            <div className="flex flex-col sm:flex-row gap-4 w-full bg-white p-2 rounded-[2.5rem] border border-slate-200 shadow-2xl">
-              <input
+            <div className="grid md:grid-cols-2 gap-5 text-left" aria-label="查詢入口">
+              <section className="min-w-0 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="company-entry-title">
+                <div className="bg-[#ECEBFB] px-8 pt-5 pb-2" style={{"--a1": "#D6D3F6", "--a2": "#4F46B8"}}><svg viewBox="0 0 240 150" aria-hidden="true" focusable="false" className="mx-auto w-48 max-w-full"><rect x="40" y="38" width="70" height="98" rx="6" fill="var(--a1)"/><rect x="112" y="62" width="58" height="74" rx="6" fill="var(--a1)"/><g fill="var(--a2)" opacity=".85"><rect x="54" y="52" width="14" height="12" rx="2"/><rect x="80" y="52" width="14" height="12" rx="2"/><rect x="54" y="74" width="14" height="12" rx="2"/><rect x="80" y="74" width="14" height="12" rx="2"/><rect x="54" y="96" width="14" height="12" rx="2"/><rect x="80" y="96" width="14" height="12" rx="2"/><rect x="124" y="76" width="12" height="10" rx="2"/><rect x="146" y="76" width="12" height="10" rx="2"/><rect x="124" y="96" width="12" height="10" rx="2"/><rect x="146" y="96" width="12" height="10" rx="2"/></g><circle cx="170" cy="52" r="24" fill="none" stroke="var(--a2)" strokeWidth="8"/><path d="M187 69l24 24" stroke="var(--a2)" strokeWidth="10" strokeLinecap="round"/><rect x="28" y="134" width="184" height="6" rx="3" fill="var(--a2)" opacity=".35"/></svg></div>
+                <div className="flex flex-1 flex-col gap-3 p-5 md:p-6">
+                  <h2 id="company-entry-title" className="text-2xl font-black text-[#352E8C]">查公司</h2>
+                  <p className="flex-1 text-sm leading-relaxed text-slate-600">已經知道是哪家公司，想看它的方案、來源與聯絡方式。</p>
+                  {renderCompanySearchForm("company-home-query")}
+                </div>
+              </section>
+              <section className="min-w-0 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="solution-entry-title">
+                <div className="bg-emerald-50 px-8 pt-5 pb-2" style={{"--a1": "#BFE6DD", "--a2": "#0d6e52"}}><svg viewBox="0 0 240 150" aria-hidden="true" focusable="false" className="mx-auto w-48 max-w-full"><rect x="44" y="40" width="64" height="44" rx="8" fill="var(--a1)"/><rect x="112" y="40" width="64" height="44" rx="8" fill="var(--a2)" opacity=".85"/><rect x="44" y="88" width="64" height="44" rx="8" fill="var(--a2)" opacity=".55"/><rect x="112" y="88" width="64" height="44" rx="8" fill="var(--a1)"/><circle cx="108" cy="62" r="9" fill="var(--a1)"/><circle cx="76" cy="86" r="9" fill="var(--a2)" opacity=".55"/><circle cx="144" cy="86" r="9" fill="var(--a1)"/><path d="M190 28l6 12 13 2-9 9 2 13-12-6-12 6 2-13-9-9 13-2z" fill="var(--a2)"/><rect x="28" y="134" width="184" height="6" rx="3" fill="var(--a2)" opacity=".35"/></svg></div>
+                <div className="flex flex-1 flex-col gap-3 p-5 md:p-6">
+                  <h2 id="solution-entry-title" className="text-2xl font-black text-[#0d6e52]">找方案</h2>
+                  <p className="flex-1 text-sm leading-relaxed text-slate-600">描述你的需求，系統幫你找出合適的方案與廠商。</p>
+            <div className="flex gap-2">
+              <label htmlFor="solution-home-query" className="sr-only">需求描述</label>
+              <input id="solution-home-query"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 placeholder={placeholderText}
-                className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-slate-800 placeholder:text-slate-400 text-lg font-medium"
+                className="min-w-0 flex-1 min-h-[48px] bg-white border border-slate-300 rounded-xl px-3 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 text-slate-800 placeholder:text-slate-400 text-sm font-medium"
               />
               <button onClick={handleSearch} disabled={loading || isSearching}
-                className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-60 disabled:cursor-not-allowed text-white px-10 py-4 rounded-full font-black text-lg shadow-2xl transition-all active:scale-95 whitespace-nowrap flex items-center justify-center gap-2">
+                className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-60 disabled:cursor-not-allowed text-white min-h-[48px] shrink-0 px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 whitespace-nowrap flex items-center justify-center gap-2">
                 {isSearching ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
                 {loading ? "資料載入中..." : isSearching ? "解析中..." : "AI 搜尋"}
               </button>
+            </div>
+                </div>
+              </section>
             </div>
             {loading && (
               <div className="flex items-center gap-2 text-xs text-slate-400 mt-2">
@@ -1096,7 +1216,8 @@
                 正在讀取方案資料...
               </div>
             )}
-            <div className="mt-6 mx-auto w-full max-w-xl space-y-2">
+            <h2 className="mt-10 text-sm font-bold text-slate-600">找方案：快速開始</h2>
+            <div className="mt-4 mx-auto w-full max-w-xl space-y-2">
               {quickSearchExamples.map(text => (
                 <button
                   key={text}
@@ -1693,6 +1814,167 @@
         </div>
       );
 
+      const renderCompanyCandidates = () => {
+        if (!companyResult) return null;
+        const result = companyResult;
+        const isPartial = result.match_type === "partial";
+        const candidates = isPartial ? result.candidates || [] : result.near || [];
+        return (
+          <div className="max-w-4xl mx-auto px-4 py-8 animate-in">
+            <button type="button" onClick={goBackInApp} className="min-h-[44px] mb-4 text-sm font-bold text-slate-600 hover:text-indigo-700">
+              <i aria-hidden="true" className="fa-solid fa-arrow-left mr-2"></i>返回
+            </button>
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 mb-5" aria-label="再次查詢公司">
+              <h1 className="text-xl font-black text-slate-900 mb-4">公司查詢</h1>
+              {renderCompanySearchForm("company-results-query")}
+            </section>
+            <section aria-live="polite" aria-atomic="true">
+              {isPartial ? (
+                <p className="rounded-xl bg-indigo-50 p-4 text-sm leading-relaxed text-indigo-900 mb-4">
+                  找到 {result.result_count} 家名稱相近的公司，請確認是哪一家（建議改用統編查詢）。
+                </p>
+              ) : (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 mb-5">
+                  <h2 className="text-lg font-bold text-amber-950 break-words">SF 未收錄「{result.query}」</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-amber-900">這只代表本資料庫沒有這家公司的方案，不代表公司不存在，也不代表它沒在任何計畫平台上架過。</p>
+                </div>
+              )}
+              {!isPartial && candidates.length > 0 && <h2 className="text-sm font-bold text-slate-600 mb-3">名稱開頭相同，但可能是不同公司</h2>}
+              {candidates.length > 0 && <ul className="overflow-hidden rounded-2xl border border-slate-200 divide-y divide-slate-100 bg-white">
+                {candidates.map(candidate => (
+                  <li key={candidate.company_id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
+                    <div className="min-w-0">
+                      <h2 className="font-bold text-slate-900 break-words">{candidate.company_name}</h2>
+                      <p className="mt-1 text-sm text-slate-500"><span className="font-mono">{candidate.company_id}</span>{candidate.city && ` · ${candidate.city}`}</p>
+                      {isPartial && <p className="mt-2 text-sm text-slate-600">收錄 {candidate.solution_count} 筆方案（其中 {candidate.active_solution_count} 筆仍在架）</p>}
+                    </div>
+                    <button type="button" onClick={() => handleCompanySearch(candidate.company_id)} disabled={companyLoading}
+                      aria-label={`${isPartial ? "是這家" : "看看這家"}：${candidate.company_name}`}
+                      className="min-h-[44px] shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-5 py-3 text-sm font-bold text-indigo-800 hover:bg-indigo-100 disabled:opacity-50">
+                      {companyLoading ? "查詢中…" : isPartial ? "是這家" : "看看這家"}
+                    </button>
+                  </li>
+                ))}
+              </ul>}
+            </section>
+          </div>
+        );
+      };
+
+      const openCompanySolution = (item) => {
+        setSelectedItem(item);
+        setActivePage("detail");
+        pushHistoryView("detail", { companySolution: item });
+      };
+
+      const renderCompany = () => {
+        if (!companyResult?.company) return null;
+        const { company, solutions = [], summary = {} } = companyResult;
+        const awards = company.awards || [];
+        const groups = new Map();
+        for (const solution of solutions) {
+          const source = solution.program_type || "未標示";
+          if (!groups.has(source)) groups.set(source, []);
+          groups.get(source).push(solution);
+        }
+        const activeCount = rows => rows.filter(row => row.status !== "delisted").length;
+        const orderedGroups = Array.from(groups).sort((a, b) => activeCount(b[1]) - activeCount(a[1]) || a[0].localeCompare(b[0], "zh-Hant"));
+        const platformCount = orderedGroups.filter(([, rows]) => activeCount(rows) > 0).length;
+        const listedTotal = (summary.total || 0) - (summary.delisted || 0);
+        const allDelisted = solutions.length > 0 && listedTotal === 0;
+        const badgeClass = "rounded-full border px-3 py-1 text-xs";
+        const isPlatformStopped = solution => solution.status === "suspected" && (solution.status_label || "").includes("平台停止服務");
+        return (
+          <div className="max-w-4xl mx-auto px-4 py-8 animate-in">
+            <button type="button" onClick={goBackInApp} className="min-h-[44px] mb-4 text-sm font-bold text-slate-600 hover:text-indigo-700">
+              <i aria-hidden="true" className="fa-solid fa-arrow-left mr-2"></i>返回
+            </button>
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 md:p-7 mb-5" aria-label="公司檔案">
+              <div className="flex items-start gap-4">
+                <div className="shrink-0" aria-hidden="true" dangerouslySetInnerHTML={{ __html: window.renderCompanyAvatar(company.company_name, company.logo_url) }} />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold tracking-widest text-indigo-600 mb-2">公司檔案</p>
+                  <h1 className="text-2xl md:text-3xl font-black leading-snug text-slate-900 break-words">{company.company_name}</h1>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className={`${badgeClass} bg-slate-50 border-slate-200 text-slate-600 font-mono`}>{company.company_id}</span>
+                    {(company.region || company.city) && <span className={`${badgeClass} bg-slate-100 border-slate-200 text-slate-600`}>{[company.region, company.city].filter(Boolean).join(" · ")}</span>}
+                    {company.tax_primary_name && <span className={`${badgeClass} bg-slate-50 border-slate-200 text-slate-600`}>稅籍主業：{company.tax_primary_name}</span>}
+                    {company.it_code_rank === 1 && <span className={`${badgeClass} bg-indigo-50 border-indigo-200 text-indigo-700 font-bold`}>資訊服務為主要登記項目</span>}
+                    {company.is_startup && <span className={`${badgeClass} bg-emerald-50 border-emerald-200 text-emerald-800 font-bold`}>新創</span>}
+                    {company.gov_registered && <span className={`${badgeClass} bg-emerald-50 border-emerald-200 text-emerald-800`}>政府能量登錄</span>}
+                    {company.cdm_classified && <span className={`${badgeClass} bg-blue-50 border-blue-200 text-blue-800`}>資安分類</span>}
+                    {awards.length > 0 && <span className={`${badgeClass} bg-amber-50 border-amber-200 text-amber-800`}>獲獎</span>}
+                  </div>
+                </div>
+              </div>
+              <dl className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3" aria-label="方案統計">
+                {[["收錄方案", listedTotal], ["正常", summary.normal || 0], ["未逐筆確認", summary.suspected || 0], ["來源平台數", platformCount]].map(([label, count]) => (
+                  <div key={label} className="min-w-0 rounded-xl border border-slate-200 p-3 md:p-4">
+                    <dt className="text-xs text-slate-500">{label}</dt><dd className="mt-1 text-2xl font-black font-mono text-slate-800">{count}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+            {renderCompanyError()}
+            {allDelisted && <p role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">此公司收錄的方案皆已下架。</p>}
+            <section className="mb-5" aria-label="公司方案">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <h2 className="text-lg font-black text-slate-800">方案與來源</h2>
+                {summary.delisted > 0 && <label className="flex min-h-[44px] items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                  <input type="checkbox" checked={showDelisted} onChange={event => setShowDelisted(event.target.checked)} className="h-4 w-4 accent-indigo-600" />
+                  顯示已下架方案（{summary.delisted}）
+                </label>}
+              </div>
+              {solutions.length === 0 && <p className="text-sm text-slate-500">目前沒有收錄方案。</p>}
+              <div className="space-y-4" aria-live="polite">
+                {orderedGroups.map(([source, rows]) => {
+                  const visible = rows.filter(row => showDelisted || row.status !== "delisted");
+                  if (!visible.length) return null;
+                  return <section key={source} className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label={source}>
+                    <h3 className="flex justify-between gap-3 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-700"><span>{source}</span><span className="shrink-0">{visible.length} 筆</span></h3>
+                    {rows.some(isPlatformStopped) && <p className="flex items-start gap-2 px-5 pt-3 pb-1 text-sm leading-relaxed text-slate-500">
+                      <i aria-hidden="true" className="fa-solid fa-circle-info mt-1 shrink-0"></i>
+                      <span>此平台已停止服務，以下方案未逐筆確認是否仍提供。</span>
+                    </p>}
+                    <ul className="divide-y divide-slate-100">
+                      {visible.map(solution => {
+                        const item = solution.status !== "delisted" && allData.find(row => row.id === solution.id);
+                        const statusLabel = solution.status === "delisted" ? "已下架" : "正常";
+                        const statusClass = solution.status === "delisted" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-800";
+                        return <li key={solution.solution_id || solution.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5">
+                          <div className="min-w-0 flex-1">
+                            {item ? <button type="button" onClick={() => openCompanySolution(item)} className="min-h-[44px] text-left font-bold text-indigo-800 underline decoration-indigo-200 underline-offset-4 hover:text-indigo-600 break-words">{solution.name}</button>
+                              : <p className="font-bold text-slate-600 break-words">{solution.name}</p>}
+                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                              <span className="text-xs text-slate-400 font-mono break-all">{solution.solution_id}</span>
+                              {!isPlatformStopped(solution) && (solution.status === "suspected"
+                                ? <span title={solution.status_label || undefined} className="text-xs text-slate-500">{(solution.status_label || "").includes("未持續上架") ? "平台上已找不到" : "未確認"}</span>
+                                : <span title={solution.status_label || undefined} className={`rounded-full px-2 py-1 text-xs font-bold ${statusClass}`}>{statusLabel}</span>)}
+                              {solution.has_ai && <span className="rounded-full bg-yellow-50 px-2 py-1 text-xs font-bold text-yellow-800">AI</span>}
+                            </div>
+                          </div>
+                          <div className="shrink-0 text-sm text-slate-600 sm:text-right">
+                            {solution.price != null && <p>{formatCurrency(solution.price)}</p>}
+                            {solution.monthly_price != null && <p className="text-xs text-slate-400">{formatCurrency(solution.monthly_price)}/月</p>}
+                            {!item && <p className="mt-1 text-xs text-slate-400">無詳細頁</p>}
+                          </div>
+                        </li>;
+                      })}
+                    </ul>
+                  </section>;
+                })}
+              </div>
+            </section>
+            {awards.length > 0 && <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-5" aria-label="公司獲獎">
+              <h2 className="text-base font-bold text-slate-800 mb-3">獲獎紀錄</h2>
+              <ul className="space-y-2 text-sm text-slate-600">{awards.map((award, index) => <li key={index}>{award.award_name}{award.award_year && <span className="ml-2 text-slate-400">{award.award_year}</span>}</li>)}</ul>
+            </section>}
+            <ContactInfoCard key={company.company_id} item={{ cid: company.company_id, tax: company.tax_primary_name }} cache={companyDetailCache.current} pending={companyDetailPending.current} />
+            <p className="mt-6 text-xs leading-relaxed text-slate-500">未逐筆確認（資料庫標記為疑似下架）：平台停止服務或方案未持續上架，尚未逐筆驗證。本資料庫沒有方案的上架年度。</p>
+          </div>
+        );
+      };
+
       // ===== DETAIL PAGE =====
       const renderDetail = () => {
         const item = selectedItem;
@@ -1732,7 +2014,9 @@
                   </div>
                   {item.p === "資策會產業調查" && <p className="text-xs text-slate-500 mb-4">本方案源自資策會產業調查專案，未經政府計畫審核程序。</p>}
                   <h1 className="text-2xl font-black text-slate-900 mb-2">{item.s || "（未命名方案）"}</h1>
-                  <p className="text-base text-slate-600 font-semibold mb-4">{item.c}</p>
+                  {item.cid ? <button type="button" onClick={() => handleCompanySearch(item.cid)} disabled={companyLoading}
+                    aria-label={`查看 ${item.c} 的公司資料`} className="min-h-[44px] text-base text-slate-600 font-semibold mb-4 underline underline-offset-4 hover:text-indigo-700 disabled:opacity-50">{item.c}{companyLoading && <i aria-hidden="true" className="fa-solid fa-spinner fa-spin ml-2"></i>}</button>
+                    : <p className="text-base text-slate-600 font-semibold mb-4">{item.c}</p>}
                 </div>
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center" aria-hidden="true">
                   <div
@@ -1859,6 +2143,9 @@
             {activePage === "list" && renderList()}
             {activePage === "detail" && renderDetail()}
             {activePage === "theme-detail" && renderThemeDetail()}
+            {activePage === "company-search" && renderCompanyCandidates()}
+            {activePage === "company" && renderCompany()}
+            {activePage === "detail" && companyError && <div className="max-w-3xl mx-auto px-4 pb-6">{renderCompanyError()}</div>}
           </main>
           {roiModal && createPortal(
             <ROIModal item={roiModal} onClose={closeROIModal} />,

@@ -12,7 +12,9 @@ const apis = ['solutions', 'cases', 'stats', 'companies'];
 const originals = {}, current = {};
 for (const api of apis) {
   const source = execFileSync('git', ['show', `${MAIN_REVISION}:api/${api}.js`], { cwd: root, encoding: 'utf8' });
-  const imported = source.replace("'../_lib/auth.js'", JSON.stringify(authUrl));
+  // PR 3 changes only companies' cache policy; all bodies, requests and other headers retain parity.
+  const imported = (api === 'companies' ? source.replace("'s-maxage=300'", "'private, no-store'") : source)
+    .replace("'../_lib/auth.js'", JSON.stringify(authUrl));
   originals[api] = (await import(`data:text/javascript;base64,${Buffer.from(imported).toString('base64')}`)).default;
   current[api] = (await import(new URL(`../api/${api}.js`, import.meta.url))).default;
 }
