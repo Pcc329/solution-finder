@@ -1888,7 +1888,11 @@
           groups.get(source).push(solution);
         }
         const activeCount = rows => rows.filter(row => row.status !== "delisted").length;
-        const orderedGroups = Array.from(groups).sort((a, b) => activeCount(b[1]) - activeCount(a[1]) || a[0].localeCompare(b[0], "zh-Hant"));
+        const statusCount = (rows, status) => rows.filter(row => row.status === status).length;
+        const orderedGroups = Array.from(groups).sort((a, b) =>
+          statusCount(b[1], "normal") - statusCount(a[1], "normal") ||
+          statusCount(b[1], "suspected") - statusCount(a[1], "suspected"));
+        const statusOrder = { normal: 0, suspected: 1, delisted: 2 };
         const platformCount = orderedGroups.filter(([, rows]) => activeCount(rows) > 0).length;
         const listedTotal = (summary.total || 0) - (summary.delisted || 0);
         const allDelisted = solutions.length > 0 && listedTotal === 0;
@@ -1925,6 +1929,9 @@
                 ))}
               </dl>
             </section>
+            <div className="mb-5">
+              <ContactInfoCard key={company.company_id} item={{ cid: company.company_id, tax: company.tax_primary_name }} cache={companyDetailCache.current} pending={companyDetailPending.current} />
+            </div>
             {renderCompanyError()}
             {allDelisted && <p role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">此公司收錄的方案皆已下架。</p>}
             <section className="mb-5" aria-label="公司方案">
@@ -1939,7 +1946,8 @@
               <div className="space-y-4" aria-live="polite">
                 {orderedGroups.map(([source, rows]) => {
                   const visible = rows.filter(row => showDelisted || row.status !== "delisted")
-                    .sort((a, b) => Number(isMissingSolutionName(a.name)) - Number(isMissingSolutionName(b.name)));
+                    .sort((a, b) => statusOrder[a.status] - statusOrder[b.status] ||
+                      Number(isMissingSolutionName(a.name)) - Number(isMissingSolutionName(b.name)));
                   if (!visible.length) return null;
                   return <section key={source} className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label={source}>
                     <h3 className="flex justify-between gap-3 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-700"><span>{source}</span><span className="shrink-0">{visible.length} 筆</span></h3>
@@ -1980,7 +1988,6 @@
               <h2 className="text-base font-bold text-slate-800 mb-3">獲獎紀錄</h2>
               <ul className="space-y-2 text-sm text-slate-600">{awards.map((award, index) => <li key={index}>{award.award_name}{award.award_year && <span className="ml-2 text-slate-400">{award.award_year}</span>}</li>)}</ul>
             </section>}
-            <ContactInfoCard key={company.company_id} item={{ cid: company.company_id, tax: company.tax_primary_name }} cache={companyDetailCache.current} pending={companyDetailPending.current} />
             <p className="mt-6 text-xs leading-relaxed text-slate-500">未逐筆確認（資料庫標記為疑似下架）：平台停止服務或方案未持續上架，尚未逐筆驗證。本資料庫沒有方案的上架年度。</p>
           </div>
         );
