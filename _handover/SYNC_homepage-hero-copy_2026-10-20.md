@@ -22,16 +22,31 @@
 ## Preview 驗證
 
 - 樣式修正 commit：`33c1f8a081e5ea247d1c530487d3ecd4bd010b37`。
+- 本次實際驗證的 Preview commit：`0eee028`（後續提交僅補交接紀錄與截圖，首頁程式碼相同）。
 - Vercel 狀態：部署成功（GitHub commit status 的 Vercel check 為 `success`）。
-- 部署紀錄：https://vercel.com/patrick0814-6136s-projects/solution-finder/Cu8cm14GigpLwF2utXes7bZYrkLt
+- 部署紀錄：https://vercel.com/patrick0814-6136s-projects/solution-finder/5EaPEX9j1EnqzsgrYrQhi9ETtnFW
 - Preview：https://solution-finder-git-feat-home-fc784c-patrick0814-6136s-projects.vercel.app/
-- 檢查日期：2026-10-20（Asia/Taipei）。
-- 實際瀏覽結果：Preview 顯示「內部系統登入」，資料 API 回傳 `401`，需先完成共用密碼登入。
-- 首頁實際方案數、業者數與桌機／375px 截圖：尚未完成；已請使用者在 Preview 分頁登入，完成後才能據實記錄。未將未登入時的初始值或測試資料當成正式數字。
+- 檢查時間：2026-10-20 約 13:38（Asia/Taipei）。使用者完成共用密碼登入後，重新載入 Preview 並等待資料載入完成。
+- 首頁實際標題：「資服產業資料庫」。
+- 首頁實際說明：「收錄 2,268 筆數位轉型方案與 1,102 家資服業者」。
+- 實際方案數：**2,268**；實際業者數：**1,102**。數字來自已登入 Preview 的實際畫面，會隨資料庫更新而改變。
+- 桌機與 375px 寬度下，兩個數字皆顯示相同的 `text-slate-900 font-bold` 樣式；桌機實際 computed style 為 `color: rgb(15, 23, 42)`、`font-weight: 700`。
+- 桌機：截圖尺寸 **1265 × 545**；頁面內容寬度與 scrollWidth 皆為 1265，無水平溢位。
+- 手機：截圖尺寸 **375 × 813**；確認頁面 `documentElement.clientWidth` 與 `scrollWidth` 皆為 **375**，無水平溢位，說明文字正常換行。Windows 瀏覽器保留捲軸空間，因此使用尺寸控制值 390 才取得實際 375px 內容與截圖；未縮放或編輯截圖內容。
+- 擷取完成後已還原臨時瀏覽器尺寸設定。
+
+### 桌機截圖
+
+![桌機首頁：收錄 2,268 筆數位轉型方案與 1,102 家資服業者](evidence/homepage-hero-copy-20261020/desktop.jpg)
+
+### 375px 截圖
+
+![375px 首頁：收錄 2,268 筆數位轉型方案與 1,102 家資服業者](evidence/homepage-hero-copy-20261020/mobile-375.jpg)
 
 ## 已完成檢查
 
 - 完整 JSX 經 Babel classic React preset 編譯成功。
 - 兩個數字的 span 樣式均為 `text-slate-900 font-bold`。
 - 千分位、零值、stats 未載入／失敗與缺少業者數時的「—」顯示檢查通過。
+- 已登入 Preview 的桌機與 375px 實際數字、樣式及文字換行驗證通過，附上原始瀏覽器截圖。
 - `git diff --check` 通過。
