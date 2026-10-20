@@ -6,6 +6,8 @@
   <meta name="robots" content="noindex, nofollow">
   <title>資服產業資料庫 知識庫</title>
   <script src="/auth-gate.js"></script>
+  <script src="/solution-name.js"></script>
+  <link rel="stylesheet" href="/solution-name.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <style>
@@ -2082,7 +2084,7 @@
               <div class="update-item-name-row">
                 ${renderRecentTypeBadge(item.type)}
                 ${!isCase ? renderSourceBadge(item.dataSource) : ''}
-                <span class="update-item-name">${escapeHtml(item.name)}</span>
+                <span class="update-item-name ${!isCase && isMissingSolutionName(item.name) ? "sf-name-missing" : ""}">${escapeHtml(isCase ? item.name : displaySolutionName(item.name))}</span>
               </div>
               <span class="update-item-company">${escapeHtml(secondaryText)}</span>
             </div>

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { stripTypeScriptTypes } from 'node:module'
+import vm from 'node:vm'
 import { test } from 'node:test'
 import { createMcpHandler } from '@modelcontextprotocol/server'
 
@@ -15,7 +16,33 @@ const testSource = source.split('Deno.serve(')[0]
     if (line.includes('npm:zod@4.6.5')) return `import { z } from '${import.meta.resolve('zod')}'\n`
     return ''
   })
-const { createSfServer } = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(testSource)).toString('base64')}`)
+const { createSfServer, isMissingSolutionName: mcpIsMissingSolutionName, displaySolutionName: mcpDisplaySolutionName, solutionNamePlaceholders } = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(testSource + '\nexport { isMissingSolutionName, displaySolutionName, solutionNamePlaceholders }')).toString('base64')}`)
+
+test('standalone Edge Function imports only npm/jsr packages, with no local or dynamic imports', () => {
+  const imports = [...source.matchAll(/^import\s+(?:[^'"\n]*?from\s+)?['"]([^'"]+)['"]/gm)].map(match => match[1])
+  assert.equal(imports.length, 5)
+  for (const specifier of imports) assert.match(specifier, /^(npm|jsr):/)
+  assert.doesNotMatch(source, /\bimport\s*\(|\bexport\s+[^\n]*\bfrom\s*['"]/)
+})
+
+test('browser and inline MCP definitions independently load identical placeholder lists and behavior', () => {
+  const browserLists = []
+  class CapturedSet extends Set {
+    constructor(values) { super(values); browserLists.push([...values]) }
+  }
+  const browser = vm.createContext({ Set: CapturedSet })
+  vm.runInContext(readFileSync(new URL('public/solution-name.js', root), 'utf8'), browser)
+  const expected = ['缺', '缺漏', '待補', '無', '-', '—', 'N/A', 'NA', 'null', '?', '？']
+  assert.equal(browserLists.length, 1)
+  assert.deepEqual(browserLists[0], expected)
+  assert.deepEqual([...solutionNamePlaceholders], browserLists[0])
+  const values = [null, undefined, '', '  ', '\t\n', ...expected, ...expected.map(value => ` \t${value}\n `),
+    '律果簽', 'HackMD', 'AI', ' AI ', '缺工管理', 'NA 平台', 'Null Analytics', 'n/a', 'NULL', 0, false]
+  for (const value of values) {
+    assert.equal(mcpIsMissingSolutionName(value), browser.isMissingSolutionName(value), `classification: ${JSON.stringify(value)}`)
+    assert.equal(mcpDisplaySolutionName(value), browser.displaySolutionName(value), `display: ${JSON.stringify(value)}`)
+  }
+})
 
 const solution = (extra = {}) => ({
   solution_id: 'SOL-MOCK-1', solution_name: 'Mock AI 方案', company_id: 'MOCK-C1', company_name: 'Mock 廠商',
@@ -262,7 +289,7 @@ for (const options of [{ touch: { error: { message: 'private' }, data: null } },
     t.mock.method(console, 'warn', () => {})
     const { result, data } = await callTool(mockDb(options), 'whoami')
     assert.notEqual(result.isError, true)
-    assert.deepEqual(data, { id: 'mock-user', email: 'signed-in-user@example.invalid', server_version: '1.2.0' })
+    assert.deepEqual(data, { id: 'mock-user', email: 'signed-in-user@example.invalid', server_version: '1.2.1' })
     assert.equal(console.error.mock.callCount() + console.warn.mock.callCount(), 1)
     if (options.touch?.error || options.throwTouch) {
       assert.deepEqual(console.error.mock.calls[0].arguments, ['[sf-mcp] whoami sf_mcp_touch 失敗：', options.throwTouch ? 'private connection string' : 'private'])
@@ -297,11 +324,16 @@ test('describe topics index/default, all and every section preserve v1.1 except 
     assert.equal(data.text, guide.split(/\n(?=## )/)[i + 1])
   }
 })
-test('protected five handlers retain original query/body logic including whoami own email', () => {
+test('protected five handlers retain query/body logic except specified name display changes', () => {
   const before = execFileSync('git', ['show', 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e:supabase/functions/sf-mcp/index.ts'], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n')
   for (const name of ['get_solution', 'get_solutions', 'data_status', 'whoami', 'count_solutions']) {
     const body = (text) => text.split(`'${name}',\n`)[1].split(/\n\s+async /)[1].split('\n        )')[0].trim()
-    assert.equal(body(source), body(before))
+    const normalize = (text) => text
+      .replace(/\n\s+solution_name: displaySolutionName\(s.solution_name\),/g, '')
+      .replace(/\n\s+name: displaySolutionName\(s.solution_name\),/g, '')
+      .replace(/\n\s+name_missing: isMissingSolutionName\(s.solution_name\),/g, '')
+      .replace(/name: displaySolutionName\(r.solution_name\),\n\s+name_missing: isMissingSolutionName\(r.solution_name\),/g, 'name: r.solution_name,')
+    assert.equal(normalize(body(source)), body(before))
   }
 })
 test('migration hash pinned, skill exact appendix hash, old scanning removed, no business writes/private RPC', () => {
@@ -312,4 +344,77 @@ test('migration hash pinned, skill exact appendix hash, old scanning removed, no
   assert.doesNotMatch(source, /SCAN_CAP|scanPages|filterByCity|groupByCompany|normCity|fetchPage|300 筆|\.rpc\('sf_private|\.(insert|upsert|update|delete)\(/)
   assert.match(source, /RATE_LIMIT_ENFORCE = false/)
   assert.match(source, /withSupabase\(\{ auth: 'user' \}\)/)
+})
+
+for (const name of [null, undefined, '', '  ', '缺', ' 缺 ', '缺漏', '待補', '無', '-', '—', 'N/A', 'NA', 'null', '?', '？', '律果簽', 'HackMD', 'AI', ' AI ']) {
+  test(`all four name outputs and actual schemas: ${JSON.stringify(name)}`, async () => {
+    const missing = !['律果簽', 'HackMD', 'AI', ' AI '].includes(name)
+    const expected = missing ? '（名稱未提供）' : name
+    const row = solution({ solution_name: name })
+    const db = mockDb({ rpc: { sf_search_solutions: [row], sf_search_companies: [company({ solutions: [{ id: row.solution_id, name }] })] }, tables: { solutions: [row] } })
+    for (const [tool, args, getRows] of [
+      ['search_solutions', {}, data => data.results],
+      ['search_companies', {}, data => data.companies[0].solutions],
+      ['get_solution', { solution_id: row.solution_id }, data => [data.solution]],
+      ['get_solutions', { solution_ids: [row.solution_id] }, data => data.results],
+    ]) {
+      const { data, tool: registered } = await callTool(db, tool, args)
+      const result = getRows(data)[0]
+      assert.equal(result.name, expected, tool)
+      assert.equal(result.name_missing, missing, tool)
+      if (tool === 'get_solution') assert.equal(result.solution_name, expected)
+      delete result.name_missing
+      assert.equal(registered.outputSchema.safeParse(data).success, false, `${tool} must require name_missing`)
+      result.name_missing = 'true'
+      assert.equal(registered.outputSchema.safeParse(data).success, false, `${tool} must require a boolean`)
+    }
+    assert.equal(row.solution_name, name, 'raw fixture is not changed')
+  })
+}
+
+for (const [tool, args] of [
+  ['describe_data', {}], ['search_solutions', {}], ['search_companies', {}],
+  ['get_solution', { solution_id: 'SOL-MOCK-1' }], ['get_solutions', { solution_ids: ['SOL-MOCK-1'] }],
+  ['data_status', {}], ['whoami', {}], ['count_solutions', {}],
+]) {
+  test(`${tool}: 42501 denies access before any query or handler and logs server-side`, async t => {
+    t.mock.method(console, 'error', () => {})
+    const db = mockDb({ touch: { data: null, error: { code: '42501', message: 'private permission detail' } } })
+    db.auth.getUser = async () => { assert.fail('unauthorized whoami must not run') }
+    const { result, data } = await callTool(db, tool, args)
+    assert.equal(result.isError, true)
+    assert.equal(result.structuredContent, undefined)
+    assert.equal(data.error, '此帳號未開通 SF資料庫查詢權限，請洽管理者。')
+    assert.deepEqual(db.calls, [{ rpc: 'sf_mcp_touch', args: undefined }])
+    assert.equal(console.error.mock.callCount(), 1)
+    assert.match(console.error.mock.calls[0].arguments[0], /sf_mcp_touch 失敗/)
+    assert.equal(console.error.mock.calls[0].arguments[1], 'private permission detail')
+    assert.doesNotMatch(result.content[0].text, /42501|private|sf_mcp_touch|SQL/)
+  })
+}
+
+test('summary city text uses official 臺 while RPC parameters and keyword stay unchanged', async () => {
+  for (const tool of ['search_solutions', 'search_companies']) {
+    const db = mockDb()
+    const { data } = await callTool(db, tool, { city: [' 台北市 ', '台中市', '台東縣'], keyword: '台灣' })
+    assert.match(data.summary_line, /^臺北市，臺中市，臺東縣，關鍵字「台灣」：/)
+    assert.deepEqual(db.calls.find(c => c.rpc === `sf_${tool}`).args.p_cities, [' 台北市 ', '台中市', '台東縣'])
+  }
+})
+
+test('describe_data index uses the first complete sentence, not a list heading fragment', async () => {
+  const { data } = await callTool(mockDb(), 'describe_data')
+  const directory = data.text.split('\n\n')[0].split('\n')
+  assert.equal(directory.length, 11)
+  for (const line of directory) assert.match(line, /[。！？]$/)
+  const mapping = directory[4]
+  assert.doesNotMatch(mapping, /需求 → keyword：。/)
+  assert.match(mapping, /為什麼用詞根：「目標產業」欄位有多套寫法並存（例如「金融保險」與「K金融及保險業」、「批發零售業」與「G批發及零售業」）。$/)
+})
+
+test('name display preserves RPC page order, scores, totals and request parameters', async () => {
+  const rows = [solution({ solution_name: '缺', score: 150 }), solution({ solution_id: 'SOL-MOCK-2', solution_name: 'AI', score: 100 })]
+  const { data } = await callTool(mockDb({ rpc: { sf_search_solutions: rows } }), 'search_solutions', { include_delisted: true })
+  assert.deepEqual(data.results.map(r => [r.id, r.score]), rows.map(r => [r.solution_id, r.score]))
+  assert.equal(data.total_matches, 390)
 })

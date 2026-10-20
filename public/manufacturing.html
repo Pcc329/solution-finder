@@ -6,6 +6,8 @@
   <meta name="robots" content="noindex, nofollow">
   <title>方案探索 | Solution Finder</title>
   <script src="/auth-gate.js"></script>
+  <script src="/solution-name.js"></script>
+  <link rel="stylesheet" href="/solution-name.css">
   <script src="/company-avatar.js"></script>
   <script src="/target-scale.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -1467,7 +1469,7 @@
               ${getTaxBadgeHtml(item)}
             </div>
             ${programType === "資策會產業調查" ? '<p class="text-xs text-slate-500 mb-4">本方案源自資策會產業調查專案，未經政府計畫審核程序。</p>' : ""}
-            <h1 class="text-2xl font-black text-slate-900">${escapeHtml(name || "未命名方案")}</h1>
+            <h1 class="text-2xl font-black text-slate-900 ${isMissingSolutionName(name) ? "sf-name-missing" : ""}">${escapeHtml(displaySolutionName(name))}</h1>
             ${vendor ? `<p class="text-base text-slate-600 font-semibold mt-2">${escapeHtml(vendor)}</p>` : ""}
           </section>
 
@@ -1864,7 +1866,9 @@
         .map((item, index) => ({ item, index, score: scoreSolution(item) }))
         .filter(entry => safeStr(entry.item.c).trim() !== "")
         .filter(entry => entry.score > 0 || solutionText(entry.item).includes("製造"))
-        .sort((a, b) => b.score - a.score || a.index - b.index);
+        .sort((a, b) => b.score - a.score
+          || Number(isMissingSolutionName(a.item.s)) - Number(isMissingSolutionName(b.item.s))
+          || a.index - b.index);
       const official = scored
         .filter(entry => officialPrograms.some(program => safeStr(entry.item.p).includes(program)))
         .slice(0, 5)
@@ -1957,7 +1961,7 @@
                 <div class="flex min-w-0 flex-1 items-start gap-3">
                   ${window.renderCompanyAvatar(item.c, item.logo)}
                   <div class="min-w-0">
-                    <h4 class="font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h4>
+                    <h4 class="font-black text-slate-900 truncate ${isMissingSolutionName(item.s) ? "sf-name-missing" : ""}">${escapeHtml(displaySolutionName(item.s))}</h4>
                     <p class="text-xs text-slate-500 mt-1">${escapeHtml(item.c || "未提供業者")}</p>
                   </div>
                 </div>
@@ -2435,7 +2439,7 @@
     function compactRecommendSolutions(official, others) {
       return [...official, ...others].slice(0, 20).map(item => ({
         id: item.id || "",
-        name: item.s || "",
+        name: displaySolutionName(item.s),
         vendor: item.c || "",
         price: item.pr ?? "",
         description_short: item.ds || item.description_short || "",
