@@ -1,0 +1,264 @@
+{
+  "search_solutions": {
+    "structuredContent": {
+      "summary_line": "390 筆方案（正常 360、疑似下架 30）；另有 12 筆縣市未填未納入。",
+      "status_scope": "正常＋疑似下架",
+      "notes": [
+        "疑似下架方案請在回答中逐筆標「⚠疑似下架」，最後一句總說明即可；使用者問到才說明原因（原因可用 data_status 查）。"
+      ],
+      "notes_more": [],
+      "total_matches": 390,
+      "totals": {
+        "matches": 390,
+        "normal": 360,
+        "suspected_delisted": 30,
+        "city_unknown": 12
+      },
+      "returned": 1,
+      "offset": 0,
+      "next_offset": 1,
+      "next_step": null,
+      "page_summary": {
+        "normal": 1,
+        "suspected_delisted": 0,
+        "company_region_missing": 0,
+        "company_city_missing": 0,
+        "in_tax_registry": 1,
+        "with_company_award": 1,
+        "matches_industry_keyword": null
+      },
+      "results": [
+        {
+          "id": "SOL-MOCK-1",
+          "name": "（名稱未提供）",
+          "name_missing": true,
+          "company": "Mock 廠商",
+          "company_id": "MOCK-C1",
+          "source": "測試來源",
+          "category": "協作辦公",
+          "company_city": "臺北市",
+          "company_region": "北部",
+          "is_ai": true,
+          "is_startup": false,
+          "is_gov_registered": true,
+          "price": 1000,
+          "monthly_price": null,
+          "pricing_model": [
+            "訂閱制"
+          ],
+          "slogan": "測試標語",
+          "summary": "測試摘要",
+          "status": "正常",
+          "score": 100,
+          "industries_count": 0,
+          "industries_sample": [],
+          "matches_industry_keyword": null,
+          "tax_primary_industry": "程式設計",
+          "it_code_rank": 1,
+          "has_company_award": true,
+          "company_award_count": 1,
+          "company_award_best_level": "國際級"
+        }
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"summary_line\":\"390 筆方案（正常 360、疑似下架 30）；另有 12 筆縣市未填未納入。\",\"status_scope\":\"正常＋疑似下架\",\"notes\":[\"疑似下架方案請在回答中逐筆標「⚠疑似下架」，最後一句總說明即可；使用者問到才說明原因（原因可用 data_status 查）。\"],\"notes_more\":[],\"total_matches\":390,\"totals\":{\"matches\":390,\"normal\":360,\"suspected_delisted\":30,\"city_unknown\":12},\"returned\":1,\"offset\":0,\"next_offset\":1,\"next_step\":null,\"page_summary\":{\"normal\":1,\"suspected_delisted\":0,\"company_region_missing\":0,\"company_city_missing\":0,\"in_tax_registry\":1,\"with_company_award\":1,\"matches_industry_keyword\":null},\"results\":[{\"id\":\"SOL-MOCK-1\",\"name\":\"（名稱未提供）\",\"name_missing\":true,\"company\":\"Mock 廠商\",\"company_id\":\"MOCK-C1\",\"source\":\"測試來源\",\"category\":\"協作辦公\",\"company_city\":\"臺北市\",\"company_region\":\"北部\",\"is_ai\":true,\"is_startup\":false,\"is_gov_registered\":true,\"price\":1000,\"monthly_price\":null,\"pricing_model\":[\"訂閱制\"],\"slogan\":\"測試標語\",\"summary\":\"測試摘要\",\"status\":\"正常\",\"score\":100,\"industries_count\":0,\"industries_sample\":[],\"matches_industry_keyword\":null,\"tax_primary_industry\":\"程式設計\",\"it_code_rank\":1,\"has_company_award\":true,\"company_award_count\":1,\"company_award_best_level\":\"國際級\"}]}"
+      }
+    ]
+  },
+  "search_companies": {
+    "structuredContent": {
+      "summary_line": "152 家廠商、390 筆方案（正常 360、疑似下架 30）；另有 12 筆縣市未填未納入。",
+      "status_scope": "正常＋疑似下架",
+      "notes": [
+        "疑似下架方案請在回答中逐筆標「⚠疑似下架」，最後一句總說明即可；使用者問到才說明原因（原因可用 data_status 查）。"
+      ],
+      "notes_more": [],
+      "companies_total": 152,
+      "solutions_total": 390,
+      "totals": {
+        "companies": 152,
+        "solutions": 390,
+        "normal": 360,
+        "suspected_delisted": 30,
+        "city_unknown": 12
+      },
+      "returned": 1,
+      "offset": 0,
+      "next_offset": 1,
+      "next_step": null,
+      "page_summary": {
+        "companies": 1,
+        "solutions": 9,
+        "normal": 7,
+        "suspected_delisted": 2
+      },
+      "companies": [
+        {
+          "company_id": "MOCK-C1",
+          "company": "Mock 廠商",
+          "company_city": "臺北市",
+          "company_region": "北部",
+          "tax_primary_industry": "程式設計",
+          "it_code_rank": 1,
+          "has_company_award": true,
+          "company_award_best_level": "國際級",
+          "solutions_count": 9,
+          "normal_count": 7,
+          "suspected_delisted_count": 2,
+          "solutions": [
+            {
+              "id": "SOL-MOCK-1",
+              "name": "（名稱未提供）",
+              "name_missing": true,
+              "price": null,
+              "status": "正常"
+            }
+          ]
+        }
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"summary_line\":\"152 家廠商、390 筆方案（正常 360、疑似下架 30）；另有 12 筆縣市未填未納入。\",\"status_scope\":\"正常＋疑似下架\",\"notes\":[\"疑似下架方案請在回答中逐筆標「⚠疑似下架」，最後一句總說明即可；使用者問到才說明原因（原因可用 data_status 查）。\"],\"notes_more\":[],\"companies_total\":152,\"solutions_total\":390,\"totals\":{\"companies\":152,\"solutions\":390,\"normal\":360,\"suspected_delisted\":30,\"city_unknown\":12},\"returned\":1,\"offset\":0,\"next_offset\":1,\"next_step\":null,\"page_summary\":{\"companies\":1,\"solutions\":9,\"normal\":7,\"suspected_delisted\":2},\"companies\":[{\"company_id\":\"MOCK-C1\",\"company\":\"Mock 廠商\",\"company_city\":\"臺北市\",\"company_region\":\"北部\",\"tax_primary_industry\":\"程式設計\",\"it_code_rank\":1,\"has_company_award\":true,\"company_award_best_level\":\"國際級\",\"solutions_count\":9,\"normal_count\":7,\"suspected_delisted_count\":2,\"solutions\":[{\"id\":\"SOL-MOCK-1\",\"name\":\"（名稱未提供）\",\"name_missing\":true,\"price\":null,\"status\":\"正常\"}]}]}"
+      }
+    ]
+  },
+  "get_solution": {
+    "structuredContent": {
+      "found": true,
+      "solution": {
+        "solution_id": "SOL-MOCK-1",
+        "solution_name": "（名稱未提供）",
+        "company_id": "MOCK-C1",
+        "company_name": "Mock 廠商",
+        "program_type": "測試來源",
+        "industry_category": "協作辦公",
+        "region": "北部",
+        "company_city": "臺北市",
+        "has_ai": true,
+        "is_startup": false,
+        "is_gov": true,
+        "price": 1000,
+        "monthly_price": null,
+        "pricing_model": [
+          "訂閱制"
+        ],
+        "slogan": "測試標語",
+        "description_short": "測試摘要",
+        "record_status": null,
+        "score": 100,
+        "total_matches": 390,
+        "suspected_total": 30,
+        "city_unknown_count": 12,
+        "name": "（名稱未提供）",
+        "name_missing": true,
+        "features_list": "",
+        "status": "正常"
+      },
+      "company": {
+        "company_id": "MOCK-C1",
+        "city": "高雄市",
+        "it_code_rank": 1,
+        "tax_primary_name": "程式設計"
+      },
+      "contacts": [
+        {
+          "contact_name": "測試",
+          "title": "顧問",
+          "office_phone": "02-test"
+        }
+      ],
+      "gov_registered": true,
+      "tax_industries": [],
+      "company_awards": [
+        {
+          "company_id": "MOCK-C1",
+          "award_category": "國際級"
+        }
+      ],
+      "notes": [
+        "收錄不等於推薦或認證；方案文字多為廠商自述，未經逐筆查證。",
+        "獲獎（company_awards）是公司層級的紀錄（award_category＝層級、award_level＝得獎結果），不代表此方案本身得獎；solution.has_award 是方案層級的標記，兩者不同，回答「有沒有獲獎」請引用 company_awards。",
+        "稅籍行業代號（tax_industries／company.it_code_rank）為營業人自行申報、少更新，只代表登記主業，不代表實際主力業務或品質；it_code_rank 為 null 表示不在名冊。",
+        "聯絡人的 email 與手機基於個資保護不提供；公司電話欄位空白，只代表沒有登錄公司電話，不代表沒有其他聯絡方式。如需聯絡，請洽資料維護者。"
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"found\":true,\"solution\":{\"solution_id\":\"SOL-MOCK-1\",\"solution_name\":\"（名稱未提供）\",\"company_id\":\"MOCK-C1\",\"company_name\":\"Mock 廠商\",\"program_type\":\"測試來源\",\"industry_category\":\"協作辦公\",\"region\":\"北部\",\"company_city\":\"臺北市\",\"has_ai\":true,\"is_startup\":false,\"is_gov\":true,\"price\":1000,\"monthly_price\":null,\"pricing_model\":[\"訂閱制\"],\"slogan\":\"測試標語\",\"description_short\":\"測試摘要\",\"record_status\":null,\"score\":100,\"total_matches\":390,\"suspected_total\":30,\"city_unknown_count\":12,\"name\":\"（名稱未提供）\",\"name_missing\":true,\"features_list\":\"\",\"status\":\"正常\"},\"company\":{\"company_id\":\"MOCK-C1\",\"city\":\"高雄市\",\"it_code_rank\":1,\"tax_primary_name\":\"程式設計\"},\"contacts\":[{\"contact_name\":\"測試\",\"title\":\"顧問\",\"office_phone\":\"02-test\"}],\"gov_registered\":true,\"tax_industries\":[],\"company_awards\":[{\"company_id\":\"MOCK-C1\",\"award_category\":\"國際級\"}],\"notes\":[\"收錄不等於推薦或認證；方案文字多為廠商自述，未經逐筆查證。\",\"獲獎（company_awards）是公司層級的紀錄（award_category＝層級、award_level＝得獎結果），不代表此方案本身得獎；solution.has_award 是方案層級的標記，兩者不同，回答「有沒有獲獎」請引用 company_awards。\",\"稅籍行業代號（tax_industries／company.it_code_rank）為營業人自行申報、少更新，只代表登記主業，不代表實際主力業務或品質；it_code_rank 為 null 表示不在名冊。\",\"聯絡人的 email 與手機基於個資保護不提供；公司電話欄位空白，只代表沒有登錄公司電話，不代表沒有其他聯絡方式。如需聯絡，請洽資料維護者。\"]}"
+      }
+    ]
+  },
+  "get_solutions": {
+    "structuredContent": {
+      "requested": 1,
+      "found": 1,
+      "not_found": [],
+      "results": [
+        {
+          "id": "SOL-MOCK-1",
+          "name": "（名稱未提供）",
+          "name_missing": true,
+          "source": "測試來源",
+          "category": "協作辦公",
+          "status": "正常",
+          "is_ai": true,
+          "price": 1000,
+          "monthly_price": null,
+          "pricing_model": [
+            "訂閱制"
+          ],
+          "website_url": null,
+          "slogan": "測試標語",
+          "summary": "測試摘要",
+          "features": "",
+          "company": {
+            "id": "MOCK-C1",
+            "city": "高雄市",
+            "region": null,
+            "tax_primary_industry": "程式設計",
+            "it_code_rank": 1
+          },
+          "company_awards": {
+            "count": 1,
+            "best_level": "國際級",
+            "latest": [
+              "? 國際級"
+            ]
+          },
+          "gov_registered": false
+        }
+      ],
+      "notes": [
+        "收錄不等於推薦或認證；方案文字多為廠商自述。獲獎是公司層級，不代表方案本身得獎。",
+        "本工具不含聯絡人；需要聯絡窗口請對少數候選使用 get_solution。"
+      ]
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"requested\":1,\"found\":1,\"not_found\":[],\"results\":[{\"id\":\"SOL-MOCK-1\",\"name\":\"（名稱未提供）\",\"name_missing\":true,\"source\":\"測試來源\",\"category\":\"協作辦公\",\"status\":\"正常\",\"is_ai\":true,\"price\":1000,\"monthly_price\":null,\"pricing_model\":[\"訂閱制\"],\"website_url\":null,\"slogan\":\"測試標語\",\"summary\":\"測試摘要\",\"features\":\"\",\"company\":{\"id\":\"MOCK-C1\",\"city\":\"高雄市\",\"region\":null,\"tax_primary_industry\":\"程式設計\",\"it_code_rank\":1},\"company_awards\":{\"count\":1,\"best_level\":\"國際級\",\"latest\":[\"? 國際級\"]},\"gov_registered\":false}],\"notes\":[\"收錄不等於推薦或認證；方案文字多為廠商自述。獲獎是公司層級，不代表方案本身得獎。\",\"本工具不含聯絡人；需要聯絡窗口請對少數候選使用 get_solution。\"]}"
+      }
+    ]
+  },
+  "unauthorized": {
+    "isError": true,
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"error\":\"此帳號未開通 SF資料庫查詢權限，請洽管理者。\",\"next_step\":[\"請洽管理者開通權限\"]}"
+      }
+    ]
+  },
+  "server_logs": [
+    [
+      "[sf-mcp] count_solutions sf_mcp_touch 失敗：",
+      "private permission detail"
+    ]
+  ]
+}
