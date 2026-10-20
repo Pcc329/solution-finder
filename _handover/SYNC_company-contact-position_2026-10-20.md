@@ -95,4 +95,13 @@
 
 - [最新程式部署](https://vercel.com/patrick0814-6136s-projects/solution-finder/63fzGPzsQwj94qDTCmLJCussSDjS)：Ready，程式提交 `bfb0a53525861a5ef0a0f13daf25ac6aeba4584f`。
 - [固定分支 Preview](https://solution-finder-git-feat-comp-3739ce-patrick0814-6136s-projects.vercel.app/)：隨同一 PR 更新。
-- 該固定網域要求登入（401），已開啟頁籤請使用者自行登入；登入後接續查詢 96979933（中華電信）確認來源順序，尚未宣稱最新排序的真實 Preview 驗收完成。
+- 2026-10-20（Asia/Taipei），使用者自行登入後重新載入固定 Preview，從頁面「查公司」輸入 `96979933`，取得中華電信股份有限公司，完成最新排序的真實 Preview 驗收。
+- 實際來源順序：
+  1. 雲市集工業館：3 筆，皆正常。
+  2. 資策會產業調查：2 筆，皆正常。
+  3. 臺灣雲市集：21 筆，正常 0 筆，平台停止服務提示仍顯示；此來源位於最下方。
+- 統計值仍為收錄方案 26、正常 5、未逐筆確認 21、來源平台數 3；群組標題筆數仍為 3／2／21。
+- 聯絡卡仍在公司檔案後、方案與來源前；`aria-expanded=false`、聯絡內容 `hidden=true`，驗收與截圖全程未展開。
+- 畫面沒有水平溢出。三個群組的 DOM 順序、筆數、正常方案數及收合狀態另存於 repo 外 `../_company_contact_position_validation/sorting-preview-evidence.json`。
+- 最新排序截圖另存於同一 repo 外目錄，並隨最終回覆交付：`company-96979933-sorting-normal-sources.jpg`（正常來源在前）、`company-96979933-sorting-last-source.jpg`（臺灣雲市集在最後）。
+- 僅補交驗收文件，未再變更產品程式；全套測試結果仍為 246/246 PASS。
