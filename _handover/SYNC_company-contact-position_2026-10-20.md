@@ -1,4 +1,4 @@
-# SYNC — 公司頁聯絡資訊位置調整
+# SYNC — 公司頁聯絡資訊位置與方案來源排序
 
 - 日期：2026-10-20（Asia/Taipei）
 - 分支：`feat/company-contact-position`
@@ -8,7 +8,7 @@
 
 ## 變更範圍
 
-只調整 `public/index.html` 的 `renderCompany`：將原本位於方案清單下方的 `ContactInfoCard` 搬到公司檔案（含標題、標籤、四個統計卡）後面，並以 `mb-5` 外框對齊公司頁區塊間距。
+本 PR 的產品程式只調整 `public/index.html` 的 `renderCompany`：任務一將聯絡卡搬到公司檔案後方，任務二調整來源群組與組內方案排序。下列先記錄任務一，任務二與最新驗收結果見文末。
 
 指定區塊依序為：
 
@@ -36,7 +36,7 @@
 - 完整 JSX 語法檢查、script／link 標籤不變、`git diff --check` 通過。
 - 本機驗證腳本：repo 外 `../_company_contact_position_validation/mock-check.cjs`。
 
-## 既有測試
+## 既有測試（任務一）
 
 | 指令 | 結果 |
 | --- | --- |
@@ -46,7 +46,7 @@
 
 包含 `contact-access-log.test.mjs` 對成功回應只寫入一筆 `contact_access_logs` 等既有行為的驗證。沒有測試因區塊順序而失敗，因此不需要更新既有測試。
 
-## Preview 驗收
+## Preview 驗收（任務一）
 
 - [Vercel 部署](https://vercel.com/patrick0814-6136s-projects/solution-finder/3JN44nHGM6FUaMt41UrpkGMAjBnz)：Ready；Source `50f6051`，分支 `feat/company-contact-position`。
 - [Preview](https://solution-finder-r5p12dw80-patrick0814-6136s-projects.vercel.app/)
@@ -61,3 +61,36 @@
   - `company-96979933-desktop.jpg`：桌機。
   - `company-96979933-375.jpg`：375px 寬。
 - 截圖已隨最終回覆交付；驗收後已重設瀏覽器 viewport。
+
+## 任務二 — 方案與來源排序（同一 PR）
+
+### 行為
+
+- 來源群組：`normal` 數量降冪 → `suspected` 數量降冪 → 首次出現順序。移除原本依「非已下架總數」及來源名稱排序的規則。
+- 群組內：`normal` → `suspected` → `delisted`，同狀態再由 `isMissingSolutionName` 將名稱缺漏移到該狀態末尾，同條件保留原順序。使用標準穩定 `Array.sort`，篩選後排序不改動 API 原陣列。
+- 保留 `activeCount` 的原計算，來源平台數仍包含正常／疑似下架的來源。其他三個統計值、`visible.length` 群組筆數、顯示已下架的預設 false、篩選與切換處理均未修改。
+- 聯絡卡位置與原本收合／API／快取／存取記錄行為不變；方案詳情頁及所有 API 不變。
+
+### 單元測試與回歸
+
+新增 `tests/company-sorting.test.mjs`，直接執行 `renderCompany` 的實際分組程式與實際 `visible` 運算式，沒有複製排序實作：
+
+1. 兩個來源、三種狀態、正常數與總數相反的 mock；每種狀態都有具名及多筆缺漏名稱，驗證群組順序、組內狀態優先、缺漏置後與同條件穩定順序。
+2. 正常數相同時比較疑似下架數，已下架數不影響排序。
+3. 正常與疑似下架數都相同，來源依首次出現順序，無字母排序。
+4. 純疑似及純已下架來源位於有正常方案的來源之後。
+5. 驗證統計、群組篩選筆數、下架開關、原始資料不變。
+
+既有 `tests/solution-name.test.mjs` 取得 `visible` 運算式後，新增載入同一實作的 `statusOrder`，以補齊新增的局部依賴；既有期望值全部保留，並未放寬斷言。
+
+| 指令 | 最新結果 |
+| --- | --- |
+| `node --test tests/*.test.mjs` | 180/180 PASS |
+| `node --test tests/sf-mcp/sf-mcp-v1-2.test.mjs` | 66/66 PASS |
+| 合計 | 246/246 PASS，0 fail、0 skipped |
+
+另重跑任務一 JSX mock、收合／首次展開 API 行為及基準範圍檢查，全部通過。
+
+### 最新 Preview 驗收
+
+待本次程式提交部署後，以 96979933（中華電信）查詢確認來源順序，完成後補入實際結果。
