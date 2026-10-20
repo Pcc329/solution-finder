@@ -3,7 +3,7 @@ import { requireAuth } from '../_lib/auth.js';
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
-  res.setHeader('Cache-Control', 's-maxage=300');
+  res.setHeader('Cache-Control', 'private, no-store');
 
   if (!requireAuth(req, res)) return;
 
