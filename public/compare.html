@@ -6,6 +6,8 @@
   <meta name="robots" content="noindex, nofollow">
   <title>方案比較</title>
   <script src="/auth-gate.js"></script>
+  <script src="/solution-name.js"></script>
+  <link rel="stylesheet" href="/solution-name.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <style>
@@ -384,7 +386,7 @@
     }
 
     function renderCell(field, item, prices) {
-      if (field.key === 's') return `<span class="name">${escapeHtml(item.s)}</span>`;
+      if (field.key === 's') return `<span class="name ${isMissingSolutionName(item.s) ? "sf-name-missing" : ""}">${escapeHtml(displaySolutionName(item.s))}</span>`;
       if (field.key === 'pr') return `<span class="${priceClass(item, prices)}">${formatCurrency(item.pr)}</span>`;
       if (field.key === 'ai') {
         return item.ai
@@ -427,7 +429,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             question: '請比較這些方案的優缺點與各自適合的使用場景，條列說明每個方案的特色、費用、適用對象。',
-            solutions: items,
+            solutions: items.map(item => ({ ...item, s: displaySolutionName(item.s) })),
           }),
         });
         const data = await response.json();

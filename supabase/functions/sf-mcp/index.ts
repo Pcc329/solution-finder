@@ -1,10 +1,17 @@
-// SF MCP v1.2.0 — 唯讀工具；搜尋由資料庫篩選、計數後分頁，提供結構化輸出與下一步建議。
-// sf_mcp_touch 僅記錄登入者用量；第一階段不阻擋，沒有業務資料寫入工具。
+// SF MCP v1.2.1 — 唯讀工具；搜尋由資料庫篩選、計數後分頁，提供結構化輸出與下一步建議。
+// sf_mcp_touch 記錄登入者用量；未授權 (42501) 阻擋，其他紀錄錯誤不阻擋，沒有業務資料寫入工具。
 // 認證：Supabase Auth 為 OAuth 2.1 授權伺服器；每次工具呼叫都以「登入者本人」身分查詢，受 RLS 與白名單約束。
 // 注意：沒有業務資料寫入工具；不回傳完整描述(description)、第三方 email、手機；whoami 可回傳登入者本人 email。
 // 搜尋邏輯移植自 public/index.html（資料庫函式 sf_search_solutions，28 項對照測試與首頁程式碼結果一致）。
 // 依賴套件鎖定確切版本（公開的認證端點，避免依賴自動漂移到剛發布的版本）；升級前須重新測試。
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import '../../../public/solution-name.js'
+
+// Same runtime-neutral helpers used by the classic browser pages; no duplicate placeholder list.
+const { isMissingSolutionName, displaySolutionName } = globalThis as unknown as {
+  isMissingSolutionName: (name: unknown) => boolean
+  displaySolutionName: (name: unknown) => string
+}
 
 import { createMcpHandler, McpServer } from 'npm:@modelcontextprotocol/server@2.0.0'
 import { pipeline } from 'npm:@supabase/middleware@0.5.0'
@@ -22,7 +29,7 @@ const asText = (obj: Record<string, unknown>) => {
   return { structuredContent: JSON.parse(text) as Record<string, unknown>, content: [{ type: 'text' as const, text }] }
 }
 
-const SERVER_VERSION = '1.2.0'
+const SERVER_VERSION = '1.2.1'
 const RATE_LIMIT_ENFORCE = false
 
 // target_industry 在資料庫有兩種存法：多個元素的陣列，或單一字串內以「, 」（雲市集）或「；」（主計總處分類）分隔。
@@ -146,8 +153,9 @@ const describeTopic = (topic: typeof topics[number]) => {
   if (topic !== 'index') return guideSections[topics.indexOf(topic) - 1]
   const index = guideSections.map((section) => {
     const [heading, ...body] = section.split('\n')
-    const first = body.find((line) => line.trim())?.replace(/^[-\d. ]+/, '') ?? ''
-    return `${heading.replace(/^## /, '')}：${first.split('。')[0]}。`
+    // Skip unfinished headings/list fragments; take the first complete sentence verbatim.
+    const first = body.map((line) => line.trim().replace(/^[-\d. ]+/, '').match(/^.*?[。！？]/u)?.[0]).find(Boolean) ?? ''
+    return `${heading.replace(/^## /, '')}：${first}`
   }).join('\n')
   return `${index}\n\n${guideSections.slice(0, 2).join('\n')}`
 }
@@ -176,7 +184,7 @@ const nextSteps = (a: SearchArgs, unknown: number): string[] => {
 }
 const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: number, failures: string[], companies?: number) => {
   const status_scope = a.normal_only ? '只含正常' : a.include_delisted ? '含已下架' : '正常＋疑似下架'
-  const context = [...(a.city ?? []), ...(a.keyword ? [`關鍵字「${a.keyword}」`] : [])].join('，')
+  const context = [...(a.city ?? []).map((city) => city.trim().replace(/台/g, '臺')), ...(a.keyword ? [`關鍵字「${a.keyword}」`] : [])].join('，')
   const normal = total - suspected
   const distribution = a.include_delisted && !a.normal_only
     ? `非疑似下架 ${normal}（含已下架）、疑似下架 ${suspected}`
@@ -199,6 +207,9 @@ const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: nu
 
 const count = z.number().int().nonnegative()
 const rowSchema = z.record(z.string(), z.unknown())
+const solutionSchema = z.object({ name: z.string(), name_missing: z.boolean() }).passthrough()
+const solutionDetailSchema = solutionSchema.extend({ solution_name: z.string() })
+const companySchema = z.object({ solutions: z.array(solutionSchema) }).passthrough()
 const searchOutput = {
   summary_line: z.string(),
   status_scope: z.enum(['只含正常', '正常＋疑似下架', '含已下架']),
@@ -209,13 +220,13 @@ const searchOutput = {
 const toolOutputs = {
   describe_data: z.object({ topic: z.enum(topics), text: z.string() }),
   search_solutions: z.object({ ...searchOutput, total_matches: count,
-    totals: z.object({ matches: count, normal: count, suspected_delisted: count, city_unknown: count }), results: z.array(rowSchema) }),
+    totals: z.object({ matches: count, normal: count, suspected_delisted: count, city_unknown: count }), results: z.array(solutionSchema) }),
   search_companies: z.object({ ...searchOutput, companies_total: count, solutions_total: count,
-    totals: z.object({ companies: count, solutions: count, normal: count, suspected_delisted: count, city_unknown: count }), companies: z.array(rowSchema) }),
-  get_solution: z.object({ found: z.boolean(), message: z.string().optional(), solution: rowSchema.optional(),
+    totals: z.object({ companies: count, solutions: count, normal: count, suspected_delisted: count, city_unknown: count }), companies: z.array(companySchema) }),
+  get_solution: z.object({ found: z.boolean(), message: z.string().optional(), solution: solutionDetailSchema.optional(),
     company: rowSchema.nullable().optional(), contacts: z.array(rowSchema).optional(), gov_registered: z.boolean().nullable().optional(),
     tax_industries: z.array(rowSchema).optional(), company_awards: z.array(rowSchema).optional(), notes: z.array(z.string()).optional() }),
-  get_solutions: z.object({ requested: count, found: count, not_found: z.array(z.string()), results: z.array(rowSchema), notes: z.array(z.string()) }),
+  get_solutions: z.object({ requested: count, found: count, not_found: z.array(z.string()), results: z.array(solutionSchema), notes: z.array(z.string()) }),
   data_status: z.object({ totals: rowSchema, coverage_gaps_among_active: rowSchema, non_normal_reasons: z.array(rowSchema),
     server_version: z.string(), by_source: z.array(rowSchema), notes: z.array(z.string()) }),
   whoami: z.object({ id: z.string().optional(), email: z.string().optional(), server_version: z.string() }),
@@ -236,8 +247,10 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
       const runTool = <A,>(name: keyof typeof toolTitles, handler: (args: A) => Promise<ReturnType<typeof asText>>) => async (args: A) => {
         try {
           const touch = await supabase.rpc('sf_mcp_touch')
-          if (touch.error) console.error(`[sf-mcp] ${name} sf_mcp_touch 失敗：`, touch.error.message)
-          else if (touch.data?.[0]?.over_limit) {
+          if (touch.error) {
+            console.error(`[sf-mcp] ${name} sf_mcp_touch 失敗：`, touch.error.message)
+            if (touch.error.code === '42501') return toolError('此帳號未開通 SF資料庫查詢權限，請洽管理者。', ['請洽管理者開通權限'])
+          } else if (touch.data?.[0]?.over_limit) {
             const limit = Number(touch.data[0].limit_per_minute)
             if (rateLimitEnforce) return toolError(`每分鐘最多 ${limit} 次查詢，請約 ${60 - now().getSeconds()} 秒後再試`, ['稍候再試', '合併查詢條件以減少呼叫次數'])
             console.warn('sf_mcp_touch 超過本分鐘用量；目前僅記錄，不阻擋。')
@@ -367,7 +380,8 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                 const tax = enr.taxMap.get(cid)
                 return {
                   id: r.solution_id,
-                  name: r.solution_name,
+                  name: displaySolutionName(r.solution_name),
+                  name_missing: isMissingSolutionName(r.solution_name),
                   company: r.company_name,
                   company_id: r.company_id,
                   source: r.program_type,
@@ -437,7 +451,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                 normal_count: solutionCount - suspectedCount,
                 suspected_delisted_count: suspectedCount,
                 solutions: ((r.solutions ?? []) as Row[]).map((s) => ({
-                  id: s.id, name: s.name, source: s.source, price: s.price || null,
+                  id: s.id, name: displaySolutionName(s.name), name_missing: isMissingSolutionName(s.name), source: s.source, price: s.price || null,
                   pricing_model: s.pricing_model, status: s.status || '正常', score: s.score,
                 })),
               }
@@ -513,6 +527,9 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
               found: true,
               solution: {
                 ...s,
+                solution_name: displaySolutionName(s.solution_name),
+                name: displaySolutionName(s.solution_name),
+                name_missing: isMissingSolutionName(s.solution_name),
                 slogan: clip(s.slogan as string, 200),
                 description_short: clip(s.description_short as string, 800),
                 features_list: clip(s.features_list as string, 1500),
@@ -570,7 +587,8 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
               const awards = awMap.get(cid) ?? []
               return {
                 id: r.solution_id,
-                name: r.solution_name,
+                name: displaySolutionName(r.solution_name),
+                name_missing: isMissingSolutionName(r.solution_name),
                 source: r.program_type,
                 category: r.industry_category,
                 status: r.record_status || '正常',

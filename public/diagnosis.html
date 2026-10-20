@@ -6,6 +6,8 @@
   <meta name="robots" content="noindex, nofollow">
   <title>智能方案探索 | Solution Finder</title>
   <script src="/auth-gate.js"></script>
+  <script src="/solution-name.js"></script>
+  <link rel="stylesheet" href="/solution-name.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -566,6 +568,8 @@
           const ap = getPrice(a.item) ?? Infinity;
           const bp = getPrice(b.item) ?? Infinity;
           if (ap !== bp) return ap - bp;
+          const missingOrder = Number(isMissingSolutionName(a.item.s)) - Number(isMissingSolutionName(b.item.s));
+          if (missingOrder) return missingOrder;
           return a.index - b.index;
         })
         .slice(0, 20)
@@ -634,7 +638,7 @@
               <div class="min-w-0 flex-1">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div class="min-w-0">
-                    <h3 class="text-base font-black text-slate-900 truncate">${escapeHtml(item.s || "未命名方案")}</h3>
+                    <h3 class="text-base font-black text-slate-900 truncate ${isMissingSolutionName(item.s) ? "sf-name-missing" : ""}">${escapeHtml(displaySolutionName(item.s))}</h3>
                     <p class="text-sm text-slate-500 mt-1">${escapeHtml(item.c || "未提供業者")}</p>
                   </div>
                   <div class="text-left sm:text-right shrink-0">
@@ -688,7 +692,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             question: `請以顧問口吻，根據以下規劃條件、對話歷程與候選方案，產生簡潔的繁體中文摘要。條件與歷程：${JSON.stringify(normalizedContext)}。預算欄位規則：數字代表金額上限；null 代表未指定或不限預算；嚴禁在回答中輸出 undefined，遇到未知值請寫「未指定」。請包含：1. 需求判斷 2. 推薦方向 3. 需要顧問再確認的風險。`,
-            solutions: results.slice(0, 20),
+            solutions: results.slice(0, 20).map(item => ({ ...item, s: displaySolutionName(item.s) })),
             searchQuery: buildQuery(formData),
           }),
         });
