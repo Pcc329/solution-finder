@@ -15,6 +15,14 @@
 - 前端使用 `credentials: omit`，不傳送 Cookie。GET 資料仍須驗證 HMAC Bearer token；沒有 Origin 的 CLI 請求亦須通過相同驗證。
 - Vercel CSP 的 `connect-src` 僅增列此 Supabase 專案網域，未開放任意 Supabase 網域。
 
+## 維運注意事項
+
+- 儀表板使用的 View 已撤銷 anon 與 authenticated 權限。修改請使用 CREATE OR REPLACE VIEW；若先 DROP 再重建，必須由負責人重新執行 REVOKE，否則可能因預設授權而重新開放讀取。實際 View 清單見內部紀錄。
+- main 的 Serverless Functions 已達 Vercel Hobby 上限（12 個）；新增 API 前需先整併既有函式或升級方案。
+- 更新 `platform_profiles` 時，`value`、`source`、`verified_at` 三欄需一起更新，確保內容、來源與查證日期一致。
+- 驗收 SQL 與更新範本由負責人保管，不納入 repo。
+- CORS 僅允許正式網域；若需使用預覽版測試，須經核准後暫時加回限定範圍的預覽規則，完成測試後立即移除。
+
 ## 部署（由使用者執行）
 
 本次架構調整先保留本地 diff；推送與重新部署 Edge Function 分別取得使用者核准後才執行。
