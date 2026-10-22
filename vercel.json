@@ -7,6 +7,9 @@
     }
   ],
   "rewrites": [
+    { "source": "/platform-overview", "destination": "/platform-overview.html" },
+    { "source": "/api/platform-overview/login", "destination": "/api/platform-overview?action=login" },
+    { "source": "/api/platform-overview/data", "destination": "/api/platform-overview?action=data" },
     { "source": "/api/solutions", "destination": "/api/solutions" },
     { "source": "/api/stats", "destination": "/api/stats" },
     { "source": "/api/ask", "destination": "/api/ask" },
