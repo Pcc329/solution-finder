@@ -79,7 +79,7 @@ ORDER BY table_name, grantee, privilege_type;
 
 1. 未登入直接開頁，只見密碼頁，資料區 DOM 空白，沒有資料請求。
 2. 登入後應載入既有資料；錯誤、過期或遭修改 token 回傳 401 並清空畫面及 localStorage。
-3. 工業館 `ai_solutions = 288`、`ai_pending = 11`；商服 `100`、`16`。前端不可寫死這些數字。
+3. 工業館與商服專區的 AI 驗收值，以 Supabase 端的驗收 SQL 為準（不納入 repo）。前端不可寫死任何數字。
 4. 使用者在 Supabase 修改一格 profiles 後重新整理，該格應更新。代理不以修改正式資料作為測試。
 5. 確認八平台、各九構面，總表分成兩組；◆、note、verified_at 顯示正確。
 
