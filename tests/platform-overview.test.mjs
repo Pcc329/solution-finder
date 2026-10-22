@@ -5,7 +5,6 @@ import vm from 'node:vm';
 import test from 'node:test';
 import { createSessionValue } from '../_lib/auth.js';
 import { createHandler, createToken, verifyToken } from '../supabase/functions/dash-data/handler.mjs';
-import relay from '../api/platform-overview.js';
 import { aiShare, renderProfiles, renderOverlap, renderVendors, selectVendors, renderTakeaway, renderNextSteps, renderCoverage, renderAI, safeLink, summarize } from '../public/platform-overview-render.mjs';
 import * as rendering from '../public/platform-overview-render.mjs';
 
@@ -140,29 +139,66 @@ test('profiles produce two tables with eight platforms, nine dimensions, safe no
   assert.equal(safeLink('www.example.invalid'), 'https://www.example.invalid/');
 });
 
-test('Vercel relay forwards only password or bearer, never a service-role key', async () => {
-  const saved = process.env.SUPABASE_URL, originalFetch = globalThis.fetch;
-  process.env.SUPABASE_URL = 'https://synthetic.invalid';
-  const calls = [];
-  globalThis.fetch = async (url, options) => { calls.push({ url, options }); return new Response('{"ok":true}'); };
-  const invoke = async req => {
-    const res = { code: 200, headers: {}, setHeader(k, v) { this.headers[k] = v; }, status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; }, end() { return this; } };
-    await relay(req, res); return res;
-  };
-  try {
-    const noToken = await invoke({ method: 'GET', query: { action: 'data' }, headers: {} });
-    assert.equal(noToken.code, 401);
-    assert.equal(calls.length, 0);
-    await invoke({ method: 'POST', query: { action: 'login' }, body: { password, extra: 'excluded' } });
-    assert.equal(calls[0].url.pathname, '/functions/v1/dash-data/login');
-    assert.deepEqual(JSON.parse(calls[0].options.body), { password });
-    const result = await invoke({ method: 'GET', query: { action: 'data' }, headers: { authorization: 'Bearer synthetic-token', apikey: 'excluded' } });
-    assert.deepEqual(calls[1].options.headers, { Authorization: 'Bearer synthetic-token' });
-    assert.equal(result.headers['Cache-Control'], 'private, no-store');
-    assert.equal((await invoke({ method: 'POST', query: { action: 'data' } })).code, 405);
-  } finally {
-    globalThis.fetch = originalFetch;
-    if (saved === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = saved;
+const sfOrigins = [
+  'https://solution-finder-gray.vercel.app',
+  'https://solution-finder-8exkt97ld-patrick0814-6136s-projects.vercel.app',
+  'https://solution-finder-git-codex-pla-e19d44-patrick0814-6136s-projects.vercel.app',
+];
+
+test('CORS accepts only SF production and project/account-specific preview origins', async () => {
+  const handler = createHandler({ env, fetcher: () => assert.fail('unauthorized requests must not read data') });
+  for (const origin of sfOrigins) {
+    const response = await handler(request('data', { headers: { Origin: origin } }));
+    assert.equal(response.status, 401);
+    assert.equal(response.headers.get('access-control-allow-origin'), origin);
+    assert.match(response.headers.get('vary'), /Origin/);
+    assert.equal(response.headers.get('access-control-allow-credentials'), null);
+  }
+  const deniedHandler = createHandler({ env: () => assert.fail('denied origins must not read secrets'), fetcher: () => assert.fail('denied origins must not read data') });
+  for (const origin of ['https://unrelated.vercel.app', 'https://solution-finder-random-other-team.vercel.app',
+    'https://solution-finder-gray.vercel.app.evil.invalid', 'http://solution-finder-gray.vercel.app',
+    'https://solution-finder-gray.vercel.app:8443', 'https://solution-finder-git-codex-pla-e19d44-patrick0814-6136s-projects.vercel.app.evil.invalid', 'null']) {
+    const response = await deniedHandler(request('data', { headers: { Origin: origin } }));
+    assert.equal(response.status, 403);
+    assert.equal(response.headers.get('access-control-allow-origin'), null);
+    assert.deepEqual(await response.json(), { error: '來源未獲允許' });
+  }
+});
+
+test('CORS preflight allows only the endpoint method and explicit authentication/content headers', async () => {
+  const handler = createHandler({ env: () => assert.fail('preflight must not read secrets'), fetcher: () => assert.fail('preflight must not read data') });
+  for (const origin of sfOrigins) {
+    for (const [action, method, headers] of [['login', 'POST', 'content-type'], ['data', 'GET', 'Authorization, Content-Type']]) {
+      const response = await handler(request(action, { method: 'OPTIONS', headers: {
+        Origin: origin, 'Access-Control-Request-Method': method, 'Access-Control-Request-Headers': headers,
+      } }));
+      assert.equal(response.status, 204);
+      assert.equal(await response.text(), '');
+      assert.equal(response.headers.get('access-control-allow-origin'), origin);
+      assert.equal(response.headers.get('access-control-allow-methods'), method);
+      assert.equal(response.headers.get('access-control-allow-headers'), 'Authorization, Content-Type');
+    }
+  }
+  for (const headers of [
+    { 'Access-Control-Request-Method': 'GET' },
+    { Origin: sfOrigins[0], 'Access-Control-Request-Method': 'DELETE' },
+    { Origin: sfOrigins[0], 'Access-Control-Request-Method': 'GET', 'Access-Control-Request-Headers': 'x-api-key' },
+  ]) assert.equal((await handler(request('data', { method: 'OPTIONS', headers }))).status, 403);
+});
+
+test('all four negative-auth cases stay 401 without data, including empty Bearer and allowed browser origins', async () => {
+  const handler = createHandler({ env, fetcher: () => assert.fail('negative auth must not query data') });
+  for (const origin of [null, ...sfOrigins]) {
+    const headers = origin ? { Origin: origin } : {};
+    const requests = [request('data', { headers }), request('login', { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'incorrect-test-only' }) }),
+      request('data', { headers: { ...headers, Authorization: 'Bearer abc.def' } }), request('data', { headers: { ...headers, Authorization: 'Bearer ' } })];
+    for (const negative of requests) {
+      const response = await handler(negative);
+      assert.equal(response.status, 401);
+      assert.equal(response.headers.get('access-control-allow-origin'), origin);
+      const body = await response.json();
+      for (const field of ['vendors', 'platforms', 'profiles']) assert.equal(Object.hasOwn(body, field), false);
+    }
   }
 });
 
@@ -193,6 +229,32 @@ test('no token: no requests, no numbers or data in the dashboard DOM', async () 
   assert.equal(ui.get('dashboard').innerHTML, '');
   assert.equal(ui.get('dashboard').hidden, true);
   assert.equal(ui.get('login').hidden, false);
+});
+
+test('frontend login and data requests go directly to Edge with no cookies or API key', async () => {
+  const token = await createToken(Date.now() + 10000, secret);
+  const calls = [];
+  const ui = frontend({ fetcher: async (url, options) => {
+    calls.push({ url, options });
+    return new Response(JSON.stringify(url.endsWith('/login') ? { token } : sample()));
+  } });
+  ui.get('password').value = 'synthetic-login-input';
+  await ui.get('login-form').handlers.submit({ preventDefault() {} });
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, 'https://apdbvjruevjprslhhvlx.supabase.co/functions/v1/dash-data/login');
+  assert.equal(calls[1].url, 'https://apdbvjruevjprslhhvlx.supabase.co/functions/v1/dash-data/data');
+  assert.deepEqual(Object.keys(calls[0].options.headers), ['Content-Type']);
+  assert.deepEqual(Object.keys(calls[1].options.headers), ['Authorization']);
+  assert.equal(calls[1].options.headers.Authorization, `Bearer ${token}`);
+  for (const call of calls) {
+    assert.equal(call.options.credentials, 'omit');
+    assert.equal(call.options.cache, 'no-store');
+  }
+  const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
+  assert.equal(config.rewrites.some(route => route.source.startsWith('/api/platform-overview')), false);
+  const csp = config.headers.flatMap(rule => rule.headers).find(header => header.key === 'Content-Security-Policy').value;
+  const connect = csp.split(';').find(directive => directive.trim().startsWith('connect-src'));
+  assert.ok(connect.split(/\s+/).includes(new URL(calls[0].url).origin));
 });
 
 test('expired or rejected token: return to password screen and erase localStorage', async () => {
