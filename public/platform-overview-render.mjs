@@ -63,7 +63,7 @@ export function renderAI(platforms) {
     const pending = Number(row.ai_pending) > 0;
     return `<div class="vp-bar-row"><span>${escapeHTML(row.platform_name)}</span>
       <div class="vp-bar-track" role="img" aria-label="${escapeHTML(row.platform_name)} AI 方案佔比 ${share.label}"><span class="vp-bar-fill pending" style="width:${Math.max(0, Math.min(100, share.upper * 100))}%"></span><span class="vp-bar-fill confirmed" style="width:${Math.max(0, Math.min(100, share.lower * 100))}%"></span></div>
-      <div class="vp-bar-val"><b>${share.label}</b>　${count(row.ai_solutions)}／${count(row.solutions)} 筆${reviewed ? `<span class="vp-tag${pending ? ' pending-tag' : ''}">${pending ? `已複核，${count(row.ai_pending)} 筆待確認` : '已複核'}</span>` : `<small>${escapeHTML(row.ai_label_method || '尚未複核')}</small>`}</div></div>`;
+      <div class="vp-bar-val"><span class="vp-bar-figures"><b>${share.label}</b>　${count(row.ai_solutions)}／${count(row.solutions)} 筆</span><small class="vp-bar-status">${reviewed ? `<span class="vp-tag${pending ? ' pending-tag' : ''}">${pending ? `已複核，${count(row.ai_pending)} 筆待確認` : '已複核'}</span>` : escapeHTML(row.ai_label_method || '尚未複核')}</small></div></div>`;
   }).join('');
 }
 
