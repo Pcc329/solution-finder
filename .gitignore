@@ -1,0 +1,10 @@
+# Credentials and dashboard source exports stay outside version control.
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/
+platform_profiles.csv
+platform_profiles_insert.sql
+dashboard_reference.html
+MIGRATION_NOTES.md
