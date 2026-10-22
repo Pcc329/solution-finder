@@ -8,8 +8,8 @@
 
 ## 跨來源請求
 
-- 正式站僅允許 `https://solution-finder-gray.vercel.app`。
-- 預覽站僅允許 `solution-finder` 專案在 `patrick0814-6136s-projects.vercel.app` 帳戶下的 HTTPS 部署網址與 git 分支別名；正規表示式完整錨定，不接受其他專案、帳戶、HTTP、附加網域或連接埠。
+- 瀏覽器 Origin 僅允許 `https://solution-finder-gray.vercel.app`，採完整字串比對。
+- 所有 Vercel 預覽部署網址與 git 分支別名均不允許；HTTP、附加網域或連接埠亦不接受。
 - 不使用萬用 CORS 來源；只對允許的 Origin 回傳該 Origin，並設定 `Vary`。不允許來源回傳 403，且不帶允許來源標頭。
 - OPTIONS 預檢只接受登入端點的 POST、資料端點的 GET，以及 Authorization／Content-Type 標頭；不需要登入即可完成合法預檢。
 - 前端使用 `credentials: omit`，不傳送 Cookie。GET 資料仍須驗證 HMAC Bearer token；沒有 Origin 的 CLI 請求亦須通過相同驗證。

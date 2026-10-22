@@ -14,13 +14,10 @@ const queries = [
 ];
 
 const PRODUCTION_ORIGIN = 'https://solution-finder-gray.vercel.app';
-// Only this SF project in this Vercel account: deployment hashes and git aliases.
-// Anchored to HTTPS and the exact account suffix; never allow all vercel.app sites.
-const PREVIEW_ORIGIN = /^https:\/\/solution-finder-(?:git-[a-z0-9]+(?:-[a-z0-9]+)*|[a-z0-9]+)-patrick0814-6136s-projects\.vercel\.app$/;
 const ALLOWED_HEADERS = ['authorization', 'content-type'];
 
 export function isAllowedOrigin(origin) {
-  return origin === PRODUCTION_ORIGIN || PREVIEW_ORIGIN.test(origin);
+  return origin === PRODUCTION_ORIGIN;
 }
 
 function responseHeaders(origin = null) {

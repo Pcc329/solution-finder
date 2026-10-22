@@ -139,15 +139,16 @@ test('profiles produce two tables with eight platforms, nine dimensions, safe no
   assert.equal(safeLink('www.example.invalid'), 'https://www.example.invalid/');
 });
 
-const sfOrigins = [
-  'https://solution-finder-gray.vercel.app',
-  'https://solution-finder-8exkt97ld-patrick0814-6136s-projects.vercel.app',
-  'https://solution-finder-git-codex-pla-e19d44-patrick0814-6136s-projects.vercel.app',
+const productionOrigin = 'https://solution-finder-gray.vercel.app';
+// Synthetic deployment names, not links to shared preview content.
+const previewOrigins = [
+  'https://solution-finder-xxx-patrick0814-6136s-projects.vercel.app',
+  'https://solution-finder-git-example-patrick0814-6136s-projects.vercel.app',
 ];
 
-test('CORS accepts only SF production and project/account-specific preview origins', async () => {
+test('CORS accepts only the exact production origin and rejects all preview origins', async () => {
   const handler = createHandler({ env, fetcher: () => assert.fail('unauthorized requests must not read data') });
-  for (const origin of sfOrigins) {
+  for (const origin of [productionOrigin]) {
     const response = await handler(request('data', { headers: { Origin: origin } }));
     assert.equal(response.status, 401);
     assert.equal(response.headers.get('access-control-allow-origin'), origin);
@@ -155,9 +156,9 @@ test('CORS accepts only SF production and project/account-specific preview origi
     assert.equal(response.headers.get('access-control-allow-credentials'), null);
   }
   const deniedHandler = createHandler({ env: () => assert.fail('denied origins must not read secrets'), fetcher: () => assert.fail('denied origins must not read data') });
-  for (const origin of ['https://unrelated.vercel.app', 'https://solution-finder-random-other-team.vercel.app',
+  for (const origin of [...previewOrigins, 'https://evil.example.com', 'https://unrelated.vercel.app', 'https://solution-finder-random-other-team.vercel.app',
     'https://solution-finder-gray.vercel.app.evil.invalid', 'http://solution-finder-gray.vercel.app',
-    'https://solution-finder-gray.vercel.app:8443', 'https://solution-finder-git-codex-pla-e19d44-patrick0814-6136s-projects.vercel.app.evil.invalid', 'null']) {
+    'https://solution-finder-gray.vercel.app:8443', `${previewOrigins[0]}.evil.invalid`, 'null']) {
     const response = await deniedHandler(request('data', { headers: { Origin: origin } }));
     assert.equal(response.status, 403);
     assert.equal(response.headers.get('access-control-allow-origin'), null);
@@ -167,7 +168,7 @@ test('CORS accepts only SF production and project/account-specific preview origi
 
 test('CORS preflight allows only the endpoint method and explicit authentication/content headers', async () => {
   const handler = createHandler({ env: () => assert.fail('preflight must not read secrets'), fetcher: () => assert.fail('preflight must not read data') });
-  for (const origin of sfOrigins) {
+  for (const origin of [productionOrigin]) {
     for (const [action, method, headers] of [['login', 'POST', 'content-type'], ['data', 'GET', 'Authorization, Content-Type']]) {
       const response = await handler(request(action, { method: 'OPTIONS', headers: {
         Origin: origin, 'Access-Control-Request-Method': method, 'Access-Control-Request-Headers': headers,
@@ -181,14 +182,24 @@ test('CORS preflight allows only the endpoint method and explicit authentication
   }
   for (const headers of [
     { 'Access-Control-Request-Method': 'GET' },
-    { Origin: sfOrigins[0], 'Access-Control-Request-Method': 'DELETE' },
-    { Origin: sfOrigins[0], 'Access-Control-Request-Method': 'GET', 'Access-Control-Request-Headers': 'x-api-key' },
+    { Origin: productionOrigin, 'Access-Control-Request-Method': 'DELETE' },
+    { Origin: productionOrigin, 'Access-Control-Request-Method': 'GET', 'Access-Control-Request-Headers': 'x-api-key' },
   ]) assert.equal((await handler(request('data', { method: 'OPTIONS', headers }))).status, 403);
+  for (const origin of previewOrigins) {
+    for (const [action, method] of [['login', 'POST'], ['data', 'GET']]) {
+      const response = await handler(request(action, { method: 'OPTIONS', headers: {
+        Origin: origin, 'Access-Control-Request-Method': method, 'Access-Control-Request-Headers': 'Content-Type',
+      } }));
+      assert.equal(response.status, 403);
+      assert.equal(response.headers.get('access-control-allow-origin'), null);
+      assert.deepEqual(await response.json(), { error: '來源未獲允許' });
+    }
+  }
 });
 
-test('all four negative-auth cases stay 401 without data, including empty Bearer and allowed browser origins', async () => {
+test('all four negative-auth cases stay 401 without data for production and requests without Origin', async () => {
   const handler = createHandler({ env, fetcher: () => assert.fail('negative auth must not query data') });
-  for (const origin of [null, ...sfOrigins]) {
+  for (const origin of [null, productionOrigin]) {
     const headers = origin ? { Origin: origin } : {};
     const requests = [request('data', { headers }), request('login', { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'incorrect-test-only' }) }),
       request('data', { headers: { ...headers, Authorization: 'Bearer abc.def' } }), request('data', { headers: { ...headers, Authorization: 'Bearer ' } })];
