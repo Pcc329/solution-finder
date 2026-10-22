@@ -1,0 +1,4 @@
+# dash-data implements its own HMAC bearer gate. Supabase's JWT gateway must not
+# reject the password login or interpret our expiry.signature token as a JWT.
+[functions.dash-data]
+verify_jwt = false

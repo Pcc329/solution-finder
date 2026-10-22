@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>政府數位工具平台盤點</title>
+  <link rel="stylesheet" href="/platform-overview.css">
+  <script type="module" src="/platform-overview.mjs"></script>
+</head>
+<body>
+  <main id="login" class="login-shell">
+    <form id="login-form" class="login-card">
+      <span class="eyebrow">SOLUTION FINDER · INTERNAL</span>
+      <h1>政府數位工具平台盤點</h1>
+      <p class="muted">請輸入共用密碼以查看即時盤點資料。</p>
+      <label for="password">共用密碼</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="256">
+      <button type="submit" id="login-button">登入</button>
+      <p id="login-error" role="alert" aria-live="polite"></p>
+    </form>
+  </main>
+  <div id="loading" hidden role="status" class="loading">正在驗證並讀取最新資料…</div>
+  <!-- Remains empty until the data endpoint has authenticated the bearer token. -->
+  <main id="dashboard" hidden class="dashboard vp"></main>
+  <noscript>請啟用 JavaScript 以登入並查看盤點資料。</noscript>
+</body>
+</html>
