@@ -51,8 +51,11 @@ API：
 
 首波名單：`n_platforms >= 2 AND n_ai_solutions >= 5`。
 重疊及點陣僅比較具統編且具上述七個布林欄位的平台。
-AI 佔比以 `ai_solutions / solutions` 計算；`ai_label_method` 含「複核」且有待確認件數時，上限為 `(ai_solutions + ai_pending) / solutions`。
+AI 佔比以 `ai_solutions / solutions` 計算；`ai_label_method` 為「逐筆複核」或「已複核」且有待確認件數時，上限為 `(ai_solutions + ai_pending) / solutions`。比例顯示與參考稿一致，四捨五入至整數。
 總表按平台順序每四個一組、構面順序排序；◆ 表示差異，附註與查證日期顯示於格內。
+熱圖支援點選重疊篩選與清除；廠商點陣提供全部／跨平台／首波名單切換、搜尋與欄位排序，並保留分頁。
+「建議的下一步」沿用參考稿的靜態文案，屬後續工作說明，不會觸發資料重建或匯入。
+完整簡報連結沿用參考稿，明確標示為既有快照，與即時資料區分。
 
 ## 權限與正式資料驗證紀錄
 
@@ -86,5 +89,5 @@ ORDER BY table_name, grantee, privilege_type;
 node --test tests/platform-overview.test.mjs
 ```
 
-版面依指定區塊順序及已讀取的移植說明實作。參考 HTML 檔未取得，尚未完成與原畫面的逐項視覺比對。
+已讀取使用者提供的 `dashboard_reference.html` 與 `MIGRATION_NOTES.md`，移植參考 CSS、摘要、排序、熱圖連動與靜態文案，並將依賴 dash 的運算改為原生 JavaScript。來源檔案與文件內的資料範例不加入 repo。
 本機瀏覽器預覽未獲授權，因此未做瀏覽器視覺驗證；前端登入、渲染與清除資料的行為以 Node VM 測試。

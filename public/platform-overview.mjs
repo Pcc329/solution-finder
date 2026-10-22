@@ -1,4 +1,4 @@
-import { renderKPIs, renderCoverage, renderAI, renderOverlap, renderVendors, renderNextSteps, renderProfiles } from './platform-overview-render.mjs';
+import { renderKPIs, renderTakeaway, renderCoverage, renderAI, renderOverlap, renderVendors, renderNextSteps, renderProfiles, vendorKeys, shortNames, platformLabels } from './platform-overview-render.mjs';
 
 const TOKEN_KEY = 'sf_platform_overview_token';
 const login = document.getElementById('login');
@@ -8,6 +8,7 @@ const error = document.getElementById('login-error');
 const password = document.getElementById('password');
 const button = document.getElementById('login-button');
 let data = null, page = 0, expiryTimer, controller, generation = 0;
+let view = 'all', pair = null, sortKey = 'n_platforms', sortDir = -1;
 
 function storedToken() { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } }
 function forgetToken() { try { localStorage.removeItem(TOKEN_KEY); } catch { /* Storage may be disabled. */ } }
@@ -33,34 +34,71 @@ function showLogin(message = '') {
 
 function drawVendors() {
   const result = renderVendors(data, { search: document.getElementById('vendor-search').value,
-    waveOnly: document.getElementById('wave-only').checked, page });
+    view, pair, sortKey, sortDir, page });
   page = result.page;
   document.getElementById('vendor-table').innerHTML = result.html;
-  document.getElementById('page-info').textContent = `${result.total.toLocaleString('zh-TW')} 家 · 第 ${page + 1}／${result.pages} 頁`;
+  document.getElementById('vendor-count').textContent = `顯示 ${result.total.toLocaleString('zh-TW')}／${data.vendors.length.toLocaleString('zh-TW')} 家`;
+  document.getElementById('page-info').textContent = `第 ${page + 1}／${result.pages} 頁`;
   document.getElementById('previous').disabled = page === 0;
   document.getElementById('next').disabled = page + 1 >= result.pages;
 }
 
+function drawSelection() {
+  for (const name of ['all', 'cross', 'first']) document.getElementById(`view-${name}`).setAttribute('aria-pressed', String(view === name));
+  const chip = document.getElementById('pair-chip');
+  chip.hidden = !pair;
+  const labels = platformLabels(data);
+  chip.textContent = pair ? `只看：${pair[0] === pair[1] ? labels.get(pair[0]) || shortNames[pair[0]] : `${shortNames[pair[0]]} × ${shortNames[pair[1]]}`}　×` : '';
+  document.getElementById('overlap-table').innerHTML = renderOverlap(data, pair);
+  drawVendors();
+}
+
+function selectPair(a, b) {
+  if (!vendorKeys.includes(a) || !vendorKeys.includes(b)) return;
+  const selected = pair && ((pair[0] === a && pair[1] === b) || (pair[0] === b && pair[1] === a));
+  pair = selected ? null : [a, b];
+  if (!selected) view = 'all';
+  page = 0;
+  drawSelection();
+}
+
 function render() {
-  dashboard.innerHTML = `<header><div><span class="eyebrow">SOLUTION FINDER · LIVE OVERVIEW</span><h1>政府數位工具平台盤點</h1><p class="muted">跨平台廠商分布、AI 方案與查證進度</p></div><div class="header-tools"><p>資料時間 <time id="generated-at"></time></p><button id="refresh" class="secondary">重新整理</button><button id="logout" class="secondary">登出</button></div></header>
-    <section aria-label="摘要 KPI" class="kpis">${renderKPIs(data.vendors)}</section>
-    <section class="panel coverage-panel"><h2>缺統編說明</h2>${renderCoverage(data.platforms)}</section>
-    <section class="panel"><div class="section-heading"><h2>AI 方案佔比</h2><span class="muted">已複核平台顯示確認值至含待確認值的範圍</span></div>${renderAI(data.platforms)}</section>
-    <section class="panel"><h2>跨平台重疊熱圖</h2>${renderOverlap(data)}</section>
-    <section class="panel"><div class="section-heading"><h2>廠商點陣</h2><span class="muted">● 有收錄　— 未收錄</span></div><div class="filters"><label for="vendor-search" class="sr-only">搜尋廠商、統編或縣市</label><input id="vendor-search" type="search" placeholder="搜尋廠商、統編或縣市"><label class="check"><input id="wave-only" type="checkbox">僅看首波名單</label></div><div id="vendor-table"></div><div class="pagination"><span id="page-info" class="muted"></span><button id="previous" class="secondary">上一頁</button><button id="next" class="secondary">下一頁</button></div></section>
-    <section class="panel"><h2>下一步</h2>${renderNextSteps(data)}</section>
-    <section class="panel"><h2>盤點總表</h2>${renderProfiles(data.profiles)}</section>
+  dashboard.innerHTML = `<header class="vp-head"><h1>政府數位工具平台盤點：AI 方案與廠商重疊</h1><p class="vp-take">${renderTakeaway(data.vendors)}</p><div class="header-tools"><p>資料時間 <time id="generated-at"></time></p><button id="refresh" class="secondary">重新整理</button><button id="logout" class="secondary">登出</button></div></header>
+    <section aria-label="摘要 KPI" class="vp-kpis">${renderKPIs(data.vendors)}</section>
+    <aside class="vp-note" aria-label="缺統編說明">${renderCoverage(data.platforms)}</aside>
+    <section class="vp-card"><h2>各平台 AI 方案佔比</h2><p class="vp-sub">在架方案（正常＋疑似下架）中確定為 AI 的比例。標「已複核」的平台已逐筆檢查名稱與描述，藍色為確定是 AI，淺色延伸為待確認的上限；其他平台沿用匯入時的原始標記，尚未複核。</p><div class="vp-bars">${renderAI(data.platforms)}</div></section>
+    <section class="vp-card"><h2>平台兩兩重疊</h2><p class="vp-sub">格內為同時上架兩個平台的廠商數；對角線為該平台廠商總數。點一格，下方名單只列出這些廠商。</p><div id="overlap-table" class="vp-heat"></div></section>
+    <section class="vp-card"><h2>廠商點陣</h2><p class="vp-sub">每列一家廠商，有上架的平台打點；點欄位標題可排序。</p><div class="vp-ctl"><div class="vp-seg" role="group" aria-label="範圍"><button id="view-all" type="button" aria-pressed="true">全部</button><button id="view-cross" type="button" aria-pressed="false">跨平台</button><button id="view-first" type="button" aria-pressed="false">首波名單</button></div><button id="pair-chip" class="vp-chip" type="button" aria-label="清除平台重疊篩選" hidden></button><input id="vendor-search" class="vp-search" type="search" placeholder="搜尋公司名稱、統編或縣市" aria-label="搜尋廠商"><span id="vendor-count" class="vp-count" aria-live="polite"></span></div><div id="vendor-table"></div><div class="pagination"><span id="page-info" class="muted"></span><button id="previous" class="secondary">上一頁</button><button id="next" class="secondary">下一頁</button></div></section>
+    <section class="vp-card"><h2>建議的下一步</h2><p class="vp-sub">早期盤點的後續工作，第 1、2 步可並行。</p>${renderNextSteps()}</section>
+    <section class="vp-card"><h2>盤點總表</h2><p class="vp-sub">依平台與構面整理主管機關、上架方式、業者資格、方案與補助資訊；各格以查證日期為準。</p><a class="vp-link" href="https://claude.ai/artifact/VyzCPr7qBhPu9FLaC5S3eW" target="_blank" rel="noopener noreferrer">開啟完整簡報（10/21 版快照）</a><div class="vp-tables">${renderProfiles(data.profiles)}</div></section>
     <footer>盤點內容供內部分析使用；收錄不代表推薦、認證或品質評分。</footer>`;
   const time = document.getElementById('generated-at');
   time.dateTime = data.generated_at;
   time.textContent = new Date(data.generated_at).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false });
   document.getElementById('logout').addEventListener('click', () => showLogin());
   document.getElementById('refresh').addEventListener('click', () => load(storedToken()));
-  for (const id of ['vendor-search', 'wave-only']) document.getElementById(id).addEventListener('input', () => { page = 0; drawVendors(); });
+  document.getElementById('vendor-search').addEventListener('input', () => { page = 0; drawVendors(); });
+  for (const name of ['all', 'cross', 'first']) document.getElementById(`view-${name}`).addEventListener('click', () => {
+    view = name; pair = null; page = 0; drawSelection();
+  });
+  document.getElementById('pair-chip').addEventListener('click', () => { pair = null; page = 0; drawSelection(); });
+  document.getElementById('overlap-table').addEventListener('click', event => {
+    const cell = event.target.closest('button[data-pair-a]');
+    if (cell && !cell.disabled) selectPair(cell.dataset.pairA, cell.dataset.pairB);
+  });
+  document.getElementById('vendor-table').addEventListener('click', event => {
+    const column = event.target.closest('button[data-sort]');
+    if (!column) return;
+    const key = column.dataset.sort;
+    if (!['name', 'n_platforms', 'n_ai', ...vendorKeys].includes(key)) return;
+    sortDir = sortKey === key ? -sortDir : key === 'name' ? 1 : -1;
+    sortKey = key; page = 0; drawVendors();
+  });
   document.getElementById('previous').addEventListener('click', () => { page--; drawVendors(); });
   document.getElementById('next').addEventListener('click', () => { page++; drawVendors(); });
   page = 0;
-  drawVendors();
+  view = 'all'; pair = null; sortKey = 'n_platforms'; sortDir = -1;
+  drawSelection();
 }
 
 async function load(token) {
