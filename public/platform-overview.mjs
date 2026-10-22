@@ -1,6 +1,8 @@
 import { renderKPIs, renderTakeaway, renderCoverage, renderAI, renderOverlap, renderVendors, renderNextSteps, renderProfiles, vendorKeys, shortNames, platformLabels } from './platform-overview-render.mjs';
 
 const TOKEN_KEY = 'sf_platform_overview_token';
+// Public endpoint only. Password and signing/service-role secrets stay in Supabase.
+const EDGE_BASE = 'https://apdbvjruevjprslhhvlx.supabase.co/functions/v1/dash-data';
 const login = document.getElementById('login');
 const dashboard = document.getElementById('dashboard');
 const loading = document.getElementById('loading');
@@ -114,8 +116,8 @@ async function load(token) {
   clearTimeout(expiryTimer);
   expiryTimer = setTimeout(() => showLogin('登入已過期，請重新登入'), tokenExpiry(token) - Date.now());
   try {
-    const response = await fetch('/api/platform-overview/data', { headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store', signal: controller.signal });
+    const response = await fetch(`${EDGE_BASE}/data`, { headers: { Authorization: `Bearer ${token}` },
+      credentials: 'omit', cache: 'no-store', signal: controller.signal });
     if (requestGeneration !== generation) return;
     if (response.status === 401 || response.status === 403) return showLogin('登入已失效，請重新登入');
     if (!response.ok) throw new Error('資料服務暫時無法使用，請重新登入後再試');
@@ -138,7 +140,7 @@ document.getElementById('login-form').addEventListener('submit', async event => 
   error.textContent = '';
   button.disabled = true;
   try {
-    const response = await fetch('/api/platform-overview/login', { method: 'POST', cache: 'no-store',
+    const response = await fetch(`${EDGE_BASE}/login`, { method: 'POST', credentials: 'omit', cache: 'no-store',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: password.value }) });
     password.value = '';
     const body = await response.json();

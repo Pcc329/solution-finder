@@ -2,11 +2,22 @@
 
 頁面：`/platform-overview`（亦可使用 `/platform-overview.html`）。
 
-資料路徑：瀏覽器 → Vercel `/api/platform-overview/login|data` → Supabase `dash-data/login|data` → 既有 View／表。
+資料路徑：瀏覽器直接呼叫 Supabase `dash-data/login|data` → 既有 View／表；Vercel 僅提供靜態頁面。
 瀏覽器只保存七天 HMAC token，不保存密碼或資料；重新整理一律重讀 Supabase。
-Vercel 沿用已設定的 `SUPABASE_URL`，不需要儀表板密碼、簽章密鑰或 service-role key。
+前端僅包含公開的 Edge Function 網址，不含 anon key、密碼、簽章密鑰或 service-role key；此頁不需要 Vercel 轉送 API 或環境變數。
+
+## 跨來源請求
+
+- 正式站僅允許 `https://solution-finder-gray.vercel.app`。
+- 預覽站僅允許 `solution-finder` 專案在 `patrick0814-6136s-projects.vercel.app` 帳戶下的 HTTPS 部署網址與 git 分支別名；正規表示式完整錨定，不接受其他專案、帳戶、HTTP、附加網域或連接埠。
+- 不使用萬用 CORS 來源；只對允許的 Origin 回傳該 Origin，並設定 `Vary`。不允許來源回傳 403，且不帶允許來源標頭。
+- OPTIONS 預檢只接受登入端點的 POST、資料端點的 GET，以及 Authorization／Content-Type 標頭；不需要登入即可完成合法預檢。
+- 前端使用 `credentials: omit`，不傳送 Cookie。GET 資料仍須驗證 HMAC Bearer token；沒有 Origin 的 CLI 請求亦須通過相同驗證。
+- Vercel CSP 的 `connect-src` 僅增列此 Supabase 專案網域，未開放任意 Supabase 網域。
 
 ## 部署（由使用者執行）
+
+本次架構調整先保留本地 diff；推送與重新部署 Edge Function 分別取得使用者核准後才執行。
 
 從包含這次修改的 repo 根目錄執行。若 CLI 尚未登入，先完成 `npx supabase login`；這與資料庫密碼無關。
 

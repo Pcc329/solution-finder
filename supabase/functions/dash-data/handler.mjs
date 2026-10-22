@@ -13,8 +13,24 @@ const queries = [
   ['profiles', 'platform_profiles', 'platform_order,dimension_order,platform_key,dimension'],
 ];
 
-function json(body, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: HEADERS });
+const PRODUCTION_ORIGIN = 'https://solution-finder-gray.vercel.app';
+// Only this SF project in this Vercel account: deployment hashes and git aliases.
+// Anchored to HTTPS and the exact account suffix; never allow all vercel.app sites.
+const PREVIEW_ORIGIN = /^https:\/\/solution-finder-(?:git-[a-z0-9]+(?:-[a-z0-9]+)*|[a-z0-9]+)-patrick0814-6136s-projects\.vercel\.app$/;
+const ALLOWED_HEADERS = ['authorization', 'content-type'];
+
+export function isAllowedOrigin(origin) {
+  return origin === PRODUCTION_ORIGIN || PREVIEW_ORIGIN.test(origin);
+}
+
+function responseHeaders(origin = null) {
+  const headers = { ...HEADERS, Vary: 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers' };
+  if (origin) headers['Access-Control-Allow-Origin'] = origin;
+  return headers;
+}
+
+function json(body, status = 200, origin = null) {
+  return new Response(JSON.stringify(body), { status, headers: responseHeaders(origin) });
 }
 
 async function hmacKey(secret) {
@@ -72,38 +88,52 @@ async function readAll(fetcher, url, key, relation, order) {
 
 export function createHandler({ env, fetcher = fetch, now = Date.now }) {
   return async request => {
+    const origin = request.headers.get('origin');
+    if (origin !== null && !isAllowedOrigin(origin)) return json({ error: '來源未獲允許' }, 403);
+    const respond = (body, status = 200) => json(body, status, origin);
     const path = new URL(request.url).pathname;
     const action = path.match(/(?:^|\/)dash-data\/(login|data)\/?$/)?.[1];
-    if (!action) return json({ error: 'Not found' }, 404);
-    if ((action === 'login' && request.method !== 'POST') || (action === 'data' && request.method !== 'GET')) {
-      return json({ error: 'Method not allowed' }, 405);
+    if (!action) return respond({ error: 'Not found' }, 404);
+    const method = action === 'login' ? 'POST' : 'GET';
+    if (request.method === 'OPTIONS') {
+      const requestedHeaders = (request.headers.get('access-control-request-headers') || '')
+        .split(',').map(header => header.trim().toLowerCase()).filter(Boolean);
+      if (!origin || request.headers.get('access-control-request-method') !== method
+        || requestedHeaders.some(header => !ALLOWED_HEADERS.includes(header))) {
+        return respond({ error: '不允許的預檢請求' }, 403);
+      }
+      return new Response(null, { status: 204, headers: {
+        ...responseHeaders(origin), 'Access-Control-Allow-Methods': method,
+        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+      } });
     }
+    if (request.method !== method) return respond({ error: 'Method not allowed' }, 405);
     const secret = env('DASH_TOKEN_SECRET');
     const password = env('DASH_PASSWORD');
-    if (!secret || !password) return json({ error: '儀表板登入尚未設定' }, 503);
+    if (!secret || !password) return respond({ error: '儀表板登入尚未設定' }, 503);
     try {
       if (action === 'login') {
-        if (!request.headers.get('content-type')?.includes('application/json')) return json({ error: '請使用 JSON' }, 415);
+        if (!request.headers.get('content-type')?.includes('application/json')) return respond({ error: '請使用 JSON' }, 415);
         // Shared-password gate follows api/auth.js; no password is returned or logged.
         const text = await request.text();
-        if (encoder.encode(text).length > 4096) return json({ error: '登入內容過長' }, 413);
+        if (encoder.encode(text).length > 4096) return respond({ error: '登入內容過長' }, 413);
         let body;
-        try { body = JSON.parse(text); } catch { return json({ error: '無效的登入內容' }, 400); }
+        try { body = JSON.parse(text); } catch { return respond({ error: '無效的登入內容' }, 400); }
         if (typeof body?.password !== 'string' || !(await passwordMatches(body.password, password))) {
-          return json({ error: '密碼錯誤' }, 401);
+          return respond({ error: '密碼錯誤' }, 401);
         }
         const expires = now() + MAX_AGE;
-        return json({ token: await createToken(expires, secret), expires_at: new Date(expires).toISOString() });
+        return respond({ token: await createToken(expires, secret), expires_at: new Date(expires).toISOString() });
       }
       const bearer = request.headers.get('authorization')?.match(/^Bearer (\S+)$/i)?.[1];
-      if (!(await verifyToken(bearer, secret, now()))) return json({ error: '登入已失效，請重新登入' }, 401);
+      if (!(await verifyToken(bearer, secret, now()))) return respond({ error: '登入已失效，請重新登入' }, 401);
       const url = env('SUPABASE_URL'), key = env('SUPABASE_SERVICE_ROLE_KEY');
-      if (!url || !key) return json({ error: '儀表板資料服務尚未設定' }, 503);
+      if (!url || !key) return respond({ error: '儀表板資料服務尚未設定' }, 503);
       const results = await Promise.all(queries.map(async ([name, relation, order]) =>
         [name, await readAll(fetcher, url, key, relation, order)]));
-      return json({ ...Object.fromEntries(results), generated_at: new Date(now()).toISOString() });
+      return respond({ ...Object.fromEntries(results), generated_at: new Date(now()).toISOString() });
     } catch {
-      return json({ error: '資料服務暫時無法使用，請稍後重新整理' }, 502);
+      return respond({ error: '資料服務暫時無法使用，請稍後重新整理' }, 502);
     }
   };
 }
