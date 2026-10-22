@@ -6,7 +6,7 @@ import test from 'node:test';
 import { createSessionValue } from '../_lib/auth.js';
 import { createHandler, createToken, verifyToken } from '../supabase/functions/dash-data/handler.mjs';
 import relay from '../api/platform-overview.js';
-import { aiShare, renderProfiles, renderOverlap, renderVendors, safeLink, summarize } from '../public/platform-overview-render.mjs';
+import { aiShare, renderProfiles, renderOverlap, renderVendors, selectVendors, renderTakeaway, renderNextSteps, renderCoverage, renderAI, safeLink, summarize } from '../public/platform-overview-render.mjs';
 import * as rendering from '../public/platform-overview-render.mjs';
 
 // Disposable test inputs only. No production credentials or database exports.
@@ -100,8 +100,9 @@ test('upstream failure fails closed without leaking service credentials or parti
 
 test('AI shares show reviewed pending ranges and handle missing/zero denominators', () => {
   assert.deepEqual(aiShare({ solutions: 20, ai_solutions: 10, ai_pending: 2, ai_label_method: '逐筆複核' }),
-    { lower: .5, upper: .6, label: '50.0%–60.0%' });
-  assert.equal(aiShare({ solutions: 20, ai_solutions: 10, ai_pending: 2, ai_label_method: '自動標記' }).label, '50.0%');
+    { lower: .5, upper: .6, label: '50%–60%' });
+  assert.equal(aiShare({ solutions: 20, ai_solutions: 10, ai_pending: 2, ai_label_method: '自動標記' }).label, '50%');
+  assert.equal(aiShare({ solutions: 20, ai_solutions: 10, ai_pending: 2, ai_label_method: '尚未複核' }).label, '50%');
   assert.equal(aiShare({ solutions: 0, ai_solutions: 0 }).label, '未提供');
   assert.equal(aiShare({ solutions: 20, ai_solutions: null }).label, '未提供');
 });
@@ -112,8 +113,8 @@ const sample = () => ({ platforms: [{ platform_key: 'sme_ai', platform_name: '�
 
 test('real booleans drive heatmap, dot matrix and first-wave selection', () => {
   const data = sample();
-  assert.deepEqual(summarize(data.vendors), { total: 2, cross: 1, crossShare: '50.0%', wave: 1, ai: 1 });
-  assert.match(renderOverlap(data), />2<\/td>/);
+  assert.deepEqual(summarize(data.vendors), { total: 2, cross: 1, crossShare: '50%', wave: 1, ai: 1 });
+  assert.match(renderOverlap(data), />2<\/span>/);
   const vendors = renderVendors(data, { waveOnly: true });
   assert.equal(vendors.total, 1);
   assert.equal((vendors.html.match(/aria-label="有收錄"/g) || []).length, 2);
@@ -169,6 +170,7 @@ function frontend({ token, fetcher }) {
   const elements = new Map();
   const get = id => {
     if (!elements.has(id)) elements.set(id, { hidden: id !== 'login', innerHTML: '', value: '', checked: false, handlers: {},
+      attributes: {}, setAttribute(name, value) { this.attributes[name] = value; },
       replaceChildren() { this.innerHTML = ''; }, addEventListener(name, fn) { this.handlers[name] = fn; } });
     return elements.get(id);
   };
@@ -235,4 +237,66 @@ test('leaving the page clears data and cancels any in-flight rendering', async (
   await settle();
   assert.equal(ui.get('dashboard').innerHTML, '');
   assert.equal(ui.get('dashboard').hidden, true);
+});
+
+test('reference view switches, pair filters, search and sortable columns compose', () => {
+  const vendors = [...sample().vendors,
+    { company_id: '00000003', company_name: 'Alpha', city: '測試市', n_platforms: 3, n_ai_solutions: 4, sme_ai: true, moea_cloud: true },
+    { company_id: '00000004', company_name: 'Beta', n_platforms: 2, n_ai_solutions: 7, sme_ai: 'true', moea_cloud: true }];
+  assert.equal(selectVendors(vendors, { view: 'cross' }).length, 3);
+  assert.equal(selectVendors(vendors, { view: 'first' }).length, 2);
+  assert.deepEqual(selectVendors(vendors, { pair: ['moea_cloud', 'sme_ai'] }).map(v => v.company_id), ['00000003', '00000001']);
+  assert.equal(selectVendors(vendors, { pair: ['sme_ai', 'sme_ai'], search: 'Alpha' }).length, 1);
+  assert.equal(selectVendors(vendors, { pair: ['not-a-platform'] }).length, 0);
+  assert.deepEqual(selectVendors(vendors.filter(v => ['Alpha', 'Beta'].includes(v.company_name)), { sortKey: 'name', sortDir: 1 }).map(v => v.company_name), ['Alpha', 'Beta']);
+  assert.equal(selectVendors(vendors, { sortKey: 'n_ai', sortDir: -1 })[0].company_id, '00000004');
+  assert.equal(selectVendors(vendors, { sortKey: 'sme_ai', sortDir: -1 })[0].sme_ai, true);
+});
+
+test('reference summary, warning, AI badges and static next steps retain their meaning', () => {
+  assert.match(renderTakeaway(sample().vendors), /為下限/);
+  assert.match(renderTakeaway(sample().vendors), /首波招商名單/);
+  assert.match(renderCoverage([{ platform_name: '測試平台', no_id_solutions: 2 }]), /跨平台比例是下限/);
+  assert.equal(renderCoverage([{ platform_name: '測試平台', no_id_solutions: 0 }]), '');
+  const ai = renderAI([{ platform_name: '低比例', solutions: 20, ai_solutions: 1, ai_pending: 0, ai_label_method: '來源標記' },
+    { platform_name: '高比例', solutions: 20, ai_solutions: 10, ai_pending: 2, ai_label_method: '逐筆複核' }]);
+  assert.ok(ai.indexOf('高比例') < ai.indexOf('低比例'));
+  assert.match(ai, /已複核，2 筆待確認/);
+  assert.doesNotMatch(renderAI([{ platform_name: '未複核平台', solutions: 20, ai_solutions: 10, ai_pending: 2, ai_label_method: '尚未複核' }]), /class="vp-tag/);
+  const next = renderNextSteps();
+  for (const title of ['補齊資料', '確認範圍', '提出定位建議']) assert.ok(next.includes(title));
+});
+
+test('heatmap cells expose keyboard buttons, symmetric selection and disabled empty intersections', () => {
+  const html = renderOverlap(sample(), ['moea_cloud', 'sme_ai']);
+  assert.equal((html.match(/aria-pressed="true"/g) || []).length, 2);
+  assert.match(html, /data-pair-a="sme_ai" data-pair-b="moea_cloud"/);
+  assert.match(html, /disabled/);
+  const vendors = renderVendors(sample(), { sortKey: 'n_ai', sortDir: 1 }).html;
+  assert.match(vendors, /aria-sort="ascending"/);
+  assert.match(vendors, /data-sort="n_ai"/);
+  assert.match(vendors, /class="vp-tag">首波/);
+  assert.match(vendors, /class="bar hi"/);
+});
+
+test('frontend heatmap, view, chip and column handlers update the vendor list', async () => {
+  const ui = frontend({ token: await createToken(Date.now() + 10000, secret), fetcher: async () => new Response(JSON.stringify(sample())) });
+  await settle();
+  ui.get('view-cross').handlers.click();
+  assert.equal(ui.get('view-cross').attributes['aria-pressed'], 'true');
+  assert.match(ui.get('vendor-count').textContent, /顯示 1／2 家/);
+  const cell = { disabled: false, dataset: { pairA: 'sme_ai', pairB: 'moea_cloud' } };
+  ui.get('overlap-table').handlers.click({ target: { closest: () => cell } });
+  assert.equal(ui.get('view-all').attributes['aria-pressed'], 'true');
+  assert.equal(ui.get('pair-chip').hidden, false);
+  assert.match(ui.get('vendor-count').textContent, /顯示 1／2 家/);
+  ui.get('overlap-table').handlers.click({ target: { closest: () => ({ ...cell, dataset: { pairA: 'moea_cloud', pairB: 'sme_ai' } }) } });
+  assert.equal(ui.get('pair-chip').hidden, true);
+  assert.match(ui.get('vendor-count').textContent, /顯示 2／2 家/);
+  ui.get('vendor-table').handlers.click({ target: { closest: () => ({ dataset: { sort: 'n_ai' } }) } });
+  assert.match(ui.get('vendor-table').innerHTML, /data-sort="n_ai"[^>]*>AI 方案數 ↓/);
+  ui.get('vendor-table').handlers.click({ target: { closest: () => ({ dataset: { sort: 'n_ai' } }) } });
+  assert.match(ui.get('vendor-table').innerHTML, /data-sort="n_ai"[^>]*>AI 方案數 ↑/);
+  ui.get('view-first').handlers.click();
+  assert.match(ui.get('vendor-count').textContent, /顯示 1／2 家/);
 });
