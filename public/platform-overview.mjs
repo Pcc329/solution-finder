@@ -1,4 +1,4 @@
-import { renderKPIs, renderTakeaway, renderCoverage, renderAI, renderOverlap, renderVendors, renderNextSteps, renderProfiles, vendorKeys, shortNames, platformLabels, renderVersionWarning, renderDataNotes, renderPlatformName, warnMissingSurveyPlatforms, formatDataTime } from './platform-overview-render.mjs';
+import { renderKPIs, renderTakeaway, renderCoverage, renderAI, renderOverlap, renderVendors, renderNextSteps, renderProfiles, vendorKeys, shortNames, platformLabels, renderVersionWarning, renderDataNotes, warnMissingSurveyPlatforms, formatDataTime } from './platform-overview-render.mjs';
 
 const TOKEN_KEY = 'sf_platform_overview_token';
 // Public endpoint only. Password and signing/service-role secrets stay in Supabase.
@@ -50,7 +50,7 @@ function drawSelection() {
   const chip = document.getElementById('pair-chip');
   chip.hidden = !pair;
   const labels = platformLabels(data);
-  chip.innerHTML = pair ? `只看：${(pair[0] === pair[1] ? [pair[0]] : pair).map(key => renderPlatformName(labels.get(key), shortNames[key])).join(' × ')}　×` : '';
+  chip.textContent = pair ? `只看：${pair[0] === pair[1] ? labels.get(pair[0]) || shortNames[pair[0]] : `${shortNames[pair[0]]} × ${shortNames[pair[1]]}`}　×` : '';
   document.getElementById('overlap-table').innerHTML = renderOverlap(data, pair);
   drawVendors();
 }

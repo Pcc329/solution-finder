@@ -372,6 +372,7 @@ test('frontend heatmap, view, chip and column handlers update the vendor list', 
   ui.get('overlap-table').handlers.click({ target: { closest: () => cell } });
   assert.equal(ui.get('view-all').attributes['aria-pressed'], 'true');
   assert.equal(ui.get('pair-chip').hidden, false);
+  assert.equal(ui.get('pair-chip').textContent, '只看：SME AI × 工業館　×');
   assert.match(ui.get('vendor-count').textContent, /顯示 1／2 家/);
   ui.get('overlap-table').handlers.click({ target: { closest: () => ({ ...cell, dataset: { pairA: 'moea_cloud', pairB: 'sme_ai' } }) } });
   assert.equal(ui.get('pair-chip').hidden, true);
@@ -492,6 +493,36 @@ test('missing survey names warn with exact missing names and leave static scope 
   warnMissingSurveyPlatforms([]);
   for (const name of SURVEY_PLATFORMS) assert.ok(warnings[1].includes(name));
   assert.match(renderDataNotes(), /臺灣雲市集已停止服務，未納入統計/);
+});
+
+test('missing platform names return escaped plain text and never classify unknown vendor columns', () => {
+  for (const name of [undefined, null, '', '   ']) {
+    assert.equal(renderPlatformName(name), '未提供');
+    assert.equal(renderPlatformName(name, 'SME AI'), 'SME AI');
+    assert.equal(renderPlatformName(name, '<img src=x>'), '&lt;img src=x&gt;');
+  }
+  const data = sample();
+  data.platforms = data.platforms.filter(row => row.platform_key !== 'sme_ai');
+  assert.equal(rendering.platformLabels(data).has('sme_ai'), false);
+  const html = renderVendors(data).html;
+  const column = html.match(/<button[^>]*data-sort="sme_ai"[^>]*>(.*?)<\/button>/)?.[1];
+  assert.equal(column, 'SME AI');
+  assert.doesNotMatch(column, /本SF資料庫|補助平台盤點|vp-source/);
+  assert.match(html, /vp-source survey/); // Known platform columns keep their badges.
+  const heatmap = renderOverlap(data);
+  assert.match(heatmap, /<th scope="col" title="SME AI">SME AI<\/th>/);
+  assert.match(heatmap, /<th scope="row">SME AI<\/th>/);
+});
+
+test('coverage explanations use plain platform names without source badges', () => {
+  const html = renderCoverage([
+    { platform_name: 'SME AI平台', no_id_solutions: 3 },
+    { platform_name: '政府軟體採購網', no_id_solutions: 2 },
+    { platform_name: '<img src=x>', no_id_solutions: 1 },
+    { platform_name: '不列出', no_id_solutions: 0 },
+  ]);
+  assert.equal(html, '<p>依統一編號比對：SME AI平台 3 筆、政府軟體採購網 2 筆、&lt;img src=x&gt; 1 筆方案缺統編，未計入家數，因此跨平台比例是下限。</p>');
+  assert.doesNotMatch(html, /本SF資料庫|補助平台盤點|vp-source|<img/);
 });
 
 test('AI methods and nonzero missing-ID counts are generated dynamically without duplicated notes', () => {
