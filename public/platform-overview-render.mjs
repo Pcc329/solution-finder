@@ -21,6 +21,9 @@ export function warnMissingSurveyPlatforms(platforms) {
 }
 
 export function renderPlatformName(name, label = name) {
+  if (name == null || String(name).trim() === '') {
+    return escapeHTML(label != null && String(label).trim() !== '' ? label : '未提供');
+  }
   const surveyed = SURVEY_PLATFORMS.includes(name);
   return `<span class="vp-platform-label"><span class="vp-platform-name">${escapeHTML(label)}</span><span class="vp-source ${surveyed ? 'survey' : 'database'}"${surveyed ? '' : ' title="本 SF 資料庫另行收錄的政府來源，不在補助平台盤點範圍內"'}>${surveyed ? '補助平台盤點' : '本SF資料庫'}</span></span>`;
 }
@@ -86,7 +89,7 @@ export function renderTakeaway(vendors) {
 export function renderCoverage(platforms) {
   if (!platforms.length) return '<p class="muted">尚無平台統計資料。</p>';
   const gaps = platforms.filter(row => Number(row.no_id_solutions) > 0);
-  return gaps.length ? `<p>依統一編號比對：${gaps.map(row => `${renderPlatformName(row.platform_name)} ${count(row.no_id_solutions)} 筆`).join('、')}方案缺統編，未計入家數，因此跨平台比例是下限。</p>` : '';
+  return gaps.length ? `<p>依統一編號比對：${gaps.map(row => `${escapeHTML(row.platform_name)} ${count(row.no_id_solutions)} 筆`).join('、')}方案缺統編，未計入家數，因此跨平台比例是下限。</p>` : '';
 }
 
 export function renderAI(platforms) {
@@ -107,8 +110,8 @@ export function renderOverlap(data, pair = null) {
   const label = key => labels.get(key) || shortNames[key];
   const matrix = keys.map(a => keys.map(b => data.vendors.filter(v => v[a] === true && v[b] === true).length));
   const max = Math.max(1, ...matrix.flatMap((row, i) => row.filter((_, j) => i !== j)));
-  return `<div class="table-scroll"><table class="heatmap"><caption class="sr-only">平台兩兩重疊廠商數；對角線為該平台具統編廠商數。</caption><thead><tr><th scope="col">平台</th>${keys.map(key => `<th scope="col" title="${escapeHTML(label(key))}">${renderPlatformName(label(key), shortNames[key])}</th>`).join('')}</tr></thead>
-    <tbody>${keys.map((key, i) => `<tr><th scope="row">${renderPlatformName(label(key))}</th>${matrix[i].map((n, j) => {
+  return `<div class="table-scroll"><table class="heatmap"><caption class="sr-only">平台兩兩重疊廠商數；對角線為該平台具統編廠商數。</caption><thead><tr><th scope="col">平台</th>${keys.map(key => `<th scope="col" title="${escapeHTML(label(key))}">${renderPlatformName(labels.get(key), shortNames[key])}</th>`).join('')}</tr></thead>
+    <tbody>${keys.map((key, i) => `<tr><th scope="row">${renderPlatformName(labels.get(key), label(key))}</th>${matrix[i].map((n, j) => {
       const selected = pair && ((pair[0] === key && pair[1] === keys[j]) || (pair[1] === key && pair[0] === keys[j]));
       const title = i === j ? `${label(key)}：${count(n)} 家` : `${label(key)} 與 ${label(keys[j])}：${count(n)} 家`;
       return `<td><button type="button" class="vp-hc${i === j ? ' diag' : ''}${selected ? ' on' : ''}" data-pair-a="${key}" data-pair-b="${keys[j]}" aria-pressed="${Boolean(selected)}" aria-label="${escapeHTML(title)}" title="${escapeHTML(title)}"${n ? '' : ' disabled'}><i class="bg"${i !== j && n ? ` style="background:var(--chart-0);opacity:${.12 + .7 * n / max}"` : ''}></i><span>${n ? count(n) : '·'}</span></button></td>`;
