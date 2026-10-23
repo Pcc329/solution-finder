@@ -58,7 +58,7 @@ npx supabase functions deploy dash-data --project-ref apdbvjruevjprslhhvlx --no-
 ## 既有資料契約（僅讀取）
 
 - `dash_platform_overview`：至少含 `platform_key`、`platform_name`、`solutions`、`ai_solutions`、`ai_pending`、`no_id_solutions`、`ai_label_method`。
-- `dash_vendor_platforms`：至少含字串 `company_id`、`company_name`、`city`、`n_platforms`、`n_solutions`、`n_ai_solutions`，以及 JSON 布林值 `sme_ai`、`moea_cloud`、`startup_select`、`smebiz`、`gov_software`、`agri`、`ntpc`。
+- `dash_vendor_platforms`：至少含字串 `company_id`、`company_name`、`city`、`n_platforms`、`n_solutions`、`n_ai_solutions`、只計正常方案的 `n_platforms_normal`、`n_solutions_normal`、`n_ai_solutions_normal`，以及 JSON 布林值 `sme_ai`、`moea_cloud`、`startup_select`、`smebiz`、`gov_software`、`agri`、`ntpc`。
 - `platform_profiles`：`platform_key`、`platform_name`、`platform_url`、`platform_order`、`dimension`、`dimension_order`、`value`、`note`、`differs_from_reference`、`source`、`verified_at`。
 
 三個入口皆由 service role 查詢；不使用 anon key。資料庫建立、匯入與權限修改由使用者處理，本次沒有資料庫寫入程式。
@@ -68,13 +68,21 @@ API：
 - `GET /functions/v1/dash-data/data`，`Authorization: Bearer <token>`，回傳 `{ platforms, vendors, profiles, generated_at }`。
 - 所有回應 `Cache-Control: private, no-store`。`generated_at` 是這次資料回應產生時間，頁面以台北時間顯示；各格查證時間另外顯示 `verified_at`。
 
-首波名單：`n_platforms >= 2 AND n_ai_solutions >= 5`。
+首波名單：`n_platforms_normal >= 2 AND n_ai_solutions_normal >= 5`，只計正常方案。
+候補名單：`n_platforms >= 2 AND n_ai_solutions >= 5` 且不屬於首波，需計入疑似下架方案才達門檻，產品現況待確認。
+任一廠商缺少上述三個正常方案欄位（含 null、空值或無效數值），首波與候補 KPI 顯示「—」及資料版本提示，不以 0 代替；分組標籤與名單亦暫停顯示。
 重疊及點陣僅比較具統編且具上述七個布林欄位的平台。
 AI 佔比以 `ai_solutions / solutions` 計算；`ai_label_method` 為「逐筆複核」或「已複核」且有待確認件數時，上限為 `(ai_solutions + ai_pending) / solutions`。比例顯示與參考稿一致，四捨五入至整數。
 總表按平台順序每四個一組、構面順序排序；◆ 表示差異，附註與查證日期顯示於格內。
-熱圖支援點選重疊篩選與清除；廠商點陣提供全部／跨平台／首波名單切換、搜尋與欄位排序，並保留分頁。
+熱圖支援點選重疊篩選與清除；廠商點陣提供全部／跨平台／首波／候補切換、搜尋與欄位排序，並保留分頁。
 「建議的下一步」沿用參考稿的靜態文案，屬後續工作說明，不會觸發資料重建或匯入。
 完整簡報連結沿用參考稿，明確標示為既有快照，與即時資料區分。
+
+## 平台來源標籤
+
+`public/platform-overview-render.mjs` 的 `SURVEY_PLATFORMS` 集中保存補助平台盤點清單：雲市集工業館、SME AI平台、商業服務業專區。以 `platform_name` 完全比對（包含全形與空白），符合者標示「補助平台盤點」，其他來源標示「本SF資料庫」；顯示縮寫不參與比對。平台更名時須同步修改此常數與測試，否則載入資料時會以 `console.warn` 列出缺少名稱。
+
+頁面底部的資料說明補充政府來源收錄限制與盤點範圍（含已停止服務、未納入統計的臺灣雲市集）。既有 AI 判定、缺統編及資料時間說明保留原位，不重複列出；首波只計正常方案併入在架方案定義。資料時間使用 API 的 `generated_at`，以 Asia/Taipei 的 `YYYY-MM-DD HH:mm` 顯示。
 
 ## 權限與正式資料驗證紀錄
 
@@ -109,4 +117,4 @@ node --test tests/platform-overview.test.mjs
 ```
 
 已讀取使用者提供的 `dashboard_reference.html` 與 `MIGRATION_NOTES.md`，移植參考 CSS、摘要、排序、熱圖連動與靜態文案，並將依賴 dash 的運算改為原生 JavaScript。來源檔案與文件內的資料範例不加入 repo。
-本機瀏覽器預覽未獲授權，因此未做瀏覽器視覺驗證；前端登入、渲染與清除資料的行為以 Node VM 測試。
+最初移植時未做瀏覽器視覺驗證；本次首波／候補 v2 已使用本機 Chromium 與合成資料驗證桌機、375px 畫面，截圖與完整結果見 `_handover/SYNC_dashboard-first-wave-v2_2026-10-23.md`。這不是 Preview 部署或正式資料驗收；正式網站仍須在合併部署後另行確認。
