@@ -1,4 +1,4 @@
-import { renderKPIs, renderTakeaway, renderCoverage, renderAI, renderOverlap, renderVendors, renderNextSteps, renderProfiles, vendorKeys, shortNames, platformLabels } from './platform-overview-render.mjs';
+import { renderKPIs, renderTakeaway, renderCoverage, renderAI, renderOverlap, renderVendors, renderNextSteps, renderProfiles, vendorKeys, shortNames, platformLabels, renderVersionWarning, renderDataNotes, renderPlatformName, warnMissingSurveyPlatforms, formatDataTime } from './platform-overview-render.mjs';
 
 const TOKEN_KEY = 'sf_platform_overview_token';
 // Public endpoint only. Password and signing/service-role secrets stay in Supabase.
@@ -46,11 +46,11 @@ function drawVendors() {
 }
 
 function drawSelection() {
-  for (const name of ['all', 'cross', 'first']) document.getElementById(`view-${name}`).setAttribute('aria-pressed', String(view === name));
+  for (const name of ['all', 'cross', 'first', 'candidate']) document.getElementById(`view-${name}`).setAttribute('aria-pressed', String(view === name));
   const chip = document.getElementById('pair-chip');
   chip.hidden = !pair;
   const labels = platformLabels(data);
-  chip.textContent = pair ? `只看：${pair[0] === pair[1] ? labels.get(pair[0]) || shortNames[pair[0]] : `${shortNames[pair[0]]} × ${shortNames[pair[1]]}`}　×` : '';
+  chip.innerHTML = pair ? `只看：${(pair[0] === pair[1] ? [pair[0]] : pair).map(key => renderPlatformName(labels.get(key), shortNames[key])).join(' × ')}　×` : '';
   document.getElementById('overlap-table').innerHTML = renderOverlap(data, pair);
   drawVendors();
 }
@@ -65,22 +65,25 @@ function selectPair(a, b) {
 }
 
 function render() {
-  dashboard.innerHTML = `<header class="vp-head"><h1>政府數位工具平台盤點：AI 方案與廠商重疊</h1><p class="vp-take">${renderTakeaway(data.vendors)}</p><div class="header-tools"><p>資料時間 <time id="generated-at"></time></p><button id="refresh" class="secondary">重新整理</button><button id="logout" class="secondary">登出</button></div></header>
+  warnMissingSurveyPlatforms(data.platforms);
+  dashboard.innerHTML = `<header class="vp-head"><h1>政府數位工具平台盤點：AI 方案與廠商重疊</h1><p class="vp-take">${renderTakeaway(data.vendors)}</p><div class="header-tools"><p>資料時間 <time id="generated-at"></time>（Asia/Taipei）；資料為即時讀取，後續查證可能使數字變動。</p><button id="refresh" class="secondary">重新整理</button><button id="logout" class="secondary">登出</button></div></header>
+    ${renderVersionWarning(data.vendors)}
     <section aria-label="摘要 KPI" class="vp-kpis">${renderKPIs(data.vendors)}</section>
     <aside class="vp-note" aria-label="缺統編說明">${renderCoverage(data.platforms)}</aside>
-    <section class="vp-card"><h2>各平台 AI 方案佔比</h2><p class="vp-sub">在架方案（正常＋疑似下架）中確定為 AI 的比例。標「已複核」的平台已逐筆檢查名稱與描述，藍色為確定是 AI，淺色延伸為待確認的上限；其他平台沿用匯入時的原始標記，尚未複核。</p><div class="vp-bars">${renderAI(data.platforms)}</div></section>
+    <section class="vp-card"><h2>各平台 AI 方案佔比</h2><p class="vp-sub">在架方案（正常＋疑似下架）中確定為 AI 的比例；首波名單只計正常方案。標「已複核」的平台已逐筆檢查名稱與描述，藍色為確定是 AI，淺色延伸為待確認的上限；其他平台沿用匯入時的原始標記，尚未複核。跨平台比較 AI 佔比時請留意定義差異。</p><div class="vp-bars">${renderAI(data.platforms)}</div></section>
     <section class="vp-card"><h2>平台兩兩重疊</h2><p class="vp-sub">格內為同時上架兩個平台的廠商數；對角線為該平台廠商總數。點一格，下方名單只列出這些廠商。</p><div id="overlap-table" class="vp-heat"></div></section>
-    <section class="vp-card"><h2>廠商點陣</h2><p class="vp-sub">每列一家廠商，有上架的平台打點；點欄位標題可排序。</p><div class="vp-ctl"><div class="vp-seg" role="group" aria-label="範圍"><button id="view-all" type="button" aria-pressed="true">全部</button><button id="view-cross" type="button" aria-pressed="false">跨平台</button><button id="view-first" type="button" aria-pressed="false">首波名單</button></div><button id="pair-chip" class="vp-chip" type="button" aria-label="清除平台重疊篩選" hidden></button><input id="vendor-search" class="vp-search" type="search" placeholder="搜尋公司名稱、統編或縣市" aria-label="搜尋廠商"><span id="vendor-count" class="vp-count" aria-live="polite"></span></div><div id="vendor-table"></div><div class="pagination"><span id="page-info" class="muted"></span><button id="previous" class="secondary">上一頁</button><button id="next" class="secondary">下一頁</button></div></section>
+    <section class="vp-card"><h2>廠商點陣</h2><p class="vp-sub">每列一家廠商，有上架的平台打點；點欄位標題可排序。</p><div class="vp-ctl"><div class="vp-seg" role="group" aria-label="範圍"><button id="view-all" type="button" aria-pressed="true">全部</button><button id="view-cross" type="button" aria-pressed="false">跨平台</button><button id="view-first" type="button" aria-pressed="false">首波</button><button id="view-candidate" type="button" aria-pressed="false">候補</button></div><button id="pair-chip" class="vp-chip" type="button" aria-label="清除平台重疊篩選" hidden></button><input id="vendor-search" class="vp-search" type="search" placeholder="搜尋公司名稱、統編或縣市" aria-label="搜尋廠商"><span id="vendor-count" class="vp-count" aria-live="polite"></span></div><div id="vendor-table"></div><div class="pagination"><span id="page-info" class="muted"></span><button id="previous" class="secondary">上一頁</button><button id="next" class="secondary">下一頁</button></div></section>
     <section class="vp-card"><h2>建議的下一步</h2><p class="vp-sub">早期盤點的後續工作，第 1、2 步可並行。</p>${renderNextSteps()}</section>
     <section class="vp-card"><h2>盤點總表</h2><p class="vp-sub">依平台與構面整理主管機關、上架方式、業者資格、方案與補助資訊；各格以查證日期為準。</p><a class="vp-link" href="https://claude.ai/artifact/VyzCPr7qBhPu9FLaC5S3eW" target="_blank" rel="noopener noreferrer">開啟完整簡報（10/21 版快照）</a><div class="vp-tables">${renderProfiles(data.profiles)}</div></section>
+    ${renderDataNotes()}
     <footer>盤點內容供內部分析使用；收錄不代表推薦、認證或品質評分。</footer>`;
   const time = document.getElementById('generated-at');
   time.dateTime = data.generated_at;
-  time.textContent = new Date(data.generated_at).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false });
+  time.textContent = formatDataTime(data.generated_at);
   document.getElementById('logout').addEventListener('click', () => showLogin());
   document.getElementById('refresh').addEventListener('click', () => load(storedToken()));
   document.getElementById('vendor-search').addEventListener('input', () => { page = 0; drawVendors(); });
-  for (const name of ['all', 'cross', 'first']) document.getElementById(`view-${name}`).addEventListener('click', () => {
+  for (const name of ['all', 'cross', 'first', 'candidate']) document.getElementById(`view-${name}`).addEventListener('click', () => {
     view = name; pair = null; page = 0; drawSelection();
   });
   document.getElementById('pair-chip').addEventListener('click', () => { pair = null; page = 0; drawSelection(); });
