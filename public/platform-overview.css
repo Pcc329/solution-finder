@@ -109,6 +109,13 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
   .vp-name { padding: var(--cds-pad-sm) var(--cds-pad-xs); font-size: var(--cds-font-size-body); line-height: 1.35; }
   .vp-name small { display: block; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
   .vp-tag { display: inline-block; font-size: var(--cds-font-size-caption); border: 1px solid currentColor; color: var(--color-ok); border-radius: 4px; padding: 0 4px; margin-left: 4px; line-height: 1.4; }
+  .vp-tag.candidate-tag { color: var(--color-warn); }
+  .vp-platform-label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
+  .vp-platform-name { white-space: nowrap; }
+  .vp-source { display: inline-block; white-space: nowrap; font-size: 10px; line-height: 1.6; padding: 0 5px; border: 1px solid currentColor; border-radius: 4px; }
+  .vp-source.survey { color: var(--chart-0); }
+  .vp-source.database { color: var(--color-ok); }
+  .vp-data-notes p { margin-top: 12px; font-size: 12px; }
   .vp-dot { display: flex; justify-content: center; }
   .vp-dot i { width: 0.8rem; height: 0.8rem; border-radius: 50%; display: block; }
   .vp-dot i.off { width: 0.3rem; height: 0.3rem; background: var(--cds-chart-grid); }
@@ -147,10 +154,11 @@ th, td { padding: 10px 8px; text-align: left; vertical-align: top; border-bottom
 thead th { font-weight: 400; color: var(--color-fg-muted); }
 tbody th { font-weight: 400; }
 tr:last-child td, tr:last-child th { border-bottom: 0; }
-.heatmap { min-width: 34rem; table-layout: fixed; border-spacing: 3px; }
+.heatmap { min-width: 66rem; table-layout: fixed; border-spacing: 3px; }
 .heatmap th { border: 0; font-size: 12px; vertical-align: middle; }
 .heatmap thead th { text-align: center; }
-.heatmap th:first-child { width: 130px; text-align: left; }
+.heatmap th:first-child { width: 190px; text-align: left; }
+.heatmap thead .vp-platform-label { justify-content: center; }
 .heatmap td { padding: 0; border: 0; vertical-align: middle; }
 .heatmap .vp-hc { width: 100%; }
 .heatmap .vp-hc:disabled { opacity: 1; color: var(--color-fg-muted); }
@@ -159,7 +167,7 @@ tr:last-child td, tr:last-child th { border-bottom: 0; }
 .vp-bar-val .pending-tag { color: var(--color-warn); }
 .vp-bar-val { line-height: 1.8; }
 .vp-mx { min-height: 0; }
-.vendors { min-width: 46rem; table-layout: fixed; }
+.vendors { min-width: 66rem; table-layout: fixed; }
 .vendors th:first-child { width: 23%; }
 .vendors th:last-child { width: 17%; }
 .vendors td { text-align: center; vertical-align: middle; }
@@ -210,6 +218,9 @@ footer { font-size: 11px; color: var(--color-fg-muted); text-align: center; padd
 @media (max-width: 640px) {
   :root { --cds-pad-lg: 18px; }
   .vp-head h1 { font-size: 27px; }
+  .vp-bar-row { grid-template-columns: minmax(0, 1fr); }
+  .vp-bar-track { grid-row: auto; grid-column: 1; }
+  .vp-bar-val { grid-row: auto; grid-column: 1; text-align: left; }
 }
 @media (max-width: 400px) {
   .dashboard { padding: 22px 12px; }
