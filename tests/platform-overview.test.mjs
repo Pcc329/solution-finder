@@ -6,7 +6,7 @@ import test from 'node:test';
 import { createSessionValue } from '../_lib/auth.js';
 import { createHandler, createToken, verifyToken } from '../supabase/functions/dash-data/handler.mjs';
 import { aiShare, renderProfiles, renderOverlap, renderVendors, selectVendors, renderTakeaway, renderNextSteps, renderCoverage, renderAI, safeLink, summarize,
-  isFirstWave, isCandidate, renderKPIs, renderVersionWarning, renderDataNotes, renderPlatformName, warnMissingSurveyPlatforms, SURVEY_PLATFORMS, formatDataTime } from '../public/platform-overview-render.mjs';
+  inviteTiers, invitationTrial, renderInvitationTrial, renderKPIs, renderVersionWarning, renderDataNotes, renderPlatformName, warnMissingSurveyPlatforms, SURVEY_PLATFORMS, formatDataTime } from '../public/platform-overview-render.mjs';
 import * as rendering from '../public/platform-overview-render.mjs';
 
 // Disposable test inputs only. No production credentials or database exports.
@@ -113,15 +113,15 @@ const platformRows = () => [
 ].map(([platform_key, platform_name]) => ({ platform_key, platform_name }));
 const sample = () => ({ platforms: platformRows(),
   profiles: [], vendors: [{ company_id: '00000001', company_name: '<script>unsafe</script>', city: '測試市', n_platforms: 2, n_ai_solutions: 5, n_solutions: 7,
-    n_platforms_normal: 2, n_ai_solutions_normal: 5, n_solutions_normal: 7, sme_ai: true, moea_cloud: true },
+    invite_tier: '第一波', invite_reason: '虛構原因甲', n_platforms_normal: 2, n_ai_solutions_normal: 5, n_solutions_normal: 7, sme_ai: true, moea_cloud: true },
     { company_id: '00000002', company_name: '測試乙', n_platforms: 1, n_ai_solutions: 0, n_solutions: 1,
-      n_platforms_normal: 1, n_ai_solutions_normal: 0, n_solutions_normal: 1, sme_ai: false, moea_cloud: true }], generated_at: new Date(now).toISOString() });
+      invite_tier: '公開受理', invite_reason: '虛構原因乙', n_platforms_normal: 1, n_ai_solutions_normal: 0, n_solutions_normal: 1, sme_ai: false, moea_cloud: true }], generated_at: new Date(now).toISOString() });
 
 test('real booleans drive heatmap, dot matrix and first-wave selection', () => {
   const data = sample();
-  assert.deepEqual(summarize(data.vendors), { total: 2, cross: 1, crossShare: '50%', wave: 1, candidate: 0, ai: 1 });
+  assert.deepEqual(summarize(data.vendors), { total: 2, cross: 1, crossShare: '50%', waves: [1, 1, 1], ai: 1 });
   assert.match(renderOverlap(data), />2<\/span>/);
-  const vendors = renderVendors(data, { waveOnly: true });
+  const vendors = renderVendors(data, { view: 'first' });
   assert.equal(vendors.total, 1);
   assert.equal((vendors.html.match(/aria-label="有收錄"/g) || []).length, 2);
   assert.match(vendors.html, /00000001/);
@@ -322,13 +322,13 @@ test('leaving the page clears data and cancels any in-flight rendering', async (
 test('reference view switches, pair filters, search and sortable columns compose', () => {
   const vendors = [...sample().vendors,
     { company_id: '00000003', company_name: 'Alpha', city: '測試市', n_platforms: 3, n_ai_solutions: 4,
-      n_platforms_normal: 2, n_ai_solutions_normal: 4, n_solutions_normal: 5, sme_ai: true, moea_cloud: true },
+      invite_tier: '第三波', n_platforms_normal: 2, n_ai_solutions_normal: 4, n_solutions_normal: 5, sme_ai: true, moea_cloud: true },
     { company_id: '00000004', company_name: 'Beta', n_platforms: 2, n_ai_solutions: 7,
-      n_platforms_normal: 1, n_ai_solutions_normal: 4, n_solutions_normal: 5, sme_ai: 'true', moea_cloud: true }];
+      invite_tier: '第二波', n_platforms_normal: 1, n_ai_solutions_normal: 4, n_solutions_normal: 5, sme_ai: 'true', moea_cloud: true }];
   assert.equal(selectVendors(vendors, { view: 'cross' }).length, 3);
   assert.equal(selectVendors(vendors, { view: 'first' }).length, 1);
-  assert.deepEqual(selectVendors(vendors, { view: 'candidate' }).map(v => v.company_id), ['00000004']);
-  assert.deepEqual(selectVendors(vendors, { pair: ['moea_cloud', 'sme_ai'] }).map(v => v.company_id), ['00000003', '00000001']);
+  assert.deepEqual(selectVendors(vendors, { view: 'second' }).map(v => v.company_id), ['00000004']);
+  assert.deepEqual(selectVendors(vendors, { pair: ['moea_cloud', 'sme_ai'], sortKey: 'n_platforms', sortDir: -1 }).map(v => v.company_id), ['00000003', '00000001']);
   assert.equal(selectVendors(vendors, { pair: ['sme_ai', 'sme_ai'], search: 'Alpha' }).length, 1);
   assert.equal(selectVendors(vendors, { pair: ['not-a-platform'] }).length, 0);
   assert.deepEqual(selectVendors(vendors.filter(v => ['Alpha', 'Beta'].includes(v.company_name)), { sortKey: 'name', sortDir: 1 }).map(v => v.company_name), ['Alpha', 'Beta']);
@@ -338,7 +338,7 @@ test('reference view switches, pair filters, search and sortable columns compose
 
 test('reference summary, warning, AI badges and static next steps retain their meaning', () => {
   assert.match(renderTakeaway(sample().vendors), /為下限/);
-  assert.match(renderTakeaway(sample().vendors), /首波招商名單/);
+  assert.match(renderTakeaway(sample().vendors), /第一波/);
   assert.match(renderCoverage([{ platform_name: '測試平台', no_id_solutions: 2 }]), /跨平台比例是下限/);
   assert.equal(renderCoverage([{ platform_name: '測試平台', no_id_solutions: 0 }]), '');
   const ai = renderAI([{ platform_name: '低比例', solutions: 20, ai_solutions: 1, ai_pending: 0, ai_label_method: '來源標記' },
@@ -358,8 +358,8 @@ test('heatmap cells expose keyboard buttons, symmetric selection and disabled em
   const vendors = renderVendors(sample(), { sortKey: 'n_ai', sortDir: 1 }).html;
   assert.match(vendors, /aria-sort="ascending"/);
   assert.match(vendors, /data-sort="n_ai"/);
-  assert.match(vendors, /class="vp-tag">首波/);
-  assert.match(vendors, /class="bar hi"/);
+  assert.match(vendors, /class="vp-tag vp-wave-tag wave-0"[^>]*>第一波/);
+  assert.match(vendors, /class="bar"/);
 });
 
 test('frontend heatmap, view, chip and column handlers update the vendor list', async () => {
@@ -385,80 +385,115 @@ test('frontend heatmap, view, chip and column handlers update the vendor list', 
   assert.match(ui.get('vendor-count').textContent, /顯示 1／2 家/);
 });
 
-test('first-wave and candidate predicates use normal counts and exclusive thresholds', () => {
-  const cases = [
-    { normalPlatforms: 2, normalAi: 5, platforms: 2, ai: 5, first: true, candidate: false },
-    { normalPlatforms: 2, normalAi: 4, platforms: 2, ai: 5, first: false, candidate: true },
-    { normalPlatforms: 1, normalAi: 5, platforms: 2, ai: 5, first: false, candidate: true },
-    { normalPlatforms: 1, normalAi: 1, platforms: 1, ai: 1, first: false, candidate: false },
-    { normalPlatforms: 2, normalAi: 4, platforms: 3, ai: 4, first: false, candidate: false },
-  ];
-  for (const c of cases) {
-    const row = { n_platforms_normal: c.normalPlatforms, n_ai_solutions_normal: c.normalAi, n_solutions_normal: 8,
-      n_platforms: c.platforms, n_ai_solutions: c.ai };
-    assert.equal(isFirstWave(row), c.first, JSON.stringify(c));
-    assert.equal(isCandidate(row), c.candidate, JSON.stringify(c));
-  }
-});
-
-test('every missing or invalid normal field makes both KPIs unknown instead of zero', () => {
-  for (const key of ['n_platforms_normal', 'n_solutions_normal', 'n_ai_solutions_normal']) {
-    for (const value of [undefined, null, '', 'invalid', Infinity, -1]) {
-      const vendors = [sample().vendors[0], { ...sample().vendors[1], [key]: value }];
-      const kpis = renderKPIs(vendors);
-      assert.equal((kpis.match(/class="num">—</g) || []).length, 2, `${key}=${value}`);
-      assert.equal(summarize(vendors).wave, null);
-      assert.equal(summarize(vendors).candidate, null);
-      assert.match(renderVersionWarning(vendors), /資料版本不符，首波名單暫無法計算，請重新整理或聯絡管理者/);
-      assert.doesNotMatch(renderTakeaway(vendors), /<b>0<\/b> 家/);
-      assert.equal(isFirstWave(vendors[1]), false);
-      assert.equal(isCandidate(vendors[1]), false);
-      for (const view of ['first', 'candidate']) {
-        assert.equal(selectVendors(vendors, { view }).length, 0);
-        assert.match(renderVendors({ ...sample(), vendors }, { view }).html, /暫無法顯示此名單/);
-      }
-      assert.equal(selectVendors(vendors).length, 2);
-      assert.doesNotMatch(renderVendors({ ...sample(), vendors }).html, /class="vp-tag/);
-    }
-  }
-  assert.equal(renderVersionWarning(sample().vendors), '');
-  assert.equal(summarize([]).wave, 0);
-  assert.equal(summarize([]).candidate, 0);
-});
-
-const waveFixture = () => ({ ...sample(), vendors: Array.from({ length: 32 }, (_, index) => ({
-  company_id: String(index + 1).padStart(8, '0'), company_name: `合成廠商 ${index + 1}`,
-  sme_ai: true, moea_cloud: true, n_platforms: 2, n_ai_solutions: 6, n_solutions: 8,
-  n_platforms_normal: 2, n_ai_solutions_normal: index < 21 ? 5 : 4, n_solutions_normal: 6,
+// Fully invented vendors spanning every trial bucket; unrelated to live totals.
+const waveFixture = () => ({ ...sample(), vendors: [
+  ['第一波', 2, 8], ['第二波', 2, 4], ['第二波', 2, 5], ['第三波', 3, 2],
+  ['第三波', 2, 3], ['公開受理', 2, 1], ['公開受理', 3, 0], ['公開受理', 1, 12],
+].map(([invite_tier, n_platforms, n_ai_solutions], index) => ({
+  company_id: `mock-${index}`, company_name: `虛構廠商 ${index}`, city: '虛構市',
+  invite_tier, invite_reason: `虛構歸類原因 ${index}`, n_platforms, n_ai_solutions,
+  n_solutions: n_ai_solutions + 2, sme_ai: true, moea_cloud: n_platforms >= 2,
+  agri: n_platforms >= 3,
 })) });
 
-test('32 qualifying mock vendors render 21 first-wave and 11 candidates with correct takeaway', () => {
-  const data = waveFixture();
-  assert.deepEqual(summarize(data.vendors), { total: 32, cross: 32, crossShare: '100%', wave: 21, candidate: 11, ai: 32 });
-  const kpis = renderKPIs(data.vendors);
-  assert.match(kpis, /class="num">21<\/span><span class="lbl">首波：跨平台且 AI 方案 ≥ 5（只計正常方案）/);
-  assert.match(kpis, /class="num">11<\/span><span class="lbl">候補：計入疑似下架才達門檻（待查證）/);
-  const takeaway = renderTakeaway(data.vendors);
-  assert.match(takeaway, /共 <b>32<\/b> 家，其中 <b>32<\/b> 家（<b>100%<\/b>，為下限）/);
-  assert.match(takeaway, /只計正常方案，<b>21<\/b> 家/);
-  assert.match(takeaway, /另有 <b>11<\/b> 家需計入疑似下架方案才達門檻/);
-  const html = renderVendors(data).html;
-  assert.equal((html.match(/class="vp-tag">首波/g) || []).length, 21);
-  assert.equal((html.match(/class="vp-tag candidate-tag"/g) || []).length, 11);
-  assert.match(html, /title="計入疑似下架方案才達首波門檻，產品現況待確認">候補/);
+test('invitation labels are authoritative even when counts contradict historical thresholds', () => {
+  const vendors = inviteTiers.map(invite_tier => ({ invite_tier, n_platforms: 1, n_ai_solutions: 0 }));
+  assert.deepEqual(summarize(vendors).waves, [1, 2, 3]);
+  for (const [index, view] of ['first', 'second', 'third'].entries()) {
+    assert.deepEqual(selectVendors(vendors, { view }).map(v => v.invite_tier), [inviteTiers[index]]);
+  }
+  const highCounts = [{ invite_tier: '公開受理', n_platforms_normal: 7, n_ai_solutions_normal: 17,
+    n_platforms: 7, n_ai_solutions: 19 }];
+  assert.deepEqual(summarize(highCounts).waves, [0, 0, 0]);
+  assert.equal(selectVendors(highCounts, { view: 'first' }).length, 0);
 });
 
-test('candidate view preserves search, pair filtering, sorting and pagination', () => {
+test('missing or invalid invitation tiers show unknown cumulative KPIs without inferring a tier', () => {
+  for (const value of [undefined, null, '', 'unknown']) {
+    const vendors = [sample().vendors[0], { ...sample().vendors[1], invite_tier: value }];
+    assert.equal((renderKPIs(vendors).match(/class="num">—</g) || []).length, 3);
+    assert.equal(summarize(vendors).waves, null);
+    assert.match(renderVersionWarning(vendors), /資料版本不符，三波邀請名單暫無法計算/);
+    assert.match(renderTakeaway(vendors), /三波邀請名單暫無法計算/);
+    for (const view of ['first', 'second', 'third']) {
+      assert.equal(selectVendors(vendors, { view }).length, 0);
+      assert.match(renderVendors({ ...sample(), vendors }, { view }).html, /暫無法顯示此名單/);
+    }
+    const all = renderVendors({ ...sample(), vendors });
+    assert.equal(all.total, vendors.length);
+    assert.match(all.html, /未提供/);
+    assert.match(renderInvitationTrial(vendors), /<b>—<\/b>/);
+  }
+  assert.equal(renderVersionWarning(sample().vendors), '');
+  assert.deepEqual(summarize([]).waves, [0, 0, 0]);
+});
+
+test('exclusive invitation tiers partition cross-platform vendors and produce cumulative cards', () => {
   const data = waveFixture();
-  const result = renderVendors(data, { view: 'candidate', page: 1, pageSize: 5, sortKey: 'name', sortDir: 1 });
-  assert.equal(result.total, 11);
-  assert.equal(result.pages, 3);
+  const cross = selectVendors(data.vendors, { view: 'cross' });
+  const counts = inviteTiers.map(tier => cross.filter(v => v.invite_tier === tier).length);
+  assert.equal(counts.reduce((sum, n) => sum + n, 0), cross.length);
+  assert.deepEqual(summarize(data.vendors), { total: 8, cross: 7, crossShare: '88%', waves: [1, 3, 5], ai: 7 });
+  const kpis = renderKPIs(data.vendors);
+  for (const [value, label] of [[1, '第一波'], [3, '第二波（累計）'], [5, '第三波（累計）']]) {
+    assert.ok(kpis.includes(`class="num">${value}</span><span class="lbl">${label}`));
+  }
+  assert.match(renderTakeaway(data.vendors), /第二波累計 <b>3<\/b> 家、第三波累計 <b>5<\/b> 家/);
+});
+
+test('trial caps the top bucket, splits platform counts, and accumulates down to all cross-platform vendors', () => {
+  const data = waveFixture();
+  const rows = invitationTrial(data.vendors);
+  assert.deepEqual(rows, [
+    { ai: 5, total: 2, two: 2, threePlus: 0, cumulative: 2 },
+    { ai: 4, total: 1, two: 1, threePlus: 0, cumulative: 3 },
+    { ai: 3, total: 1, two: 1, threePlus: 0, cumulative: 4 },
+    { ai: 2, total: 1, two: 0, threePlus: 1, cumulative: 5 },
+    { ai: 1, total: 1, two: 1, threePlus: 0, cumulative: 6 },
+    { ai: 0, total: 1, two: 0, threePlus: 1, cumulative: 7 },
+  ]);
+  assert.equal(rows.at(-1).cumulative, summarize(data.vendors).cross);
+  assert.ok(rows.every(row => row.two + row.threePlus === row.total));
+  const html = renderInvitationTrial(data.vendors);
+  for (const label of ['AI 方案數', '家數', '跨 2 平台', '跨 3 平台以上', '門檻設在此時的名單家數', '5 個以上', '第一波', '第二波累計', '第三波累計']) assert.ok(html.includes(label));
+  // The tier staircase is independent of the threshold table.
+  assert.match(html, /第二波累計<\/span><b>3<\/b>/);
+  assert.equal(invitationTrial([]).at(-1).cumulative, 0);
+  for (const value of [undefined, null, '', 'invalid', -1, 1.5]) {
+    const vendors = [{ n_platforms: 2, n_ai_solutions: value }];
+    assert.equal(invitationTrial(vendors), null);
+    assert.match(renderInvitationTrial(vendors), /AI 方案數資料不完整/);
+  }
+  assert.equal(invitationTrial([{ n_platforms: 1 }]).at(-1).cumulative, 0);
+});
+
+test('tier sorting, exclusive filters, search, pair filters and pagination compose', () => {
+  const data = waveFixture();
+  const ordered = selectVendors([...data.vendors].reverse());
+  assert.deepEqual(ordered.map(v => v.invite_tier), [...data.vendors].map(v => v.invite_tier));
+  assert.equal(selectVendors(data.vendors, { sortKey: 'invite_tier', sortDir: -1 })[0].invite_tier, '公開受理');
+  const result = renderVendors(data, { view: 'second', page: 1, pageSize: 1, sortKey: 'name', sortDir: 1 });
+  assert.equal(result.total, 2);
+  assert.equal(result.pages, 2);
   assert.equal(result.page, 1);
-  assert.equal((result.html.match(/class="vp-tag candidate-tag"/g) || []).length, 5);
-  assert.doesNotMatch(result.html, /class="vp-tag">首波/);
-  assert.equal(selectVendors(data.vendors, { view: 'candidate', search: '00000032', pair: ['sme_ai', 'moea_cloud'] }).length, 1);
-  assert.equal(selectVendors(data.vendors, { view: 'candidate', pair: ['ntpc', 'sme_ai'] }).length, 0);
-  assert.equal(renderVendors(data, { view: 'candidate', page: 100, pageSize: 5 }).page, 2);
+  assert.equal((result.html.match(/>第二波<\/span>/g) || []).length, 1);
+  assert.doesNotMatch(result.html, />第一波<\/span>/);
+  assert.equal(selectVendors(data.vendors, { view: 'second', search: 'mock-2', pair: ['sme_ai', 'moea_cloud'] }).length, 1);
+  assert.equal(selectVendors(data.vendors, { view: 'third', pair: ['agri', 'sme_ai'] }).length, 1);
+  assert.equal(renderVendors(data, { view: 'second', page: 100, pageSize: 1 }).page, 1);
+  assert.match(renderVendors(data).html, /aria-sort="ascending"><button type="button" data-sort="invite_tier"/);
+});
+
+test('dedicated tier cells escape database reasons and labels including attribute injection', () => {
+  const data = sample();
+  data.vendors[0].invite_reason = '\"><img src=x onerror=alert(1)> & 虛構原因';
+  const html = renderVendors(data).html;
+  assert.match(html, /data-sort="invite_tier" title="波次">波次 ↑/);
+  assert.match(html, /<td><span class="vp-tag vp-wave-tag wave-0" tabindex="0" title="&quot;&gt;&lt;img/);
+  assert.doesNotMatch(html, /<img/);
+  assert.match(html, /&amp; 虛構原因/);
+  data.vendors[0].invite_tier = '<script>unknown</script>';
+  assert.doesNotMatch(renderVendors(data).html, /<script>/);
 });
 
 test('seven platform source badges classify three survey and four database sources exactly', () => {
@@ -546,46 +581,55 @@ test('data response timestamps use fixed Taipei minute format including midnight
   assert.equal(formatDataTime('2026-10-23T07:43:00Z'), '2026-10-23 15:43');
 });
 
-test('frontend candidate control, source badges and singular data explanations render together', async () => {
+test('frontend wave controls, default sorting and trial section render together and refresh from new tiers', async () => {
   const data = waveFixture();
   data.platforms[0].no_id_solutions = 3;
   const ui = frontend({ token: await createToken(Date.now() + 60000, secret), fetcher: async () => new Response(JSON.stringify(data)) });
   await settle();
   const html = ui.get('dashboard').innerHTML;
-  for (const phrase of ['在架方案（正常＋疑似下架）', '首波名單只計正常方案', '其他平台沿用匯入時的原始標記', '方案缺統編', '資料時間 <time', '<h2>資料說明</h2>']) {
+  for (const phrase of ['在架方案（正常＋疑似下架）', '邀請名單依既有波次分類', '其他平台沿用匯入時的原始標記', '方案缺統編', '資料時間 <time', '<h2>資料說明</h2>']) {
     assert.equal(html.split(phrase).length - 1, 1, phrase);
   }
+  assert.ok(html.indexOf('<h2>三波邀請試算') < html.indexOf('<h2>廠商點陣'));
   assert.ok(html.indexOf('<h2>資料說明') > html.indexOf('<h2>盤點總表'));
   assert.match(html, /臺灣雲市集已停止服務，未納入統計/);
   assert.equal(ui.get('generated-at').textContent, formatDataTime(data.generated_at));
-  ui.get('view-candidate').handlers.click();
-  assert.equal(ui.get('view-candidate').attributes['aria-pressed'], 'true');
-  assert.match(ui.get('vendor-count').textContent, /顯示 11／32 家/);
-  assert.doesNotMatch(ui.get('vendor-table').innerHTML, /class="vp-tag">首波/);
-  ui.get('vendor-search').value = '00000032';
+  for (const view of ['first', 'second', 'third']) {
+    ui.get(`view-${view}`).handlers.click();
+    assert.equal(ui.get(`view-${view}`).attributes['aria-pressed'], 'true');
+    assert.equal(ui.get('vendor-count').textContent, `顯示 ${view === 'first' ? 1 : 2}／8 家`);
+  }
+  ui.get('vendor-table').handlers.click({ target: { closest: () => ({ dataset: { sort: 'invite_tier' } }) } });
+  assert.match(ui.get('vendor-table').innerHTML, /data-sort="invite_tier"[^>]*>波次 ↓/);
+  ui.get('vendor-search').value = 'mock-2';
   ui.get('vendor-search').handlers.input();
-  assert.match(ui.get('vendor-count').textContent, /顯示 1／32 家/);
-  ui.get('view-first').handlers.click();
-  assert.match(ui.get('vendor-count').textContent, /顯示 0／32 家/);
+  assert.equal(ui.get('vendor-count').textContent, '顯示 0／8 家');
+  ui.get('view-second').handlers.click();
+  assert.equal(ui.get('vendor-count').textContent, '顯示 1／8 家');
+  data.vendors[0].invite_tier = '第二波';
+  ui.get('refresh').handlers.click();
+  await settle();
+  assert.match(ui.get('dashboard').innerHTML, /class="num">0<\/span><span class="lbl">第一波/);
+  assert.match(ui.get('dashboard').innerHTML, /class="num">3<\/span><span class="lbl">第二波（累計）/);
 });
 
 test('frontend puts version warning above KPI and preserves notes when a survey name is absent', async t => {
   const warnings = [];
   t.mock.method(console, 'warn', (...args) => warnings.push(args.join(' ')));
   const data = sample();
-  delete data.vendors[1].n_solutions_normal;
+  delete data.vendors[1].invite_tier;
   data.platforms = data.platforms.filter(row => row.platform_name !== '商業服務業專區');
   data.platforms[0].no_id_solutions = 3;
   const ui = frontend({ token: await createToken(Date.now() + 60000, secret), fetcher: async () => new Response(JSON.stringify(data)) });
   await settle();
   const html = ui.get('dashboard').innerHTML;
   assert.ok(html.indexOf('資料版本不符') < html.indexOf('aria-label="摘要 KPI"'));
-  assert.equal((html.match(/class="num">—</g) || []).length, 2);
+  assert.equal((html.match(/class="num">—</g) || []).length, 3);
   assert.equal(html.split('方案缺統編').length - 1, 1);
   assert.match(html, /臺灣雲市集已停止服務，未納入統計/);
   assert.equal(warnings.length, 1);
   assert.match(warnings[0], /商業服務業專區/);
-  ui.get('view-candidate').handlers.click();
+  ui.get('view-second').handlers.click();
   assert.match(ui.get('vendor-table').innerHTML, /暫無法顯示此名單/);
 });
 
