@@ -147,10 +147,10 @@ test('profiles produce two tables with eight platforms, nine dimensions, safe no
 });
 
 const productionOrigin = 'https://solution-finder-gray.vercel.app';
-// Synthetic deployment names, not links to shared preview content.
+// Synthetic deployment and team names, not links to shared preview content.
 const previewOrigins = [
-  'https://solution-finder-xxx-patrick0814-6136s-projects.vercel.app',
-  'https://solution-finder-git-example-patrick0814-6136s-projects.vercel.app',
+  'https://solution-finder-xxx-example-team.vercel.app',
+  'https://solution-finder-git-example-example-team.vercel.app',
 ];
 
 test('CORS accepts only the exact production origin and rejects all preview origins', async () => {
