@@ -1,4 +1,4 @@
-import { renderKPIs, renderTakeaway, renderCoverage, renderAI, renderOverlap, renderVendors, renderNextSteps, renderProfiles, vendorKeys, shortNames, platformLabels, renderVersionWarning, renderDataNotes, warnMissingSurveyPlatforms, formatDataTime } from './platform-overview-render.mjs';
+import { renderKPIs, renderInvitationTrial, renderTakeaway, renderCoverage, renderAI, renderOverlap, renderVendors, renderNextSteps, renderProfiles, vendorKeys, shortNames, platformLabels, renderVersionWarning, renderDataNotes, warnMissingSurveyPlatforms, formatDataTime } from './platform-overview-render.mjs';
 
 const TOKEN_KEY = 'sf_platform_overview_token';
 // Public endpoint only. Password and signing/service-role secrets stay in Supabase.
@@ -10,7 +10,7 @@ const error = document.getElementById('login-error');
 const password = document.getElementById('password');
 const button = document.getElementById('login-button');
 let data = null, page = 0, expiryTimer, controller, generation = 0;
-let view = 'all', pair = null, sortKey = 'n_platforms', sortDir = -1;
+let view = 'all', pair = null, sortKey = 'invite_tier', sortDir = 1;
 
 function storedToken() { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } }
 function forgetToken() { try { localStorage.removeItem(TOKEN_KEY); } catch { /* Storage may be disabled. */ } }
@@ -46,7 +46,7 @@ function drawVendors() {
 }
 
 function drawSelection() {
-  for (const name of ['all', 'cross', 'first', 'candidate']) document.getElementById(`view-${name}`).setAttribute('aria-pressed', String(view === name));
+  for (const name of ['all', 'cross', 'first', 'second', 'third']) document.getElementById(`view-${name}`).setAttribute('aria-pressed', String(view === name));
   const chip = document.getElementById('pair-chip');
   chip.hidden = !pair;
   const labels = platformLabels(data);
@@ -70,9 +70,10 @@ function render() {
     ${renderVersionWarning(data.vendors)}
     <section aria-label="摘要 KPI" class="vp-kpis">${renderKPIs(data.vendors)}</section>
     <aside class="vp-note" aria-label="缺統編說明">${renderCoverage(data.platforms)}</aside>
-    <section class="vp-card"><h2>各平台 AI 方案佔比</h2><p class="vp-sub">在架方案（正常＋疑似下架）中確定為 AI 的比例；首波名單只計正常方案。標「已複核」的平台已逐筆檢查名稱與描述，藍色為確定是 AI，淺色延伸為待確認的上限；其他平台沿用匯入時的原始標記，尚未複核。跨平台比較 AI 佔比時請留意定義差異。</p><div class="vp-bars">${renderAI(data.platforms)}</div></section>
+    <section class="vp-card"><h2>各平台 AI 方案佔比</h2><p class="vp-sub">在架方案（正常＋疑似下架）中確定為 AI 的比例；邀請名單依既有波次分類。標「已複核」的平台已逐筆檢查名稱與描述，藍色為確定是 AI，淺色延伸為待確認的上限；其他平台沿用匯入時的原始標記，尚未複核。跨平台比較 AI 佔比時請留意定義差異。</p><div class="vp-bars">${renderAI(data.platforms)}</div></section>
     <section class="vp-card"><h2>平台兩兩重疊</h2><p class="vp-sub">格內為同時上架兩個平台的廠商數；對角線為該平台廠商總數。點一格，下方名單只列出這些廠商。</p><div id="overlap-table" class="vp-heat"></div></section>
-    <section class="vp-card"><h2>廠商點陣</h2><p class="vp-sub">每列一家廠商，有上架的平台打點；點欄位標題可排序。</p><div class="vp-ctl"><div class="vp-seg" role="group" aria-label="範圍"><button id="view-all" type="button" aria-pressed="true">全部</button><button id="view-cross" type="button" aria-pressed="false">跨平台</button><button id="view-first" type="button" aria-pressed="false">首波</button><button id="view-candidate" type="button" aria-pressed="false">候補</button></div><button id="pair-chip" class="vp-chip" type="button" aria-label="清除平台重疊篩選" hidden></button><input id="vendor-search" class="vp-search" type="search" placeholder="搜尋公司名稱、統編或縣市" aria-label="搜尋廠商"><span id="vendor-count" class="vp-count" aria-live="polite"></span></div><div id="vendor-table"></div><div class="pagination"><span id="page-info" class="muted"></span><button id="previous" class="secondary">上一頁</button><button id="next" class="secondary">下一頁</button></div></section>
+    ${renderInvitationTrial(data.vendors)}
+    <section class="vp-card"><h2>廠商點陣</h2><p class="vp-sub">每列一家廠商，有上架的平台打點；預設依波次排序，點欄位標題可切換排序。滑鼠移至波次標籤可查看歸類原因。</p><div class="vp-ctl"><div class="vp-seg" role="group" aria-label="範圍"><button id="view-all" type="button" aria-pressed="true">全部</button><button id="view-cross" type="button" aria-pressed="false">跨平台</button><button id="view-first" type="button" aria-pressed="false">第一波</button><button id="view-second" type="button" aria-pressed="false">第二波</button><button id="view-third" type="button" aria-pressed="false">第三波</button></div><button id="pair-chip" class="vp-chip" type="button" aria-label="清除平台重疊篩選" hidden></button><input id="vendor-search" class="vp-search" type="search" placeholder="搜尋公司名稱、統編或縣市" aria-label="搜尋廠商"><span id="vendor-count" class="vp-count" aria-live="polite"></span></div><div id="vendor-table"></div><div class="pagination"><span id="page-info" class="muted"></span><button id="previous" class="secondary">上一頁</button><button id="next" class="secondary">下一頁</button></div></section>
     <section class="vp-card"><h2>建議的下一步</h2><p class="vp-sub">早期盤點的後續工作，第 1、2 步可並行。</p>${renderNextSteps()}</section>
     <section class="vp-card"><h2>盤點總表</h2><p class="vp-sub">依平台與構面整理主管機關、上架方式、業者資格、方案與補助資訊；各格以查證日期為準。</p><a class="vp-link" href="https://claude.ai/artifact/VyzCPr7qBhPu9FLaC5S3eW" target="_blank" rel="noopener noreferrer">開啟完整簡報（10/21 版快照）</a><div class="vp-tables">${renderProfiles(data.profiles)}</div></section>
     ${renderDataNotes()}
@@ -83,7 +84,7 @@ function render() {
   document.getElementById('logout').addEventListener('click', () => showLogin());
   document.getElementById('refresh').addEventListener('click', () => load(storedToken()));
   document.getElementById('vendor-search').addEventListener('input', () => { page = 0; drawVendors(); });
-  for (const name of ['all', 'cross', 'first', 'candidate']) document.getElementById(`view-${name}`).addEventListener('click', () => {
+  for (const name of ['all', 'cross', 'first', 'second', 'third']) document.getElementById(`view-${name}`).addEventListener('click', () => {
     view = name; pair = null; page = 0; drawSelection();
   });
   document.getElementById('pair-chip').addEventListener('click', () => { pair = null; page = 0; drawSelection(); });
@@ -95,14 +96,14 @@ function render() {
     const column = event.target.closest('button[data-sort]');
     if (!column) return;
     const key = column.dataset.sort;
-    if (!['name', 'n_platforms', 'n_ai', ...vendorKeys].includes(key)) return;
-    sortDir = sortKey === key ? -sortDir : key === 'name' ? 1 : -1;
+    if (!['name', 'invite_tier', 'n_platforms', 'n_ai', ...vendorKeys].includes(key)) return;
+    sortDir = sortKey === key ? -sortDir : ['name', 'invite_tier'].includes(key) ? 1 : -1;
     sortKey = key; page = 0; drawVendors();
   });
   document.getElementById('previous').addEventListener('click', () => { page--; drawVendors(); });
   document.getElementById('next').addEventListener('click', () => { page++; drawVendors(); });
   page = 0;
-  view = 'all'; pair = null; sortKey = 'n_platforms'; sortDir = -1;
+  view = 'all'; pair = null; sortKey = 'invite_tier'; sortDir = 1;
   drawSelection();
 }
 
