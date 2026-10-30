@@ -37,6 +37,7 @@ async function loadScript(key) {
         script.remove();
         reject(componentError());
       }
+      script.crossOrigin = 'anonymous';
       script.src = url;
       script.async = true;
       script.onload = () => {
@@ -302,7 +303,7 @@ function open({ results = [], filters = {}, sortBy = 'relevance' }) {
   const statusUnavailable = snapshot.length > 0 && snapshot.every(row => statusLabel(row.rs) === '');
   find('[data-option="normal"]').disabled = statusUnavailable;
   find('[data-unavailable]').hidden = !statusUnavailable;
-  let listSortable, headSortable, closed = false;
+  let listSortable, headSortable, closed = false, dragging = false;
   const destroySortables = () => {
     listSortable?.destroy(); headSortable?.destroy();
     listSortable = headSortable = null;
@@ -326,7 +327,7 @@ function open({ results = [], filters = {}, sortBy = 'relevance' }) {
   const rowsNow = () => getExportRows(snapshot, { merge: state.merge, onlyNormal: state.normal });
   const baseCount = () => state.normal ? snapshot.filter(row => statusLabel(row.rs) === '正常').length : snapshot.length;
   function render() {
-    if (closed) return;
+    if (closed || dragging) return;
     destroySortables();
     find('.sf-controls').disabled = state.busy;
     find('[data-columns]').innerHTML = state.columns.map((col, i) => `
@@ -344,19 +345,26 @@ function open({ results = [], filters = {}, sortBy = 'relevance' }) {
     if (!state.busy) message(over, !!over);
     if (window.Sortable?.create && !state.busy) {
       listSortable = window.Sortable.create(find('[data-columns]'), {
-        handle: '.sf-handle', animation: 150, onEnd() {
+        handle: '.sf-handle', animation: 150,
+        onStart() { dragging = true; },
+        onEnd() {
           const byKey = new Map(state.columns.map(col => [col.key, col]));
           state.columns = [...find('[data-columns]').children].map(node => byKey.get(node.dataset.key));
-          render();
+          dragging = false;
+          // Let Sortable finish touch/clone cleanup before replacing its nodes.
+          setTimeout(render, 0);
         },
       });
       if (cols.length) headSortable = window.Sortable.create(find('[data-head]'), {
-        animation: 150, direction: 'horizontal', onEnd() {
+        animation: 150, direction: 'horizontal',
+        onStart() { dragging = true; },
+        onEnd() {
           const keys = [...find('[data-head]').children].map(node => node.dataset.key);
           const byKey = new Map(state.columns.map(col => [col.key, col]));
           let index = 0;
           state.columns = state.columns.map(col => col.on ? byKey.get(keys[index++]) : col);
-          render();
+          dragging = false;
+          setTimeout(render, 0);
         },
       });
     }

@@ -263,3 +263,167 @@ test('Word builds A4 landscape, repeating colored headers and Microsoft JhengHei
     assert.equal(header.options.children[0].options.children[0].options.children[0].options.color, '0D6E52');
   } finally { if (previous === undefined) delete globalThis.window; else globalThis.window = previous; }
 });
+
+// Run the actual panel module against a minimal DOM and a fake Sortable.
+// Timers are queued explicitly so synchronous drag cleanup can be distinguished
+// from the next event-loop tick without loading a browser or a CDN.
+async function panelHarness({ sortableLoaded = true } = {}) {
+  const events = [], timers = [], instances = [], scripts = [];
+  let dialog, nextTimer = 1;
+  const nodes = new Map();
+  class Element {
+    constructor(kind = '') {
+      this.kind = kind;
+      this.listeners = new Map();
+      this.children = [];
+      this.dataset = {};
+      this.style = {};
+      this.classList = { toggle() {} };
+      this._html = '';
+      this.textContent = '';
+    }
+    set innerHTML(html) {
+      this._html = html;
+      events.push(`html:${this.kind}`);
+      if (this.kind === 'columns') {
+        this.children = [...html.matchAll(/<li data-key="([^"]+)"/g)].map(match => ({ dataset: { key: match[1] } }));
+      }
+      if (this.kind === 'sheet') {
+        nodes.get('[data-head]').children = [...html.matchAll(/<th data-key="([^"]+)"/g)]
+          .map(match => ({ dataset: { key: match[1] } }));
+      }
+    }
+    get innerHTML() { return this._html; }
+    setAttribute() {}
+    addEventListener(type, handler) { this.listeners.set(type, handler); }
+    querySelector(selector) {
+      assert.ok(nodes.has(selector), `Unexpected panel selector: ${selector}`);
+      return nodes.get(selector);
+    }
+    querySelectorAll() { return []; }
+    focus() {}
+    showModal() {}
+    close() {}
+    remove() { events.push(`remove:${this.kind}`); }
+  }
+  for (const [selector, kind] of [
+    ['[data-option="normal"]', 'normal'], ['[data-unavailable]', 'unavailable'],
+    ['[data-message]', 'message'], ['[data-columns]', 'columns'],
+    ['[data-sheet]', 'sheet'], ['[data-head]', 'head'],
+    ['[data-download]', 'download'], ['[data-close]', 'close'], ['.sf-controls', 'controls'],
+  ]) nodes.set(selector, new Element(kind));
+  const fakeSortable = {
+    create(element, options) {
+      const instance = {
+        element, options, destroyed: false,
+        destroy() { this.destroyed = true; events.push(`destroy:${element.kind}`); },
+      };
+      instances.push(instance);
+      return instance;
+    },
+  };
+  const window = sortableLoaded ? { Sortable: fakeSortable } : {};
+  const document = {
+    activeElement: { isConnected: true, focus() {} },
+    head: { append(element) { if (element.kind === 'script') scripts.push(element); } },
+    body: { append() {} },
+    createElement(kind) {
+      const element = new Element(kind);
+      if (kind === 'dialog') dialog = element;
+      return element;
+    },
+    querySelectorAll() { return []; },
+    getElementById() { return {}; },
+  };
+  const context = {
+    window, document, AbortController, structuredClone,
+    statusLabel, mergeProducts, sameCompanyCount, buildCSV, describeQuery,
+    displaySolutionName: names.displaySolutionName,
+    MutationObserver: class { observe() {} },
+    setTimeout(callback, delay) {
+      const timer = { id: nextTimer++, callback, delay, active: true };
+      timers.push(timer);
+      return timer.id;
+    },
+    clearTimeout(id) {
+      const timer = timers.find(item => item.id === id);
+      if (timer) timer.active = false;
+    },
+  };
+  const source = readFileSync(new URL('../public/export-results-panel.mjs', import.meta.url), 'utf8')
+    .replace(/^import .*;\r?\n/gm, '').replace(/^export /gm, '');
+  vm.runInNewContext(source, context);
+  window.SFExport.open({ results: [sample()] });
+  // Settle loadScript(...).then(render) before starting a synthetic drag.
+  await Promise.resolve();
+  await Promise.resolve();
+  events.length = 0;
+  return {
+    events, timers, instances, scripts, nodes, dialog,
+    latest(kind) { return instances.filter(item => item.element.kind === kind).at(-1); },
+    tick() {
+      const ready = timers.filter(timer => timer.active && timer.delay === 0);
+      ready.forEach(timer => { timer.active = false; });
+      ready.forEach(timer => timer.callback());
+    },
+    change(input) { dialog.listeners.get('change')({ target: input }); },
+  };
+}
+
+for (const kind of ['head', 'columns']) {
+  test(`Sortable ${kind}: onEnd defers destroy and DOM rebuild to the next tick`, async () => {
+    const harness = await panelHarness(), sortable = harness.latest(kind);
+    const originalKeys = sortable.element.children.map(node => node.dataset.key);
+    sortable.options.onStart();
+    sortable.element.children.reverse();
+    const expected = [...originalKeys].reverse();
+    harness.events.length = 0;
+    sortable.options.onEnd();
+    assert.equal(sortable.destroyed, false);
+    assert.deepEqual(harness.events, []);
+    assert.equal(harness.timers.filter(timer => timer.active && timer.delay === 0).length, 1);
+    harness.tick();
+    assert.equal(sortable.destroyed, true);
+    assert.ok(harness.events.indexOf('destroy:head') >= 0);
+    assert.ok(harness.events.indexOf('html:sheet') > harness.events.indexOf('destroy:head'));
+    assert.deepEqual(harness.latest(kind).element.children.map(node => node.dataset.key), expected);
+  });
+
+  test(`Sortable ${kind}: a render request during dragging preserves nodes until drop`, async () => {
+    const harness = await panelHarness(), sortable = harness.latest(kind);
+    const children = sortable.element.children;
+    sortable.options.onStart();
+    harness.change({ dataset: { option: 'meta' }, checked: false });
+    assert.equal(sortable.destroyed, false);
+    assert.equal(sortable.element.children, children);
+    assert.deepEqual(harness.events, []);
+    sortable.options.onEnd();
+    assert.deepEqual(harness.events, []);
+    harness.tick();
+    assert.equal(sortable.destroyed, true);
+    assert.ok(harness.events.indexOf('html:sheet') >= 0);
+    assert.equal(harness.nodes.get('[data-sheet]').innerHTML.includes('sf-meta'), false);
+  });
+}
+
+test('closing after drop makes a pending deferred render harmless', async () => {
+  const harness = await panelHarness(), sortable = harness.latest('head');
+  sortable.options.onStart();
+  sortable.options.onEnd();
+  harness.nodes.get('[data-close]').listeners.get('click')();
+  const afterClose = [...harness.events];
+  harness.tick();
+  assert.deepEqual(harness.events, afterClose);
+});
+
+test('CDN scripts use anonymous CORS before they are attached', async () => {
+  const harness = await panelHarness({ sortableLoaded: false });
+  assert.equal(harness.scripts.length, 1);
+  assert.equal(harness.scripts[0].src, 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js');
+  assert.equal(harness.scripts[0].crossOrigin, 'anonymous');
+  // Settle the synthetic load failure; no real network request or timer exists.
+  harness.scripts[0].onerror();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+});
