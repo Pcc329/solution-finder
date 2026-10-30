@@ -51,7 +51,8 @@ async function invoke(handler, options = {}) {
       assert.ok(Object.hasOwn(fixture, table), `Unexpected Supabase request ${table}`);
       const failure = options.failure;
       if (failure && (table === failure || failure === 'all'
-        || failure === 'optional-data-source' && url.searchParams.get('select') === 'solution_id,data_source')) {
+        || failure === 'optional-data-source' && url.searchParams.get('select') === 'solution_id,data_source'
+        || failure === 'optional-record-status' && url.searchParams.get('select') === 'solution_id,record_status')) {
         if (options.networkError) throw new Error('Synthetic network failure');
         return { ok: false, status: 500, text: async () => 'Synthetic upstream failure' };
       }
@@ -112,9 +113,91 @@ async function invoke(handler, options = {}) {
   }
 }
 
+// Validate the added status query without weakening any historical API assertions.
+function assertSolutionsParity(before, after, options) {
+  const statusSelect = 'solution_id,record_status';
+  const isStatus = request => new URL(request.url).searchParams.get('select') === statusSelect;
+  const statusRequests = after.requests.filter(isStatus);
+  const mainRequests = before.requests.filter(request => {
+    const url = new URL(request.url);
+    return url.pathname === '/rest/v1/solutions'
+      && url.searchParams.get('select') !== 'solution_id,data_source';
+  });
+  assert.equal(statusRequests.length, mainRequests.length, 'One complete status pagination alongside main pagination');
+  statusRequests.forEach((request, index) => {
+    const main = mainRequests[index], expectedURL = new URL(main.url);
+    expectedURL.searchParams.set('select', statusSelect);
+    const url = new URL(request.url);
+    assert.equal(url.pathname, '/rest/v1/solutions');
+    assert.equal(url.searchParams.get('select'), statusSelect);
+    assert.equal(url.searchParams.get('order'), 'solution_id.asc');
+    assert.equal(url.searchParams.get('or'), '(record_status.is.null,record_status.not.like.已下架*)');
+    assert.equal(url.searchParams.get('or'), new URL(main.url).searchParams.get('or'));
+    assert.equal(request.headers.Range, `${index * 1000}-${index * 1000 + 999}`);
+    assert.deepEqual(request, { ...main, url: expectedURL.href }, 'Exact status URL, filters, order and headers');
+  });
+  const unchangedRequests = after.requests.filter(request => !isStatus(request));
+  assert.deepEqual(unchangedRequests, before.requests, 'Query/select/filter/order/pagination/header parity');
+  assert.equal(after.requests.length, before.requests.length + statusRequests.length);
+  const body = Array.isArray(after.res.body) ? after.res.body.map(row => {
+    assert.ok(Object.hasOwn(row, 'sid'));
+    assert.ok(Object.hasOwn(row, 'rs'));
+    assert.equal(typeof row.sid, 'string');
+    assert.equal(typeof row.rs, 'string');
+    const { sid, rs, ...historical } = row;
+    return historical;
+  }) : after.res.body;
+  assert.deepEqual({ ...after.res, body }, before.res);
+  assert.equal(JSON.stringify(body), JSON.stringify(before.res.body), 'JSON field/order parity');
+
+  const addedLogs = [];
+  if (statusRequests.length) {
+    const failed = options.failure === 'all' || options.failure === 'solutions'
+      || options.failure === 'optional-record-status';
+    if (failed) {
+      const detail = options.networkError ? 'Synthetic network failure'
+        : 'Supabase solutions error: 500 - Synthetic upstream failure';
+      if (!options.networkError) addedLogs.push(
+        '[Supabase Error] status=500 table=solutions time=2026-10-13T04:00:00.000Z message=Synthetic upstream failure'
+      );
+      addedLogs.push(
+        `[Supabase Optional Column] table=solutions column=record_status time=2026-10-13T04:00:00.000Z message=${detail}`
+      );
+    } else {
+      // The existing helper logs once after ALL pages, including a terminal 416.
+      addedLogs.push(`[Supabase] fetched table=solutions count=${after.res.body.length}`);
+    }
+  }
+  assertExactLogInterleaving(after.logs, before.logs, addedLogs);
+}
+
+// Exact shuffle of two fully specified arrays. Original lines keep their order;
+// every additional line must equal the next expected status log in full.
+// Multiple paths handle identical successful fetch messages without discarding
+// lines, sorting, substring matching, regex matching or accepting extra logs.
+function assertExactLogInterleaving(actual, historical, added) {
+  assert.equal(actual.length, historical.length + added.length, 'Exact added log count');
+  let positions = new Set([0]);
+  for (let index = 0; index < actual.length; index++) {
+    const next = new Set();
+    for (const used of positions) {
+      const extra = index - used;
+      if (used < historical.length && actual[index] === historical[used]) next.add(used + 1);
+      if (extra < added.length && actual[index] === added[extra]) next.add(used);
+    }
+    assert.ok(next.size > 0, `Unexpected log at ${index}: ${JSON.stringify(actual[index])}`);
+    positions = next;
+  }
+  assert.ok(positions.has(historical.length), 'Every historical and expected new log consumed in order');
+}
+
 async function parity(api, options = {}, candidateOptions = options) {
   const before = await invoke(originals[api], options);
   const after = await invoke(current[api], candidateOptions);
+  if (api === 'solutions') {
+    assertSolutionsParity(before, after, candidateOptions);
+    return after;
+  }
   assert.deepEqual(after.res, before.res);
   assert.equal(JSON.stringify(after.res.body), JSON.stringify(before.res.body), 'JSON field/order parity');
   assert.deepEqual(after.requests, before.requests, 'Query/select/filter/order/pagination/header parity');
@@ -183,6 +266,22 @@ test('solutions: optional data_source failure remains graceful', async () => {
   assert.equal(res.statusCode, 200);
   assert.ok(res.body.every(row => row.src === ''));
 });
+for (const networkError of [false, true]) {
+  test(`solutions: optional record_status ${networkError ? 'network' : 'HTTP'} failure preserves historical response`, async () => {
+    const { res } = await parity('solutions', { failure: 'optional-record-status', networkError });
+    assert.equal(res.statusCode, 200);
+    assert.ok(res.body.length > 0);
+    assert.ok(res.body.every(row => row.rs === ''));
+    assert.deepEqual(res.body.map(row => row.sid), ['S01', 'S02', 'S04', 'S05', 'S06']);
+  });
+}
+test('solutions: loaded status retains suspected status and normalizes null to normal', async () => {
+  const { res } = await parity('solutions');
+  assert.equal(res.body.find(row => row.sid === 'S01').rs, '正常');
+  assert.equal(res.body.find(row => row.sid === 'S02').rs, '疑似已下架');
+  assert.equal(res.body.find(row => row.sid === 'S04').rs, '正常');
+});
+
 for (const api of ['solutions', 'stats', 'companies']) {
   test(`${api}: multi-page requests remain identical`, async () => { await parity(api, { pageSizeFixture: 1001 }); });
 }

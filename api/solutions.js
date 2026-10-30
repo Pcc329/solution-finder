@@ -97,6 +97,7 @@ export default async function handler(req, res) {
       solRows,
       coRows,
       dataSourceBySolutionId,
+      recordStatusBySolutionId,
       govRegistrationRows,
       cdmCategoryRows,
       caseEvidenceRows,
@@ -124,6 +125,15 @@ export default async function handler(req, res) {
         'solutions',
         'solution_id',
         'data_source',
+        'solution_id.asc',
+        solutionFilters
+      ),
+      fetchOptionalSupabaseColumn(
+        supabaseUrl,
+        supabaseAnonKey,
+        'solutions',
+        'solution_id',
+        'record_status',
         'solution_id.asc',
         solutionFilters
       ),
@@ -242,6 +252,7 @@ export default async function handler(req, res) {
       programTypesByCid.get(cid).add(pt);
     });
 
+    const statusLoaded = recordStatusBySolutionId.size > 0;
     const converted = solRows.map(row => {
       const cid = normalizeCid(row.company_id);
       const co = companyByCid[cid] || {};
@@ -251,6 +262,7 @@ export default async function handler(req, res) {
         // Airtable 版 solution_id 欄位名帶 BOM 讀不到，實際 fallback 到 rec.id
         // 遷移期比照該行為，rec_id 優先，避免 2429 筆 id 全不一致
         id: String(row.airtable_rec_id || row.solution_id || '').replace(/^\uFEFF/, ''),
+        sid: row.solution_id || '',
         s: row.solution_name || '',
         c: co.name || '',
         logo: co.logo_url || '',
@@ -260,6 +272,7 @@ export default async function handler(req, res) {
         cid: cid,
         p: row.program_type || '',
         src: dataSourceBySolutionId.get(String(row.solution_id || '')) || '',
+        rs: statusLoaded ? (recordStatusBySolutionId.get(String(row.solution_id || '')) || '正常') : '',
         ai: hasAi,
         d: emptyToBlank(row.target_industry),
         cat: row.industry_category || '',
