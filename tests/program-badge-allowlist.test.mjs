@@ -60,8 +60,11 @@ async function loadSolutions(programs, { source = 'supabase' } = {}) {
     };
     await handler(req, res);
     assert.equal(res.statusCode, 200);
-    // Existing requests only; no data_sources lookup or other new request.
-    assert.equal(requests.length, 7);
+    // 既有 7 個請求＋恰好一個上架狀態選用查詢；不得有其他新增請求。
+    const statusRequests = requests.filter(r => r.url.pathname.endsWith('/solutions')
+      && r.url.searchParams.get('select') === 'solution_id,record_status');
+    assert.equal(statusRequests.length, 1);
+    assert.equal(requests.length - statusRequests.length, 7);
     assert.ok(requests.every(request => !request.options.method || request.options.method === 'GET'));
     return res.body;
   } finally {

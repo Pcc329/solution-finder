@@ -9,6 +9,7 @@
   <title>台灣資服業者方案資料庫</title>
   <script src="/auth-gate.js"></script>
   <script src="/solution-name.js"></script>
+  <script type="module" src="/export-results-panel.mjs"></script>
   <link rel="stylesheet" href="/solution-name.css">
   <script src="/company-avatar.js"></script>
   <script src="/target-scale.js"></script>
@@ -1705,6 +1706,14 @@
             <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2 flex-wrap">
               搜尋結果
               <span className="text-xs text-slate-400 bg-slate-200 px-2 py-0.5 rounded-md font-mono">{filteredResults.length} 筆</span>
+              {filteredResults.length > 0 && (
+                <button type="button" data-sf-export-trigger
+                  disabled={!window.SFExport}
+                  onClick={() => window.SFExport?.open({ results: filteredResults, filters, sortBy })}
+                  className="text-xs font-normal rounded-lg border border-emerald-200 px-3 py-1.5 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                  {window.SFExport ? "輸出查詢結果" : "輸出功能載入中"}
+                </button>
+              )}
               {filterSummary && (
                 <span className="text-xs text-slate-400 font-normal">{filterSummary}</span>
               )}
