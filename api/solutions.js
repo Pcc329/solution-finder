@@ -11,6 +11,7 @@ const PROGRAM_EVIDENCE_SOURCES = new Set([
   '新創嚴選網',
   '商業服務業專區',
   '農業雲市集-數位館',
+  '農業雲市集-AI館',
   '新北產業AI化輔導計畫',
 ]);
 
@@ -250,6 +251,16 @@ export default async function handler(req, res) {
       if (!cid || !pt || !PROGRAM_EVIDENCE_SOURCES.has(pt)) return;
       if (!programTypesByCid.has(cid)) programTypesByCid.set(cid, new Set());
       programTypesByCid.get(cid).add(pt);
+    });
+
+    // Both agricultural halls are one program; keep its first occurrence in pgList.
+    programTypesByCid.forEach((programTypes, cid) => {
+      if (!programTypes.has('農業雲市集-數位館') || !programTypes.has('農業雲市集-AI館')) return;
+      programTypesByCid.set(cid, new Set(Array.from(programTypes, programType =>
+        programType === '農業雲市集-數位館' || programType === '農業雲市集-AI館'
+          ? '農業雲市集'
+          : programType
+      )));
     });
 
     const statusLoaded = recordStatusBySolutionId.size > 0;

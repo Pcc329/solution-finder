@@ -152,3 +152,65 @@ test('legacy Airtable source flag is ignored; the same Supabase program evidence
   assert.deepEqual(rows.map(row => row.p), sources);
   assertPrograms(rows, allowed);
 });
+
+
+test('agricultural digital hall alone keeps its label and counts once', async () => {
+  const sources = [' 農業雲市集-數位館 ', '農業雲市集-數位館'];
+  const rows = await loadSolutions(sources);
+  assertPrograms(rows, ['農業雲市集-數位館']);
+  assert.deepEqual(rows.map(row => row.p), sources);
+});
+
+test('agricultural AI hall alone keeps its label and counts once', async () => {
+  const sources = [' 農業雲市集-AI館 ', '農業雲市集-AI館'];
+  const rows = await loadSolutions(sources);
+  assertPrograms(rows, ['農業雲市集-AI館']);
+  assert.deepEqual(rows.map(row => row.p), sources);
+});
+
+for (const halls of [
+  ['農業雲市集-數位館', '農業雲市集-AI館'],
+  ['農業雲市集-AI館', '農業雲市集-數位館'],
+]) {
+  test(`both agricultural halls count once with digital input first: ${halls[0] === '農業雲市集-數位館'}`, async () => {
+    const rows = await loadSolutions(halls);
+    assertPrograms(rows, ['農業雲市集']);
+    assert.deepEqual(rows.map(row => row.p), halls);
+  });
+
+  test(`agricultural group retains its first position with digital input first: ${halls[0] === '農業雲市集-數位館'}`, async () => {
+    const rows = await loadSolutions([halls[0], '臺灣雲市集', halls[1], halls[0]]);
+    assertPrograms(rows, ['農業雲市集', '臺灣雲市集']);
+  });
+
+  test(`agricultural group follows an earlier program with digital input first: ${halls[0] === '農業雲市集-數位館'}`, async () => {
+    const rows = await loadSolutions(['臺灣雲市集', halls[0], halls[1]]);
+    assertPrograms(rows, ['臺灣雲市集', '農業雲市集']);
+  });
+}
+
+test('AI hall does not allow excluded, unknown or display-only source names', async () => {
+  const sources = ['臺灣雲市集', '農業雲市集-AI館', ...excluded,
+    '測試新來源', '農業雲市集', '農業雲市集-AI館-測試新來源'];
+  const rows = await loadSolutions(sources);
+  assertPrograms(rows, ['臺灣雲市集', '農業雲市集-AI館']);
+  assert.deepEqual(rows.map(row => row.p), sources);
+});
+
+test('all seven allowed source names form exactly six ordered program groups', async () => {
+  const sources = ['臺灣雲市集', '雲市集工業館', '新創嚴選網', '商業服務業專區',
+    '農業雲市集-數位館', '農業雲市集-AI館', '新北產業AI化輔導計畫'];
+  assertPrograms(await loadSolutions([...sources, ...excluded, '測試新來源']),
+    ['臺灣雲市集', '雲市集工業館', '新創嚴選網', '商業服務業專區', '農業雲市集', '新北產業AI化輔導計畫']);
+});
+
+test('agricultural hall grouping stays within each linked company', async () => {
+  const rows = await loadSolutions([
+    { program_type: '農業雲市集-數位館', company_id: '12345678' },
+    { program_type: '農業雲市集-AI館', company_id: '87654321' },
+    { program_type: '農業雲市集-AI館', company_id: '' },
+  ]);
+  assertPrograms(rows.filter(row => row.cid === '12345678'), ['農業雲市集-數位館']);
+  assertPrograms(rows.filter(row => row.cid === '87654321'), ['農業雲市集-AI館']);
+  assertPrograms(rows.filter(row => row.cid === ''), []);
+});
