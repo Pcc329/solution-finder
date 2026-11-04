@@ -7,7 +7,8 @@
 - Repository 為 Pcc329/solution-finder。
 - Branch 為 `codex/sf-mcp-v1-3-capital`。
 - 開始前已成功 `git fetch origin`，起點為 `59c425616d98f600d9df8f557c36a7a362c0ae97`。
-- 實作 commit 與 PR 連結將於發布後補齊。
+- 實作 commit 為 `6bad3f29bdf771b8b89e83d94ffb5ac776d7b61a`。本 SYNC 的發布資訊以後續文件 commit 補入同一分支。
+- PR 為 [#301](https://github.com/Pcc329/solution-finder/pull/301)，base 為 main，尚待 review。
 - 本次只處理 capital。既有 it_code_rank 欄位沿用，未新增其篩選。
 - 已完成本機 Edge SDK 與 PostgreSQL 合成資料測試。線上資料驗收待使用者執行 SELECT 並回貼結果。
 - 本次未執行正式環境 SQL，未執行正式 migration，未部署 Edge Function。正式部署由使用者在 PR review 後自行處理。
