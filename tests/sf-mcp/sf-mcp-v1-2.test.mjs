@@ -53,7 +53,7 @@ const solution = (extra = {}) => ({
 })
 const company = (extra = {}) => ({
   company_key: 'MOCK-C1', company_id: 'MOCK-C1', company_name: 'Mock 廠商', company_city: '臺北市', company_region: '北部',
-  capital: 100000000, capital_unknown_count: 7, first_rank: 1, solutions_count: 9, suspected_count: 2,
+  capital: 100000000, capital_unknown_count: 7, no_company_count: 0, first_rank: 1, solutions_count: 9, suspected_count: 2,
   solutions: [{ id: 'SOL-MOCK-1', name: 'Mock AI 方案', source: '測試來源', price: 1000, pricing_model: ['訂閱制'], status: null, score: 100 }],
   companies_total: 152, solutions_total: 390, suspected_total: 30, city_unknown_count: 12, ...extra,
 })
@@ -443,6 +443,7 @@ test('capital bounds and sorting reach the DB with city, normal_only and paginat
   assert.equal(data.companies_total, 152)
   assert.equal(data.companies[0].capital, 100000000)
   assert.match(data.notes.join(''), /有 7 家公司未填資本額，無法納入此篩選/)
+  assert.doesNotMatch(data.notes.join(''), /方案未對應公司/)
   assert.ok(data.notes.length <= 3)
   assert.equal(db.calls.filter(c => c.rpc === 'sf_capital_coverage').length, 1)
 })
@@ -471,11 +472,13 @@ for (const capital of [null, 0, 100000000]) {
 }
 
 test('capital unknown count survives empty pages and counts remain server totals', async () => {
-  const db = mockDb({ rpc: { sf_search_companies: [company({ company_key: null, companies_total: 0, solutions_total: 0, suspected_total: 0 })] } })
+  const db = mockDb({ rpc: { sf_search_companies: [company({
+    company_key: null, companies_total: 0, solutions_total: 0, suspected_total: 0, no_company_count: 3,
+  })] } })
   const { data } = await callTool(db, 'search_companies', { min_capital: 100000000 })
   assert.deepEqual(data.companies, [])
   assert.equal(data.companies_total, 0)
-  assert.match(data.notes.join(''), /有 7 家公司未填資本額/)
+  assert.ok(data.notes.includes('有 7 家公司未填資本額；另有 3 筆方案未對應公司，均無法納入此篩選。'))
   assert.equal(data.capital_disclosure.coverage.total_companies, 10)
 })
 

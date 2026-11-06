@@ -56,21 +56,20 @@ WHERE EXISTS (
 ORDER BY c.capital DESC NULLS LAST, c.company_id
 LIMIT 50;
 
--- 05 用途：資本額篩選之前的缺值公司組數，核對 notes 的 N。
--- 保留既有無 company_id 方案各自分組語意；找不到公司列也視為 capital 未知。
--- 全體與臺北市各一列，臺北市先套縣市再計算缺資本額的群組。
+-- 05 分開計算資本額篩選前的缺值公司與未對應公司方案，供核對 notes。
+-- 第 1 列為全體，第 2 列為臺北市。縣市依公司資料判定。
 WITH base AS (
   SELECT coalesce(s.company_id, '__no_company__:' || s.solution_id) AS company_key,
-         c.capital, c.city
+         s.company_id, c.capital, c.city
   FROM public.solutions s LEFT JOIN public.companies c ON c.company_id = s.company_id
   WHERE s.record_status IS NULL OR s.record_status NOT LIKE '已下架%'
 )
-SELECT 'all_active_groups' AS scope,
-       count(DISTINCT company_key) FILTER (WHERE capital IS NULL) AS missing_groups
-FROM base
-UNION ALL
-SELECT 'taipei_active_groups', count(DISTINCT company_key) FILTER (WHERE capital IS NULL)
-FROM base WHERE replace(coalesce(city, ''), '台', '臺') = '臺北市';
+SELECT count(DISTINCT base.company_key) FILTER (WHERE base.company_id IS NOT NULL AND base.capital IS NULL) AS missing_companies,
+       count(DISTINCT base.company_key) FILTER (WHERE base.company_id IS NULL) AS no_company_solutions
+FROM (VALUES (1, NULL::text), (2, '臺北市')) AS scopes(display_order, city)
+LEFT JOIN base ON scopes.city IS NULL OR replace(coalesce(base.city, ''), '台', '臺') = scopes.city
+GROUP BY scopes.display_order
+ORDER BY scopes.display_order;
 
 -- 06 用途：三組既有查詢的獨立 SQL 基準，不帶資本額且不回傳 capital。
 -- AI 關鍵字仍沿用既有七個欄位的大小寫不敏感子字串比對。
