@@ -47,7 +47,7 @@ async function loadSolutions(programs, { source = 'supabase' } = {}) {
       } else if (table === 'companies') {
         data = [{ company_id: '12345678', company_name: 'Synthetic company' }];
       } else {
-        assert.ok(['gov_registrations', 'company_cdm_categories', 'cases', 'awards'].includes(table));
+        assert.ok(['gov_registrations', 'company_cdm_categories', 'cases', 'awards', 'solution_images'].includes(table));
       }
       return { ok: true, status: 200, json: async () => data };
     };
@@ -60,11 +60,13 @@ async function loadSolutions(programs, { source = 'supabase' } = {}) {
     };
     await handler(req, res);
     assert.equal(res.statusCode, 200);
-    // 既有 7 個請求＋恰好一個上架狀態選用查詢；不得有其他新增請求。
+    // 既有 7 個請求，加上各一次狀態與圖片選用查詢。
     const statusRequests = requests.filter(r => r.url.pathname.endsWith('/solutions')
       && r.url.searchParams.get('select') === 'solution_id,record_status');
     assert.equal(statusRequests.length, 1);
-    assert.equal(requests.length - statusRequests.length, 7);
+    const imageRequests = requests.filter(r => r.url.pathname === '/rest/v1/solution_images');
+    assert.equal(imageRequests.length, 1);
+    assert.equal(requests.length - statusRequests.length - imageRequests.length, 7);
     assert.ok(requests.every(request => !request.options.method || request.options.method === 'GET'));
     return res.body;
   } finally {
