@@ -48,15 +48,15 @@ async function invoke(handler, options = {}) {
       assert.equal(url.origin, env.SUPABASE_URL);
       requests.push({ url: url.href, ...request });
       const table = url.pathname.split('/').at(-1);
-      assert.ok(Object.hasOwn(fixture, table), `Unexpected Supabase request ${table}`);
+      assert.ok(Object.hasOwn(fixture, table) || table === 'solution_images', `Unexpected Supabase request ${table}`);
       const failure = options.failure;
       if (failure && (table === failure || failure === 'all'
         || failure === 'optional-data-source' && url.searchParams.get('select') === 'solution_id,data_source'
         || failure === 'optional-record-status' && url.searchParams.get('select') === 'solution_id,record_status')) {
         if (options.networkError) throw new Error('Synthetic network failure');
-        return { ok: false, status: 500, text: async () => 'Synthetic upstream failure' };
+        return { ok: false, status: options.failureStatus || 500, text: async () => 'Synthetic upstream failure' };
       }
-      let rows = structuredClone(fixture[table]);
+      let rows = structuredClone(table === 'solution_images' ? (options.imageRows || []) : fixture[table]);
       if (table === 'solutions' && options.pageSizeFixture) {
         rows = Array.from({ length: options.pageSizeFixture }, (_, i) => ({ ...rows[0], solution_id: `PAGE-${String(i).padStart(5, '0')}` }));
       }
@@ -76,6 +76,9 @@ async function invoke(handler, options = {}) {
         } else if (key === 'provider_linked_company_id') {
           assert.equal(filter, 'not.is.null');
           rows = rows.filter(row => row.provider_linked_company_id != null);
+        } else if (key === 'status') {
+          assert.equal(filter, 'eq.active');
+          rows = rows.filter(row => row.status === 'active');
         }
       }
       const order = url.searchParams.get('order');
@@ -117,6 +120,7 @@ async function invoke(handler, options = {}) {
 function assertSolutionsParity(before, after, options) {
   const statusSelect = 'solution_id,record_status';
   const isStatus = request => new URL(request.url).searchParams.get('select') === statusSelect;
+  const isImage = request => new URL(request.url).pathname === '/rest/v1/solution_images';
   const statusRequests = after.requests.filter(isStatus);
   const mainRequests = before.requests.filter(request => {
     const url = new URL(request.url);
@@ -136,15 +140,24 @@ function assertSolutionsParity(before, after, options) {
     assert.equal(request.headers.Range, `${index * 1000}-${index * 1000 + 999}`);
     assert.deepEqual(request, { ...main, url: expectedURL.href }, 'Exact status URL, filters, order and headers');
   });
-  const unchangedRequests = after.requests.filter(request => !isStatus(request));
+  const imageRequests = after.requests.filter(isImage);
+  assert.equal(imageRequests.length, mainRequests.length ? 1 : 0);
+  if (imageRequests.length) {
+    const expectedURL = new URL('/rest/v1/solution_images', mainRequests[0].url);
+    expectedURL.search = new URLSearchParams({ select: 'solution_id,image_url', order: 'solution_id.asc', status: 'eq.active' });
+    assert.deepEqual(imageRequests[0], { ...mainRequests[0], url: expectedURL.href });
+  }
+  const unchangedRequests = after.requests.filter(request => !isStatus(request) && !isImage(request));
   assert.deepEqual(unchangedRequests, before.requests, 'Query/select/filter/order/pagination/header parity');
-  assert.equal(after.requests.length, before.requests.length + statusRequests.length);
+  const imageFailed = ['all', 'solution_images'].includes(options.failure);
+  const activeImages = (options.imageRows || []).filter(row => row.status === 'active');
   const body = Array.isArray(after.res.body) ? after.res.body.map(row => {
     assert.ok(Object.hasOwn(row, 'sid'));
     assert.ok(Object.hasOwn(row, 'rs'));
     assert.equal(typeof row.sid, 'string');
     assert.equal(typeof row.rs, 'string');
-    const { sid, rs, ...historical } = row;
+    const { sid, rs, img, ...historical } = row;
+    assert.equal(img, imageFailed ? '' : activeImages.find(image => image.solution_id === sid)?.image_url || '');
     return historical;
   }) : after.res.body;
   assert.deepEqual({ ...after.res, body }, before.res);
@@ -168,7 +181,23 @@ function assertSolutionsParity(before, after, options) {
       addedLogs.push(`[Supabase] fetched table=solutions count=${after.res.body.length}`);
     }
   }
-  assertExactLogInterleaving(after.logs, before.logs, addedLogs);
+  const isImageLog = log => log.includes('table=solution_images ');
+  const expectedImageLogs = [];
+  if (imageRequests.length && imageFailed) {
+    const status = options.failureStatus || 500;
+    const detail = options.networkError ? 'Synthetic network failure'
+      : `Supabase solution_images error: ${status} - Synthetic upstream failure`;
+    if (!options.networkError) expectedImageLogs.push(
+      `[Supabase Error] status=${status} table=solution_images time=2026-10-13T04:00:00.000Z message=Synthetic upstream failure`
+    );
+    expectedImageLogs.push(
+      `[Supabase Optional Column] table=solution_images column=image_url time=2026-10-13T04:00:00.000Z message=${detail}`
+    );
+  } else if (imageRequests.length) {
+    expectedImageLogs.push(`[Supabase] fetched table=solution_images count=${activeImages.length}`);
+  }
+  assert.deepEqual(after.logs.filter(isImageLog), expectedImageLogs);
+  assertExactLogInterleaving(after.logs.filter(log => !isImageLog(log)), before.logs, addedLogs);
 }
 
 // Exact shuffle of two fully specified arrays. Original lines keep their order;
@@ -281,6 +310,26 @@ test('solutions: loaded status retains suspected status and normalizes null to n
   assert.equal(res.body.find(row => row.sid === 'S02').rs, '疑似已下架');
   assert.equal(res.body.find(row => row.sid === 'S04').rs, '正常');
 });
+
+test('solutions: image URLs join by solution_id and include only active rows', async () => {
+  const imageRows = [
+    { solution_id: 'S01', image_url: 'https://mock.invalid/active.svg', status: 'active' },
+    { solution_id: 'S02', image_url: 'https://mock.invalid/broken.svg', status: 'broken' },
+    { solution_id: 'S04', image_url: 'https://mock.invalid/removed.svg', status: 'removed' },
+  ];
+  const { res } = await parity('solutions', {}, { imageRows });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body[0].id, 'rec-solution-01');
+  assert.equal(res.body[0].img, imageRows[0].image_url);
+});
+
+for (const options of [{ failureStatus: 404 }, { failureStatus: 403 }, { networkError: true }]) {
+  test(`solutions: image lookup ${options.failureStatus || 'network failure'} retains HTTP 200`, async () => {
+    const { res } = await parity('solutions', {}, { failure: 'solution_images', ...options });
+    assert.equal(res.statusCode, 200);
+    assert.ok(res.body.every(row => row.img === ''));
+  });
+}
 
 for (const api of ['solutions', 'stats', 'companies']) {
   test(`${api}: multi-page requests remain identical`, async () => { await parity(api, { pageSizeFixture: 1001 }); });
