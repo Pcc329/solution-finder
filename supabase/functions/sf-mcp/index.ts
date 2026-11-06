@@ -1,4 +1,4 @@
-// SF MCP v1.2.1 — 唯讀工具；搜尋由資料庫篩選、計數後分頁，提供結構化輸出與下一步建議。
+// SF MCP v1.3.0 — 唯讀工具；搜尋由資料庫篩選、計數後分頁，提供結構化輸出與下一步建議。
 // sf_mcp_touch 記錄登入者用量；未授權 (42501) 阻擋，其他紀錄錯誤不阻擋，沒有業務資料寫入工具。
 // 認證：Supabase Auth 為 OAuth 2.1 授權伺服器；每次工具呼叫都以「登入者本人」身分查詢，受 RLS 與白名單約束。
 // 注意：沒有業務資料寫入工具；不回傳完整描述(description)、第三方 email、手機；whoami 可回傳登入者本人 email。
@@ -33,7 +33,7 @@ const asText = (obj: Record<string, unknown>) => {
   return { structuredContent: JSON.parse(text) as Record<string, unknown>, content: [{ type: 'text' as const, text }] }
 }
 
-const SERVER_VERSION = '1.2.1'
+const SERVER_VERSION = '1.3.0'
 const RATE_LIMIT_ENFORCE = false
 
 // target_industry 在資料庫有兩種存法：多個元素的陣列，或單一字串內以「, 」（雲市集）或「；」（主計總處分類）分隔。
@@ -130,7 +130,12 @@ const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 ## 十一、其他
 - 價格欄位為 0 或空白代表「未提供」，不是免費。max_price 篩選會排除未提供價格的方案。
 - 本工具只回傳簡短描述；聯絡人僅提供姓名、職稱、公司電話。
-- 引用數字時優先使用 summary_line；定義與缺口用一句帶過，被問到再展開。`
+- 引用數字時優先使用 summary_line；定義與缺口用一句帶過，被問到再展開。
+
+## 十二、資本額（capital）
+- 登記資本額，單位為元。來源未統一，可能混有資本總額與實收資本額，清洗中；null 表示未填，0 照實保留。
+- search_companies 可用 min_capital／max_capital（含邊界）篩選，capital_desc 由大到小且 null 最後。先在資料庫篩選、計數，再分頁；只涵蓋有符合方案的廠商。
+- 引用筆數一定要附上 capital_disclosure 的即時涵蓋率與分母（companies 全表），並說「已知資本額中」，不能視為完整母體。資本額為登記資本，不代表營收或企業規模。`
 
 const searchFields = {
   keyword: z.string().max(60).optional().describe('單一最關鍵的詞（子字串比對），例如「客服」「資安」'),
@@ -150,7 +155,7 @@ const searchFields = {
   sort: z.enum(['relevance', 'price_asc', 'price_desc']).default('relevance'),
 }
 
-const topics = ['index', 'data', 'status', 'region', 'ranking', 'mapping', 'industry', 'tips', 'tax', 'awards', 'lists', 'other', 'all'] as const
+const topics = ['index', 'data', 'status', 'region', 'ranking', 'mapping', 'industry', 'tips', 'tax', 'awards', 'lists', 'other', 'capital', 'all'] as const
 const guideSections = DATA_GUIDE.split(/\n(?=## )/).slice(1)
 const describeTopic = (topic: typeof topics[number]) => {
   if (topic === 'all') return DATA_GUIDE
@@ -164,11 +169,18 @@ const describeTopic = (topic: typeof topics[number]) => {
   return `${index}\n\n${guideSections.slice(0, 2).join('\n')}`
 }
 
-type SearchArgs = z.output<ReturnType<typeof searchInput>>
+type SearchArgs = z.output<ReturnType<typeof companySearchInput>>
 const searchInput = () => z.object({
   ...searchFields,
   limit: z.number().int().min(1).max(50).default(20),
   offset: z.number().int().min(0).max(5000).default(0),
+})
+const companySearchInput = () => searchInput().extend({
+  min_capital: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional().describe('登記資本額下限（元，含邊界）；未填資本額的公司會被排除'),
+  max_capital: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional().describe('登記資本額上限（元，含邊界）；未填資本額的公司會被排除'),
+  sort: z.enum(['relevance', 'price_asc', 'price_desc', 'capital_desc']).default('relevance'),
+}).refine((a) => a.min_capital == null || a.max_capital == null || a.min_capital <= a.max_capital, {
+  message: 'min_capital 不得大於 max_capital', path: ['max_capital'],
 })
 const nextSteps = (a: SearchArgs, unknown: number): string[] => {
   const steps: string[] = []
@@ -177,7 +189,7 @@ const nextSteps = (a: SearchArgs, unknown: number): string[] => {
     steps.push('拿掉縣市篩選，或改用 region')
     if (unknown > 0) steps.push(`另有 ${unknown} 筆縣市未填，未納入`)
   }
-  const filters = ['category', 'program', 'max_price', 'is_ai', 'is_startup', 'is_gov']
+  const filters = ['category', 'program', 'max_price', 'is_ai', 'is_startup', 'is_gov', 'min_capital', 'max_capital']
     .filter((key) => {
       const value = a[key as keyof SearchArgs]
       return Array.isArray(value) ? value.length > 0 : value != null
@@ -186,7 +198,8 @@ const nextSteps = (a: SearchArgs, unknown: number): string[] => {
   if (a.normal_only) steps.push('改為包含疑似下架方案再查')
   return steps.length ? steps : ['改用其他關鍵字或放寬搜尋條件再查']
 }
-const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: number, failures: string[], companies?: number) => {
+const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: number, failures: string[], companies?: number,
+  capitalGaps?: { missingCompanies: number; noCompanySolutions: number }) => {
   const status_scope = a.normal_only ? '只含正常' : a.include_delisted ? '含已下架' : '正常＋疑似下架'
   const context = [...(a.city ?? []).map((city) => city.trim().replace(/台/g, '臺')), ...(a.keyword ? [`關鍵字「${a.keyword}」`] : [])].join('，')
   const normal = total - suspected
@@ -195,6 +208,12 @@ const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: nu
     : `正常 ${normal}、疑似下架 ${suspected}`
   const summary_line = `${context ? context + '：' : ''}${companies == null ? '' : `${companies} 家廠商、`}${total} 筆方案（${distribution}）${unknown ? `；另有 ${unknown} 筆縣市未填未納入` : ''}。`
   const scopeNotes: string[] = []
+  if (capitalGaps) {
+    const { missingCompanies, noCompanySolutions } = capitalGaps
+    scopeNotes.push(noCompanySolutions > 0
+      ? `有 ${missingCompanies} 家公司未填資本額；另有 ${noCompanySolutions} 筆方案未對應公司，均無法納入此篩選。`
+      : `有 ${missingCompanies} 家公司未填資本額，無法納入此篩選。`)
+  }
   if (a.city?.length) scopeNotes.push('縣市指公司總部所在地。')
   if (a.normal_only && a.include_delisted) scopeNotes.push('normal_only 優先於 include_delisted，只列正常方案。')
   // 合併範圍提醒，為疑似下架與部分失敗各保留一條，必讀資訊不被截斷。
@@ -213,7 +232,12 @@ const count = z.number().int().nonnegative()
 const rowSchema = z.record(z.string(), z.unknown())
 const solutionSchema = z.object({ name: z.string(), name_missing: z.boolean() }).passthrough()
 const solutionDetailSchema = solutionSchema.extend({ solution_name: z.string() })
-const companySchema = z.object({ solutions: z.array(solutionSchema) }).passthrough()
+const capitalCompanySchema = z.object({ capital: z.number().nullable() }).passthrough()
+const companySchema = z.object({ capital: z.number().nullable(), solutions: z.array(solutionSchema) }).passthrough()
+const capitalDisclosureSchema = z.object({
+  coverage: z.object({ with_capital: count, total_companies: count, percentage: z.number().min(0).max(100).nullable(), denominator: z.string() }),
+  notes: z.array(z.string()),
+})
 const searchOutput = {
   summary_line: z.string(),
   status_scope: z.enum(['只含正常', '正常＋疑似下架', '含已下架']),
@@ -225,12 +249,12 @@ const toolOutputs = {
   describe_data: z.object({ topic: z.enum(topics), text: z.string() }),
   search_solutions: z.object({ ...searchOutput, total_matches: count,
     totals: z.object({ matches: count, normal: count, suspected_delisted: count, city_unknown: count }), results: z.array(solutionSchema) }),
-  search_companies: z.object({ ...searchOutput, companies_total: count, solutions_total: count,
+  search_companies: z.object({ ...searchOutput, capital_disclosure: capitalDisclosureSchema, companies_total: count, solutions_total: count,
     totals: z.object({ companies: count, solutions: count, normal: count, suspected_delisted: count, city_unknown: count }), companies: z.array(companySchema) }),
   get_solution: z.object({ found: z.boolean(), message: z.string().optional(), solution: solutionDetailSchema.optional(),
-    company: rowSchema.nullable().optional(), contacts: z.array(rowSchema).optional(), gov_registered: z.boolean().nullable().optional(),
+    capital_disclosure: capitalDisclosureSchema.optional(), company: capitalCompanySchema.nullable().optional(), contacts: z.array(rowSchema).optional(), gov_registered: z.boolean().nullable().optional(),
     tax_industries: z.array(rowSchema).optional(), company_awards: z.array(rowSchema).optional(), notes: z.array(z.string()).optional() }),
-  get_solutions: z.object({ requested: count, found: count, not_found: z.array(z.string()), results: z.array(solutionSchema), notes: z.array(z.string()) }),
+  get_solutions: z.object({ capital_disclosure: capitalDisclosureSchema.optional(), requested: count, found: count, not_found: z.array(z.string()), results: z.array(solutionSchema.extend({ company: capitalCompanySchema })), notes: z.array(z.string()) }),
   data_status: z.object({ totals: rowSchema, coverage_gaps_among_active: rowSchema, non_normal_reasons: z.array(rowSchema),
     server_version: z.string(), by_source: z.array(rowSchema), notes: z.array(z.string()) }),
   whoami: z.object({ id: z.string().optional(), email: z.string().optional(), server_version: z.string() }),
@@ -286,6 +310,18 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
         p_include_delisted: a.include_delisted,
         p_sort: a.sort,
       })
+      const capitalDisclosure = async () => {
+        const res = await supabase.rpc('sf_capital_coverage')
+        if (res.error) throw new Error(res.error.message)
+        const row = res.data?.[0]
+        if (!row || row.total_companies == null || row.with_capital == null) throw new Error('資本額涵蓋率查詢未回傳計數')
+        const total = Number(row.total_companies)
+        const known = Number(row.with_capital)
+        return {
+          coverage: { with_capital: known, total_companies: total, percentage: total ? Math.round(known / total * 10000) / 100 : null, denominator: 'companies 全表公司數（不套用方案、下架狀態或本次搜尋條件）' },
+          notes: ['資本額來自登記資料彙整，涵蓋率未達 100%，且資料仍在補強中；未填資本額的公司不會出現在資本額篩選結果。資本額為登記資本，不代表營收或企業規模。', '本結果僅含 SF 資料庫中有上架方案的廠商', '上架方案為預設搜尋母體說明；本次狀態範圍依 status_scope，詳情工具則依指定方案 ID 回傳。'],
+        }
+      }
       const none = { data: [] as Row[], error: null as { message: string } | null }
       const enrichRows = async (rows: Row[], needIndustry: boolean, notes: string[]) => {
         const ids = rows.map((r) => String(r.solution_id))
@@ -419,13 +455,14 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
         registerTool(
           'search_companies',
           {
-            description: '以廠商為單位搜尋，資料庫先完成縣市篩選、全體計數與公司分組，再分頁；每家公司最多列 5 筆符合方案。limit／offset 以廠商數計算。無公司編號的方案各自獨立成組。總數引用 summary_line，推薦請帶 normal_only=true。',
-            inputSchema: searchInput(),
+            description: '以廠商為單位搜尋，資料庫先完成縣市與資本額篩選、全體計數與公司分組，再分頁；每家公司最多列 5 筆符合方案。limit／offset 以廠商數計算。無公司編號的方案各自獨立成組。總數引用 summary_line，推薦請帶 normal_only=true。',
+            inputSchema: companySearchInput(),
             annotations: { readOnlyHint: true },
           },
           async (a) => {
             const res = await supabase.rpc('sf_search_companies', {
               ...rpcArgs(a), p_cities: a.city, p_normal_only: a.normal_only, p_limit: a.limit, p_offset: a.offset,
+              p_min_capital: a.min_capital, p_max_capital: a.max_capital,
             })
             if (res.error) throw new Error(res.error.message)
             const raw = (res.data ?? []) as Row[]
@@ -447,6 +484,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                 company: r.company_name || (cid ? null : '（資料庫沒有廠商名稱）'),
                 company_city: r.company_city || null,
                 company_region: r.company_region || null,
+                capital: r.capital == null ? null : Number(r.capital),
                 tax_primary_industry: tax?.name ?? null,
                 it_code_rank: tax?.rank ?? null,
                 has_company_award: enr.awardsKnown ? !!aw : null,
@@ -460,8 +498,13 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                 })),
               }
             })
+            const capitalGaps = a.min_capital != null || a.max_capital != null ? {
+              missingCompanies: Number(raw[0]?.capital_unknown_count ?? 0),
+              noCompanySolutions: Number(raw[0]?.no_company_count ?? 0),
+            } : undefined
             return asText({
-              ...searchMeta(a, total, suspected, unknown, failures, companiesTotal),
+              ...searchMeta(a, total, suspected, unknown, failures, companiesTotal, capitalGaps),
+              capital_disclosure: await capitalDisclosure(),
               companies_total: companiesTotal, solutions_total: total,
               totals: { companies: companiesTotal, solutions: total, normal: total - suspected, suspected_delisted: suspected, city_unknown: unknown },
               returned: companies.length, offset: a.offset,
@@ -509,7 +552,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
               const [aw, ti, co, ct, gv] = await Promise.all([
                 supabase.from('awards').select('award_year, award_category, award_level, award_name, host_org').eq('company_id', cid).order('award_year', { ascending: false }).limit(10),
                 supabase.from('company_tax_industry').select('code_rank, code6, code_name, snapshot_date').eq('company_id', cid).order('code_rank'),
-                supabase.from('companies').select('company_id, company_name, region, city, is_startup, tech_tags, it_code_rank, tax_primary_code, tax_primary_name').eq('company_id', cid).maybeSingle(),
+                supabase.from('companies').select('company_id, company_name, region, city, is_startup, tech_tags, it_code_rank, tax_primary_code, tax_primary_name, capital').eq('company_id', cid).maybeSingle(),
                 supabase.from('contacts').select('contact_name, title, office_phone').eq('company_id', cid).limit(5),
                 supabase.from('gov_registrations').select('company_id', { count: 'exact', head: true }).eq('company_id', cid),
               ])
@@ -520,7 +563,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
               if (gv.error) throw new Error(gv.error.message)
               companyAwards = aw.data ?? []
               taxIndustries = ti.data ?? []
-              company = co.data
+              company = co.data ? { ...co.data, capital: co.data.capital ?? null } : null
               contacts = ct.data ?? []
               govRegistered = (gv.count ?? 0) > 0
             }
@@ -542,6 +585,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                 status: s.record_status || '正常',
               },
               company,
+              ...(company ? { capital_disclosure: await capitalDisclosure() } : {}),
               contacts,
               gov_registered: govRegistered,
               tax_industries: taxIndustries,
@@ -555,7 +599,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
           'get_solutions',
           {
             description:
-              '批次取得多筆方案的精簡詳情（一次最多 20 筆）。內部只做 4 次資料庫查詢，比逐筆呼叫 get_solution 快得多。回傳方案欄位（描述已縮短）、公司縣市與稅籍主業、公司獲獎（層級與筆數）與是否有政府能量登錄；不含聯絡人（需要聯絡人請對少數候選用 get_solution）。solution_ids 來自 search_solutions／search_companies 的 id。',
+              '批次取得多筆方案的精簡詳情（一次最多 20 筆）。一次取得方案與公司資訊及即時資本額涵蓋率。回傳方案欄位（描述已縮短）、公司縣市與稅籍主業、公司獲獎（層級與筆數）與是否有政府能量登錄；不含聯絡人（需要聯絡人請對少數候選用 get_solution）。solution_ids 來自 search_solutions／search_companies 的 id。',
             inputSchema: z.object({ solution_ids: z.array(z.string().min(1).max(60)).min(1).max(20) }),
             annotations: { readOnlyHint: true },
           },
@@ -569,7 +613,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
             const found = (sol.data ?? []) as Row[]
             const cids = [...new Set(found.map((r) => String(r.company_id ?? '')).filter(Boolean))]
             const [co, aw, gv] = await Promise.all([
-              cids.length ? supabase.from('companies').select('company_id, company_name, city, region, is_startup, it_code_rank, tax_primary_name').in('company_id', cids) : Promise.resolve(none),
+              cids.length ? supabase.from('companies').select('company_id, company_name, city, region, is_startup, it_code_rank, tax_primary_name, capital').in('company_id', cids) : Promise.resolve(none),
               cids.length ? supabase.from('awards').select('company_id, award_category, award_level, award_name, award_year').in('company_id', cids) : Promise.resolve(none),
               cids.length ? supabase.from('gov_registrations').select('company_id').in('company_id', cids) : Promise.resolve(none),
             ])
@@ -606,12 +650,13 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                 slogan: clip(r.slogan as string, 120),
                 summary: clip(r.description_short as string, 300),
                 features: clip(r.features_list as string, 400),
-                company: c1 ? { id: cid, name: c1.company_name, city: c1.city || null, region: c1.region || null, is_startup: c1.is_startup, tax_primary_industry: c1.tax_primary_name ?? null, it_code_rank: c1.it_code_rank ?? null } : { id: cid || null, name: null },
+                company: c1 ? { capital: c1.capital ?? null, id: cid, name: c1.company_name, city: c1.city || null, region: c1.region || null, is_startup: c1.is_startup, tax_primary_industry: c1.tax_primary_name ?? null, it_code_rank: c1.it_code_rank ?? null } : { id: cid || null, name: null, capital: null },
                 company_awards: { count: awards.length, best_level: bestAwardTier(awards.map((x) => String(x.award_category ?? ''))), latest: awards.slice(0, 3).map((x) => `${x.award_year ?? '?'} ${x.award_category ?? ''} ${x.award_name ?? ''}`.trim()) },
                 gov_registered: govSet.has(cid),
               }
             })
             return asText({
+              ...(results.length ? { capital_disclosure: await capitalDisclosure() } : {}),
               requested: ids.length,
               found: results.length,
               not_found: ids.filter((id) => !byId.has(id)),

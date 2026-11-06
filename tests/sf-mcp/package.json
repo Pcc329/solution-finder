@@ -2,9 +2,10 @@
   "name": "sf-mcp-tests",
   "private": true,
   "scripts": {
-    "test": "node --test sf-mcp-v1-2.test.mjs"
+    "test": "node --test sf-mcp-v1-2.test.mjs sf-mcp-v1-3-capital-sql.test.mjs"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.15",
     "@modelcontextprotocol/server": "2.0.0",
     "zod": "4.6.5"
   }
