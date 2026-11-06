@@ -198,7 +198,8 @@ const nextSteps = (a: SearchArgs, unknown: number): string[] => {
   if (a.normal_only) steps.push('改為包含疑似下架方案再查')
   return steps.length ? steps : ['改用其他關鍵字或放寬搜尋條件再查']
 }
-const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: number, failures: string[], companies?: number, capitalUnknown?: number) => {
+const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: number, failures: string[], companies?: number,
+  capitalGaps?: { missingCompanies: number; noCompanySolutions: number }) => {
   const status_scope = a.normal_only ? '只含正常' : a.include_delisted ? '含已下架' : '正常＋疑似下架'
   const context = [...(a.city ?? []).map((city) => city.trim().replace(/台/g, '臺')), ...(a.keyword ? [`關鍵字「${a.keyword}」`] : [])].join('，')
   const normal = total - suspected
@@ -207,7 +208,12 @@ const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: nu
     : `正常 ${normal}、疑似下架 ${suspected}`
   const summary_line = `${context ? context + '：' : ''}${companies == null ? '' : `${companies} 家廠商、`}${total} 筆方案（${distribution}）${unknown ? `；另有 ${unknown} 筆縣市未填未納入` : ''}。`
   const scopeNotes: string[] = []
-  if (capitalUnknown != null) scopeNotes.push(`有 ${capitalUnknown} 家公司未填資本額，無法納入此篩選。`)
+  if (capitalGaps) {
+    const { missingCompanies, noCompanySolutions } = capitalGaps
+    scopeNotes.push(noCompanySolutions > 0
+      ? `有 ${missingCompanies} 家公司未填資本額；另有 ${noCompanySolutions} 筆方案未對應公司，均無法納入此篩選。`
+      : `有 ${missingCompanies} 家公司未填資本額，無法納入此篩選。`)
+  }
   if (a.city?.length) scopeNotes.push('縣市指公司總部所在地。')
   if (a.normal_only && a.include_delisted) scopeNotes.push('normal_only 優先於 include_delisted，只列正常方案。')
   // 合併範圍提醒，為疑似下架與部分失敗各保留一條，必讀資訊不被截斷。
@@ -492,9 +498,12 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                 })),
               }
             })
+            const capitalGaps = a.min_capital != null || a.max_capital != null ? {
+              missingCompanies: Number(raw[0]?.capital_unknown_count ?? 0),
+              noCompanySolutions: Number(raw[0]?.no_company_count ?? 0),
+            } : undefined
             return asText({
-              ...searchMeta(a, total, suspected, unknown, failures, companiesTotal,
-                a.min_capital != null || a.max_capital != null ? Number(raw[0]?.capital_unknown_count ?? 0) : undefined),
+              ...searchMeta(a, total, suspected, unknown, failures, companiesTotal, capitalGaps),
               capital_disclosure: await capitalDisclosure(),
               companies_total: companiesTotal, solutions_total: total,
               totals: { companies: companiesTotal, solutions: total, normal: total - suspected, suspected_delisted: suspected, city_unknown: unknown },

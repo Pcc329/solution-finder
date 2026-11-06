@@ -32,7 +32,7 @@ returns table (
   company_key text, company_id text, company_name text, company_city text, company_region text,
   first_rank bigint, solutions_count bigint, suspected_count bigint, solutions jsonb,
   companies_total bigint, solutions_total bigint, suspected_total bigint, city_unknown_count bigint,
-  capital bigint, capital_unknown_count bigint
+  capital bigint, capital_unknown_count bigint, no_company_count bigint
 )
 language sql stable security invoker
 set search_path = public, pg_temp
@@ -57,9 +57,11 @@ f as (
     and (p_max_capital is null or capital <= p_max_capital)
 ),
 capital_unknown as (
-  -- 與其他條件及縣市相同的搜尋母體，資本額篩選前按公司分組計數。
-  select count(distinct k) as n from city_filtered
-  where (p_min_capital is not null or p_max_capital is not null) and capital is null
+  -- 資本額篩選前，分開計算缺值公司與無公司編號的方案。
+  select count(distinct k) filter (where company_id is not null and capital is null) as capital_unknown_count,
+         count(distinct k) filter (where company_id is null) as no_company_count
+  from city_filtered
+  where p_min_capital is not null or p_max_capital is not null
 ),
 u as (
   select count(*) as n from r cross join w
@@ -77,7 +79,9 @@ tot as (
          (select count(*) from f) as solutions_total,
          (select count(*) from f where record_status like '疑似%') as suspected_total,
          (select n from u) as city_unknown_count,
-         (select n from capital_unknown) as capital_unknown_count
+         capital_unknown.capital_unknown_count,
+         capital_unknown.no_company_count
+  from capital_unknown
 ),
 pg as (
   select * from g
@@ -88,7 +92,7 @@ pg as (
 select p.k, p.company_id, p.company_name, p.company_city, p.region,
        p.first_rank, p.n, p.sus, p.solutions,
        tot.companies_total, tot.solutions_total, tot.suspected_total, tot.city_unknown_count,
-       p.capital, tot.capital_unknown_count
+       p.capital, tot.capital_unknown_count, tot.no_company_count
 from tot
 left join lateral (
   select pg.k, pg.capital, pg.first_rank, pg.n, pg.sus, fx.company_id, fx.company_name, fx.company_city, fx.region,

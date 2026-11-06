@@ -13,6 +13,21 @@
 - 已完成本機 Edge SDK 與 PostgreSQL 合成資料測試。線上資料驗收待使用者執行 SELECT 並回貼結果。
 - 本次未執行正式環境 SQL，未執行正式 migration，未部署 Edge Function。正式部署由使用者在 PR review 後自行處理。
 
+## 2026-11-06 缺值計數修正
+
+- migration 將缺資本額的公司與無 `company_id` 的方案分開計數，並在 RPC 回傳末尾新增 `no_company_count`。
+- Edge Function 在資本額篩選的 `notes` 中分別揭露兩種筆數。未對應公司方案為 0 筆時，省略該句。
+- VERIFY 05 改為兩個計數欄位。SQL 與 Edge 測試涵蓋拆分計數、空頁與 0 筆時的文字。
+
+依 PPC 提供的舊版 05 結果及公司所在地篩選，修正後的預期輸出如下。由 PPC 在 SQL Editor 重跑 05 驗收。
+
+| 列次 | 範圍 | missing_companies | no_company_solutions | 合計 |
+| --- | --- | ---: | ---: | ---: |
+| 1 | 全體 | 184 | 205 | 389 |
+| 2 | 臺北市 | 70 | 0 | 70 |
+
+臺北市篩選比對公司資料的縣市。無 `company_id` 的方案沒有可供比對的公司縣市，因此第 2 列的 `no_company_solutions` 預期為 0。
+
 ## 實際變更
 
 | 檔案 | 變更 |
@@ -34,10 +49,10 @@
 - `r` 沿用既有 `sf_private.sf_ranked` 的方案母體與篩選，再 LEFT JOIN companies 取得 capital。
 - `city_filtered` 沿用台／臺正規化、縣市條件及無公司編號方案的獨立 company_key。
 - `f` 以 `(p_min_capital is null or capital >= p_min_capital)` 與 `(p_max_capital is null or capital <= p_max_capital)` 篩選，任一界限存在時 NULL 自然被排除。
-- `capital_unknown` 對已套用其他條件與縣市的母體，在資本額篩選前 `count(distinct company_key)`。同公司多筆方案只算一組，無公司編號方案及找不到公司資料的群組視為資本額未知，沿用舊分組語意。
+- `capital_unknown` 在其他條件與縣市篩選之後、資本額篩選之前，以 `count(distinct k)` 分開計算有 `company_id` 且資本額為 NULL 的公司與無 `company_id` 的方案。同公司的多筆方案只計一次。
 - `g` 按公司分組，`tot` 在全部結果計數，`pg` 最後才套 limit／offset。每組最多 5 筆方案預覽。
 - `capital_desc` 在 `pg` 與最終輸出均以 capital DESC NULLS LAST 排序，同額沿用 first_rank。內部方案採 relevance 排名，因此公司內的方案預覽仍遵循既有相關性邏輯。
-- 空結果與 offset 超界保留一列總數 sentinel，包含 capital_unknown_count。Edge 只移除 sentinel 並格式化當頁資料。
+- 空結果與 offset 超界保留一列總數 sentinel，包含 `capital_unknown_count` 與 `no_company_count`。Edge 只移除 sentinel 並格式化當頁資料。
 - `city_unknown_count` 保留原本的方案筆數單位，帶資本額時先套資本額條件，再計算無法判斷縣市的方案數。
 
 migration 在單一交易中移除舊簽章、建立尾端帶預設參數的新簽章，避免 PostgREST overload 歧義。舊 Edge 只傳既有參數仍可呼叫。沒有 CASCADE。兩個函式均為 STABLE、SECURITY INVOKER、固定 search_path，撤銷 PUBLIC／anon 執行權並授權 authenticated，沿用登入者 RLS。
@@ -59,7 +74,7 @@ migration 在單一交易中移除舊簽章、建立尾端帶預設參數的新�
 
 以上數字僅為本機合成資料範例。正式值每次呼叫 `sf_capital_coverage`，以同一句 `select count(capital), count(*) from public.companies` 計算，不建立快取表。分母為呼叫者依既有 RLS 可讀的 companies 全表，計入沒有符合方案的公司。百分比四捨五入至兩位小數，空表時 percentage=null。涵蓋率查詢失敗則整次工具回傳既有消毒錯誤，不提供虛構涵蓋率。
 
-capital_disclosure.notes 包含規格指定的固定但書，以及「本結果僅含 SF 資料庫中有上架方案的廠商」。另說明這是預設搜尋母體，實際搜尋狀態依 status_scope，詳情工具依指定 ID 回傳，以銜接既有 include_delisted 與詳情行為。帶資本額條件時，頂層 notes 另載「有 N 家公司未填資本額，無法納入此篩選」。
+capital_disclosure.notes 包含規格指定的固定但書，以及「本結果僅含 SF 資料庫中有上架方案的廠商」。另說明這是預設搜尋母體，實際搜尋狀態依 status_scope，詳情工具依指定 ID 回傳，以銜接既有 include_delisted 與詳情行為。帶資本額條件時，頂層 notes 分別揭露未填資本額的公司數與未對應公司的方案數。後者為 0 時省略。
 
 `describe_data(topic="capital")` 與 index 目錄已更新，包含登記資本定義、來源清洗中、引用「已知資本額中」、即時涵蓋率與分母，以及不代表營收或企業規模的說明。
 
@@ -107,7 +122,7 @@ companies 全表口徑直接對公司欄位套相同資本額與縣市條件，�
 | 驗收項目 | 狀態 |
 | --- | --- |
 | min_capital 計數等於相同方案母體 SQL | 本機通過，線上待 SQL 03 |
-| notes 的資本額未知公司組數 | 本機通過，線上待 SQL 05 |
+| notes 分開揭露缺值公司與未對應公司的方案 | 本機通過，線上待 PPC 重跑 SQL 05 |
 | min_capital＋臺北市組合篩選 | 本機通過，線上待 SQL 03 |
 | capital_desc 最大值第一、NULL 最後 | 本機通過，線上待 SQL 04，部署後 MCP 待驗 |
 | get_solution／get_solutions capital 與 NULL | Edge SDK 通過，線上候選見 SQL 07，部署後 MCP 待驗 |

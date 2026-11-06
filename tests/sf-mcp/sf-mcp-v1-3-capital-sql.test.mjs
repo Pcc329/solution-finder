@@ -59,7 +59,7 @@ test('capital migration executes in PostgreSQL with legacy parity, DB filtering,
     await t.test('six legacy queries preserve every old column, row and order', async () => {
       for (const [i, args] of cases.entries()) {
         const rows = await search(args)
-        assert.deepEqual(rows.map(({ capital, capital_unknown_count, ...row }) => row), baseline[i])
+        assert.deepEqual(rows.map(({ capital, capital_unknown_count, no_company_count, ...row }) => row), baseline[i])
       }
     })
 
@@ -67,11 +67,13 @@ test('capital migration executes in PostgreSQL with legacy parity, DB filtering,
       const rows = await search('p_min_capital=>100000000, p_limit=>1')
       assert.equal(rows[0].companies_total, 5)
       assert.equal(rows.length, 1)
-      assert.equal(rows[0].capital_unknown_count, 2) // C has two solutions but counts once; orphan is one group.
+      assert.equal(rows[0].capital_unknown_count, 1) // C has two solutions but counts once.
+      assert.equal(rows[0].no_company_count, 1)
       assert.equal((await query('select count(*) as n from companies where capital >= 100000000'))[0].n, 7)
       const city = await search("p_min_capital=>100000000, p_cities=>array[' 台北市 ']")
       assert.equal(city[0].companies_total, 3)
       assert.equal(city[0].capital_unknown_count, 1)
+      assert.equal(city[0].no_company_count, 0)
       assert.equal(city[0].city_unknown_count, 1)
       assert.equal((await search('p_max_capital=>100000000'))[0].companies_total, 4)
       assert.equal((await search('p_min_capital=>100000000, p_max_capital=>100000000'))[0].companies_total, 3)
@@ -97,11 +99,13 @@ test('capital migration executes in PostgreSQL with legacy parity, DB filtering,
       assert.equal(empty.length, 1)
       assert.equal(empty[0].company_key, null)
       assert.equal(empty[0].companies_total, 0)
-      assert.equal(empty[0].capital_unknown_count, 2)
+      assert.equal(empty[0].capital_unknown_count, 1)
+      assert.equal(empty[0].no_company_count, 1)
       const page = await search('p_min_capital=>100000000, p_offset=>5000')
       assert.equal(page[0].company_key, null)
       assert.equal(page[0].companies_total, 5)
-      assert.equal(page[0].capital_unknown_count, 2)
+      assert.equal(page[0].capital_unknown_count, 1)
+      assert.equal(page[0].no_company_count, 1)
     })
 
     await t.test('coverage counts all companies, counts zero, refreshes after isolated test update', async () => {
@@ -139,6 +143,10 @@ test('capital migration executes in PostgreSQL with legacy parity, DB filtering,
         assert.match(statement, /^(SELECT|WITH)\b/)
         await query(statement)
       }
+      assert.deepEqual(await query(statements[4]), [
+        { missing_companies: 1, no_company_solutions: 1 },
+        { missing_companies: 1, no_company_solutions: 0 },
+      ])
     })
   } finally {
     await db.close()
