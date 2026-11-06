@@ -53,7 +53,7 @@ const solution = (extra = {}) => ({
 })
 const company = (extra = {}) => ({
   company_key: 'MOCK-C1', company_id: 'MOCK-C1', company_name: 'Mock 廠商', company_city: '臺北市', company_region: '北部',
-  first_rank: 1, solutions_count: 9, suspected_count: 2,
+  capital: 100000000, capital_unknown_count: 7, no_company_count: 0, first_rank: 1, solutions_count: 9, suspected_count: 2,
   solutions: [{ id: 'SOL-MOCK-1', name: 'Mock AI 方案', source: '測試來源', price: 1000, pricing_model: ['訂閱制'], status: null, score: 100 }],
   companies_total: 152, solutions_total: 390, suspected_total: 30, city_unknown_count: 12, ...extra,
 })
@@ -70,7 +70,7 @@ function mockDb({ rpc = {}, tables = {}, touch, fromError, throwRpc, throwTouch 
       }
       if (throwRpc) throw new Error('SELECT secret FROM private; postgresql://user:password@host/db\nstack')
       const values = {
-        sf_search_solutions: [solution()], sf_search_companies: [company()], sf_data_status: [{ total_count: 10, normal_count: 8, suspected_count: 1, delisted_count: 1 }],
+        sf_capital_coverage: [{ with_capital: 6, total_companies: 10 }], sf_search_solutions: [solution()], sf_search_companies: [company()], sf_data_status: [{ total_count: 10, normal_count: 8, suspected_count: 1, delisted_count: 1 }],
         sf_data_coverage: [{ active_solutions: 9, company_region_missing: 1, service_region_missing: 2, price_missing: 3 }], sf_status_reasons: [],
       }
       return { data: rpc[name] ?? values[name], error: null }
@@ -289,7 +289,7 @@ for (const options of [{ touch: { error: { message: 'private' }, data: null } },
     t.mock.method(console, 'warn', () => {})
     const { result, data } = await callTool(mockDb(options), 'whoami')
     assert.notEqual(result.isError, true)
-    assert.deepEqual(data, { id: 'mock-user', email: 'signed-in-user@example.invalid', server_version: '1.2.1' })
+    assert.deepEqual(data, { id: 'mock-user', email: 'signed-in-user@example.invalid', server_version: '1.3.0' })
     assert.equal(console.error.mock.callCount() + console.warn.mock.callCount(), 1)
     if (options.touch?.error || options.throwTouch) {
       assert.deepEqual(console.error.mock.calls[0].arguments, ['[sf-mcp] whoami sf_mcp_touch 失敗：', options.throwTouch ? 'private connection string' : 'private'])
@@ -311,22 +311,22 @@ test('describe topics index/default, all and every section preserve v1.1 except 
     .replace(/^- 伺服器端最多掃描.*\n/m, '')
     .replace('- 引用任何數字時，請附上定義與資料缺口，避免使用者誤解。', '- 引用數字時優先使用 summary_line；定義與缺口用一句帶過，被問到再展開。')
   const { data: all } = await callTool(mockDb(), 'describe_data', { topic: 'all' })
-  assert.equal(all.text, guide)
+  assert.equal(all.text.split('\n\n## 十二、')[0], guide)
   const { data: index } = await callTool(mockDb(), 'describe_data')
   assert.equal(index.topic, 'index')
-  assert.equal(index.text.split('\n\n')[0].split('\n').length, 11)
+  assert.equal(index.text.split('\n\n')[0].split('\n').length, 12)
   assert.match(index.text, /## 一、資料是什麼/)
   assert.match(index.text, /## 二、狀態/)
   assert.doesNotMatch(index.text, /## 三、/)
   const names = ['data', 'status', 'region', 'ranking', 'mapping', 'industry', 'tips', 'tax', 'awards', 'lists', 'other']
   for (const [i, topic] of names.entries()) {
     const { data } = await callTool(mockDb(), 'describe_data', { topic })
-    assert.equal(data.text, guide.split(/\n(?=## )/)[i + 1])
+    assert.equal(data.text.trimEnd(), guide.split(/\n(?=## )/)[i + 1].trimEnd())
   }
 })
-test('protected five handlers retain query/body logic except specified name display changes', () => {
+test('three handlers without capital retain query/body logic', () => {
   const before = execFileSync('git', ['show', 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e:supabase/functions/sf-mcp/index.ts'], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n')
-  for (const name of ['get_solution', 'get_solutions', 'data_status', 'whoami', 'count_solutions']) {
+  for (const name of ['data_status', 'whoami', 'count_solutions']) {
     const body = (text) => text.split(`'${name}',\n`)[1].split(/\n\s+async /)[1].split('\n        )')[0].trim()
     const normalize = (text) => text
       .replace(/\n\s+solution_name: displaySolutionName\(s.solution_name\),/g, '')
@@ -405,7 +405,7 @@ test('summary city text uses official 臺 while RPC parameters and keyword stay 
 test('describe_data index uses the first complete sentence, not a list heading fragment', async () => {
   const { data } = await callTool(mockDb(), 'describe_data')
   const directory = data.text.split('\n\n')[0].split('\n')
-  assert.equal(directory.length, 11)
+  assert.equal(directory.length, 12)
   for (const line of directory) assert.match(line, /[。！？]$/)
   const mapping = directory[4]
   assert.doesNotMatch(mapping, /需求 → keyword：。/)
@@ -417,4 +417,106 @@ test('name display preserves RPC page order, scores, totals and request paramete
   const { data } = await callTool(mockDb({ rpc: { sf_search_solutions: rows } }), 'search_solutions', { include_delisted: true })
   assert.deepEqual(data.results.map(r => [r.id, r.score]), rows.map(r => [r.solution_id, r.score]))
   assert.equal(data.total_matches, 390)
+})
+
+
+test('capital schema is limited to search_companies and validates bounds', async () => {
+  const tools = createSfServer(mockDb())._registeredTools
+  const input = tools.search_companies.inputSchema
+  assert.equal(input.safeParse({ min_capital: 0, max_capital: 100, sort: 'capital_desc' }).success, true)
+  for (const args of [{ min_capital: -1 }, { max_capital: -1 }, { min_capital: 2, max_capital: 1 }, { min_capital: Infinity }, { min_capital: Number.MAX_SAFE_INTEGER + 1 }]) {
+    assert.equal(input.safeParse(args).success, false)
+  }
+  assert.equal(tools.search_solutions.inputSchema.safeParse({ sort: 'capital_desc' }).success, false)
+})
+
+test('capital bounds and sorting reach the DB with city, normal_only and pagination', async () => {
+  const db = mockDb()
+  const { data } = await callTool(db, 'search_companies', { min_capital: 0, max_capital: 100000000, city: ['臺北市'], normal_only: true, sort: 'capital_desc', limit: 1, offset: 2 })
+  const args = db.calls.find(c => c.rpc === 'sf_search_companies').args
+  assert.equal(args.p_min_capital, 0)
+  assert.equal(args.p_max_capital, 100000000)
+  assert.equal(args.p_sort, 'capital_desc')
+  assert.equal(args.p_normal_only, true)
+  assert.equal(args.p_offset, 2)
+  assert.deepEqual(args.p_cities, ['臺北市'])
+  assert.equal(data.companies_total, 152)
+  assert.equal(data.companies[0].capital, 100000000)
+  assert.match(data.notes.join(''), /有 7 家公司未填資本額，無法納入此篩選/)
+  assert.doesNotMatch(data.notes.join(''), /方案未對應公司/)
+  assert.ok(data.notes.length <= 3)
+  assert.equal(db.calls.filter(c => c.rpc === 'sf_capital_coverage').length, 1)
+})
+
+for (const capital of [null, 0, 100000000]) {
+  test(`capital remains ${capital} through search and both detail tools`, async () => {
+    const options = { rpc: { sf_search_companies: [company({ capital })] }, tables: { companies: [{ company_id: 'MOCK-C1', capital }] } }
+    const search = await callTool(mockDb(options), 'search_companies')
+    assert.equal(search.data.companies[0].capital, capital)
+    const single = await callTool(mockDb(options), 'get_solution', { solution_id: 'SOL-MOCK-1' })
+    assert.equal(single.data.company.capital, capital)
+    const batch = await callTool(mockDb(options), 'get_solutions', { solution_ids: ['SOL-MOCK-1'] })
+    assert.equal(batch.data.results[0].company.capital, capital)
+    for (const { data } of [search, single, batch]) {
+      assert.deepEqual(data.capital_disclosure.coverage, { with_capital: 6, total_companies: 10, percentage: 60, denominator: 'companies 全表公司數（不套用方案、下架狀態或本次搜尋條件）' })
+      assert.ok(data.capital_disclosure.notes.includes('本結果僅含 SF 資料庫中有上架方案的廠商'))
+    }
+    for (const { db, tool, args } of [
+      { db: mockDb(options), tool: 'get_solution', args: { solution_id: 'SOL-MOCK-1' } },
+      { db: mockDb(options), tool: 'get_solutions', args: { solution_ids: ['SOL-MOCK-1'] } },
+    ]) {
+      await callTool(db, tool, args)
+      assert.match(db.calls.find(c => c.table === 'companies').operations[0][1], /\bcapital\b/)
+    }
+  })
+}
+
+test('capital unknown count survives empty pages and counts remain server totals', async () => {
+  const db = mockDb({ rpc: { sf_search_companies: [company({
+    company_key: null, companies_total: 0, solutions_total: 0, suspected_total: 0, no_company_count: 3,
+  })] } })
+  const { data } = await callTool(db, 'search_companies', { min_capital: 100000000 })
+  assert.deepEqual(data.companies, [])
+  assert.equal(data.companies_total, 0)
+  assert.ok(data.notes.includes('有 7 家公司未填資本額；另有 3 筆方案未對應公司，均無法納入此篩選。'))
+  assert.equal(data.capital_disclosure.coverage.total_companies, 10)
+})
+
+test('coverage refreshes for every call, includes zero as known and handles empty denominator', async () => {
+  const rows = [{ with_capital: 6, total_companies: 10 }]
+  const db = mockDb({ rpc: { sf_capital_coverage: rows } })
+  assert.equal((await callTool(db, 'search_companies')).data.capital_disclosure.coverage.percentage, 60)
+  rows[0] = { with_capital: 7, total_companies: 10 }
+  assert.equal((await callTool(db, 'search_companies')).data.capital_disclosure.coverage.percentage, 70)
+  rows[0] = { with_capital: 0, total_companies: 0 }
+  assert.equal((await callTool(db, 'search_companies')).data.capital_disclosure.coverage.percentage, null)
+  assert.equal(db.calls.filter(c => c.rpc === 'sf_capital_coverage').length, 3)
+})
+
+test('missing coverage fails without publishing capital with fabricated disclosure', async () => {
+  const { result } = await callTool(mockDb({ rpc: { sf_capital_coverage: [] } }), 'search_companies')
+  assert.equal(result.isError, true)
+})
+
+test('unaffected search and missing detail results do not fetch or expose capital', async () => {
+  for (const [name, args, tables] of [
+    ['search_solutions', {}, {}], ['get_solution', { solution_id: 'absent' }, { solutions: [] }],
+    ['get_solutions', { solution_ids: ['absent'] }, { solutions: [] }],
+  ]) {
+    const db = mockDb({ tables })
+    const { data } = await callTool(db, name, args)
+    assert.equal(data.capital_disclosure, undefined)
+    assert.equal(db.calls.some(c => c.rpc === 'sf_capital_coverage'), false)
+    const search = db.calls.find(c => c.rpc === 'sf_search_solutions')
+    if (search) assert.equal('p_min_capital' in search.args, false)
+  }
+})
+
+test('describe_data capital topic and index disclose definition and denominator', async () => {
+  const { data } = await callTool(mockDb(), 'describe_data', { topic: 'capital' })
+  assert.match(data.text, /資本總額與實收資本額/)
+  assert.match(data.text, /已知資本額中/)
+  assert.match(data.text, /companies 全表/)
+  const index = await callTool(mockDb(), 'describe_data')
+  assert.match(index.data.text, /十二、資本額/)
 })
