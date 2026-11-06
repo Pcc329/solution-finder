@@ -103,6 +103,7 @@ export default async function handler(req, res) {
       cdmCategoryRows,
       caseEvidenceRows,
       awardRows,
+      imageUrlBySolutionId,
     ] = await Promise.all([
       fetchAllSupabasePaged(
         supabaseUrl, supabaseAnonKey, 'solutions',
@@ -166,6 +167,10 @@ export default async function handler(req, res) {
         'awards',
         'company_id,award_category,award_name,award_year',
         'company_id.asc'
+      ),
+      fetchOptionalSupabaseColumn(
+        supabaseUrl, supabaseAnonKey, 'solution_images', 'solution_id', 'image_url',
+        'solution_id.asc', { status: 'eq.active' }
       ),
     ]);
 
@@ -317,6 +322,7 @@ export default async function handler(req, res) {
         pgc: programTypesByCid.get(cid)?.size || 0,
         pgList: Array.from(programTypesByCid.get(cid) || []),
         so: parseScore(row.score_overall),
+        img: imageUrlBySolutionId.get(String(row.solution_id || '')) || '',
       };
     });
 

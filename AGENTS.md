@@ -32,6 +32,7 @@ cat=類別 iv=產業垂直 pr=價格(數字) pt=費用級距
 mo=月費 mt=月費級距 r=地區 st=是否新創(bool)
 city=城市 desc=說明 feat=功能列表 tags=技術標籤
 scale=目標規模 slogan=標語
+img=方案圖片網址（無圖為空字串）
 
 ---
 
