@@ -53,9 +53,15 @@
     .solution-image-frame img { position: absolute; inset: 0; width: 100%; height: 100%; }
     .solution-image-backdrop { object-fit: cover; filter: blur(14px) brightness(0.85); transform: scale(1.2); }
     .solution-image-main { object-fit: scale-down; }
-    .solution-image-fallback { height: 100%; display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 0.25rem; padding: 0.5rem; text-align: center; }
-    .solution-image-fallback strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; font-size: 0.875rem; line-height: 1.25; }
-    .solution-image-fallback span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; }
+    .solution-image-card { display: contents; }
+    .solution-image-card > .solution-image-frame { order: -1; }
+    @media (min-width: 640px) {
+      .solution-image-card > .solution-image-frame { order: 1; width: 176px; flex: none; align-self: flex-start; }
+      /* Split the price and chevron into flex items only while the image frame exists. */
+      .solution-image-card:not(:empty) + div { display: contents; }
+      .solution-image-card:not(:empty) + div > div { display: flex; flex-direction: column; justify-content: center; min-width: 110px; border-left: 1px solid #f1f5f9; padding-left: 1rem; }
+      .solution-image-card:not(:empty) + div > i { order: 2; align-self: center; margin-top: 0; }
+    }
   </style>
 </head>
 <body>
@@ -1745,7 +1751,7 @@
               const disabled = !checked && compareItems.length >= 4;
               const solutionName = displaySolutionName(item.s);
               const solutionImage = window.renderSolutionImage?.({
-                imageUrl: item.img, solutionName, companyName: item.c, category: item.cat, variant: 'card',
+                imageUrl: item.img, solutionName, variant: 'card',
               });
               return (
               <div key={item.id || item.s}
@@ -1792,6 +1798,7 @@
                       </div>
                     )}
                   </div>
+                  {solutionImage && <div className="solution-image-card" dangerouslySetInnerHTML={{ __html: solutionImage }} />}
                   <div className="flex flex-row sm:flex-col justify-between sm:justify-center items-center sm:items-end border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0 sm:pl-4 sm:border-l sm:min-w-[110px]">
                     <div className="text-left sm:text-right">
                       <p className="text-[10px] text-slate-400 mb-0.5">方案費用</p>
@@ -1805,10 +1812,6 @@
                     </div>
                     <i className="fa-solid fa-chevron-right text-slate-300 mt-0 sm:mt-4"></i>
                   </div>
-                  {solutionImage && (
-                    <div className="order-first w-full sm:order-none sm:w-[176px] sm:shrink-0 sm:self-start"
-                      dangerouslySetInnerHTML={{ __html: solutionImage }} />
-                  )}
                 </div>
               </div>
             )}) : (
@@ -2029,7 +2032,7 @@
 
         const solutionName = displaySolutionName(item.s);
         const solutionImage = window.renderSolutionImage?.({
-          imageUrl: item.img, solutionName, companyName: item.c, category: item.cat, variant: 'detail',
+          imageUrl: item.img, solutionName, variant: 'detail',
         });
         const descShort = (item.ds || "").trim();
         const descFull = (item.desc || "").trim();
@@ -2080,6 +2083,8 @@
               {item.slogan && <p className="text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 italic">「{item.slogan}」</p>}
             </div>
 
+            {solutionImage && <div dangerouslySetInnerHTML={{ __html: solutionImage }} />}
+
             <ContactInfoCard key={item.id || item.s} item={item} cache={companyDetailCache.current} pending={companyDetailPending.current} />
 
             {/* Price card */}
@@ -2101,8 +2106,6 @@
               <i className="fa-solid fa-calculator"></i>
               試算這個方案的 ROI
             </button>
-
-            {solutionImage && <div dangerouslySetInnerHTML={{ __html: solutionImage }} />}
 
             {/* Description */}
             {displayDesc && (
