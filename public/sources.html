@@ -556,7 +556,7 @@
     <header>
       <div>
         <h1>🗂️ 資料來源說明</h1>
-        <p class="subtitle">III 產業資料庫 · 收錄 10 大方案來源 · <span data-source-total>2,443</span> 筆方案</p>
+        <p class="subtitle">III 產業資料庫 · 收錄 11 大方案來源 · <span data-source-total>2,443</span> 筆方案</p>
       </div>
       <a href="/" class="home-link">← 回首頁</a>
     </header>
@@ -579,6 +579,7 @@
             <li><span>農業雲市集-數位館（農業部）</span><span class="count" data-source-count data-program-types="農業雲市集-數位館">93 筆</span></li>
             <li><span>農業雲市集-AI館（農業部）</span><span class="count" data-source-count data-program-types="農業雲市集-AI館">9 筆</span></li>
             <li><span>資策會產業調查（資策會自有）</span><span class="count" data-source-count data-program-types="資策會產業調查">133 筆</span></li>
+            <li><span>智慧雨林擴散案（廠商官網）</span><span class="count" data-source-count data-program-types="智慧雨林擴散案（廠商官網）">— 筆</span></li>
           </ul>
           <p class="layer-note">找到適合的方案，評估要不要買</p>
         </article>
@@ -803,6 +804,21 @@
         <article class="card detail-card">
           <div class="detail-head">
             <div>
+              <h3>智慧雨林擴散案（廠商官網）</h3>
+              <span class="agency">人工查核收錄</span>
+            </div>
+            <span class="badge" data-source-count data-source-card data-program-types="智慧雨林擴散案（廠商官網）">— 筆</span>
+          </div>
+          <div class="meta">
+            <div><strong>主辦機關：</strong>經濟部商業發展署</div>
+            <div><strong>線索來源：</strong><a href="https://www.stsvpo.org.tw/tw/downloads/48">115 年度智慧雨林產業創生計畫智慧商業服務領域擴散案核定名單</a></div>
+          </div>
+          <p class="feature">擴散案核定之資服業者中，官網有具名產品且與核定計畫名稱相關者，以人工查核收錄；方案內容為廠商自述，未經平台審核。</p>
+        </article>
+
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div>
               <h3>新創嚴選網</h3>
               <span class="agency">國發會</span>
             </div>
@@ -958,7 +974,7 @@
         const unclassifiedNote = document.getElementById('sourceUnclassifiedNote');
         if (unclassifiedNote && unclassifiedCount > 0) {
           unclassifiedNote.hidden = false;
-          unclassifiedNote.textContent = '另有 ' + sourceCountFormatter.format(unclassifiedCount) + ' 筆方案尚未設定方案來源，未列入上述十大方案來源。';
+          unclassifiedNote.textContent = '另有 ' + sourceCountFormatter.format(unclassifiedCount) + ' 筆方案尚未設定方案來源，未列入上述方案來源。';
         }
       } catch (error) {
         console.warn('資料來源筆數同步失敗，保留頁面預設值。', error);
@@ -995,7 +1011,7 @@
         solution:{x:700,y:200,w:180,h:70,k:"so",t:"方案",s:"平台上架的產品",
           d:"一個在合作平台上架的產品或服務，含名稱、價格、功能與狀態。",
           li:["每個方案屬於一家公司、來自一個來源平台","狀態分為正常、疑似下架、已下架","同一產品若在兩個平台上架，會是兩筆方案"]},
-        source:{x:700,y:40,w:180,h:60,k:"so",t:"來源平台",s:"目前 10 個",
+        source:{x:700,y:40,w:180,h:60,k:"so",t:"方案來源",s:"目前 11 個",
           d:"方案的資料來源，例如臺灣雲市集、新創嚴選網、商業服務業專區。",
           li:["資料來源說明頁列出每個平台的主辦單位與收錄方式","「跨 N 種計畫」只計入能佐證是政府計畫的來源"]},
         review:{x:700,y:370,w:180,h:60,k:"so",t:"狀態查證紀錄",s:"上下架查證",
