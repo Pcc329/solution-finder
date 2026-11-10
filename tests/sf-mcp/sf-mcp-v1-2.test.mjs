@@ -307,6 +307,8 @@ test('injected enforce=true blocks before handler, with deterministic retry seco
 test('describe topics index/default, all and every section preserve v1.1 except specified edits', async () => {
   const before = execFileSync('git', ['show', 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e:supabase/functions/sf-mcp/index.ts'], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n')
   const guide = before.split('const DATA_GUIDE = `')[1].split('`')[0]
+    .replace('資策會產業調查等。', '資策會產業調查、智慧雨林擴散案（廠商官網）等。\n- 智慧雨林擴散案（廠商官網）：擴散案核定之資服業者中，官網有具名產品且與核定計畫名稱相關者，以人工查核收錄；方案內容為廠商自述，未經平台審核。')
+    .replace('正常：在來源平台上架中。', '正常：在來源平台上架中，或由廠商官網公開提供。')
     .replace('- 已下架_…：已確認失效。預設排除，除非 include_delisted=true。', '- 已下架_…：已確認失效。預設排除，除非 include_delisted=true。\n- 回答格式：每筆疑似下架標『⚠疑似下架』，最後一句總說明；被問到才說明原因。推薦類問題請用 normal_only=true。')
     .replace(/^- 伺服器端最多掃描.*\n/m, '')
     .replace('- 引用任何數字時，請附上定義與資料缺口，避免使用者誤解。', '- 引用數字時優先使用 summary_line；定義與缺口用一句帶過，被問到再展開。')
