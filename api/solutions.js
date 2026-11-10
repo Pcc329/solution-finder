@@ -13,6 +13,8 @@ const PROGRAM_EVIDENCE_SOURCES = new Set([
   '農業雲市集-數位館',
   '農業雲市集-AI館',
   '新北產業AI化輔導計畫',
+  // 核定名單可佐證廠商參與擴散案，個別方案內容仍為廠商自述。
+  '智慧雨林擴散案（廠商官網）',
 ]);
 
 export default async function handler(req, res) {

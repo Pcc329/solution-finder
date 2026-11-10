@@ -4,6 +4,7 @@ import handler from '../api/solutions.js';
 
 const allowed = ['臺灣雲市集', '雲市集工業館', '新創嚴選網', '商業服務業專區', '農業雲市集-數位館', '新北產業AI化輔導計畫'];
 const excluded = ['SME AI平台', '政府軟體採購網', '資策會產業調查', '案例反推補建'];
+const rainforestSource = '智慧雨林擴散案（廠商官網）';
 const activeFilter = '(record_status.is.null,record_status.not.like.已下架*)';
 
 async function loadSolutions(programs, { source = 'supabase' } = {}) {
@@ -199,11 +200,17 @@ test('AI hall does not allow excluded, unknown or display-only source names', as
   assert.deepEqual(rows.map(row => row.p), sources);
 });
 
-test('all seven allowed source names form exactly six ordered program groups', async () => {
+test('all eight allowed source names form exactly seven ordered program groups', async () => {
   const sources = ['臺灣雲市集', '雲市集工業館', '新創嚴選網', '商業服務業專區',
-    '農業雲市集-數位館', '農業雲市集-AI館', '新北產業AI化輔導計畫'];
+    '農業雲市集-數位館', '農業雲市集-AI館', '新北產業AI化輔導計畫', rainforestSource];
   assertPrograms(await loadSolutions([...sources, ...excluded, '測試新來源']),
-    ['臺灣雲市集', '雲市集工業館', '新創嚴選網', '商業服務業專區', '農業雲市集', '新北產業AI化輔導計畫']);
+    ['臺灣雲市集', '雲市集工業館', '新創嚴選網', '商業服務業專區', '農業雲市集', '新北產業AI化輔導計畫', rainforestSource]);
+});
+
+test('rainforest keeps its exact source label and counts one evidenced program per company', async () => {
+  const rows = await loadSolutions([rainforestSource, rainforestSource, '智慧雨林擴散案', '資策會產業調查']);
+  assertPrograms(rows, [rainforestSource]);
+  assert.deepEqual(rows.slice(0, 2).map(row => row.p), [rainforestSource, rainforestSource]);
 });
 
 test('agricultural hall grouping stays within each linked company', async () => {

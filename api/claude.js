@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 - ai: 是否為AI方案，true/false
 - startup: 是否為新創，true/false
 - industry_vertical: 五大領域，可選值："旅宿觀光"/"製造業"/"醫療照護"/"建築營造"/"文化創意"
-- program: 資料來源，可選值："雲市集"/"新創嚴選"/"五大領域調查"/"商業署"/"中企署"/"產發署"
+- program: 資料來源，可選值："雲市集"/"新創嚴選"/"五大領域調查"/"商業署"/"中企署"/"產發署"/"智慧雨林擴散案（廠商官網）"
 - maxPrice: 總費用上限（數字）
 - maxMonthlyPrice: 月費上限（數字）
 - scale: 適用企業規模，可選值："微型企業"/"中小企業"/"中大型企業"/"大型企業"
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
    - 資安、資訊安全、網路安全、合規 → category: "資安合規"
    - ERP、進銷存、供應鏈、倉儲、物流、生產 → category: "生產物流"
    - CRM、銷售、POS、訂單、報價 → category: "銷售管理"
-   - SEO、廣告、行銷、社群、官網 → category: "行銷推廣"
+   - SEO、廣告、行銷、社群、官網 → category: "行銷推廣"（若「官網」只是來源名稱的一部分，則不加此類別）
    - HR、人資、招募、排班、薪資 → category: "人力資源"
    - 協作、辦公、專案管理、會議、文件 → category: "協作辦公"
    - AI開發、資料分析、IoT、研發 → category: "研發創新"
