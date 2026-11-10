@@ -4,9 +4,10 @@ do $migration$
 declare
   rainforest_source constant text := '智慧雨林擴散案（廠商官網）';
 begin
-  insert into public.companies (company_id, company_name, website, note)
+  insert into public.companies (company_id, company_name, website, note, city, region, capital, established_date)
   values ('90249191', '快帶科技股份有限公司', 'https://www.kuai-dai.com',
-          '115/07/27 由「快帶科技有限公司」更名，統編不變（商工登記公示資料名稱變更歷程）。')
+          '115/07/27 由「快帶科技有限公司」更名，統編不變（商工登記公示資料名稱變更歷程）。',
+          null, null, null, null)
   on conflict (company_id) do nothing;
 
   if not found then
@@ -34,14 +35,17 @@ begin
 
   insert into public.solutions (
     solution_id, company_id, solution_name, program_type, data_source, website_url,
-    description_short, has_ai, record_status
+    description_short, has_ai, record_status, price, monthly_price,
+    industry_category, target_industry, service_region
   ) values
     ('SOL-RF-0001', '90249191', 'EO Insights', rainforest_source, rainforest_source,
      'https://www.kuai-dai.com/insights.html',
-     '從各門市的 Google 評論，找出出餐、食安、服務問題，接近即時用 LINE 通知總部、區域督導和店長。', true, '正常'),
+     '從各門市的 Google 評論，找出出餐、食安、服務問題，接近即時用 LINE 通知總部、區域督導和店長。', true, '正常',
+     null, null, null, null, null),
     ('SOL-RF-0002', '50932719', 'AI客服－資深員工', rainforest_source, rainforest_source,
      'https://www.jxinfo.com.tw/service_detail.php?id=43',
-     '結合了最先進的 RAG（檢索增強生成）技術與雙軌混合檢索架構，將企業內部的營運規章、產品手冊與 FAQ 轉化為永不離開、24 小時在線的數位資深員工。', true, '正常');
+     '結合了最先進的 RAG（檢索增強生成）技術與雙軌混合檢索架構，將企業內部的營運規章、產品手冊與 FAQ 轉化為永不離開、24 小時在線的數位資深員工。', true, '正常',
+     null, null, null, null, null);
 
   if (select count(*) from public.solutions where program_type = rainforest_source) <> 2 then
     raise exception '智慧雨林試點中止：來源「%」的方案筆數不是 2。', rainforest_source;
