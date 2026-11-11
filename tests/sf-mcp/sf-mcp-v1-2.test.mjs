@@ -289,7 +289,7 @@ for (const options of [{ touch: { error: { message: 'private' }, data: null } },
     t.mock.method(console, 'warn', () => {})
     const { result, data } = await callTool(mockDb(options), 'whoami')
     assert.notEqual(result.isError, true)
-    assert.deepEqual(data, { id: 'mock-user', email: 'signed-in-user@example.invalid', server_version: '1.3.0' })
+    assert.deepEqual(data, { id: 'mock-user', email: 'signed-in-user@example.invalid', server_version: '1.3.1' })
     assert.equal(console.error.mock.callCount() + console.warn.mock.callCount(), 1)
     if (options.touch?.error || options.throwTouch) {
       assert.deepEqual(console.error.mock.calls[0].arguments, ['[sf-mcp] whoami sf_mcp_touch 失敗：', options.throwTouch ? 'private connection string' : 'private'])
@@ -312,6 +312,9 @@ test('describe topics index/default, all and every section preserve v1.1 except 
     .replace('- 已下架_…：已確認失效。預設排除，除非 include_delisted=true。', '- 已下架_…：已確認失效。預設排除，除非 include_delisted=true。\n- 回答格式：每筆疑似下架標『⚠疑似下架』，最後一句總說明；被問到才說明原因。推薦類問題請用 normal_only=true。')
     .replace(/^- 伺服器端最多掃描.*\n/m, '')
     .replace('- 引用任何數字時，請附上定義與資料缺口，避免使用者誤解。', '- 引用數字時優先使用 summary_line；定義與缺口用一句帶過，被問到再展開。')
+    .replace('- 需要匯出檔案時，請先在對話中整理成表格，再用你自己的工具輸出；本資料庫連接器唯讀，不能產生檔案。', '- 本連接器不提供整批匯出或全庫清單。使用者要求匯出全部或大量資料時，請說明此限制，並建議用條件（來源、類別、縣市、價格）縮小範圍後查詢；確有盤點需求者，請洽資料維護者。少量結果可在對話中整理成表格。')
+    .replace('- 碳排放、淨零、ESG → 碳', '- 碳排放、淨零、ESG → 碳\n- 財會、會計、記帳、帳務、財務報表 → 財務（再以「會計」補搜一次，用方案 id 取聯集）')
+    .replace('- AI開發、資料分析、IoT、研發 → 研發創新', '- AI開發、資料分析、IoT、研發 → 研發創新\n- 財會、會計、帳務：沒有對應類別（分散在協作辦公、銷售管理、生產物流），請改用 keyword，不要帶 category')
   const { data: all } = await callTool(mockDb(), 'describe_data', { topic: 'all' })
   assert.equal(all.text.split('\n\n## 十二、')[0], guide)
   const { data: index } = await callTool(mockDb(), 'describe_data')
