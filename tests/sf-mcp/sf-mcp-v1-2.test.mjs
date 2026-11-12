@@ -68,6 +68,7 @@ function mockDb({ rpc = {}, tables = {}, touch, fromError, throwRpc, throwTouch 
         if (throwTouch) throw new Error('private connection string')
         return touch ?? { data: [{ window_calls: 1, limit_per_minute: 30, over_limit: false }], error: null }
       }
+      if (name === 'sf_mcp_quota_check' || name === 'sf_mcp_quota_consume') return { data: null, error: null }
       if (throwRpc) throw new Error('SELECT secret FROM private; postgresql://user:password@host/db\nstack')
       const values = {
         sf_capital_coverage: [{ with_capital: 6, total_companies: 10 }], sf_search_solutions: [solution()], sf_search_companies: [company()], sf_data_status: [{ total_count: 10, normal_count: 8, suspected_count: 1, delisted_count: 1 }],
@@ -195,10 +196,10 @@ test('search_companies: one RPC, totals beyond former cap, sentinel excluded, pe
   assert.equal(db.calls.filter((c) => c.table === 'solutions').length, 0)
 })
 test('company count-only sentinel preserves totals, including empty out-of-range page', async () => {
-  const db = mockDb({ rpc: { sf_search_companies: [company({ company_key: null })] } })
-  const { data } = await callTool(db, 'search_companies', { offset: 200 })
+  const db = mockDb({ rpc: { sf_search_companies: [company({ company_key: null, companies_total: 90 })] } })
+  const { data } = await callTool(db, 'search_companies', { offset: 100 })
   assert.deepEqual(data.companies, [])
-  assert.equal(data.companies_total, 152)
+  assert.equal(data.companies_total, 90)
   assert.equal(data.next_offset, null)
   assert.equal(db.calls.filter((c) => c.table).length, 0)
 })
@@ -249,10 +250,10 @@ test('zero companies keeps city unknown count and suggests unknown records', asy
 })
 test('solution empty RPC page reports counting limitation without extra RPC', async () => {
   const db = mockDb({ rpc: { sf_search_solutions: [] } })
-  const { data } = await callTool(db, 'search_solutions', { offset: 500 })
+  const { data } = await callTool(db, 'search_solutions', { offset: 200 })
   assert.match(data.notes.join(''), /RPC 未回傳總數/)
   assert.match(data.next_step[0], /offset=0/)
-  assert.equal(db.calls.length, 2)
+  assert.deepEqual(db.calls.map(c => c.rpc), ['sf_mcp_touch', 'sf_mcp_quota_check', 'sf_search_solutions', 'sf_mcp_quota_consume'])
 })
 test('handler error is sanitized Chinese JSON; actual SDK skips output validation for isError', async (t) => {
   t.mock.method(console, 'error', () => {})
@@ -287,9 +288,9 @@ for (const options of [{ touch: { error: { message: 'private' }, data: null } },
   test(`touch fail-open / observe-only: ${JSON.stringify(options)}`, async (t) => {
     t.mock.method(console, 'error', () => {})
     t.mock.method(console, 'warn', () => {})
-    const { result, data } = await callTool(mockDb(options), 'whoami')
+    const { result, data } = await callTool(mockDb(options), 'whoami', {}, { rateLimitEnforce: false })
     assert.notEqual(result.isError, true)
-    assert.deepEqual(data, { id: 'mock-user', email: 'signed-in-user@example.invalid', server_version: '1.3.1' })
+    assert.deepEqual(data, { id: 'mock-user', email: 'signed-in-user@example.invalid', server_version: '1.4.0' })
     assert.equal(console.error.mock.callCount() + console.warn.mock.callCount(), 1)
     if (options.touch?.error || options.throwTouch) {
       assert.deepEqual(console.error.mock.calls[0].arguments, ['[sf-mcp] whoami sf_mcp_touch 失敗：', options.throwTouch ? 'private connection string' : 'private'])
@@ -315,6 +316,8 @@ test('describe topics index/default, all and every section preserve v1.1 except 
     .replace('- 需要匯出檔案時，請先在對話中整理成表格，再用你自己的工具輸出；本資料庫連接器唯讀，不能產生檔案。', '- 本連接器不提供整批匯出或全庫清單。使用者要求匯出全部或大量資料時，請說明此限制，並建議用條件（來源、類別、縣市、價格）縮小範圍後查詢；確有盤點需求者，請洽資料維護者。少量結果可在對話中整理成表格。')
     .replace('- 碳排放、淨零、ESG → 碳', '- 碳排放、淨零、ESG → 碳\n- 財會、會計、記帳、帳務、財務報表 → 財務（再以「會計」補搜一次，用方案 id 取聯集）')
     .replace('- AI開發、資料分析、IoT、研發 → 研發創新', '- AI開發、資料分析、IoT、研發 → 研發創新\n- 財會、會計、帳務：沒有對應類別（分散在協作辦公、銷售管理、生產物流），請改用 keyword，不要帶 category')
+    .replace('少量結果可在對話中整理成表格。', '少量結果可在對話中整理成表格。\n- 搜尋清單只提供價格級距（price_range）；需要精確價格時，對少數候選用 get_solutions。每位使用者每日可取得的方案明細有上限，超過時伺服器會回報，請照實告知使用者，不要嘗試換條件繞過。\n- search_companies 的 limit／offset 以廠商數計算，每頁預設且最多 10 家，每家最多列 5 筆方案。')
+    .replace('不是免費。', '不是免費。清單中的「未提供」即此情況。')
   const { data: all } = await callTool(mockDb(), 'describe_data', { topic: 'all' })
   assert.equal(all.text.split('\n\n## 十二、')[0], guide)
   const { data: index } = await callTool(mockDb(), 'describe_data')
@@ -338,7 +341,13 @@ test('three handlers without capital retain query/body logic', () => {
       .replace(/\n\s+name: displaySolutionName\(s.solution_name\),/g, '')
       .replace(/\n\s+name_missing: isMissingSolutionName\(s.solution_name\),/g, '')
       .replace(/name: displaySolutionName\(r.solution_name\),\n\s+name_missing: isMissingSolutionName\(r.solution_name\),/g, 'name: r.solution_name,')
-    assert.equal(normalize(body(source)), body(before))
+    const expected = name === 'whoami'
+      ? body(before).replace(
+        "return asText({ id: data.user?.id, email: data.user?.email, server_version: SERVER_VERSION })",
+        "const quota = await readQuota('whoami')\n            return asText({\n              id: data.user?.id, email: data.user?.email, server_version: SERVER_VERSION,\n              ...(quota ? { quota: { daily_limit: quota.daily_limit, rows_today: quota.rows_today } } : {}),\n            })",
+      )
+      : body(before)
+    assert.equal(normalize(body(source)), expected)
   }
 })
 test('migration hash pinned, skill exact appendix hash, old scanning removed, no business writes/private RPC', () => {
@@ -347,7 +356,7 @@ test('migration hash pinned, skill exact appendix hash, old scanning removed, no
   const skill = readFileSync(new URL('docs/sf-mcp-skill/SKILL.md', root))
   assert.equal(createHash('sha256').update(skill).digest('hex'), '5077479ab8513d5316c14bc5acb5cc376b68170d9f3f69ec345a60d2c12e1d8c')
   assert.doesNotMatch(source, /SCAN_CAP|scanPages|filterByCity|groupByCompany|normCity|fetchPage|300 筆|\.rpc\('sf_private|\.(insert|upsert|update|delete)\(/)
-  assert.match(source, /RATE_LIMIT_ENFORCE = false/)
+  assert.match(source, /RATE_LIMIT_ENFORCE = true/)
   assert.match(source, /withSupabase\(\{ auth: 'user' \}\)/)
 })
 
@@ -449,7 +458,7 @@ test('capital bounds and sorting reach the DB with city, normal_only and paginat
   assert.equal(data.companies[0].capital, 100000000)
   assert.match(data.notes.join(''), /有 7 家公司未填資本額，無法納入此篩選/)
   assert.doesNotMatch(data.notes.join(''), /方案未對應公司/)
-  assert.ok(data.notes.length <= 3)
+  assert.ok(data.notes.filter(note => note !== '月費級距請以 get_solutions 查詢方案明細').length <= 3)
   assert.equal(db.calls.filter(c => c.rpc === 'sf_capital_coverage').length, 1)
 })
 
