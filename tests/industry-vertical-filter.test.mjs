@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const context = vm.createContext({});
 vm.runInContext(read('public/industry-vertical.js'), context);
-const { matchesIndustryVertical } = context;
+const { matchesIndustryVertical, industryVerticalTargetScore } = context;
 
 for (const [vertical, item] of [
   ['旅宿觀光', { s: '飯店管理系統' }],
@@ -54,4 +54,45 @@ test('the page keeps either selected vertical and still applies its other filter
   assert.deepEqual(rows.filter(matchesFilters).map(item => item.id), [1, 2]);
   filters.industry_vertical = [];
   assert.deepEqual(rows.filter(matchesFilters).map(item => item.id), [1, 2, 3]);
+});
+
+test('target industry earns one boost using the shared vocabulary and word boundaries', () => {
+  assert.equal(industryVerticalTargetScore({ d: '製造業' }, ['製造業']), 50);
+  assert.equal(industryVerticalTargetScore({ d: '', desc: '適用製造業' }, ['製造業']), 0);
+  assert.equal(industryVerticalTargetScore({ d: ['零售', '製造業'] }, ['製造業']), 50);
+  assert.equal(industryVerticalTargetScore({ d: '製造業、醫療' }, ['製造業', '醫療照護']), 50);
+  assert.equal(industryVerticalTargetScore({ d: '製造業' }, []), 0);
+  assert.equal(industryVerticalTargetScore({ d: null }, ['製造業']), 0);
+  assert.equal(industryVerticalTargetScore({ d: '製造業' }, ['constructor']), 0);
+  assert.equal(industryVerticalTargetScore({ d: '導入 MES 系統' }, ['製造業']), 50);
+  assert.equal(industryVerticalTargetScore({ d: 'messages, mes, XPLC, MES2' }, ['製造業']), 0);
+});
+
+test('a vertical alone triggers relevance sorting without changing results or price ordering', () => {
+  const page = read('public/index.html');
+  const memo = page.match(/const filteredResults = useMemo\((\(\) => \{[\s\S]*?\n      \}), \[filters/)[1];
+  vm.runInContext(read('public/solution-name.js'), context);
+  const filters = {
+    region: [], category: [], program: [], industry_vertical: ['製造業'],
+    isAI: null, isStartup: null, isGov: null, pricingModel: null, maxPrice: null, keyword: null,
+  };
+  Object.assign(context, {
+    filters,
+    query: '',
+    detectIndustryKey: () => '製造',
+    getIndustryScore: () => 12,
+    allData: [
+      { id: 1, s: '描述符合', desc: '工廠', pr: 100 },
+      { id: 2, s: '未命中', d: '零售', pr: 200 },
+      { id: 3, s: '欄位符合', d: '製造業', pr: 300 },
+    ],
+  });
+  const run = vm.runInContext(memo, context);
+  for (const [sortBy, expected] of [['relevance', [3, 1]], ['price_asc', [1, 3]], ['price_desc', [3, 1]]]) {
+    context.sortBy = sortBy;
+    assert.deepEqual(Array.from(run(), item => item.id), expected);
+  }
+  filters.industry_vertical = [];
+  context.sortBy = 'relevance';
+  assert.deepEqual(Array.from(run(), item => item.id), [1, 2, 3]);
 });
