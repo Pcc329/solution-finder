@@ -951,7 +951,7 @@
           return true;
         });
         // 排序
-        if (sortBy === "relevance" && (filters.keyword || filters.industryKeyword)) {
+        if (sortBy === "relevance" && (filters.keyword || filters.industryKeyword || filters.industry_vertical.length > 0)) {
           results = results
             .map((item, index) => {
               const relevanceScore = filters.keyword ? getRelevanceScore(item, filters.keyword) : 0;
@@ -959,11 +959,12 @@
               const industryKeywordScore = filters.industryKeyword
                 ? (safeStr(item.d).includes(filters.industryKeyword) ? 50 : 0)
                 : 0;
-              return { item, index, relevanceScore, industryScore, industryKeywordScore };
+              const verticalTargetScore = industryVerticalTargetScore(item, filters.industry_vertical);
+              return { item, index, relevanceScore, industryScore, industryKeywordScore, verticalTargetScore };
             })
             .sort((a, b) => {
-              const scoreA = a.relevanceScore + a.industryScore + a.industryKeywordScore;
-              const scoreB = b.relevanceScore + b.industryScore + b.industryKeywordScore;
+              const scoreA = a.relevanceScore + a.industryScore + a.industryKeywordScore + a.verticalTargetScore;
+              const scoreB = b.relevanceScore + b.industryScore + b.industryKeywordScore + b.verticalTargetScore;
               if (scoreB !== scoreA) return scoreB - scoreA;
               const missingOrder = Number(isMissingSolutionName(a.item.s)) - Number(isMissingSolutionName(b.item.s));
               if (missingOrder) return missingOrder;
