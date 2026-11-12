@@ -52,9 +52,9 @@ test('same-score groups put missing names last without changing relevance priori
   const comparator = source.match(/\.sort\((\(a, b\) => \{\s+const scoreA[\s\S]+?)\)\s+\.map/)[1];
   const sort = vm.runInContext(`(${comparator})`, context);
   const rows = [
-    { item: { s: '缺' }, index: 0, relevanceScore: 100, industryScore: 0, industryKeywordScore: 0 },
-    { item: { s: 'AI' }, index: 1, relevanceScore: 100, industryScore: 0, industryKeywordScore: 0 },
-    { item: { s: null }, index: 2, relevanceScore: 200, industryScore: 0, industryKeywordScore: 0 },
+    { item: { s: '缺' }, index: 0, relevanceScore: 100, industryScore: 0, industryKeywordScore: 0, verticalTargetScore: 0 },
+    { item: { s: 'AI' }, index: 1, relevanceScore: 100, industryScore: 0, industryKeywordScore: 0, verticalTargetScore: 0 },
+    { item: { s: null }, index: 2, relevanceScore: 200, industryScore: 0, industryKeywordScore: 0, verticalTargetScore: 0 },
   ];
   assert.deepEqual([...rows].sort(sort).map(row => row.index), [2, 1, 0]);
 });
