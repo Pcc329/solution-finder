@@ -1,4 +1,4 @@
-// SF MCP v1.3.1 — 唯讀工具；搜尋由資料庫篩選、計數後分頁，提供結構化輸出與下一步建議。
+// SF MCP v1.4.0 — 唯讀工具；限制每分鐘呼叫數及每日明細筆數，並記錄逐日逐工具用量。
 // sf_mcp_touch 記錄登入者用量；未授權 (42501) 阻擋，其他紀錄錯誤不阻擋，沒有業務資料寫入工具。
 // 認證：Supabase Auth 為 OAuth 2.1 授權伺服器；每次工具呼叫都以「登入者本人」身分查詢，受 RLS 與白名單約束。
 // 注意：沒有業務資料寫入工具；不回傳完整描述(description)、第三方 email、手機；whoami 可回傳登入者本人 email。
@@ -33,8 +33,21 @@ const asText = (obj: Record<string, unknown>) => {
   return { structuredContent: JSON.parse(text) as Record<string, unknown>, content: [{ type: 'text' as const, text }] }
 }
 
-const SERVER_VERSION = '1.3.1'
-const RATE_LIMIT_ENFORCE = false
+const SERVER_VERSION = '1.4.0'
+const RATE_LIMIT_ENFORCE = true
+const SOLUTION_OFFSET_MAX = 200
+const COMPANY_OFFSET_MAX = 100
+const COMPANY_PAGE_MAX = 10
+
+function priceRange(v: unknown) {
+  if (typeof v !== 'number' || !Number.isFinite(v) || v === 0) return '未提供'
+  if (v < 10000) return '1萬以下'
+  if (v < 50000) return '1～5萬'
+  if (v < 100000) return '5～10萬'
+  if (v < 300000) return '10～30萬'
+  if (v < 1000000) return '30～100萬'
+  return '100萬以上'
+}
 
 // target_industry 在資料庫有兩種存法：多個元素的陣列，或單一字串內以「, 」（雲市集）或「；」（主計總處分類）分隔。
 // 一律攤平成產業清單，才能算出「這個方案列了幾類產業」。
@@ -129,9 +142,11 @@ const DATA_GUIDE = `# 產業策略智庫（SF）資料說明與使用原則
 - 要看多筆方案的詳情，用 get_solutions（一次最多 20 筆）；只對最後的少數候選才用 get_solution（含聯絡人）。
 - 子字串比對會有誤判（例如 POS 會搜到 Posky、只做電子發票的方案）：請用回傳的 summary 判斷是否真的相關，並在回答中標註哪些不是。
 - 本連接器不提供整批匯出或全庫清單。使用者要求匯出全部或大量資料時，請說明此限制，並建議用條件（來源、類別、縣市、價格）縮小範圍後查詢；確有盤點需求者，請洽資料維護者。少量結果可在對話中整理成表格。
+- 搜尋清單只提供價格級距（price_range）；需要精確價格時，對少數候選用 get_solutions。每位使用者每日可取得的方案明細有上限，超過時伺服器會回報，請照實告知使用者，不要嘗試換條件繞過。
+- search_companies 的 limit／offset 以廠商數計算，每頁預設且最多 10 家，每家最多列 5 筆方案。
 
 ## 十一、其他
-- 價格欄位為 0 或空白代表「未提供」，不是免費。max_price 篩選會排除未提供價格的方案。
+- 價格欄位為 0 或空白代表「未提供」，不是免費。清單中的「未提供」即此情況。max_price 篩選會排除未提供價格的方案。
 - 本工具只回傳簡短描述；聯絡人僅提供姓名、職稱、公司電話。
 - 引用數字時優先使用 summary_line；定義與缺口用一句帶過，被問到再展開。
 
@@ -176,9 +191,11 @@ type SearchArgs = z.output<ReturnType<typeof companySearchInput>>
 const searchInput = () => z.object({
   ...searchFields,
   limit: z.number().int().min(1).max(50).default(20),
-  offset: z.number().int().min(0).max(5000).default(0),
+  offset: z.number().int().min(0).max(SOLUTION_OFFSET_MAX).default(0),
 })
 const companySearchInput = () => searchInput().extend({
+  limit: z.number().int().min(1).max(COMPANY_PAGE_MAX).default(COMPANY_PAGE_MAX),
+  offset: z.number().int().min(0).max(COMPANY_OFFSET_MAX).default(0),
   min_capital: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional().describe('登記資本額下限（元，含邊界）；未填資本額的公司會被排除'),
   max_capital: z.number().nonnegative().max(Number.MAX_SAFE_INTEGER).optional().describe('登記資本額上限（元，含邊界）；未填資本額的公司會被排除'),
   sort: z.enum(['relevance', 'price_asc', 'price_desc', 'capital_desc']).default('relevance'),
@@ -234,9 +251,12 @@ const searchMeta = (a: SearchArgs, total: number, suspected: number, unknown: nu
 const count = z.number().int().nonnegative()
 const rowSchema = z.record(z.string(), z.unknown())
 const solutionSchema = z.object({ name: z.string(), name_missing: z.boolean() }).passthrough()
+const companyPreviewSchema = solutionSchema.extend({ price_range: z.string() })
+const solutionPreviewSchema = companyPreviewSchema.extend({ monthly_price_range: z.string() })
 const solutionDetailSchema = solutionSchema.extend({ solution_name: z.string() })
 const capitalCompanySchema = z.object({ capital: z.number().nullable() }).passthrough()
-const companySchema = z.object({ capital: z.number().nullable(), solutions: z.array(solutionSchema) }).passthrough()
+const companySchema = z.object({ capital: z.number().nullable(), solutions: z.array(companyPreviewSchema) }).passthrough()
+const quotaSchema = z.object({ daily_limit: z.number().int().min(1).max(5000), rows_today: count })
 const capitalDisclosureSchema = z.object({
   coverage: z.object({ with_capital: count, total_companies: count, percentage: z.number().min(0).max(100).nullable(), denominator: z.string() }),
   notes: z.array(z.string()),
@@ -246,13 +266,19 @@ const searchOutput = {
   status_scope: z.enum(['只含正常', '正常＋疑似下架', '含已下架']),
   returned: count, offset: count, next_offset: count.nullable(),
   next_step: z.array(z.string()).nullable(),
-  page_summary: rowSchema, notes: z.array(z.string()).max(3), notes_more: z.array(z.string()),
+  page_summary: rowSchema, notes: z.array(z.string()).max(4), notes_more: z.array(z.string()),
+}
+const searchPage = (offset: number, returned: number, total: number, maxOffset: number, notes: string[]) => {
+  const next = offset + returned
+  if (total <= next) return { next_offset: null, notes }
+  if (next <= maxOffset) return { next_offset: next, notes }
+  return { next_offset: null, notes: [...notes, '已達可翻頁上限，請加條件縮小範圍。'] }
 }
 const toolOutputs = {
   describe_data: z.object({ topic: z.enum(topics), text: z.string() }),
   search_solutions: z.object({ ...searchOutput, total_matches: count,
-    totals: z.object({ matches: count, normal: count, suspected_delisted: count, city_unknown: count }), results: z.array(solutionSchema) }),
-  search_companies: z.object({ ...searchOutput, capital_disclosure: capitalDisclosureSchema, companies_total: count, solutions_total: count,
+    totals: z.object({ matches: count, normal: count, suspected_delisted: count, city_unknown: count }), results: z.array(solutionPreviewSchema) }),
+  search_companies: z.object({ ...searchOutput, notes: z.array(z.string()).max(5), capital_disclosure: capitalDisclosureSchema, companies_total: count, solutions_total: count,
     totals: z.object({ companies: count, solutions: count, normal: count, suspected_delisted: count, city_unknown: count }), companies: z.array(companySchema) }),
   get_solution: z.object({ found: z.boolean(), message: z.string().optional(), solution: solutionDetailSchema.optional(),
     capital_disclosure: capitalDisclosureSchema.optional(), company: capitalCompanySchema.nullable().optional(), contacts: z.array(rowSchema).optional(), gov_registered: z.boolean().nullable().optional(),
@@ -260,27 +286,54 @@ const toolOutputs = {
   get_solutions: z.object({ capital_disclosure: capitalDisclosureSchema.optional(), requested: count, found: count, not_found: z.array(z.string()), results: z.array(solutionSchema.extend({ company: capitalCompanySchema })), notes: z.array(z.string()) }),
   data_status: z.object({ totals: rowSchema, coverage_gaps_among_active: rowSchema, non_normal_reasons: z.array(rowSchema),
     server_version: z.string(), by_source: z.array(rowSchema), notes: z.array(z.string()) }),
-  whoami: z.object({ id: z.string().optional(), email: z.string().optional(), server_version: z.string() }),
+  whoami: z.object({ id: z.string().optional(), email: z.string().optional(), server_version: z.string(), quota: quotaSchema.optional() }),
   count_solutions: z.object({ total: count.nullable(), active: count.nullable() }),
 }
 const toolTitles = {
   describe_data: '資料說明', search_solutions: '搜尋方案', search_companies: '依廠商搜尋',
   get_solution: '方案詳情', get_solutions: '批次方案詳情', data_status: '資料現況', whoami: '我是誰', count_solutions: '方案筆數',
 }
+type ToolName = keyof typeof toolTitles
+type Quota = z.output<typeof quotaSchema> & { over_limit: boolean }
+const detailTools = new Set<ToolName>(['search_solutions', 'search_companies', 'get_solution', 'get_solutions'])
+const rowsReturned = (name: ToolName, data: Record<string, unknown>) => {
+  switch (name) {
+    case 'search_solutions':
+    case 'get_solutions':
+      return (data.results as unknown[]).length
+    case 'search_companies':
+      return (data.companies as { solutions: unknown[] }[]).reduce((sum, company) => sum + company.solutions.length, 0)
+    case 'get_solution':
+      return 1
+    default:
+      return 0
+  }
+}
 const toolError = (error: string, next_step = ['稍候再試', '確認查詢條件，或聯絡資料維護者']) => ({
   isError: true as const,
   content: [{ type: 'text' as const, text: JSON.stringify({ error, next_step }) }],
 })
+const unauthorized = () => toolError('此帳號未開通 SF資料庫查詢權限，請洽管理者。', ['請洽管理者開通權限'])
 
 // 保留使用者身分的 Supabase client；可注入開關與時間，只供離線測試限流分支。
 // deno-lint-ignore no-explicit-any
 export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_ENFORCE, now = () => new Date() } = {}) => {
-      const runTool = <A,>(name: keyof typeof toolTitles, handler: (args: A) => Promise<ReturnType<typeof asText>>) => async (args: A) => {
+      const readQuota = async (name: ToolName): Promise<Quota | null | undefined> => {
+        try {
+          const { data, error } = await supabase.rpc('sf_mcp_quota_check')
+          if (error) throw error
+          return data?.[0]
+        } catch (err) {
+          console.error(`[sf-mcp] ${name} sf_mcp_quota_check 失敗：`, err)
+          if (typeof err === 'object' && err !== null && 'code' in err && err.code === '42501') return null
+        }
+      }
+      const runTool = <A,>(name: ToolName, handler: (args: A) => Promise<ReturnType<typeof asText>>) => async (args: A) => {
         try {
           const touch = await supabase.rpc('sf_mcp_touch')
           if (touch.error) {
             console.error(`[sf-mcp] ${name} sf_mcp_touch 失敗：`, touch.error.message)
-            if (touch.error.code === '42501') return toolError('此帳號未開通 SF資料庫查詢權限，請洽管理者。', ['請洽管理者開通權限'])
+            if (touch.error.code === '42501') return unauthorized()
           } else if (touch.data?.[0]?.over_limit) {
             const limit = Number(touch.data[0].limit_per_minute)
             if (rateLimitEnforce) return toolError(`每分鐘最多 ${limit} 次查詢，請約 ${60 - now().getSeconds()} 秒後再試`, ['稍候再試', '合併查詢條件以減少呼叫次數'])
@@ -289,8 +342,24 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
         } catch (err) {
           console.error(`[sf-mcp] ${name} sf_mcp_touch 失敗：`, err instanceof Error ? err.message : String(err))
         }
+        if (detailTools.has(name)) {
+          const quota = await readQuota(name)
+          if (quota === null) return unauthorized()
+          if (quota?.over_limit) {
+            return toolError(`今日查詢明細已達上限（${quota.daily_limit} 筆），每日 00:00 重置。如有盤點需求，請洽資料維護者。`, ['縮小查詢條件', '明日再查', '洽資料維護者'])
+          }
+        }
         try {
-          return await handler(args)
+          const result = await handler(args)
+          try {
+            const { error } = await supabase.rpc('sf_mcp_quota_consume', {
+              p_tool: name, p_rows: rowsReturned(name, result.structuredContent),
+            })
+            if (error) throw error
+          } catch (err) {
+            console.error(`[sf-mcp] ${name} sf_mcp_quota_consume 失敗：`, err)
+          }
+          return result
         } catch (err) {
           console.error(`[sf-mcp] ${name} 失敗：`, err instanceof Error ? err.message : String(err))
           return toolError(`「${toolTitles[name]}」暫時無法完成，請稍後再試。`)
@@ -409,12 +478,13 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                 ? rows.filter((r) => flattenIndustries(enr.indMap.get(String(r.solution_id))).join('｜').includes(a.industry_keyword!)).length
                 : null,
             }
+            const meta = searchMeta(a, total, suspected, unknown, failures)
             return asText({
-              ...searchMeta(a, total, suspected, unknown, failures),
+              ...meta,
               total_matches: total,
               totals: { matches: total, normal: total - suspected, suspected_delisted: suspected, city_unknown: unknown },
               returned: rows.length, offset: a.offset,
-              next_offset: total > a.offset + rows.length ? a.offset + rows.length : null,
+              ...searchPage(a.offset, rows.length, total, SOLUTION_OFFSET_MAX, meta.notes),
               next_step: rows.length ? null : [...(a.offset > 0 ? ['改用 offset=0 重新查詢'] : []), ...nextSteps(a, unknown)],
               page_summary: pageSummary,
               results: rows.map((r) => {
@@ -434,8 +504,8 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                   is_ai: r.has_ai,
                   is_startup: r.is_startup,
                   is_gov_registered: r.is_gov,
-                  price: r.price || null,
-                  monthly_price: r.monthly_price || null,
+                  price_range: priceRange(r.price),
+                  monthly_price_range: priceRange(r.monthly_price),
                   pricing_model: r.pricing_model,
                   slogan: clip(r.slogan as string, 80),
                   summary: clip(r.description_short as string, 160),
@@ -458,7 +528,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
         registerTool(
           'search_companies',
           {
-            description: '以廠商為單位搜尋，資料庫先完成縣市與資本額篩選、全體計數與公司分組，再分頁；每家公司最多列 5 筆符合方案。limit／offset 以廠商數計算。無公司編號的方案各自獨立成組。總數引用 summary_line，推薦請帶 normal_only=true。',
+            description: '以廠商為單位搜尋，資料庫先完成縣市與資本額篩選、全體計數與公司分組，再分頁；每家公司最多列 5 筆符合方案。limit／offset 以廠商數計算，每頁預設且最多 10 家。無公司編號的方案各自獨立成組。總數引用 summary_line，推薦請帶 normal_only=true。',
             inputSchema: companySearchInput(),
             annotations: { readOnlyHint: true },
           },
@@ -496,7 +566,7 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
                 normal_count: solutionCount - suspectedCount,
                 suspected_delisted_count: suspectedCount,
                 solutions: ((r.solutions ?? []) as Row[]).map((s) => ({
-                  id: s.id, name: displaySolutionName(s.name), name_missing: isMissingSolutionName(s.name), source: s.source, price: s.price || null,
+                  id: s.id, name: displaySolutionName(s.name), name_missing: isMissingSolutionName(s.name), source: s.source, price_range: priceRange(s.price),
                   pricing_model: s.pricing_model, status: s.status || '正常', score: s.score,
                 })),
               }
@@ -505,13 +575,14 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
               missingCompanies: Number(raw[0]?.capital_unknown_count ?? 0),
               noCompanySolutions: Number(raw[0]?.no_company_count ?? 0),
             } : undefined
+            const meta = searchMeta(a, total, suspected, unknown, failures, companiesTotal, capitalGaps)
             return asText({
-              ...searchMeta(a, total, suspected, unknown, failures, companiesTotal, capitalGaps),
+              ...meta,
               capital_disclosure: await capitalDisclosure(),
               companies_total: companiesTotal, solutions_total: total,
               totals: { companies: companiesTotal, solutions: total, normal: total - suspected, suspected_delisted: suspected, city_unknown: unknown },
               returned: companies.length, offset: a.offset,
-              next_offset: companiesTotal > a.offset + companies.length ? a.offset + companies.length : null,
+              ...searchPage(a.offset, companies.length, companiesTotal, COMPANY_OFFSET_MAX, [...meta.notes, '月費級距請以 get_solutions 查詢方案明細']),
               next_step: companies.length ? null : [...(a.offset > 0 ? ['改用 offset=0 重新查詢'] : []), ...nextSteps(a, unknown)],
               page_summary: {
                 companies: companies.length,
@@ -728,7 +799,11 @@ export const createSfServer = (supabase: any, { rateLimitEnforce = RATE_LIMIT_EN
           async () => {
             const { data, error } = await supabase.auth.getUser()
             if (error) throw new Error(error.message)
-            return asText({ id: data.user?.id, email: data.user?.email, server_version: SERVER_VERSION })
+            const quota = await readQuota('whoami')
+            return asText({
+              id: data.user?.id, email: data.user?.email, server_version: SERVER_VERSION,
+              ...(quota ? { quota: { daily_limit: quota.daily_limit, rows_today: quota.rows_today } } : {}),
+            })
           }
         )
 

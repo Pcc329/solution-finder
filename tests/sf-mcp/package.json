@@ -2,7 +2,7 @@
   "name": "sf-mcp-tests",
   "private": true,
   "scripts": {
-    "test": "node --test sf-mcp-v1-2.test.mjs sf-mcp-v1-3-capital-sql.test.mjs"
+    "test": "node --test sf-mcp-v1-2.test.mjs sf-mcp-v1-3-capital-sql.test.mjs sf-mcp-v1-4-quota.test.mjs sf-mcp-v1-4-quota-sql.test.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.15",
