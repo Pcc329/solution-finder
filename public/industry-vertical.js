@@ -7,18 +7,31 @@
     '文化創意': { chinese: ['文創', '文化創意', '藝文', '展演', '藝術', '博物館'], english: [] },
   };
 
-  function matchesIndustryVertical(item, vertical) {
-    if (!Object.hasOwn(INDUSTRY_VERTICAL_TERMS, vertical)) return true;
+  const toText = value => Array.isArray(value) ? value.join(',') : String(value ?? '');
 
-    const { chinese, english } = INDUSTRY_VERTICAL_TERMS[vertical];
-    const text = [item.d, item.s, item.desc, item.feat, item.cat, item.tags, item.slogan]
-      .map(value => Array.isArray(value) ? value.join(',') : String(value ?? ''))
-      .join(' ');
-
+  function matchesVerticalTerms(text, { chinese, english }) {
     return chinese.some(term => text.includes(term))
       || english.some(term => new RegExp(`\\b${term}\\b`).test(text));
   }
 
+  function matchesIndustryVertical(item, vertical) {
+    if (!Object.hasOwn(INDUSTRY_VERTICAL_TERMS, vertical)) return true;
+
+    const text = [item.d, item.s, item.desc, item.feat, item.cat, item.tags, item.slogan]
+      .map(toText)
+      .join(' ');
+    return matchesVerticalTerms(text, INDUSTRY_VERTICAL_TERMS[vertical]);
+  }
+
+  function industryVerticalTargetScore(item, verticals) {
+    if (verticals.length === 0) return 0;
+
+    const targetIndustry = toText(item.d);
+    return verticals.some(vertical => Object.hasOwn(INDUSTRY_VERTICAL_TERMS, vertical)
+      && matchesVerticalTerms(targetIndustry, INDUSTRY_VERTICAL_TERMS[vertical])) ? 50 : 0;
+  }
+
   globalThis.INDUSTRY_VERTICAL_TERMS = INDUSTRY_VERTICAL_TERMS;
   globalThis.matchesIndustryVertical = matchesIndustryVertical;
+  globalThis.industryVerticalTargetScore = industryVerticalTargetScore;
 })();
