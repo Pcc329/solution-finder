@@ -9,6 +9,7 @@
   <title>台灣資服業者方案資料庫</title>
   <script src="/auth-gate.js"></script>
   <script src="/solution-name.js"></script>
+  <script src="/industry-vertical.js"></script>
   <script type="module" src="/export-results-panel.mjs"></script>
   <link rel="stylesheet" href="/solution-name.css">
   <script src="/company-avatar.js"></script>
@@ -934,7 +935,7 @@
           if (filters.pricingModel && !pricingModels.includes(filters.pricingModel)) return false;
           if (filters.category.length > 0 && !(item.cat && filters.category.some(c => item.cat.includes(c)))) return false;
           if (filters.program.length > 0 && !filters.program.includes(item.p)) return false;
-          if (filters.industry_vertical.length > 0 && !filters.industry_vertical.includes(item.iv)) return false;
+          if (filters.industry_vertical.length > 0 && !filters.industry_vertical.some(vertical => matchesIndustryVertical(item, vertical))) return false;
           if (filters.maxPrice && (item.pr === null || Number(item.pr) > Number(filters.maxPrice))) return false;
           if (filters.keyword) {
             const kw = filters.keyword.toLowerCase();
