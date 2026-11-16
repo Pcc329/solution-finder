@@ -336,14 +336,44 @@
     }
 
     const SOURCE_STATUS_BADGE = "rounded-full border border-amber-200 bg-amber-50 text-amber-800 text-xs font-bold py-1";
+    const HELP_BUTTON_CLASS = "inline-flex items-center justify-center w-5 h-5 shrink-0 rounded-full border border-slate-300 text-[11px] text-slate-500 font-bold hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600";
 
-    function StatusHelp({ label, detail, children, floating = false }) {
+    function StatusHelpRow({ className, rowClassName = "", prefix, badge, children, status, label = `${status}說明`, detail }) {
+      const [open, setOpen] = useState(false);
+      const panelId = React.useId();
+
+      return (
+        <div className={className}>
+          <div className={`flex flex-wrap gap-2 ${rowClassName}`}>
+            {prefix}
+            {detail ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {badge}
+                <button type="button" aria-label={label} aria-expanded={open} aria-controls={panelId}
+                  className={HELP_BUTTON_CLASS} onClick={() => setOpen(value => !value)}>?</button>
+              </div>
+            ) : badge}
+            {children}
+          </div>
+          {detail && (
+            <div id={panelId} hidden={!open}
+              className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-700">
+              <strong className="mb-1 block font-bold">{status}</strong>
+              <p>{detail}</p>
+              <a className="mt-1 block font-bold text-indigo-700 underline" href="/sources.html#status-faq">了解狀態判定方式 →</a>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function FloatingHelp({ label, detail }) {
       const [open, setOpen] = useState(false);
       const panelId = React.useId();
       const panelRef = useRef(null);
 
       React.useLayoutEffect(() => {
-        if (!floating || !open) return;
+        if (!open) return;
         const panel = panelRef.current;
         const keepPanelInViewport = () => {
           panel.style.transform = "";
@@ -355,27 +385,24 @@
         keepPanelInViewport();
         window.addEventListener("resize", keepPanelInViewport);
         return () => window.removeEventListener("resize", keepPanelInViewport);
-      }, [floating, open]);
+      }, [open]);
 
       return (
-        <div className={floating ? "relative inline-flex" : open ? "w-full" : undefined}>
+        <div className="relative inline-flex">
           <div className="flex flex-wrap items-center gap-2">
-            {children}
             <button type="button" aria-label={label} aria-expanded={open} aria-controls={panelId}
-              className="inline-flex items-center justify-center w-5 h-5 shrink-0 rounded-full border border-slate-300 text-[11px] text-slate-500 font-bold hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
+              className={HELP_BUTTON_CLASS}
               onClick={() => setOpen(value => !value)}
               onKeyDown={event => {
-                if (floating && open && event.key === "Escape") {
+                if (open && event.key === "Escape") {
                   event.stopPropagation();
                   setOpen(false);
                 }
               }}>?</button>
           </div>
-          <div ref={panelRef} id={panelId} hidden={!open} className={floating
-            ? "absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-lg bg-slate-700 px-3 py-2 text-xs font-medium leading-relaxed text-white shadow-lg"
-            : "mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-700"}>
+          <div ref={panelRef} id={panelId} hidden={!open}
+            className="absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-lg bg-slate-700 px-3 py-2 text-xs font-medium leading-relaxed text-white shadow-lg">
             {detail}
-            {!floating && <a className="mt-1 block font-bold text-indigo-700 underline" href="/sources.html#status-faq">了解狀態判定方式 →</a>}
           </div>
         </div>
       );
@@ -1572,7 +1599,7 @@
                   >
                     清除全部
                   </button>
-                  <StatusHelp floating label="清除全部說明" detail="會清空關鍵字、已勾選的篩選條件、排序方式，並回到第一頁" />
+                  <FloatingHelp label="清除全部說明" detail="會清空關鍵字、已勾選的篩選條件、排序方式，並回到第一頁" />
                 </div>
               )}
             </div>
@@ -1609,7 +1636,7 @@
                     {p}
                   </button>
                   {p === "資策會產業調查" && (
-                    <StatusHelp floating label="資策會產業調查來源說明" detail="源自資策會產業調查專案，非政府計畫審核名單；收錄不代表推薦或認證。" />
+                    <FloatingHelp label="資策會產業調查來源說明" detail="源自資策會產業調查專案，非政府計畫審核名單；收錄不代表推薦或認證。" />
                   )}
                   </React.Fragment>
                 ))}
@@ -2032,28 +2059,26 @@
                         const item = solution.status !== "delisted" && allData.find(row => row.id === solution.id);
                         const label = statusLabel(solution.status_label) || "正常";
                         const reason = delistedReason(solution.status_label);
-                        const statusClass = solution.status === "delisted" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-800";
-                        const badge = <span className={`rounded-full px-2 py-1 text-xs font-bold ${statusClass}`}>{label}</span>;
+                        const pending = label === "來源未列出・待確認";
+                        const statusStyle = solution.status === "delisted" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-800";
+                        const badgeClass = pending ? SOURCE_STATUS_BADGE : `rounded-full py-1 text-xs font-bold ${statusStyle}`;
+                        const badge = label !== "來源平台停止服務" && <span className={`${badgeClass} px-2`}>{label}</span>;
+                        const help = reason?.detail ?? (pending ? sourceStatusHelp(label, solution.program_type) : null);
                         return <li key={solution.solution_id || solution.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5">
                           <div className="min-w-0 flex-1">
                             {item ? <button type="button" onClick={() => openCompanySolution(item)} className={`min-h-[44px] text-left font-bold text-indigo-800 underline decoration-indigo-200 underline-offset-4 hover:text-indigo-600 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</button>
                               : <p className={`font-bold text-slate-600 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</p>}
-                            <div className="mt-1 flex flex-wrap items-center gap-2">
-                              <span className="text-xs text-slate-400 font-mono break-all">{solution.solution_id}</span>
-                              {reason ? (
-                                <StatusHelp label="已下架原因說明" detail={reason.detail}>
-                                  <span className="inline-flex flex-wrap items-center">
-                                    {badge}
-                                    {reason.short && <span className="text-xs text-slate-500">｜{reason.short}</span>}
-                                  </span>
-                                </StatusHelp>
-                              ) : label === "來源未列出・待確認" ? (
-                                <StatusHelp label={`${label}說明`} detail={sourceStatusHelp(label, solution.program_type)}>
-                                  <span className={`${SOURCE_STATUS_BADGE} px-2`}>{label}</span>
-                                </StatusHelp>
-                              ) : label !== "來源平台停止服務" && badge}
+                            <StatusHelpRow className="mt-1" rowClassName="items-center" status={label}
+                              label={reason ? "已下架原因說明" : undefined} detail={help}
+                              prefix={<span className="text-xs text-slate-400 font-mono break-all">{solution.solution_id}</span>}
+                              badge={reason?.short ? (
+                                <span className="inline-flex flex-wrap items-center">
+                                  {badge}
+                                  <span className="text-xs text-slate-500">｜{reason.short}</span>
+                                </span>
+                              ) : badge}>
                               {solution.has_ai && <span className="rounded-full bg-yellow-50 px-2 py-1 text-xs font-bold text-yellow-800">AI</span>}
-                            </div>
+                            </StatusHelpRow>
                           </div>
                           <div className="shrink-0 text-sm text-slate-600 sm:text-right">
                             {solution.price != null && <p>{formatCurrency(solution.price)}</p>}
@@ -2108,12 +2133,8 @@
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {sourceHelp && (
-                      <StatusHelp key={item.id} label={`${sourceLabel}說明`} detail={sourceHelp}>
-                        <span className={`${SOURCE_STATUS_BADGE} px-3`}>{sourceLabel}</span>
-                      </StatusHelp>
-                    )}
+                  <StatusHelpRow key={item.id} className="mb-4" status={sourceLabel} detail={sourceHelp}
+                    badge={sourceHelp && <span className={`${SOURCE_STATUS_BADGE} px-3`}>{sourceLabel}</span>}>
                     {item.ai && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 text-xs px-3 py-1 rounded-full font-bold"><i className="fa-solid fa-bolt mr-1"></i>AI方案</span>}
                     {item.st && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs px-3 py-1 rounded-full font-bold"><i className="fa-solid fa-seedling mr-1"></i>新創嚴選</span>}
                     {item.iv && <span className="bg-purple-100 text-purple-800 border border-purple-200 text-xs px-3 py-1 rounded-full font-bold">{item.iv}</span>}
@@ -2123,7 +2144,7 @@
                     {item.itr === 1 && <span title="稅籍登記的第 1 個行業代號屬資訊服務業（62／63）" className="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs px-3 py-1 rounded-full font-bold"><i className="fa-solid fa-desktop mr-1"></i>資訊服務為主要登記項目</span>}
                     {renderScaleBadges(item.scale, "bg-sky-50 text-sky-700 border border-sky-200 text-xs px-3 py-1 rounded-full")}
                     {getTrustBadges(item)}
-                  </div>
+                  </StatusHelpRow>
                   {item.p === "資策會產業調查" && <p className="text-xs text-slate-500 mb-4">本方案源自資策會產業調查專案，未經政府計畫審核程序。</p>}
                   {item.p === RAINFOREST_SOURCE && <p className="text-xs text-slate-500 mb-4">方案內容為廠商自述，未經平台審核。</p>}
                   <h1 className={`text-2xl font-black text-slate-900 mb-2 ${isMissingSolutionName(item.s) ? "sf-name-missing" : ""}`}>{solutionName}</h1>
