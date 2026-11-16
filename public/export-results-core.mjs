@@ -2,7 +2,11 @@
 export function statusLabel(rs) {
   if (rs == null || rs === '') return '';
   const text = String(rs);
-  return text.startsWith('疑似') ? '疑似下架' : text;
+  if (text.startsWith('已下架')) return '已下架';
+  if (text.startsWith('疑似') && text.includes('平台停止服務')) return '來源平台停止服務';
+  if (text.startsWith('疑似')) return '來源未列出・待確認';
+  if (text === '正常') return '正常';
+  return text;
 }
 
 export function normName(name) {

@@ -587,7 +587,7 @@ test('frontend wave controls, default sorting and trial section render together 
   const ui = frontend({ token: await createToken(Date.now() + 60000, secret), fetcher: async () => new Response(JSON.stringify(data)) });
   await settle();
   const html = ui.get('dashboard').innerHTML;
-  for (const phrase of ['在架方案（正常＋疑似下架）', '邀請名單依既有波次分類', '其他平台沿用匯入時的原始標記', '方案缺統編', '資料時間 <time', '<h2>資料說明</h2>']) {
+  for (const phrase of ['在架方案（正常＋來源停服／待確認）', '在架 AI 方案數（正常＋來源停服／待確認）', '邀請名單依既有波次分類', '其他平台沿用匯入時的原始標記', '方案缺統編', '資料時間 <time', '<h2>資料說明</h2>']) {
     assert.equal(html.split(phrase).length - 1, 1, phrase);
   }
   assert.ok(html.indexOf('<h2>三波邀請試算') < html.indexOf('<h2>廠商點陣'));
