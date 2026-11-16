@@ -642,7 +642,7 @@
       <p>聯絡窗口通常是公司的業務或客服，同一家公司的多個方案常由同一位窗口負責。掛在公司底下，同一位聯絡人不會因為方案多而重複出現；也因此，同一家公司不同方案的「聯絡資訊」會顯示相同內容。</p></details>
     <details><summary>資料庫有方案的「上架年度」嗎？</summary>
       <p>目前沒有。來源平台大多只提供「現在架上有什麼」，沒有歷年紀錄；臺灣雲市集已停止服務，當年的年度也無法考證。如果有各年度的入選名單，可以用來和資料庫比對。</p></details>
-    <details><summary>「來源平台停止服務」、「來源未列出・待確認」和「已下架」有什麼不同？</summary>
+    <details id="status-faq"><summary>「來源平台停止服務」、「來源未列出・待確認」和「已下架」有什麼不同？</summary>
       <p>「已下架」是逐筆確認過的。「來源平台停止服務」表示來源平台已關閉（例如臺灣雲市集），方案是否仍由廠商提供尚未逐筆確認。「來源未列出・待確認」表示來源平台仍在運作，但方案已未再列出，尚未逐筆確認。每次查證都會留下「狀態查證紀錄」，不會直接刪除方案。</p></details>
     <details><summary>查不到某家公司，代表它不存在嗎？</summary>
       <p>不代表。資料庫只收錄「在合作平台上有方案」的公司，查不到只表示本資料庫未收錄。</p></details>
@@ -942,6 +942,16 @@
     </section>
   </main>
   <script>
+    function openStatusFaq() {
+      if (location.hash !== '#status-faq') return;
+      const faq = document.getElementById('status-faq');
+      faq.open = true;
+      faq.style.scrollMarginTop = `${document.getElementById('global-nav').offsetHeight + 12}px`;
+      faq.scrollIntoView();
+    }
+    openStatusFaq();
+    window.addEventListener('hashchange', openStatusFaq);
+
     const sourceCountFormatter = new Intl.NumberFormat('zh-TW');
 
     function getProgramTypeCount(byProgramType, aliases) {
