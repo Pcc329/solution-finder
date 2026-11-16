@@ -1967,6 +1967,7 @@
       };
 
         // 與 public/export-results-core.mjs statusLabel 對照表一致，修改時兩處同步。
+        // 兩處一致性由 tests/status-label-parity.test.mjs 檢查
         function statusLabel(rs) {
           if (rs == null || rs === '') return '';
           const text = String(rs);
