@@ -91,5 +91,5 @@ test('sorting preserves statistics and filtered group counts when delisted rows 
   assert.match(read('public/index.html'), /\[showDelisted, setShowDelisted\] = useState\(false\)/);
   assert.match(companySource, /\{visible\.length\} 筆/);
   assert.match(companySource, /\["正常", summary\.normal \|\| 0\]/);
-  assert.match(companySource, /\["未逐筆確認", summary\.suspected \|\| 0\]/);
+  assert.match(companySource, /\["來源停服／待確認", summary\.suspected \|\| 0\]/);
 });
