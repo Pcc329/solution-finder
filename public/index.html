@@ -9,6 +9,7 @@
   <title>台灣資服業者方案資料庫</title>
   <script src="/auth-gate.js"></script>
   <script src="/solution-name.js"></script>
+  <script src="/status-help.js"></script>
   <script src="/industry-vertical.js"></script>
   <script type="module" src="/export-results-panel.mjs"></script>
   <link rel="stylesheet" href="/solution-name.css">
@@ -331,6 +332,52 @@
             <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">聯絡資料來自廠商於各計畫平台登錄時提供，可能已異動，聯繫前請以廠商官網為準。</p>
           </div>
         </section>
+      );
+    }
+
+    const SOURCE_STATUS_BADGE = "rounded-full border border-amber-200 bg-amber-50 text-amber-800 text-xs font-bold py-1";
+
+    function StatusHelp({ label, detail, children, floating = false }) {
+      const [open, setOpen] = useState(false);
+      const panelId = React.useId();
+      const panelRef = useRef(null);
+
+      React.useLayoutEffect(() => {
+        if (!floating || !open) return;
+        const panel = panelRef.current;
+        const keepPanelInViewport = () => {
+          panel.style.transform = "";
+          const { left, right } = panel.getBoundingClientRect();
+          const viewportRight = document.documentElement.clientWidth - 16;
+          const offset = Math.max(16 - left, 0) - Math.max(right - viewportRight, 0);
+          panel.style.transform = `translateX(${offset}px)`;
+        };
+        keepPanelInViewport();
+        window.addEventListener("resize", keepPanelInViewport);
+        return () => window.removeEventListener("resize", keepPanelInViewport);
+      }, [floating, open]);
+
+      return (
+        <div className={floating ? "relative inline-flex" : open ? "w-full" : undefined}>
+          <div className="flex flex-wrap items-center gap-2">
+            {children}
+            <button type="button" aria-label={label} aria-expanded={open} aria-controls={panelId}
+              className="inline-flex items-center justify-center w-5 h-5 shrink-0 rounded-full border border-slate-300 text-[11px] text-slate-500 font-bold hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
+              onClick={() => setOpen(value => !value)}
+              onKeyDown={event => {
+                if (floating && open && event.key === "Escape") {
+                  event.stopPropagation();
+                  setOpen(false);
+                }
+              }}>?</button>
+          </div>
+          <div ref={panelRef} id={panelId} hidden={!open} className={floating
+            ? "absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-lg bg-slate-700 px-3 py-2 text-xs font-medium leading-relaxed text-white shadow-lg"
+            : "mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-700"}>
+            {detail}
+            {!floating && <a className="mt-1 block font-bold text-indigo-700 underline" href="/sources.html#status-faq">了解狀態判定方式 →</a>}
+          </div>
+        </div>
       );
     }
 
@@ -1525,22 +1572,7 @@
                   >
                     清除全部
                   </button>
-                  <div className="relative group">
-                    <span
-                      tabIndex="0"
-                      aria-label="清除全部說明"
-                      className="flex items-center justify-center w-5 h-5 rounded-full border border-slate-300 text-[11px] text-slate-500 font-bold cursor-help hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-300"
-                    >
-                      ?
-                    </span>
-                    <div
-                      role="tooltip"
-                      className="pointer-events-none invisible absolute right-0 top-full z-50 mt-2 w-64 rounded-lg bg-slate-700 px-3 py-2 text-xs font-medium leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
-                    >
-                      <span className="absolute -top-1 right-2 h-2 w-2 rotate-45 bg-slate-700"></span>
-                      會清空關鍵字、已勾選的篩選條件、排序方式，並回到第一頁
-                    </div>
-                  </div>
+                  <StatusHelp floating label="清除全部說明" detail="會清空關鍵字、已勾選的篩選條件、排序方式，並回到第一頁" />
                 </div>
               )}
             </div>
@@ -1577,15 +1609,7 @@
                     {p}
                   </button>
                   {p === "資策會產業調查" && (
-                    <span className="relative group inline-flex">
-                      <span tabIndex="0" aria-label="資策會產業調查來源說明" aria-describedby="industry-survey-source-tip"
-                        className="flex items-center justify-center w-5 h-5 rounded-full border border-slate-300 text-[11px] text-slate-500 font-bold cursor-help hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-300">?</span>
-                      <span id="industry-survey-source-tip" role="tooltip"
-                        className="pointer-events-none invisible absolute right-0 top-full z-50 mt-2 w-64 rounded-lg bg-slate-700 px-3 py-2 text-xs font-medium leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                        <span className="absolute -top-1 right-2 h-2 w-2 rotate-45 bg-slate-700"></span>
-                        源自資策會產業調查專案，非政府計畫審核名單；收錄不代表推薦或認證。
-                      </span>
-                    </span>
+                    <StatusHelp floating label="資策會產業調查來源說明" detail="源自資策會產業調查專案，非政府計畫審核名單；收錄不代表推薦或認證。" />
                   )}
                   </React.Fragment>
                 ))}
@@ -1915,6 +1939,17 @@
         pushHistoryView("detail", { companySolution: item });
       };
 
+        // 與 public/export-results-core.mjs statusLabel 對照表一致，修改時兩處同步。
+        function statusLabel(rs) {
+          if (rs == null || rs === '') return '';
+          const text = String(rs);
+          if (text.startsWith('已下架')) return '已下架';
+          if (text.startsWith('疑似') && text.includes('平台停止服務')) return '來源平台停止服務';
+          if (text.startsWith('疑似')) return '來源未列出・待確認';
+          if (text === '正常') return '正常';
+          return text;
+        }
+
       const renderCompany = () => {
         if (!companyResult?.company) return null;
         const { company, solutions = [], summary = {} } = companyResult;
@@ -1935,16 +1970,6 @@
         const listedTotal = (summary.total || 0) - (summary.delisted || 0);
         const allDelisted = solutions.length > 0 && listedTotal === 0;
         const badgeClass = "rounded-full border px-3 py-1 text-xs";
-        // 與 public/export-results-core.mjs statusLabel 對照表一致，修改時兩處同步。
-        function statusLabel(rs) {
-          if (rs == null || rs === '') return '';
-          const text = String(rs);
-          if (text.startsWith('已下架')) return '已下架';
-          if (text.startsWith('疑似') && text.includes('平台停止服務')) return '來源平台停止服務';
-          if (text.startsWith('疑似')) return '來源未列出・待確認';
-          if (text === '正常') return '正常';
-          return text;
-        }
         return (
           <div className="max-w-4xl mx-auto px-4 py-8 animate-in">
             <button type="button" onClick={goBackInApp} className="min-h-[44px] mb-4 text-sm font-bold text-slate-600 hover:text-indigo-700">
@@ -2006,16 +2031,27 @@
                       {visible.map(solution => {
                         const item = solution.status !== "delisted" && allData.find(row => row.id === solution.id);
                         const label = statusLabel(solution.status_label) || "正常";
+                        const reason = delistedReason(solution.status_label);
                         const statusClass = solution.status === "delisted" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-800";
+                        const badge = <span className={`rounded-full px-2 py-1 text-xs font-bold ${statusClass}`}>{label}</span>;
                         return <li key={solution.solution_id || solution.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5">
                           <div className="min-w-0 flex-1">
                             {item ? <button type="button" onClick={() => openCompanySolution(item)} className={`min-h-[44px] text-left font-bold text-indigo-800 underline decoration-indigo-200 underline-offset-4 hover:text-indigo-600 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</button>
                               : <p className={`font-bold text-slate-600 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</p>}
                             <div className="mt-1 flex flex-wrap items-center gap-2">
                               <span className="text-xs text-slate-400 font-mono break-all">{solution.solution_id}</span>
-                              {label !== "來源平台停止服務" && (label === "來源未列出・待確認"
-                                ? <span className="text-xs text-slate-500">{label}</span>
-                                : <span title={solution.status_label || undefined} className={`rounded-full px-2 py-1 text-xs font-bold ${statusClass}`}>{label}</span>)}
+                              {reason ? (
+                                <StatusHelp label="已下架原因說明" detail={reason.detail}>
+                                  <span className="inline-flex flex-wrap items-center">
+                                    {badge}
+                                    {reason.short && <span className="text-xs text-slate-500">｜{reason.short}</span>}
+                                  </span>
+                                </StatusHelp>
+                              ) : label === "來源未列出・待確認" ? (
+                                <StatusHelp label={`${label}說明`} detail={sourceStatusHelp(label, solution.program_type)}>
+                                  <span className={`${SOURCE_STATUS_BADGE} px-2`}>{label}</span>
+                                </StatusHelp>
+                              ) : label !== "來源平台停止服務" && badge}
                               {solution.has_ai && <span className="rounded-full bg-yellow-50 px-2 py-1 text-xs font-bold text-yellow-800">AI</span>}
                             </div>
                           </div>
@@ -2045,6 +2081,8 @@
         const item = selectedItem;
         if (!item) return null;
 
+        const sourceLabel = statusLabel(item.rs);
+        const sourceHelp = sourceStatusHelp(sourceLabel, item.p);
         const solutionName = displaySolutionName(item.s);
         const solutionImage = window.renderSolutionImage?.({
           imageUrl: item.img, solutionName, variant: 'detail',
@@ -2071,6 +2109,11 @@
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap gap-2 mb-4">
+                    {sourceHelp && (
+                      <StatusHelp key={item.id} label={`${sourceLabel}說明`} detail={sourceHelp}>
+                        <span className={`${SOURCE_STATUS_BADGE} px-3`}>{sourceLabel}</span>
+                      </StatusHelp>
+                    )}
                     {item.ai && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 text-xs px-3 py-1 rounded-full font-bold"><i className="fa-solid fa-bolt mr-1"></i>AI方案</span>}
                     {item.st && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs px-3 py-1 rounded-full font-bold"><i className="fa-solid fa-seedling mr-1"></i>新創嚴選</span>}
                     {item.iv && <span className="bg-purple-100 text-purple-800 border border-purple-200 text-xs px-3 py-1 rounded-full font-bold">{item.iv}</span>}
