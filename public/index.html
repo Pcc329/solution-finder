@@ -1935,7 +1935,16 @@
         const listedTotal = (summary.total || 0) - (summary.delisted || 0);
         const allDelisted = solutions.length > 0 && listedTotal === 0;
         const badgeClass = "rounded-full border px-3 py-1 text-xs";
-        const isPlatformStopped = solution => solution.status === "suspected" && (solution.status_label || "").includes("平台停止服務");
+        // 與 public/export-results-core.mjs statusLabel 對照表一致，修改時兩處同步。
+        function statusLabel(rs) {
+          if (rs == null || rs === '') return '';
+          const text = String(rs);
+          if (text.startsWith('已下架')) return '已下架';
+          if (text.startsWith('疑似') && text.includes('平台停止服務')) return '來源平台停止服務';
+          if (text.startsWith('疑似')) return '來源未列出・待確認';
+          if (text === '正常') return '正常';
+          return text;
+        }
         return (
           <div className="max-w-4xl mx-auto px-4 py-8 animate-in">
             <button type="button" onClick={goBackInApp} className="min-h-[44px] mb-4 text-sm font-bold text-slate-600 hover:text-indigo-700">
@@ -1960,7 +1969,7 @@
                 </div>
               </div>
               <dl className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3" aria-label="方案統計">
-                {[["收錄方案", listedTotal], ["正常", summary.normal || 0], ["未逐筆確認", summary.suspected || 0], ["來源平台數", platformCount]].map(([label, count]) => (
+                {[["收錄方案", listedTotal], ["正常", summary.normal || 0], ["來源停服／待確認", summary.suspected || 0], ["來源平台數", platformCount]].map(([label, count]) => (
                   <div key={label} className="min-w-0 rounded-xl border border-slate-200 p-3 md:p-4">
                     <dt className="text-xs text-slate-500">{label}</dt><dd className="mt-1 text-2xl font-black font-mono text-slate-800">{count}</dd>
                   </div>
@@ -1989,14 +1998,14 @@
                   if (!visible.length) return null;
                   return <section key={source} className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label={source}>
                     <h3 className="flex justify-between gap-3 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-700"><span>{source}</span><span className="shrink-0">{visible.length} 筆</span></h3>
-                    {rows.some(isPlatformStopped) && <p className="flex items-start gap-2 px-5 pt-3 pb-1 text-sm leading-relaxed text-slate-500">
+                    {rows.some(solution => statusLabel(solution.status_label) === "來源平台停止服務") && <p className="flex items-start gap-2 px-5 pt-3 pb-1 text-sm leading-relaxed text-slate-500">
                       <i aria-hidden="true" className="fa-solid fa-circle-info mt-1 shrink-0"></i>
                       <span>此平台已停止服務，以下方案未逐筆確認是否仍提供。</span>
                     </p>}
                     <ul className="divide-y divide-slate-100">
                       {visible.map(solution => {
                         const item = solution.status !== "delisted" && allData.find(row => row.id === solution.id);
-                        const statusLabel = solution.status === "delisted" ? "已下架" : "正常";
+                        const label = statusLabel(solution.status_label) || "正常";
                         const statusClass = solution.status === "delisted" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-800";
                         return <li key={solution.solution_id || solution.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5">
                           <div className="min-w-0 flex-1">
@@ -2004,9 +2013,9 @@
                               : <p className={`font-bold text-slate-600 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</p>}
                             <div className="mt-1 flex flex-wrap items-center gap-2">
                               <span className="text-xs text-slate-400 font-mono break-all">{solution.solution_id}</span>
-                              {!isPlatformStopped(solution) && (solution.status === "suspected"
-                                ? <span title={solution.status_label || undefined} className="text-xs text-slate-500">{(solution.status_label || "").includes("未持續上架") ? "平台上已找不到" : "未確認"}</span>
-                                : <span title={solution.status_label || undefined} className={`rounded-full px-2 py-1 text-xs font-bold ${statusClass}`}>{statusLabel}</span>)}
+                              {label !== "來源平台停止服務" && (label === "來源未列出・待確認"
+                                ? <span className="text-xs text-slate-500">{label}</span>
+                                : <span title={solution.status_label || undefined} className={`rounded-full px-2 py-1 text-xs font-bold ${statusClass}`}>{label}</span>)}
                               {solution.has_ai && <span className="rounded-full bg-yellow-50 px-2 py-1 text-xs font-bold text-yellow-800">AI</span>}
                             </div>
                           </div>
@@ -2026,7 +2035,7 @@
               <h2 className="text-base font-bold text-slate-800 mb-3">獲獎紀錄</h2>
               <ul className="space-y-2 text-sm text-slate-600">{awards.map((award, index) => <li key={index}>{award.award_name}{award.award_year && <span className="ml-2 text-slate-400">{award.award_year}</span>}</li>)}</ul>
             </section>}
-            <p className="mt-6 text-xs leading-relaxed text-slate-500">未逐筆確認（資料庫標記為疑似下架）：平台停止服務或方案未持續上架，尚未逐筆驗證。本資料庫沒有方案的上架年度。</p>
+            <p className="mt-6 text-xs leading-relaxed text-slate-500">來源平台停止服務：來源平台已關閉，方案是否仍由廠商提供尚未逐筆確認。來源未列出・待確認：來源平台仍在運作，但這些方案已未再列出，尚未逐筆確認。本資料庫沒有方案的上架年度。</p>
           </div>
         );
       };
