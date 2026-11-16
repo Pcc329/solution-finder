@@ -14,9 +14,39 @@ const sample = (extra = {}) => ({
   s: 'Synthetic A', c: 'Synthetic Company', cid: 'C-A', p: 'Synthetic Platform A',
   rs: '正常', pr: 1000, sid: 'S-A', ds: 'Synthetic summary', city: 'Synthetic City', ai: true, ...extra,
 });
-for (const [input, expected] of [[null, ''], [undefined, ''], ['', ''], ['正常', '正常'],
-  ['疑似已下架', '疑似下架'], ['疑似待查', '疑似下架'], ['其他狀態', '其他狀態']]) {
-  test(`statusLabel ${String(input)}`, () => assert.equal(statusLabel(input), expected));
+for (const [input, expected] of [
+  [null, ''],
+  [undefined, ''],
+  ['', ''],
+  ['疑似已下架', '來源未列出・待確認'],
+  ['其他狀態', '其他狀態'],
+]) {
+  test(`statusLabel fallback: ${JSON.stringify(input)}`, () => assert.equal(statusLabel(input), expected));
+}
+for (const [input, expected] of [
+  ['疑似已下架_平台停止服務未逐筆驗證', '來源平台停止服務'],
+  ['疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證', '來源未列出・待確認'],
+  ['已下架_平台停止服務', '已下架'],
+  ['已下架_資料異常', '已下架'],
+  ['疑似待查', '來源未列出・待確認'],
+]) {
+  test(`statusLabel Phase A: ${input}`, () => assert.equal(statusLabel(input), expected));
+}
+for (const [input, expected] of [
+  ['正常', '正常'],
+  ['疑似已下架_平台停止服務未逐筆驗證', '來源平台停止服務'],
+  ['疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證', '來源未列出・待確認'],
+  ['疑似已下架_SME AI平台方案未持續上架未逐筆驗證', '來源未列出・待確認'],
+  ['疑似已下架_農業雲市集數位館方案未持續上架未逐筆驗證', '來源未列出・待確認'],
+  ['已下架_平台停止服務', '已下架'],
+  ['已下架_資料異常', '已下架'],
+  ['已下架_公司歇業佐證', '已下架'],
+  ['已下架_商品頁失效已逐筆驗證', '已下架'],
+  ['已下架_新創嚴選網官網完整清單連續三次未出現', '已下架'],
+  ['已下架_個別方案下架已人工查證', '已下架'],
+  ['已下架_重複資料', '已下架'],
+]) {
+  test(`statusLabel recorded value: ${input}`, () => assert.equal(statusLabel(input), expected));
 }
 test('NFKC, whitespace and case normalize equally; different names remain different', () => {
   assert.equal(normName(' ＡＢＣ　１２３\t\n'), normName('abc 123'));
@@ -49,8 +79,10 @@ test('empty normalized names never merge, even with the same company', () => {
   }
 });
 test('merged statuses count each normalized label in first-appearance order', () => {
-  const result = mergeProducts([sample(), sample(), sample({ rs: '疑似待查' })])[0];
-  assert.equal(result.status, '正常 2／疑似下架 1');
+  const result = mergeProducts([
+    sample(), sample(), sample({ rs: '疑似已下架_平台停止服務未逐筆驗證' }), sample({ rs: '疑似待查' }),
+  ])[0];
+  assert.equal(result.status, '正常 2／來源平台停止服務 1／來源未列出・待確認 1');
   assert.equal(mergeProducts([sample({ rs: '' }), sample({ rs: '' })])[0].status, '');
 });
 test('prices: range, equal, zero, partial and entirely empty', () => {

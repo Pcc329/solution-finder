@@ -99,7 +99,7 @@ export function invitationTrial(vendors) {
 export function renderInvitationTrial(vendors) {
   const rows = invitationTrial(vendors);
   const { waves } = summarize(vendors);
-  return `<section class="vp-card"><h2>三波邀請試算</h2><p class="vp-sub">僅列跨 2 平台以上廠商，依在架 AI 方案數（正常＋疑似下架）分組，由上往下累加。此表用於比較方案數門檻；下方三波階梯與名單依既有邀請波次呈現。</p>
+  return `<section class="vp-card"><h2>三波邀請試算</h2><p class="vp-sub">僅列跨 2 平台以上廠商，依在架 AI 方案數（正常＋來源停服／待確認）分組，由上往下累加。此表用於比較方案數門檻；下方三波階梯與名單依既有邀請波次呈現。</p>
     ${rows ? `<div class="table-scroll"><table class="vp-trial"><caption class="sr-only">跨平台廠商 AI 方案數與門檻累計</caption><thead><tr>${['AI 方案數', '家數', '跨 2 平台', '跨 3 平台以上', '門檻設在此時的名單家數'].map(label => `<th scope="col">${label}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr><th scope="row">${row.ai === 5 ? '5 個以上' : row.ai}</th><td>${count(row.total)}</td><td>${count(row.two)}</td><td>${count(row.threePlus)}</td><td>${count(row.cumulative)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="vp-note" role="status">AI 方案數資料不完整，暫無法顯示門檻試算。</p>'}
     <ol class="vp-wave-steps" aria-label="三波邀請累計">${inviteTiers.slice(0, 3).map((tier, index) => `<li><span>${tier}${index ? '累計' : ''}</span><b>${waves == null ? '—' : count(waves[index])}</b><span>家</span></li>`).join('')}</ol></section>`;
 }
