@@ -1,0 +1,16 @@
+:root {
+  --sf-accent-50: #E1F7F6;
+  --sf-accent-100: #C4EFED;
+  --sf-accent-200: #9BE3E0;
+  --sf-accent-400: #3CCBC6;
+  --sf-accent-500: #0ABAB5;
+  --sf-accent-600: #08A39F;
+  --sf-accent-700: #087F7B;
+  --sf-accent-800: #085F5C;
+  --sf-on-accent: #0B2B2A;
+  --sf-hero-bg: #0B3B3A;
+  --sf-hero-kicker: #6FDCD8;
+  --sf-hero-lead: #D5E4E4;
+  --sf-hero-chip-border: #2A7B78;
+  --sf-hero-chip-text: #BFEDEB;
+}

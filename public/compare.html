@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/solution-name.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <link rel="stylesheet" href="/theme.css">
   <style>
     :root {
       --primary: #1D9E75;
@@ -39,21 +40,79 @@
       position: sticky;
       top: 0;
       z-index: 1000;
-      background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 12px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      gap: 12px;
+      padding: 12px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     }
-    .global-nav-brand { display: flex; align-items: center; gap: 10px; }
-    .global-nav-logo { width: 36px; height: 36px; background: transparent; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .global-nav-brand { display: flex; align-items: center; gap: 10px; line-height: 1.25; }
+    .global-nav-logo { width: 36px; height: 36px; flex: 0 0 36px; display: flex; align-items: center; justify-content: center; }
     .global-nav-kicker { font-size: 10px; color: #6b7280; letter-spacing: 0.1em; }
     .global-nav-title { font-size: 14px; font-weight: 600; color: #111827; }
-    .global-nav-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .global-nav-link { padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; color: #374151; text-decoration: none; background: #fff; font-weight: 600; }
-    .global-nav-link.active { background: #0d9488; color: #ffffff; border-color: #0d9488; }
+    .global-nav-actions { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; gap: 8px; }
+    .global-nav-more { position: relative; }
+    .global-nav-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 6px 12px;
+      border: 1px solid var(--sf-accent-200);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--sf-accent-700);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .global-nav-toggle:hover,
+    .global-nav-toggle[aria-expanded="true"] { background: var(--sf-accent-50); color: var(--sf-accent-800); }
+    .global-nav-toggle::after {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: translateY(-2px) rotate(45deg);
+    }
+    .global-nav-toggle[aria-expanded="true"]::after { transform: translateY(2px) rotate(225deg); }
+    .global-nav-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 1;
+      box-sizing: border-box;
+      width: min(176px, calc(100vw - 32px));
+      padding: 6px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    .global-nav-menu[hidden] { display: none; }
+    .global-nav-link {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: var(--sf-accent-700);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .global-nav-link:hover,
+    .global-nav-link[aria-current="page"] { background: var(--sf-accent-50); color: var(--sf-accent-800); }
+    .global-nav-toggle:focus-visible,
+    .global-nav-link:focus-visible { outline: 2px solid var(--sf-accent-400); outline-offset: 2px; }
+    @media (max-width: 640px) {
+      #global-nav { padding-inline: 16px; }
+    }
 
     main {
       width: min(1180px, calc(100% - 40px));
@@ -77,7 +136,7 @@
     }
 
     a {
-      color: var(--primary-dark);
+      color: var(--sf-accent-700);
       font-weight: 700;
       text-decoration: none;
     }
@@ -229,8 +288,8 @@
       gap: 8px;
       border: 0;
       border-radius: 8px;
-      background: var(--primary-dark);
-      color: #ffffff;
+      background: var(--sf-accent-500);
+      color: var(--sf-on-accent);
       cursor: pointer;
       font-size: 14px;
       font-weight: 900;
@@ -239,7 +298,7 @@
     }
 
     .ai-summary-btn:hover {
-      background: var(--primary);
+      background: var(--sf-accent-600);
     }
 
     .ai-summary-btn:disabled {
@@ -267,7 +326,7 @@
       margin-top: 16px;
       background: var(--card);
       border: 1px solid var(--border);
-      border-left: 5px solid var(--primary);
+      border-left: 5px solid var(--sf-accent-500);
       border-radius: 8px;
       box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
       padding: 20px;
@@ -294,8 +353,6 @@
     }
 
     @media (max-width: 720px) {
-      #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
-      .global-nav-actions { width: 100%; justify-content: flex-start; }
       main {
         width: min(100% - 24px, 1180px);
         padding-top: 24px;
@@ -322,9 +379,14 @@
       </div>
     </a>
     <div class="global-nav-actions">
-      <a class="global-nav-link" href="/sources.html">資料來源</a>
-      <a class="global-nav-link" href="/dashboard.html">知識庫</a>
-      <a class="global-nav-link" href="/manufacturing.html">方案探索</a>
+      <div class="global-nav-more">
+        <button type="button" class="global-nav-toggle" aria-expanded="false" aria-controls="global-nav-menu">更多功能</button>
+        <div id="global-nav-menu" class="global-nav-menu" hidden>
+          <a class="global-nav-link" href="/sources.html">資料來源</a>
+          <a class="global-nav-link" href="/dashboard.html">知識庫</a>
+          <a class="global-nav-link" href="/manufacturing.html">方案探索</a>
+        </div>
+      </div>
     </div>
   </nav>
   <main>
@@ -507,5 +569,6 @@
       renderEmpty();
     }
   </script>
+  <script src="/global-nav.js"></script>
 </body>
 </html>
