@@ -6,8 +6,7 @@ const test = require('node:test');
 
 const html = readFileSync(path.join(__dirname, '../public/index.html'), 'utf8').replace(/\r\n/g, '\n');
 const fetchAllSource = html.match(/(async function fetchAll\(\) \{[\s\S]*?\n        \})\n        fetchAll\(\);/)[1];
-const countExpression = html.split('\n').find(line => line.includes('收錄 <span'))
-  .match(/\{([^{}]+allData\.length\.toLocaleString\(\))\}/)[1];
+const countExpression = html.match(/<dd id="home-queryable-count"[^>]*>\{([^{}]+)\}<\/dd>/)[1];
 
 function harness(fetcher) {
   const state = { allData: [], loading: true, error: null };
