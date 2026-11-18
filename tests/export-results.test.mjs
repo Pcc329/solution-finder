@@ -155,8 +155,8 @@ test('PDF and Word allow 500 output rows, reject 501; CSV stays unlimited', () =
 });
 test('filename sanitizes forbidden characters and has an empty-keyword fallback', () => {
   const now = new Date(2026, 9, 30, 9, 5);
-  assert.equal(fileName('a/b:c*?"<>|\r', 'csv', now), 'SF查詢結果_abc_20261030.csv');
-  assert.equal(fileName(' / ', 'docx', now), 'SF查詢結果_全部_20261030.docx');
+  assert.equal(fileName('a/b:c*?"<>|\r', 'csv', now), '資服產業資料庫查詢結果_abc_20261030.csv');
+  assert.equal(fileName(' / ', 'docx', now), '資服產業資料庫查詢結果_全部_20261030.docx');
 });
 test('metadata has ROC time and correct merged/unmerged counts', () => {
   const now = new Date(2026, 9, 30, 9, 5);

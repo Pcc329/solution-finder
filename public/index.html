@@ -10,6 +10,7 @@
   <script src="/auth-gate.js"></script>
   <script src="/solution-name.js"></script>
   <script src="/status-help.js"></script>
+  <script src="/example-combos.js"></script>
   <script src="/industry-vertical.js"></script>
   <script type="module" src="/export-results-panel.mjs"></script>
   <link rel="stylesheet" href="/solution-name.css">
@@ -202,12 +203,16 @@
       ({ region, category }) => `搜尋：${region}有哪些${category}相關方案...`,
     ];
     const getRandomItem = (items) => items[Math.floor(Math.random() * items.length)];
-    const createRandomSearchSentence = (previousSentence = "") => {
+    const createRandomSearchSentence = (previousSentence = "", combos = null) => {
+      if (combos?.length === 0) return "";
       let sentence = previousSentence;
       for (let attempt = 0; attempt < 8 && sentence === previousSentence; attempt += 1) {
-        sentence = getRandomItem(SENTENCE_TEMPLATES)({
+        const combo = combos ? getRandomItem(combos) : {
           region: getRandomItem(POOL_REGION),
           category: getRandomItem(POOL_CATEGORY),
+        };
+        sentence = getRandomItem(SENTENCE_TEMPLATES)({
+          ...combo,
           scale: getRandomItem(POOL_SCALE),
         });
       }
@@ -568,9 +573,25 @@
       const companyRequest = useRef(0);
       const companyRequestPending = useRef(false);
       const [placeholderText, setPlaceholderText] = useState(() => createRandomSearchSentence());
-      const [quickSearchExamples] = useState(() =>
-        Array.from({ length: 3 }, () => createRandomSearchSentence())
+      const [initialExamples] = useState(() =>
+        Array.from({ length: 3 }, () => ({ text: createRandomSearchSentence() }))
       );
+      const exampleCombos = useMemo(() => {
+        if (loading) return null;
+        return ExampleCombos.getEligibleExampleCombos(allData, POOL_REGION, POOL_CATEGORY);
+      }, [allData, loading]);
+      const quickSearchExamples = useMemo(() => {
+        if (exampleCombos === null) return initialExamples;
+        const shuffled = [...exampleCombos];
+        for (let index = shuffled.length - 1; index > 0; index -= 1) {
+          const other = Math.floor(Math.random() * (index + 1));
+          [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
+        }
+        return ExampleCombos.selectDistinctExampleCombos(shuffled).map(combo => ({
+          ...combo,
+          text: createRandomSearchSentence("", [combo]),
+        }));
+      }, [exampleCombos, initialExamples]);
       const [isSearching, setIsSearching] = useState(false);
       const [filters, setFilters] = useState({
         region: [], isAI: null, isStartup: null, isGov: null, pricingModel: null,
@@ -595,11 +616,14 @@
 
       useEffect(() => {
         if (query) return undefined;
-        const intervalId = window.setInterval(() => {
-          setPlaceholderText(previous => createRandomSearchSentence(previous));
-        }, 3000);
+        const updatePlaceholder = () => {
+          setPlaceholderText(previous => createRandomSearchSentence(previous, exampleCombos));
+        };
+        if (exampleCombos !== null) updatePlaceholder();
+        if (exampleCombos?.length === 0) return undefined;
+        const intervalId = window.setInterval(updatePlaceholder, 3000);
         return () => window.clearInterval(intervalId);
-      }, [query]);
+      }, [query, exampleCombos]);
 
       const pushHistoryView = (view, extraState = {}) => {
         const hash = `#${view}`;
@@ -866,35 +890,20 @@
         pushHistoryView("list");
       };
 
-      // 快速搜尋也走 Claude
-      const handleQuickSearch = async (text) => {
-        if (loading) return;
+      const handleQuickSearch = ({ text, filterRegion, category }) => {
+        if (loading || !category) return;
         setQuery(text);
-        setIsSearching(true);
+        setFilters({
+          region: filterRegion ? [filterRegion] : [],
+          isAI: null, isStartup: null, isGov: null, pricingModel: null,
+          category: [category], maxPrice: null, keyword: null,
+          program: [], industry_vertical: [], industryKeyword: null,
+        });
         setActivePage("list");
         setSelectedItem(null);
         setCurrentPage(1);
         setSortBy("relevance");
         pushHistoryView("list");
-        try {
-          const result = await callClaude(text);
-          setFilters({
-            region: result.region ? [result.region] : [],
-            isAI: result.ai != null ? result.ai : null,
-            isStartup: result.startup != null ? result.startup : null,
-            isGov: null,
-            pricingModel: null,
-            category: result.category ? [result.category] : [],
-            maxPrice: result.maxPrice || null,
-            keyword: result.keyword || null,
-            program: result.program ? [result.program] : [],
-            industry_vertical: result.industry_vertical ? [result.industry_vertical] : [],
-            industryKeyword: result.industryKeyword || null,
-          });
-        } catch (err) {
-          setFilters(parseQueryFallback(text));
-        }
-        setIsSearching(false);
       };
 
       const handleCategoryBrowse = (category) => {
@@ -1421,7 +1430,7 @@
             <div className="mx-auto max-w-5xl">
               <p className="mb-4 text-xs font-bold tracking-widest text-[var(--sf-hero-kicker)]">SOLUTION FINDER・資服產業資料庫</p>
               <h1 id="home-title" className="mx-auto max-w-3xl text-balance text-3xl font-black leading-snug tracking-tight text-white md:text-5xl md:leading-tight">
-                政府計畫收錄的數位轉型方案與廠商，一處查齊
+                <span className="inline-block whitespace-nowrap">政府計畫收錄的</span><wbr /><span className="inline-block whitespace-nowrap">數位轉型方案與廠商，</span><wbr /><span className="inline-block whitespace-nowrap">一處查齊</span>
               </h1>
               <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[var(--sf-hero-lead)] md:text-base">
                 彙整多個政府計畫的方案與提供廠商，並定期查核每筆資料的狀態
@@ -1462,22 +1471,27 @@
                     {renderCompanySearchForm("company-home-query")}
                   </div>
                 </div>
-                {loading && (
-                  <div role="status" className="mt-2 flex items-center gap-2 text-xs text-brand-700">
-                    <i className="fa-solid fa-circle-notch animate-spin" aria-hidden="true"></i>
-                    正在讀取方案資料...
-                  </div>
-                )}
+                <div role="status" aria-hidden={!loading} style={{ visibility: loading ? "visible" : "hidden" }}
+                  className="mt-2 flex items-center gap-2 text-xs text-brand-700">
+                  <i className="fa-solid fa-circle-notch animate-spin" aria-hidden="true"></i>
+                  正在讀取方案資料...
+                </div>
               </div>
-              <div className="mx-auto mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-2 text-[var(--sf-hero-chip-text)]"
-                aria-hidden={homeTab !== "solution"} style={{ visibility: homeTab === "solution" ? "visible" : "hidden" }}>
-                <span className="text-xs font-bold">試試看</span>
-                {quickSearchExamples.map(text => (
-                  <button key={text} type="button" onClick={() => handleQuickSearch(text)}
-                    className="rounded-full border border-[var(--sf-hero-chip-border)] px-3 py-2 text-xs font-medium transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400">
-                    {text}
-                  </button>
-                ))}
+              <div className="mx-auto mt-4 max-w-3xl text-[var(--sf-hero-chip-text)]"
+                aria-hidden={homeTab !== "solution" || quickSearchExamples.length === 0}
+                style={{ visibility: homeTab === "solution" && quickSearchExamples.length > 0 ? "visible" : "hidden" }}>
+                <div className="text-xs font-bold">試試看</div>
+                <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
+                  {Array.from({ length: 3 }, (_, index) => {
+                    const example = quickSearchExamples[index];
+                    return example ? (
+                      <button key={index} type="button" disabled={loading} onClick={() => handleQuickSearch(example)}
+                        className="h-12 rounded-full border border-[var(--sf-hero-chip-border)] px-3 text-xs font-medium transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400">
+                        {example.text}
+                      </button>
+                    ) : <span key={index} aria-hidden="true" className="invisible h-12" />;
+                  })}
+                </div>
               </div>
             </div>
           </section>
@@ -2094,12 +2108,12 @@
             </section>
             <section aria-live="polite" aria-atomic="true">
               {isPartial ? (
-                <p className="rounded-xl bg-indigo-50 p-4 text-sm leading-relaxed text-indigo-900 mb-4">
+                <p className="rounded-xl bg-brand-50 p-4 text-sm leading-relaxed text-brand-800 mb-4">
                   找到 {result.result_count} 家名稱相近的公司，請確認是哪一家（建議改用統編查詢）。
                 </p>
               ) : (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 mb-5">
-                  <h2 className="text-lg font-bold text-amber-950 break-words">SF 未收錄「{result.query}」</h2>
+                  <h2 className="text-lg font-bold text-amber-950 break-words">資服產業資料庫未收錄「{result.query}」</h2>
                   <p className="mt-2 text-sm leading-relaxed text-amber-900">這只代表本資料庫沒有這家公司的方案，不代表公司不存在，也不代表它沒在任何計畫平台上架過。</p>
                 </div>
               )}
@@ -2172,7 +2186,7 @@
               <div className="flex items-start gap-4">
                 <div className="shrink-0" aria-hidden="true" dangerouslySetInnerHTML={{ __html: window.renderCompanyAvatar(company.company_name, company.logo_url) }} />
                 <div className="min-w-0">
-                  <p className="text-xs font-bold tracking-widest text-indigo-600 mb-2">公司檔案</p>
+                  <p className="text-xs font-bold tracking-widest text-brand-700 mb-2">公司檔案</p>
                   <h1 className="text-2xl md:text-3xl font-black leading-snug text-slate-900 break-words">{company.company_name}</h1>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className={`${badgeClass} bg-slate-50 border-slate-200 text-slate-600 font-mono`}>{company.company_id}</span>

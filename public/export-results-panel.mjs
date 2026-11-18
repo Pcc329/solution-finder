@@ -76,7 +76,7 @@ export function fileName(keyword, ext, date = new Date()) {
   const pad = n => String(n).padStart(2, '0');
   const clean = String(keyword || '全部').replace(/[\\/:*?"<>|\u0000-\u001F\u007F]/g, '').trim()
     .replace(/[. ]+$/g, '').slice(0, 80) || '全部';
-  return `SF查詢結果_${clean}_${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}.${ext}`;
+  return `資服產業資料庫查詢結果_${clean}_${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}.${ext}`;
 }
 export function previewSummary(count, baseCount, merge) {
   const merged = baseCount - count;
@@ -91,8 +91,8 @@ export function queryMeta(filters, sortBy, count, baseCount, merge, onlyNormal, 
   return [
     describeQuery(filters, sortBy),
     `輸出時間：${time}　${merge ? `產品：${nf(count)} 項（由 ${nf(baseCount)} 筆上架紀錄合併）` : `筆數：${nf(count)} 筆`}${statusNote}`,
-    merge ? '資料來源：產業資料庫（各政府計畫平台公開上架名單）；同公司、同名的產品已合併為一列，來源平台以頓號列出'
-      : '資料來源：產業資料庫（各政府計畫平台公開上架名單）；同一產品上架多個平台時，各平台分別計為一筆',
+    merge ? '資料來源：資服產業資料庫（各政府計畫平台公開上架名單）；同公司、同名的產品已合併為一列，來源平台以頓號列出'
+      : '資料來源：資服產業資料庫（各政府計畫平台公開上架名單）；同一產品上架多個平台時，各平台分別計為一筆',
   ];
 }
 
@@ -115,7 +115,7 @@ export async function buildDOCX(rows, cols, meta, signal) {
   });
   const children = [];
   if (meta.length) {
-    children.push(paragraph('產業資料庫 查詢結果', { size: 28, bold: true }));
+    children.push(paragraph('資服產業資料庫 查詢結果', { size: 28, bold: true }));
     children.push(...meta.map(line => paragraph(line, { color: '4B5563' })), paragraph(''));
   }
   children.push(new Table({
@@ -183,7 +183,7 @@ export async function buildPDF(rows, cols, meta, onProgress, signal) {
       let canvas;
       try {
         const chunk = rows.slice(i * PAGE_ROWS, (i + 1) * PAGE_ROWS);
-        host.innerHTML = (i === 0 && meta.length ? `<div style="border-left:3px solid #1D9E75;padding-left:10px;margin-bottom:14px;color:#4b5563"><strong style="display:block;font-size:16px;color:#1f2933">產業資料庫 查詢結果</strong>${meta.map(escapeHTML).join('<br>')}</div>` : '')
+        host.innerHTML = (i === 0 && meta.length ? `<div style="border-left:3px solid #1D9E75;padding-left:10px;margin-bottom:14px;color:#4b5563"><strong style="display:block;font-size:16px;color:#1f2933">資服產業資料庫 查詢結果</strong>${meta.map(escapeHTML).join('<br>')}</div>` : '')
           + `<table style="border-collapse:collapse;width:100%;table-layout:fixed"><thead><tr>${cols.map(col => `<th style="padding:7px;border:1px solid #dce8e2;text-align:left;color:#0D6E52;background:#EEF7F3">${escapeHTML(col.label)}</th>`).join('')}</tr></thead><tbody>${chunk.map(row => `<tr>${cols.map(col => `<td style="padding:7px;border:1px solid #e3e8e6;vertical-align:top;white-space:pre-wrap">${escapeHTML(row[col.key])}</td>`).join('')}</tr>`).join('')}</tbody></table>`
           + `<div style="margin-top:10px;color:#6b7280;text-align:right;font-size:11px">第 ${i + 1}／${total} 頁</div>`;
         // Yield so the progress message paints before each individual page is rasterized.
