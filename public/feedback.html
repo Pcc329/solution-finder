@@ -8,6 +8,7 @@
   <script src="/auth-gate.js"></script>
   <meta name="robots" content="noindex, nofollow">
   <title>內部測試回饋｜產業策略智庫</title>
+  <link rel="stylesheet" href="/theme.css">
   <style>
     :root {
       --teal: #1D9E75;
@@ -28,7 +29,7 @@
     }
     main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }
     header { margin-bottom: 24px; }
-    .kicker { margin: 0 0 6px; font-size: 13px; color: var(--teal-dark); font-weight: 800; letter-spacing: .08em; }
+    .kicker { margin: 0 0 6px; font-size: 13px; color: var(--sf-accent-700); font-weight: 800; letter-spacing: .08em; }
     h1 { margin: 0; font-size: clamp(28px, 5vw, 42px); line-height: 1.15; }
     .subtitle { margin: 10px 0 0; color: var(--muted); font-weight: 600; }
     .card {
@@ -53,7 +54,7 @@
       outline: none;
     }
     textarea { min-height: 112px; resize: vertical; }
-    input:focus, textarea:focus, select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(29, 158, 117, .12); }
+    input:focus, textarea:focus, select:focus { border-color: var(--sf-accent-400); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sf-accent-400) 12%, transparent); }
     .milestones { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
     .milestone {
       border: 1px solid var(--line);
@@ -67,7 +68,7 @@
       min-height: 84px;
     }
     .milestone span { display: block; color: var(--muted); font-size: 12px; font-weight: 700; margin-top: 4px; }
-    .milestone.active { border-color: var(--teal); background: var(--soft); color: var(--teal-dark); box-shadow: 0 0 0 3px rgba(29, 158, 117, .12); }
+    .milestone.active { border-color: var(--sf-accent-200); background: var(--sf-accent-50); color: var(--sf-accent-800); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sf-accent-400) 12%, transparent); }
     .dynamic { display: grid; gap: 16px; }
     .stars { display: flex; gap: 8px; flex-wrap: wrap; }
     .star {
@@ -90,7 +91,7 @@
       font-weight: 800;
       cursor: pointer;
     }
-    .choice.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .choice.active { background: var(--sf-accent-500); color: var(--sf-on-accent); border-color: var(--sf-accent-500); }
     .actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
     .btn {
       border: 0;
@@ -98,10 +99,10 @@
       padding: 12px 18px;
       font-weight: 900;
       cursor: pointer;
-      background: var(--teal);
-      color: #fff;
+      background: var(--sf-accent-500);
+      color: var(--sf-on-accent);
     }
-    .btn:hover { background: var(--teal-dark); }
+    .btn:hover { background: var(--sf-accent-600); }
     .btn.secondary { background: #f1f5f9; color: #334155; }
     .btn:disabled { opacity: .55; cursor: not-allowed; }
     .error { color: #dc2626; font-size: 14px; font-weight: 800; }
@@ -129,7 +130,7 @@
       <p class="subtitle">產業策略智庫 小規模試行</p>
     </header>
 
-    <section class="card" style="background:#f0fdf9;border-color:#a7e8d4">
+    <section class="card" style="background:var(--sf-accent-50);border-color:var(--sf-accent-200)">
       <h2 class="section-title" style="margin-top:0">填寫說明</h2>
       <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.9;color:#334155">
         <li>每完成一個測試任務，回到本頁提交一次回報，<strong>每次約 2–3 分鐘</strong>。</li>

@@ -22,26 +22,114 @@
     };
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: 'var(--sf-accent-50)',
+              100: 'var(--sf-accent-100)',
+              200: 'var(--sf-accent-200)',
+              400: 'var(--sf-accent-400)',
+              500: 'var(--sf-accent-500)',
+              600: 'var(--sf-accent-600)',
+              700: 'var(--sf-accent-700)',
+              800: 'var(--sf-accent-800)',
+            },
+            'on-brand': 'var(--sf-on-accent)',
+          },
+        },
+      },
+    };
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
+  <link rel="stylesheet" href="/theme.css">
   <style>
     body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background-color: #ffffff; color: #111827; }
-    #global-nav { position: sticky; top: 0; z-index: 1000; background: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-    .global-nav-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-    .global-nav-logo { width: 36px; height: 36px; background: transparent; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    #global-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }
+    .global-nav-brand { display: flex; align-items: center; gap: 10px; line-height: 1.25; }
+    .global-nav-logo { width: 36px; height: 36px; flex: 0 0 36px; display: flex; align-items: center; justify-content: center; }
     .global-nav-kicker { font-size: 10px; color: #6b7280; letter-spacing: 0.1em; }
     .global-nav-title { font-size: 14px; font-weight: 600; color: #111827; }
-    .global-nav-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .global-nav-link { padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; color: #374151; text-decoration: none; background: #fff; font-weight: 600; }
-    .global-nav-link.active { background: #0d9488; color: #ffffff; border-color: #0d9488; }
-    @media (max-width: 640px) {
-      #global-nav { align-items: flex-start; flex-direction: column; gap: 10px; padding: 12px 16px; }
-      .global-nav-actions { width: 100%; justify-content: flex-start; }
+    .global-nav-actions { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; gap: 8px; }
+    .global-nav-more { position: relative; }
+    .global-nav-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 6px 12px;
+      border: 1px solid var(--sf-accent-200);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--sf-accent-700);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
+      cursor: pointer;
     }
+    .global-nav-toggle:hover,
+    .global-nav-toggle[aria-expanded="true"] { background: var(--sf-accent-50); color: var(--sf-accent-800); }
+    .global-nav-toggle::after {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: translateY(-2px) rotate(45deg);
+    }
+    .global-nav-toggle[aria-expanded="true"]::after { transform: translateY(2px) rotate(225deg); }
+    .global-nav-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 1;
+      box-sizing: border-box;
+      width: min(176px, calc(100vw - 32px));
+      padding: 6px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    .global-nav-menu[hidden] { display: none; }
+    .global-nav-link {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: var(--sf-accent-700);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .global-nav-link:hover,
+    .global-nav-link[aria-current="page"] { background: var(--sf-accent-50); color: var(--sf-accent-800); }
+    .global-nav-toggle:focus-visible,
+    .global-nav-link:focus-visible { outline: 2px solid var(--sf-accent-400); outline-offset: 2px; }
+    @media (max-width: 640px) {
+      #global-nav { padding-inline: 16px; }
+    }
+    #global-nav .global-nav-brand { cursor: pointer; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     .animate-in { animation: fadeIn 0.3s ease-out forwards; }
@@ -184,9 +272,9 @@
               <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl">✕</button>
             </div>
 
-            <div className="bg-emerald-50 rounded-xl p-3 mb-5 flex justify-between items-center">
-              <span className="text-sm text-emerald-700 font-bold">方案月費</span>
-              <span className="text-lg font-black text-emerald-800 font-mono">
+            <div className="bg-brand-50 rounded-xl p-3 mb-5 flex justify-between items-center">
+              <span className="text-sm text-brand-800 font-bold">方案月費</span>
+              <span className="text-lg font-black text-brand-800 font-mono">
                 {monthlyFee > 0 ? `NT$ ${monthlyFee.toLocaleString()}` : "未提供"}
               </span>
             </div>
@@ -196,13 +284,13 @@
                 <label className="text-xs text-slate-500 mb-1 block">影響人數（人）</label>
                 <input type="number" min="1" value={people}
                   onChange={e => setPeople(Number(e.target.value) || 1)}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-400" />
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-400" />
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">平均人月成本（元）</label>
                 <input type="number" min="1000" step="1000" value={salary}
                   onChange={e => setSalary(Number(e.target.value) || 1000)}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-400" />
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-400" />
               </div>
             </div>
 
@@ -245,7 +333,7 @@
         <div className="flex flex-col gap-1 py-2 sm:flex-row sm:gap-4">
           <dt className="text-[13px] text-slate-500 sm:w-[84px] sm:shrink-0">{label}</dt>
           <dd className={`min-w-0 text-sm ${text ? "text-slate-700" : "text-slate-400"}`} style={{ overflowWrap: "anywhere" }}>
-            {text ? (href ? <a className="text-emerald-700 underline hover:text-emerald-800" href={href}>{text}</a> : text) : "暫無資訊"}
+            {text ? (href ? <a className="text-brand-700 underline hover:text-brand-800" href={href}>{text}</a> : text) : "暫無資訊"}
           </dd>
         </div>
       );
@@ -301,9 +389,9 @@
         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-4">
           <button type="button" aria-expanded={contactOpen} aria-controls="contact-info-body"
             onClick={() => setContactOpen(open => !open)}
-            className="w-full min-h-[60px] flex items-center justify-between gap-3 px-5 py-3.5 text-left rounded-2xl hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-600">
+            className="w-full min-h-[60px] flex items-center justify-between gap-3 px-5 py-3.5 text-left rounded-2xl hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400">
             <span className="flex min-w-0 items-center gap-3">
-              <span className="w-9 h-9 shrink-0 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center" aria-hidden="true"><i className="fa-regular fa-address-card"></i></span>
+              <span className="w-9 h-9 shrink-0 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center" aria-hidden="true"><i className="fa-regular fa-address-card"></i></span>
               <span><span className="block text-sm font-bold text-slate-900">聯絡資訊</span><span className="block text-xs text-slate-500 mt-0.5">聯絡人、公司電話、稅籍主業、Email、手機</span></span>
             </span>
             <i aria-hidden="true" className={`fa-solid fa-chevron-down shrink-0 text-slate-500 transition-transform motion-reduce:transition-none ${contactOpen ? "rotate-180" : ""}`}></i>
@@ -322,11 +410,11 @@
                 <dl className="border-t border-slate-200 mt-1 pt-1"><ContactInfoRow label="稅籍主業" value={item.tax} /></dl>
               </React.Fragment>
             ) : busy ? (
-              <div className="flex items-center gap-2.5 py-3.5 text-sm text-slate-500" role="status"><i className="fa-solid fa-spinner animate-spin motion-reduce:animate-none text-emerald-700" aria-hidden="true"></i>正在載入聯絡資訊…</div>
+              <div className="flex items-center gap-2.5 py-3.5 text-sm text-slate-500" role="status"><i className="fa-solid fa-spinner animate-spin motion-reduce:animate-none text-brand-700" aria-hidden="true"></i>正在載入聯絡資訊…</div>
             ) : (
               <div className="flex flex-wrap items-center gap-2.5 py-3.5 text-sm text-slate-500">
                 <span>{message}</span>
-                {contactEntry.status !== "auth" && <button type="button" onClick={() => setContactRetry(value => value + 1)} className="min-h-[44px] px-3 py-1 border border-slate-200 rounded-lg text-emerald-700 hover:bg-emerald-50">重試</button>}
+                {contactEntry.status !== "auth" && <button type="button" onClick={() => setContactRetry(value => value + 1)} className="min-h-[44px] px-3 py-1 border border-slate-200 rounded-lg text-brand-700 hover:bg-brand-50 hover:text-brand-800">重試</button>}
               </div>
             )}
             <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">聯絡資料來自廠商於各計畫平台登錄時提供，可能已異動，聯繫前請以廠商官網為準。</p>
@@ -408,11 +496,64 @@
       );
     }
 
+    function GlobalNav({ onHome }) {
+      const [open, setOpen] = useState(false);
+      const menuRoot = useRef(null);
+      const toggle = useRef(null);
+
+      useEffect(() => {
+        if (!open) return;
+
+        function handleOutsideClick(event) {
+          if (!menuRoot.current.contains(event.target)) setOpen(false);
+        }
+
+        function handleEscape(event) {
+          if (event.key !== "Escape") return;
+          setOpen(false);
+          toggle.current.focus();
+        }
+
+        document.addEventListener("click", handleOutsideClick);
+        document.addEventListener("keydown", handleEscape);
+        return () => {
+          document.removeEventListener("click", handleOutsideClick);
+          document.removeEventListener("keydown", handleEscape);
+        };
+      }, [open]);
+
+      return (
+        <nav id="global-nav">
+          <div className="global-nav-brand" onClick={onHome}>
+            <div className="global-nav-logo"><img src="/brand/logo-mark.svg" alt="" width="36" height="36" /></div>
+            <div>
+              <div className="global-nav-kicker">SOLUTION FINDER</div>
+              <div className="global-nav-title">資服產業資料庫</div>
+            </div>
+          </div>
+          <div className="global-nav-actions">
+            <div className="global-nav-more" ref={menuRoot}>
+              <button type="button" className="global-nav-toggle" ref={toggle}
+                aria-expanded={open} aria-controls="global-nav-menu" onClick={() => setOpen(value => !value)}>
+                更多功能
+              </button>
+              <div id="global-nav-menu" className="global-nav-menu" hidden={!open}>
+                <a className="global-nav-link" href="/sources.html">資料來源</a>
+                <a className="global-nav-link" href="/dashboard.html">知識庫</a>
+                <a className="global-nav-link" href="/manufacturing.html">方案探索</a>
+              </div>
+            </div>
+          </div>
+        </nav>
+      );
+    }
+
     function App() {
       const [allData, setAllData] = useState([]);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
       const [activePage, setActivePage] = useState("home"); // home | list | detail | theme-detail
+      const [homeTab, setHomeTab] = useState("solution");
       const [selectedCategory, setSelectedCategory] = useState(null);
       useEffect(() => {
         window.scrollTo(0, 0);
@@ -596,9 +737,9 @@
             <input id={id} value={companyQuery} onChange={event => { setCompanyQuery(event.target.value); setCompanyError(null); }}
               aria-invalid={Boolean(companyError)} aria-describedby={companyError ? "company-query-error" : undefined}
               placeholder="統編（8 碼）或公司名稱" autoComplete="off"
-              className="min-w-0 flex-1 min-h-[48px] rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" />
+              className="min-w-0 flex-1 min-h-[48px] rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100" />
             <button type="submit" disabled={companyLoading}
-              className="min-h-[48px] shrink-0 rounded-xl bg-[#4F46B8] px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-800 disabled:opacity-60 disabled:cursor-not-allowed">
+              className="min-h-[48px] shrink-0 rounded-xl bg-brand-500 px-5 py-3 text-sm font-bold text-on-brand transition hover:bg-brand-600 disabled:opacity-60 disabled:cursor-not-allowed">
               {companyLoading && <i aria-hidden="true" className="fa-solid fa-spinner fa-spin mr-2"></i>}
               {companyLoading ? "查詢中…" : "查詢"}
             </button>
@@ -635,7 +776,7 @@
             const data = await res.json();
             const total = Number(data?.total);
             const newThisMonth = Number(data?.newThisMonth);
-            const companyTotal = Number(data?.companyTotal);
+          const companyTotal = data?.companyTotal == null ? null : Number(data.companyTotal);
             if (!Number.isFinite(total) || !Number.isFinite(newThisMonth)) return;
             if (isCurrent) setDatabaseStats({ total, newThisMonth, companyTotal: Number.isFinite(companyTotal) ? companyTotal : null });
           } catch {
@@ -1265,80 +1406,104 @@
       );
 
       // ===== HOME PAGE =====
+      const handleHomeTabKeyDown = event => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        const nextTab = event.key === "Home" ? "solution" : event.key === "End" ? "company"
+          : homeTab === "solution" ? "company" : "solution";
+        setHomeTab(nextTab);
+        document.getElementById(`home-tab-${nextTab}`).focus();
+      };
+
       const renderHome = () => (
-        <div className="bg-white text-slate-900 py-12 md:py-16 px-4 md:px-6 border-t border-slate-100 flex flex-col items-center text-center animate-in min-h-screen relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <div className="absolute top-10 left-10 w-64 h-64 bg-[#1D9E75] rounded-full blur-[120px]"></div>
-            <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#0d6e52] rounded-full blur-[150px]"></div>
-          </div>
-          <div className="relative z-10 w-full max-w-5xl">
-            <p className="text-[11px] tracking-[0.16em] uppercase text-slate-400 mb-3">SOLUTION FINDER</p>
-            <h1 className="text-3xl md:text-5xl font-black mb-5 leading-tight tracking-tight">
-              資服產業資料庫
-            </h1>
-            <p className="text-slate-600 text-lg mb-4 max-w-xl mx-auto font-medium leading-relaxed">
-              收錄 <span className="text-slate-900 font-bold">{loading || error ? "—" : allData.length.toLocaleString()}</span> 筆數位轉型方案與 <span className="text-slate-900 font-bold">{databaseStats?.companyTotal?.toLocaleString() ?? "—"}</span> 家資服業者
-            </p>
-            {databaseStats && (
-              <p className="text-sm text-slate-500 mb-8" aria-label="資料庫更新數據">
-                本月新增方案 <span className="font-bold text-[#0d6e52]">{databaseStats.newThisMonth.toLocaleString()}</span> 筆
-                <span className="mx-2 text-slate-300">·</span>
-                累計方案 <span className="font-bold text-slate-700">{databaseStats.total.toLocaleString()}</span> 筆
+        <div className="min-h-screen bg-white text-slate-900">
+          <section className="bg-[var(--sf-hero-bg)] px-4 py-10 text-center sm:px-6 md:py-14" aria-labelledby="home-title">
+            <div className="mx-auto max-w-5xl">
+              <p className="mb-4 text-xs font-bold tracking-widest text-[var(--sf-hero-kicker)]">SOLUTION FINDER・資服產業資料庫</p>
+              <h1 id="home-title" className="mx-auto max-w-3xl text-balance text-3xl font-black leading-snug tracking-tight text-white md:text-5xl md:leading-tight">
+                政府計畫收錄的數位轉型方案與廠商，一處查齊
+              </h1>
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[var(--sf-hero-lead)] md:text-base">
+                彙整多個政府計畫的方案與提供廠商，並定期查核每筆資料的狀態
               </p>
-            )}
-            <div className="grid md:grid-cols-2 gap-5 text-left" aria-label="查詢入口">
-              <section className="min-w-0 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="company-entry-title">
-                <div className="bg-[#ECEBFB] px-8 pt-5 pb-2" style={{"--a1": "#D6D3F6", "--a2": "#4F46B8"}}><svg viewBox="0 0 240 150" aria-hidden="true" focusable="false" className="mx-auto w-48 max-w-full"><rect x="40" y="38" width="70" height="98" rx="6" fill="var(--a1)"/><rect x="112" y="62" width="58" height="74" rx="6" fill="var(--a1)"/><g fill="var(--a2)" opacity=".85"><rect x="54" y="52" width="14" height="12" rx="2"/><rect x="80" y="52" width="14" height="12" rx="2"/><rect x="54" y="74" width="14" height="12" rx="2"/><rect x="80" y="74" width="14" height="12" rx="2"/><rect x="54" y="96" width="14" height="12" rx="2"/><rect x="80" y="96" width="14" height="12" rx="2"/><rect x="124" y="76" width="12" height="10" rx="2"/><rect x="146" y="76" width="12" height="10" rx="2"/><rect x="124" y="96" width="12" height="10" rx="2"/><rect x="146" y="96" width="12" height="10" rx="2"/></g><circle cx="170" cy="52" r="24" fill="none" stroke="var(--a2)" strokeWidth="8"/><path d="M187 69l24 24" stroke="var(--a2)" strokeWidth="10" strokeLinecap="round"/><rect x="28" y="134" width="184" height="6" rx="3" fill="var(--a2)" opacity=".35"/></svg></div>
-                <div className="flex flex-1 flex-col gap-3 p-5 md:p-6">
-                  <h2 id="company-entry-title" className="text-2xl font-black text-[#352E8C]">查公司</h2>
-                  <p className="flex-1 text-sm leading-relaxed text-slate-600">已經知道是哪家公司，想看它的方案、來源與聯絡方式。</p>
-                  {renderCompanySearchForm("company-home-query")}
+              <div className="mx-auto mt-8 max-w-3xl rounded-2xl bg-white p-3 text-left shadow-lg sm:p-5">
+                <div role="tablist" aria-label="搜尋方式" onKeyDown={handleHomeTabKeyDown}
+                  className="mb-3 flex gap-1 border-b border-slate-200 pb-3">
+                  {[["solution", "找方案"], ["company", "找公司"]].map(([id, label]) => (
+                    <button key={id} id={`home-tab-${id}`} type="button" role="tab"
+                      aria-controls={`home-panel-${id}`} aria-selected={homeTab === id} tabIndex={homeTab === id ? 0 : -1}
+                      onClick={() => setHomeTab(id)}
+                      className={`rounded-lg px-4 py-2.5 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 ${homeTab === id ? "bg-brand-50 text-brand-800" : "bg-transparent text-[#4B5563] hover:bg-slate-50"}`}>
+                      {label}
+                    </button>
+                  ))}
                 </div>
-              </section>
-              <section className="min-w-0 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="solution-entry-title">
-                <div className="bg-emerald-50 px-8 pt-5 pb-2" style={{"--a1": "#BFE6DD", "--a2": "#0d6e52"}}><svg viewBox="0 0 240 150" aria-hidden="true" focusable="false" className="mx-auto w-48 max-w-full"><rect x="44" y="40" width="64" height="44" rx="8" fill="var(--a1)"/><rect x="112" y="40" width="64" height="44" rx="8" fill="var(--a2)" opacity=".85"/><rect x="44" y="88" width="64" height="44" rx="8" fill="var(--a2)" opacity=".55"/><rect x="112" y="88" width="64" height="44" rx="8" fill="var(--a1)"/><circle cx="108" cy="62" r="9" fill="var(--a1)"/><circle cx="76" cy="86" r="9" fill="var(--a2)" opacity=".55"/><circle cx="144" cy="86" r="9" fill="var(--a1)"/><path d="M190 28l6 12 13 2-9 9 2 13-12-6-12 6 2-13-9-9 13-2z" fill="var(--a2)"/><rect x="28" y="134" width="184" height="6" rx="3" fill="var(--a2)" opacity=".35"/></svg></div>
-                <div className="flex flex-1 flex-col gap-3 p-5 md:p-6">
-                  <h2 id="solution-entry-title" className="text-2xl font-black text-[#0d6e52]">找方案</h2>
-                  <p className="flex-1 text-sm leading-relaxed text-slate-600">描述你的需求，系統幫你找出合適的方案與廠商。</p>
-            <div className="flex gap-2">
-              <label htmlFor="solution-home-query" className="sr-only">需求描述</label>
-              <input id="solution-home-query"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder={placeholderText}
-                className="min-w-0 flex-1 min-h-[48px] bg-white border border-slate-300 rounded-xl px-3 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 text-slate-800 placeholder:text-slate-400 text-sm font-medium"
-              />
-              <button onClick={handleSearch} disabled={loading || isSearching}
-                className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-60 disabled:cursor-not-allowed text-white min-h-[48px] shrink-0 px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 whitespace-nowrap flex items-center justify-center gap-2">
-                {isSearching ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
-                {loading ? "資料載入中..." : isSearching ? "解析中..." : "AI 搜尋"}
-              </button>
-            </div>
+                <div className="grid grid-cols-1">
+                  <div id="home-panel-solution" role="tabpanel" aria-labelledby="home-tab-solution" aria-hidden={homeTab !== "solution"}
+                    className="col-start-1 row-start-1 min-w-0" style={{ visibility: homeTab === "solution" ? "visible" : "hidden" }}>
+                    <div className="flex gap-2">
+                      <label htmlFor="solution-home-query" className="sr-only">需求描述</label>
+                      <input id="solution-home-query"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                        placeholder={placeholderText}
+                        className="min-w-0 flex-1 min-h-[48px] bg-white border border-slate-300 rounded-xl px-3 py-3 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 text-slate-800 placeholder:text-slate-400 text-sm font-medium"
+                      />
+                      <button onClick={handleSearch} disabled={loading || isSearching}
+                        className="bg-brand-500 hover:bg-brand-600 disabled:opacity-60 disabled:cursor-not-allowed text-on-brand min-h-[48px] shrink-0 px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 whitespace-nowrap flex items-center justify-center gap-2">
+                        {isSearching ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
+                        {loading ? "資料載入中..." : isSearching ? "解析中..." : "AI 搜尋"}
+                      </button>
+                    </div>
+                  </div>
+                  <div id="home-panel-company" role="tabpanel" aria-labelledby="home-tab-company" aria-hidden={homeTab !== "company"}
+                    className="col-start-1 row-start-1 min-w-0" style={{ visibility: homeTab === "company" ? "visible" : "hidden" }}>
+                    {renderCompanySearchForm("company-home-query")}
+                  </div>
                 </div>
-              </section>
-            </div>
-            {loading && (
-              <div className="flex items-center gap-2 text-xs text-slate-400 mt-2">
-                <i className="fa-solid fa-circle-notch animate-spin"></i>
-                正在讀取方案資料...
+                {loading && (
+                  <div role="status" className="mt-2 flex items-center gap-2 text-xs text-brand-700">
+                    <i className="fa-solid fa-circle-notch animate-spin" aria-hidden="true"></i>
+                    正在讀取方案資料...
+                  </div>
+                )}
               </div>
-            )}
-            <h2 className="mt-10 text-sm font-bold text-slate-600">找方案：快速開始</h2>
-            <div className="mt-4 mx-auto w-full max-w-xl space-y-2">
-              {quickSearchExamples.map(text => (
-                <button
-                  key={text}
-                  type="button"
-                  onClick={() => handleQuickSearch(text)}
-                  className="group flex w-full items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-600 transition-all hover:border-[#1D9E75] hover:bg-emerald-50/40 hover:text-[#0d6e52]"
-                >
-                  <i className="fa-solid fa-magnifying-glass text-slate-400 transition-colors group-hover:text-[#1D9E75]"></i>
-                  <span>{text}</span>
-                </button>
-              ))}
+              <div className="mx-auto mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-2 text-[var(--sf-hero-chip-text)]"
+                aria-hidden={homeTab !== "solution"} style={{ visibility: homeTab === "solution" ? "visible" : "hidden" }}>
+                <span className="text-xs font-bold">試試看</span>
+                {quickSearchExamples.map(text => (
+                  <button key={text} type="button" onClick={() => handleQuickSearch(text)}
+                    className="rounded-full border border-[var(--sf-hero-chip-border)] px-3 py-2 text-xs font-medium transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400">
+                    {text}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="mt-7">
+          </section>
+
+          <section className="border-b border-slate-200 bg-white px-4 sm:px-6" aria-label="資料庫規模">
+            <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 py-5 sm:flex-row">
+              <dl className="grid w-full max-w-xl grid-cols-3 divide-x divide-slate-200 text-center">
+                <div className="flex flex-col-reverse gap-1 px-1">
+                  <dt className="text-xs font-medium text-slate-600 sm:text-sm">可查詢方案</dt>
+                  <dd id="home-queryable-count" className="text-xl font-black tabular-nums text-slate-900 sm:text-2xl">{loading || error ? "—" : allData.length.toLocaleString()}</dd>
+                </div>
+                <div className="flex flex-col-reverse gap-1 px-1">
+                  <dt className="text-xs font-medium text-slate-600 sm:text-sm">提供廠商</dt>
+                  <dd className="text-xl font-black tabular-nums text-slate-900 sm:text-2xl">{databaseStats?.companyTotal?.toLocaleString() ?? "—"}</dd>
+                </div>
+                <div className="flex flex-col-reverse gap-1 px-1">
+                  <dt className="text-xs font-medium text-slate-600 sm:text-sm">本月新增方案</dt>
+                  <dd className="text-xl font-black tabular-nums text-slate-900 sm:text-2xl">{databaseStats?.newThisMonth?.toLocaleString() ?? "—"}</dd>
+                </div>
+              </dl>
+              <a className="shrink-0 text-sm font-semibold text-brand-700 hover:underline" href="/sources.html">資料來源與狀態判定方式 →</a>
+            </div>
+          </section>
+
+          <div className="mx-auto max-w-5xl px-4 pb-12 sm:px-6">
+            <div className="mt-7 text-center">
               <p className="text-xs font-bold text-slate-400 mb-3">熱門篩選</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {HOME_POPULAR_FILTERS.map(filter => (
@@ -1369,12 +1534,12 @@
                       key={category}
                       type="button"
                       onClick={() => openThemeDetail(category)}
-                      className="group min-h-36 rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
+                      className="group min-h-36 rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
                     >
-                      <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-teal-100 text-teal-700">
+                      <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-brand-800">
                         <i className={`fa-solid ${CATEGORY_ICON[category] || DEFAULT_CATEGORY_ICON}`}></i>
                       </span>
-                      <span className="block text-[10px] font-bold tracking-wide text-teal-700">主題區</span>
+                      <span className="block text-[10px] font-bold tracking-wide text-brand-700">主題區</span>
                       <span className="mt-1 block text-sm font-black text-slate-800">{category}</span>
                       <span className="mt-2 block text-xs text-slate-500">{solutionCount.toLocaleString()} 個方案</span>
                     </button>
@@ -1412,17 +1577,17 @@
 
         return (
           <div className="mx-auto w-full max-w-4xl px-4 py-8 pb-20 animate-in">
-            <button onClick={resetToHome} className="mb-6 flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-emerald-700">
+            <button onClick={resetToHome} className="mb-6 flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-brand-700">
               <i className="fa-solid fa-arrow-left"></i> 回到首頁
             </button>
 
             <section className="border-b border-slate-200 pb-8">
               <div className="flex items-center gap-4">
-                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-teal-100 text-2xl text-teal-700">
+                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-100 text-2xl text-brand-800">
                   <i className={`fa-solid ${CATEGORY_ICON[category] || DEFAULT_CATEGORY_ICON}`}></i>
                 </span>
                 <div>
-                  <span className="text-xs font-bold tracking-wide text-teal-700">主題區</span>
+                  <span className="text-xs font-bold tracking-wide text-brand-700">主題區</span>
                   <h1 className="mt-1 text-3xl font-black text-slate-900">{category}</h1>
                 </div>
               </div>
@@ -1469,7 +1634,7 @@
               <button
                 type="button"
                 onClick={() => handleCategoryBrowse(category)}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0d6e52] px-5 py-4 text-sm font-black text-white transition hover:bg-[#1D9E75] sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-4 text-sm font-black text-on-brand transition hover:bg-brand-600 sm:w-auto"
               >
                 瀏覽「{category}」全部 {categoryItems.length.toLocaleString()} 個方案
                 <i className="fa-solid fa-arrow-right"></i>
@@ -1515,7 +1680,7 @@
                   <button key={p} onClick={() => goToPage(p)}
                     className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${
                       currentPage === p
-                        ? "bg-[#0d6e52] text-white shadow-sm"
+                        ? "bg-brand-500 text-on-brand shadow-sm"
                         : "border border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}>
                     {p}
@@ -1535,7 +1700,7 @@
       const renderList = () => (
         <div className="max-w-4xl mx-auto px-4 py-8 pb-36 animate-in" ref={listTopRef}>
           {/* Header */}
-          <button onClick={() => setActivePage("home")} className="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 mb-6 transition-colors">
+          <button onClick={() => setActivePage("home")} className="flex items-center gap-2 text-sm text-slate-500 hover:text-brand-700 mb-6 transition-colors">
             <i className="fa-solid fa-arrow-left"></i> 回到首頁
           </button>
           <div className="mb-6">
@@ -1544,7 +1709,7 @@
           </div>
 
           {/* Search bar */}
-          <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex items-center mb-4 focus-within:shadow-md focus-within:border-emerald-300">
+          <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex items-center mb-4 focus-within:shadow-md focus-within:border-brand-400">
             <i className="fa-solid fa-magnifying-glass text-slate-400 ml-4 mr-2"></i>
             <input type="text" value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -1553,7 +1718,7 @@
               className="flex-1 py-3 px-2 outline-none text-slate-700 bg-transparent"
             />
             <button onClick={handleSearch} disabled={loading || isSearching}
-              className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:opacity-60 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">
+              className="bg-brand-500 hover:bg-brand-600 disabled:opacity-60 disabled:cursor-not-allowed text-on-brand px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">
               {isSearching ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-sparkles"></i>}
               {loading ? "資料載入中..." : isSearching ? "解析中..." : "重新搜尋"}
             </button>
@@ -1580,7 +1745,7 @@
                   {showFilterTip && (
                     <div className="absolute left-0 top-6 w-56 bg-white border border-slate-200 rounded-lg p-3 z-50 shadow-sm text-xs text-slate-500 leading-relaxed">
                       <div className="mb-2">
-                        <span className="text-emerald-700 font-bold">同類條件多選 = OR</span><br/>
+                        <span className="text-brand-700 font-bold">同類條件多選 = OR</span><br/>
                         例：北部＋中部 → 顯示兩地區方案
                       </div>
                       <div>
@@ -1740,7 +1905,7 @@
             <div className="mt-8 mb-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
               <div className="mb-4">
                 <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                  <i className="fa-solid fa-comments text-[#1D9E75]"></i> 詢問 AI
+                  <i className="fa-solid fa-comments text-brand-700"></i> 詢問 AI
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">針對目前 {filteredResults.length} 筆搜尋結果提問</p>
               </div>
@@ -1750,19 +1915,19 @@
                   onChange={(e) => setAskQuestion(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !askLoading && handleAsk()}
                   placeholder="例如：這些方案中哪個最適合中小企業？"
-                  className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 outline-none focus:border-emerald-400"
+                  className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 outline-none focus:border-brand-400"
                 />
                 <button onClick={handleAsk} disabled={askLoading || !askQuestion.trim()}
-                  className="bg-[#0d6e52] hover:bg-[#1D9E75] disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl text-sm font-black transition-colors flex items-center justify-center gap-2">
+                  className="bg-brand-500 hover:bg-brand-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-on-brand px-6 py-3 rounded-xl text-sm font-black transition-colors flex items-center justify-center gap-2">
                   {askLoading && <i className="fa-solid fa-circle-notch fa-spin"></i>}
                   {askLoading ? "分析中..." : "送出"}
                 </button>
               </div>
               {askError && <p className="text-xs text-red-500 mt-3">{askError}</p>}
               {askAnswer && (
-                <div className="mt-4 bg-white rounded-2xl border border-emerald-100 shadow-md p-5">
+                <div className="mt-4 bg-white rounded-2xl border border-brand-200 shadow-md p-5">
                   <div className="flex items-center justify-between gap-3 mb-3">
-                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs px-3 py-1 rounded-full font-black">AI 分析</span>
+                    <span className="bg-brand-50 text-brand-800 border border-brand-200 text-xs px-3 py-1 rounded-full font-black">AI 分析</span>
                   </div>
                   <div className="text-sm text-slate-700 leading-relaxed prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(askAnswer)) }} />
@@ -1781,7 +1946,7 @@
                 <button type="button" data-sf-export-trigger
                   disabled={!window.SFExport}
                   onClick={() => window.SFExport?.open({ results: filteredResults, filters, sortBy })}
-                  className="text-xs font-normal rounded-lg border border-emerald-200 px-3 py-1.5 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="text-xs font-normal rounded-lg border border-brand-200 px-3 py-1.5 text-brand-700 hover:bg-brand-50 hover:text-brand-800 disabled:opacity-50 disabled:cursor-not-allowed">
                   {window.SFExport ? "輸出查詢結果" : "輸出功能載入中"}
                 </button>
               )}
@@ -1792,7 +1957,7 @@
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400"><i className="fa-solid fa-arrow-down-wide-short mr-1"></i>排序</span>
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-                className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-600 outline-none focus:border-emerald-400 cursor-pointer">
+                className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-600 outline-none focus:border-brand-400 cursor-pointer">
                 {SORT_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
@@ -1816,10 +1981,10 @@
                   setActivePage("detail");
                   pushHistoryView("detail");
                 }}
-                className={`bg-white rounded-2xl border shadow-sm overflow-hidden hover:border-[#0d6e52]/40 hover:shadow-md transition-all cursor-pointer animate-in ${checked ? "border-[#1D9E75] ring-2 ring-[#1D9E75]/20" : "border-slate-200"}`}>
+                className={`bg-white rounded-2xl border shadow-sm overflow-hidden hover:border-brand-200 hover:shadow-md transition-all cursor-pointer animate-in ${checked ? "border-brand-400 ring-2 ring-brand-200" : "border-slate-200"}`}>
                 <div className="p-5 sm:p-6 flex flex-col sm:flex-row justify-between gap-4">
                   <label onClick={(e) => e.stopPropagation()}
-                    className={`flex items-center justify-center w-9 h-9 rounded-xl border shrink-0 cursor-pointer transition-colors ${checked ? "bg-emerald-50 border-[#1D9E75] text-[#0d6e52]" : "bg-white border-slate-200 text-slate-400 hover:border-emerald-300"} ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
+                    className={`flex items-center justify-center w-9 h-9 rounded-xl border shrink-0 cursor-pointer transition-colors ${checked ? "bg-brand-50 border-brand-400 text-brand-800" : "bg-white border-slate-200 text-slate-400 hover:border-brand-200"} ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
                     title="加入比較">
                     <input type="checkbox" checked={checked}
                       onChange={(e) => toggleCompareItem(item, e.target.checked)}
@@ -1859,11 +2024,11 @@
                   <div className="flex flex-row sm:flex-col justify-between sm:justify-center items-center sm:items-end border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0 sm:pl-4 sm:border-l sm:min-w-[110px]">
                     <div className="text-left sm:text-right">
                       <p className="text-[10px] text-slate-400 mb-0.5">方案費用</p>
-                      <p className="text-base font-bold text-[#0d6e52] font-mono">{formatCurrency(item.pr)}</p>
+                      <p className="text-base font-bold text-brand-700 font-mono">{formatCurrency(item.pr)}</p>
                       {item.mo && <p className="text-[10px] text-slate-400 mt-0.5">{formatCurrency(item.mo)}/月</p>}
                       <button
                         onClick={(e) => { e.stopPropagation(); openROIModal(item); }}
-                        className="roi-entry mt-2 text-xs text-emerald-600 hover:text-emerald-800 font-bold flex items-center gap-1 transition-colors sm:ml-auto">
+                        className="roi-entry mt-2 text-xs text-brand-700 hover:text-brand-800 font-bold flex items-center gap-1 transition-colors sm:ml-auto">
                         <i className="fa-solid fa-calculator"></i> 試算 ROI
                       </button>
                     </div>
@@ -1884,7 +2049,7 @@
           {renderPagination()}
 
           {compareItems.length > 0 && createPortal(
-            <div className="fixed bottom-0 left-0 right-0 z-[1100] bg-white/95 backdrop-blur border-t border-emerald-100 shadow-2xl px-6 pt-4 pb-6 flex flex-col sm:flex-row sm:items-center justify-center gap-4">
+            <div className="fixed bottom-0 left-0 right-0 z-[1100] bg-white/95 backdrop-blur border-t border-brand-200 shadow-2xl px-6 pt-4 pb-6 flex flex-col sm:flex-row sm:items-center justify-center gap-4">
               <div className="text-center sm:text-left">
                 <p className="text-sm font-black text-slate-800">已選 {compareItems.length} 個方案</p>
                 {compareNotice && <p className="text-xs text-red-500 mt-1">{compareNotice}</p>}
@@ -1895,11 +2060,11 @@
                   清除
                 </button>
                 <button onClick={startCompare} disabled={compareItems.length < 2}
-                  className="px-5 py-2 rounded-xl bg-[#0d6e52] disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-black shadow-sm hover:bg-[#1D9E75] transition-colors">
+                  className="px-5 py-2 rounded-xl bg-brand-500 disabled:bg-slate-300 disabled:cursor-not-allowed text-on-brand text-sm font-black shadow-sm hover:bg-brand-600 transition-colors">
                   比較
                 </button>
                 <button onClick={startRoiEstimate}
-                  className="roi-entry px-5 py-2 rounded-xl bg-[#0d6e52] text-white text-sm font-black shadow-sm hover:bg-[#1D9E75] transition-colors">
+                  className="roi-entry px-5 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-black shadow-sm hover:bg-brand-600 transition-colors">
                   試算 ROI ↗
                 </button>
               </div>
@@ -1920,7 +2085,7 @@
         const candidates = isPartial ? result.candidates || [] : result.near || [];
         return (
           <div className="max-w-4xl mx-auto px-4 py-8 animate-in">
-            <button type="button" onClick={goBackInApp} className="min-h-[44px] mb-4 text-sm font-bold text-slate-600 hover:text-indigo-700">
+            <button type="button" onClick={goBackInApp} className="min-h-[44px] mb-4 text-sm font-bold text-slate-600 hover:text-brand-700">
               <i aria-hidden="true" className="fa-solid fa-arrow-left mr-2"></i>返回
             </button>
             <section className="rounded-2xl border border-slate-200 bg-white p-5 mb-5" aria-label="再次查詢公司">
@@ -1949,7 +2114,7 @@
                     </div>
                     <button type="button" onClick={() => handleCompanySearch(candidate.company_id)} disabled={companyLoading}
                       aria-label={`${isPartial ? "是這家" : "看看這家"}：${candidate.company_name}`}
-                      className="min-h-[44px] shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-5 py-3 text-sm font-bold text-indigo-800 hover:bg-indigo-100 disabled:opacity-50">
+                      className="min-h-[44px] shrink-0 rounded-xl border border-brand-200 bg-brand-50 px-5 py-3 text-sm font-bold text-brand-800 hover:bg-brand-100 disabled:opacity-50">
                       {companyLoading ? "查詢中…" : isPartial ? "是這家" : "看看這家"}
                     </button>
                   </li>
@@ -2000,7 +2165,7 @@
         const badgeClass = "rounded-full border px-3 py-1 text-xs";
         return (
           <div className="max-w-4xl mx-auto px-4 py-8 animate-in">
-            <button type="button" onClick={goBackInApp} className="min-h-[44px] mb-4 text-sm font-bold text-slate-600 hover:text-indigo-700">
+            <button type="button" onClick={goBackInApp} className="min-h-[44px] mb-4 text-sm font-bold text-slate-600 hover:text-brand-700">
               <i aria-hidden="true" className="fa-solid fa-arrow-left mr-2"></i>返回
             </button>
             <section className="rounded-2xl border border-slate-200 bg-white p-5 md:p-7 mb-5" aria-label="公司檔案">
@@ -2038,7 +2203,7 @@
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <h2 className="text-lg font-black text-slate-800">方案與來源</h2>
                 {summary.delisted > 0 && <label className="flex min-h-[44px] items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                  <input type="checkbox" checked={showDelisted} onChange={event => setShowDelisted(event.target.checked)} className="h-4 w-4 accent-indigo-600" />
+                  <input type="checkbox" checked={showDelisted} onChange={event => setShowDelisted(event.target.checked)} className="h-4 w-4 accent-brand-700" />
                   顯示已下架方案（{summary.delisted}）
                 </label>}
               </div>
@@ -2067,7 +2232,7 @@
                         const help = reason?.detail ?? (pending ? sourceStatusHelp(label, solution.program_type) : null);
                         return <li key={solution.solution_id || solution.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5">
                           <div className="min-w-0 flex-1">
-                            {item ? <button type="button" onClick={() => openCompanySolution(item)} className={`min-h-[44px] text-left font-bold text-indigo-800 underline decoration-indigo-200 underline-offset-4 hover:text-indigo-600 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</button>
+                            {item ? <button type="button" onClick={() => openCompanySolution(item)} className={`min-h-[44px] text-left font-bold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</button>
                               : <p className={`font-bold text-slate-600 break-words ${isMissingSolutionName(solution.name) ? "sf-name-missing" : ""}`}>{displaySolutionName(solution.name)}</p>}
                             <StatusHelpRow className="mt-1" rowClassName="items-center" status={label}
                               label={reason ? "已下架原因說明" : undefined} detail={help}
@@ -2126,7 +2291,7 @@
           <div className="max-w-3xl mx-auto px-4 py-8 animate-in">
             {/* Back button */}
             <button onClick={goBackInApp}
-              className="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 mb-6 transition-colors">
+              className="flex items-center gap-2 text-sm text-slate-500 hover:text-brand-700 mb-6 transition-colors">
               <i className="fa-solid fa-arrow-left"></i> 返回搜尋結果
             </button>
 
@@ -2150,7 +2315,7 @@
                   {item.p === RAINFOREST_SOURCE && <p className="text-xs text-slate-500 mb-4">方案內容為廠商自述，未經平台審核。</p>}
                   <h1 className={`text-2xl font-black text-slate-900 mb-2 ${isMissingSolutionName(item.s) ? "sf-name-missing" : ""}`}>{solutionName}</h1>
                   {item.cid ? <button type="button" onClick={() => handleCompanySearch(item.cid)} disabled={companyLoading}
-                    aria-label={`查看 ${item.c} 的公司資料`} className="min-h-[44px] text-base text-slate-600 font-semibold mb-4 underline underline-offset-4 hover:text-indigo-700 disabled:opacity-50">{item.c}{companyLoading && <i aria-hidden="true" className="fa-solid fa-spinner fa-spin ml-2"></i>}</button>
+                    aria-label={`查看 ${item.c} 的公司資料`} className="min-h-[44px] text-base text-slate-600 font-semibold mb-4 underline underline-offset-4 hover:text-brand-700 disabled:opacity-50">{item.c}{companyLoading && <i aria-hidden="true" className="fa-solid fa-spinner fa-spin ml-2"></i>}</button>
                     : <p className="text-base text-slate-600 font-semibold mb-4">{item.c}</p>}
                 </div>
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center" aria-hidden="true">
@@ -2161,7 +2326,7 @@
                   />
                 </div>
               </div>
-              {item.slogan && <p className="text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 italic">「{item.slogan}」</p>}
+              {item.slogan && <p className="text-sm text-brand-800 bg-brand-50 px-4 py-2 rounded-xl border border-brand-200 italic">「{item.slogan}」</p>}
             </div>
 
             {solutionImage && <div dangerouslySetInnerHTML={{ __html: solutionImage }} />}
@@ -2172,7 +2337,7 @@
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
                 <p className="text-xs text-slate-400 mb-1">方案總費用</p>
-                <p className="text-2xl font-black text-[#0d6e52] font-mono">{formatCurrency(item.pr)}</p>
+                <p className="text-2xl font-black text-brand-700 font-mono">{formatCurrency(item.pr)}</p>
                 {item.pt && <p className="text-xs text-slate-400 mt-1">{item.pt}</p>}
               </div>
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
@@ -2183,7 +2348,7 @@
             </div>
             <button
               onClick={() => openROIModal(selectedItem)}
-              className="roi-entry mb-6 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-emerald-500 text-emerald-700 font-bold text-sm hover:bg-emerald-50 transition-colors">
+              className="roi-entry mb-6 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-brand-200 text-brand-700 font-bold text-sm hover:bg-brand-50 hover:text-brand-800 transition-colors">
               <i className="fa-solid fa-calculator"></i>
               試算這個方案的 ROI
             </button>
@@ -2208,7 +2373,7 @@
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                   {featureLines.map((line, i) => (
                     <div key={i} className="flex items-start gap-2 text-sm text-slate-600 py-1">
-                      <i className="fa-solid fa-check text-emerald-500 text-[10px] mt-1.5 shrink-0"></i>
+                      <i className="fa-solid fa-check text-brand-700 text-[10px] mt-1.5 shrink-0"></i>
                       <span>{line}</span>
                     </div>
                   ))}
@@ -2261,20 +2426,7 @@
 
       return (
         <div className="min-h-screen flex flex-col">
-          <nav id="global-nav">
-            <div className="global-nav-brand" onClick={resetToHome}>
-              <div className="global-nav-logo"><img src="/brand/logo-mark.svg" alt="" width="36" height="36" /></div>
-              <div>
-                <div className="global-nav-kicker">SOLUTION FINDER</div>
-                <div className="global-nav-title">資服產業資料庫</div>
-              </div>
-            </div>
-            <div className="global-nav-actions">
-              <a className="global-nav-link active" href="/sources.html">資料來源</a>
-              <a className="global-nav-link" href="/dashboard.html">知識庫</a>
-              <a className="global-nav-link" href="/manufacturing.html">方案探索</a>
-            </div>
-          </nav>
+          <GlobalNav onHome={resetToHome} />
           <main className="flex-1 overflow-hidden overflow-y-auto custom-scrollbar">
             {activePage === "home" && renderHome()}
             {activePage === "list" && renderList()}
