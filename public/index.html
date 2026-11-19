@@ -197,10 +197,11 @@
     ];
     const POOL_REGION = ["北北基", "桃竹苗", "中彰投", "雲嘉南", "高屏", "全台灣"];
     const POOL_SCALE = ["9人以下", "10~20人", "21~50人", "51~100人", "101~200人", "不限規模"];
+    const formatCategoryExample = ({ region, category }) => `搜尋：${region}有哪些${category}相關方案...`;
     const SENTENCE_TEMPLATES = [
       ({ region, category, scale }) => `搜尋：我想找${region}的${category}方案，適合${scale}的企業...`,
       ({ region, category, scale }) => `搜尋：找${scale}企業適用、${region}地區的${category}系統...`,
-      ({ region, category }) => `搜尋：${region}有哪些${category}相關方案...`,
+      formatCategoryExample,
     ];
     const getRandomItem = (items) => items[Math.floor(Math.random() * items.length)];
     const createRandomSearchSentence = (previousSentence = "", combos = null) => {
@@ -573,12 +574,21 @@
       const companyRequest = useRef(0);
       const companyRequestPending = useRef(false);
       const [placeholderText, setPlaceholderText] = useState(() => createRandomSearchSentence());
-      const [initialExamples] = useState(() =>
-        Array.from({ length: 3 }, () => ({ text: createRandomSearchSentence() }))
-      );
+      const [initialExamples] = useState(() => {
+        const categories = [...POOL_CATEGORY];
+        return Array.from({ length: 3 }, () => {
+          const index = Math.floor(Math.random() * categories.length);
+          const [category] = categories.splice(index, 1);
+          return { text: formatCategoryExample({ region: "全台灣", category }) };
+        });
+      });
       const exampleCombos = useMemo(() => {
         if (loading) return null;
         return ExampleCombos.getEligibleExampleCombos(allData, POOL_REGION, POOL_CATEGORY);
+      }, [allData, loading]);
+      const placeholderCombos = useMemo(() => {
+        if (loading) return null;
+        return ExampleCombos.getEligibleExampleCombos(allData, POOL_REGION, POOL_CATEGORY, { keepRegionLabels: true });
       }, [allData, loading]);
       const quickSearchExamples = useMemo(() => {
         if (exampleCombos === null) return initialExamples;
@@ -589,7 +599,7 @@
         }
         return ExampleCombos.selectDistinctExampleCombos(shuffled).map(combo => ({
           ...combo,
-          text: createRandomSearchSentence("", [combo]),
+          text: formatCategoryExample({ region: combo.filterRegion ?? "全台灣", category: combo.category }),
         }));
       }, [exampleCombos, initialExamples]);
       const [isSearching, setIsSearching] = useState(false);
@@ -617,13 +627,13 @@
       useEffect(() => {
         if (query) return undefined;
         const updatePlaceholder = () => {
-          setPlaceholderText(previous => createRandomSearchSentence(previous, exampleCombos));
+          setPlaceholderText(previous => createRandomSearchSentence(previous, placeholderCombos));
         };
-        if (exampleCombos !== null) updatePlaceholder();
-        if (exampleCombos?.length === 0) return undefined;
+        if (placeholderCombos !== null) updatePlaceholder();
+        if (placeholderCombos?.length === 0) return undefined;
         const intervalId = window.setInterval(updatePlaceholder, 3000);
         return () => window.clearInterval(intervalId);
-      }, [query, exampleCombos]);
+      }, [query, placeholderCombos]);
 
       const pushHistoryView = (view, extraState = {}) => {
         const hash = `#${view}`;

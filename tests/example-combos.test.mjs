@@ -17,7 +17,12 @@ test('requires ten normal matching rows and maps example regions to search regio
     ...rows(9, '中部', ['生產物流']),
     ...rows(10, '南部', ['生產物流']),
   ];
-  const combos = getEligibleExampleCombos(items, ['北北基', '桃竹苗', '中彰投', '雲嘉南', '高屏'], ['生產物流']);
+  const combos = getEligibleExampleCombos(
+    items,
+    ['北北基', '桃竹苗', '中彰投', '雲嘉南', '高屏'],
+    ['生產物流'],
+    { keepRegionLabels: true },
+  );
   assert.deepEqual(Array.from(combos, ({ region, filterRegion, count }) => [region, filterRegion, count]), [
     ['北北基', '北部', 10],
     ['桃竹苗', '北部', 10],
@@ -56,4 +61,51 @@ test('selects at most three examples and never repeats a category', () => {
   assert.deepEqual(Array.from(selectDistinctExampleCombos(combos)), [combos[0], combos[2], combos[3]]);
   assert.deepEqual(Array.from(selectDistinctExampleCombos(combos.slice(0, 3))), [combos[0], combos[2]]);
   assert.equal(selectDistinctExampleCombos([]).length, 0);
+});
+
+function renderQuickSearchExamples(exampleCombos) {
+  const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  const sentenceSource = html.slice(html.indexOf('    const POOL_CATEGORY'), html.indexOf('    const HOME_POPULAR_FILTERS'));
+  const chipStart = html.indexOf('      const quickSearchExamples =');
+  const chipSource = html.slice(chipStart, html.indexOf('      const [isSearching', chipStart));
+  return vm.runInNewContext(sentenceSource + chipSource + '({ examples: quickSearchExamples, scales: POOL_SCALE })', {
+    ExampleCombos: context.ExampleCombos,
+    exampleCombos,
+    initialExamples: [],
+    Math: Object.assign(Object.create(Math), { random: () => 0 }),
+    useMemo: compute => compute(),
+  });
+}
+
+const chipCombos = [
+  { region: '北北基', filterRegion: '北部', category: '生產物流' },
+  { region: '桃竹苗', filterRegion: '北部', category: '生產物流' },
+  { region: '全台灣', filterRegion: null, category: '行銷推廣' },
+];
+
+test('homepage chips never advertise a scale from POOL_SCALE', () => {
+  const { examples, scales } = renderQuickSearchExamples(chipCombos);
+  assert.equal(examples.length, 2);
+  for (const { text } of examples) {
+    assert.ok(scales.every(scale => !text.includes(scale)), text);
+  }
+});
+
+test('homepage chips display the actual filter region once per category', () => {
+  const { examples } = renderQuickSearchExamples(chipCombos);
+  assert.deepEqual(Array.from(examples, ({ text }) => text).sort(), [
+    '搜尋：全台灣有哪些行銷推廣相關方案...',
+    '搜尋：北部有哪些生產物流相關方案...',
+  ]);
+});
+
+test('eligible chip candidates deduplicate the same filter region and category', () => {
+  const combos = getEligibleExampleCombos(
+    rows(10, '北部', '生產物流'),
+    ['北北基', '桃竹苗'],
+    ['生產物流'],
+  );
+  assert.deepEqual(Array.from(combos, ({ filterRegion, category, count }) => [filterRegion, category, count]), [
+    ['北部', '生產物流', 10],
+  ]);
 });

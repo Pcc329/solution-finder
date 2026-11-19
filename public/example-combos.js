@@ -8,13 +8,17 @@
     ['全台灣', null],
   ]);
 
-  function getEligibleExampleCombos(items, regions, categories) {
+  function getEligibleExampleCombos(items, regions, categories, { keepRegionLabels = false } = {}) {
     const normalItems = items.filter(item => item.rs === '正常');
     const combos = [];
+    const countedRegions = new Set();
 
     for (const region of regions) {
       if (!filterRegionByLabel.has(region)) continue;
       const filterRegion = filterRegionByLabel.get(region);
+      // Aliases for the same filter region are retained only for the AI placeholder.
+      if (!keepRegionLabels && countedRegions.has(filterRegion)) continue;
+      countedRegions.add(filterRegion);
       const regionalItems = filterRegion === null
         ? normalItems
         : normalItems.filter(item => item.r === filterRegion);
