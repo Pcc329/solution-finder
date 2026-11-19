@@ -104,3 +104,5 @@ PR 與 Preview 待下一輪建立。
 ## 後續建議
 
 目前 `.gitignore` 缺少 `node_modules` 規則。建議另行補上依賴目錄的忽略設定。本次未修改 `.gitignore`，也未將 `tests/sf-mcp/node_modules/` 加入暫存。
+
+- 2026-11-19 PR #314 review 修正品牌測試的副檔名與 Windows 路徑跳脫，涵蓋含空白的舊字樣並檢查掃描清單非空。修正版於 `9f9b196` 掃到 `dashboard.html` 舊字樣而失敗，PR 分支通過。
