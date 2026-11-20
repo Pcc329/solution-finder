@@ -502,7 +502,7 @@ test('seven platform source badges classify three survey and four database sourc
   const ai = renderAI(platforms);
   assert.equal((ai.match(/class="vp-source survey"/g) || []).length, 3);
   assert.equal((ai.match(/class="vp-source database"/g) || []).length, 4);
-  assert.match(ai, /title="本 SF 資料庫另行收錄的政府來源，不在補助平台盤點範圍內"/);
+  assert.match(ai, /title="本資服產業資料庫另行收錄的政府來源，不在補助平台盤點範圍內"/);
   for (const name of ['SME AI 平台', ' SME AI平台', 'SME AI平台 ', 'ＳＭＥ AI平台']) {
     assert.match(renderPlatformName(name), /class="vp-source database"/);
   }
@@ -542,7 +542,7 @@ test('missing platform names return escaped plain text and never classify unknow
   const html = renderVendors(data).html;
   const column = html.match(/<button[^>]*data-sort="sme_ai"[^>]*>(.*?)<\/button>/)?.[1];
   assert.equal(column, 'SME AI');
-  assert.doesNotMatch(column, /本SF資料庫|補助平台盤點|vp-source/);
+  assert.doesNotMatch(column, /本資服產業資料庫|補助平台盤點|vp-source/);
   assert.match(html, /vp-source survey/); // Known platform columns keep their badges.
   const heatmap = renderOverlap(data);
   assert.match(heatmap, /<th scope="col" title="SME AI">SME AI<\/th>/);
@@ -557,7 +557,7 @@ test('coverage explanations use plain platform names without source badges', () 
     { platform_name: '不列出', no_id_solutions: 0 },
   ]);
   assert.equal(html, '<p>依統一編號比對：SME AI平台 3 筆、政府軟體採購網 2 筆、&lt;img src=x&gt; 1 筆方案缺統編，未計入家數，因此跨平台比例是下限。</p>');
-  assert.doesNotMatch(html, /本SF資料庫|補助平台盤點|vp-source|<img/);
+  assert.doesNotMatch(html, /本資服產業資料庫|補助平台盤點|vp-source|<img/);
 });
 
 test('AI methods and nonzero missing-ID counts are generated dynamically without duplicated notes', () => {

@@ -24,7 +24,7 @@ export function renderPlatformName(name, label = name) {
     return escapeHTML(label != null && String(label).trim() !== '' ? label : '未提供');
   }
   const surveyed = SURVEY_PLATFORMS.includes(name);
-  return `<span class="vp-platform-label"><span class="vp-platform-name">${escapeHTML(label)}</span><span class="vp-source ${surveyed ? 'survey' : 'database'}"${surveyed ? '' : ' title="本 SF 資料庫另行收錄的政府來源，不在補助平台盤點範圍內"'}>${surveyed ? '補助平台盤點' : '本SF資料庫'}</span></span>`;
+  return `<span class="vp-platform-label"><span class="vp-platform-name">${escapeHTML(label)}</span><span class="vp-source ${surveyed ? 'survey' : 'database'}"${surveyed ? '' : ' title="本資服產業資料庫另行收錄的政府來源，不在補助平台盤點範圍內"'}>${surveyed ? '補助平台盤點' : '本資服產業資料庫'}</span></span>`;
 }
 
 export function renderVersionWarning(vendors) {
@@ -182,7 +182,7 @@ export function renderDataNotes() {
   return `<section class="vp-card vp-data-notes"><h2>資料說明</h2>
     <p>政府軟體採購網：本庫僅收錄部分方案，非該平台全部方案。</p>
     <p>新北產業AI化輔導計畫：本庫收錄筆數與官方公告家數尚有落差，查證中。</p>
-    <p>平台範圍：補助平台盤點範圍共 4 個平台（臺灣雲市集、雲市集工業館、SME AI平台、商業服務業專區），其中臺灣雲市集已停止服務，未納入統計；本 SF 資料庫另收錄 4 個政府來源（新創嚴選網、政府軟體採購網、農業雲市集-數位館、新北產業AI化輔導計畫）。資策會產業調查與案例反推補建非平台上架來源，未納入統計。</p>
+    <p>平台範圍：補助平台盤點範圍共 4 個平台（臺灣雲市集、雲市集工業館、SME AI平台、商業服務業專區），其中臺灣雲市集已停止服務，未納入統計；本資服產業資料庫另收錄 4 個政府來源（新創嚴選網、政府軟體採購網、農業雲市集-數位館、新北產業AI化輔導計畫）。資策會產業調查與案例反推補建非平台上架來源，未納入統計。</p>
     <p class="muted">AI 判定方式、缺統編與資料時間，見各圖表說明。</p></section>`;
 }
 
