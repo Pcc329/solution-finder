@@ -1,0 +1,77 @@
+diff --git a/tests/example-combos.test.mjs b/tests/example-combos.test.mjs
+index 45f43d8..9bb635c 100644
+--- a/tests/example-combos.test.mjs
++++ b/tests/example-combos.test.mjs
+@@ -14,8 +14,8 @@ function rows(count, r, cat, rs = '正常') {
+ test('requires ten normal matching rows and maps example regions to search regions', () => {
+   const items = [
+     ...rows(10, '北部', '生產物流、行銷推廣'),
+-    ...rows(9, '中部', ['生產物流']),
+-    ...rows(10, '南部', ['生產物流']),
++    ...rows(9, '中部', '生產物流'),
++    ...rows(10, '南部', '生產物流'),
+   ];
+   const combos = getEligibleExampleCombos(
+     items,
+@@ -63,40 +63,35 @@ test('selects at most three examples and never repeats a category', () => {
+   assert.equal(selectDistinctExampleCombos([]).length, 0);
+ });
+ 
+-function renderQuickSearchExamples(exampleCombos) {
++function renderHomeDemo(exampleCombos) {
+   const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+-  const sentenceSource = html.slice(html.indexOf('    const POOL_CATEGORY'), html.indexOf('    const HOME_POPULAR_FILTERS'));
+-  const chipStart = html.indexOf('      const quickSearchExamples =');
+-  const chipSource = html.slice(chipStart, html.indexOf('      const [isSearching', chipStart));
+-  return vm.runInNewContext(sentenceSource + chipSource + '({ examples: quickSearchExamples, scales: POOL_SCALE })', {
+-    ExampleCombos: context.ExampleCombos,
+-    exampleCombos,
+-    initialExamples: [],
+-    Math: Object.assign(Object.create(Math), { random: () => 0 }),
+-    useMemo: compute => compute(),
++  const start = html.indexOf('      const homeDemo =');
++  const source = html.slice(start, html.indexOf('      const openHomeCompany', start));
++  const demoContext = {};
++  vm.runInNewContext(readFileSync(new URL('../public/home-demo.js', import.meta.url), 'utf8'), demoContext);
++  return vm.runInNewContext(source + '({ question: demoQuestion, homeDemo })', {
++    demoCombo: demoContext.HomeDemo.pickDemoCombo([], exampleCombos),
+   });
+ }
+ 
+-const chipCombos = [
+-  { region: '北北基', filterRegion: '北部', category: '生產物流' },
+-  { region: '桃竹苗', filterRegion: '北部', category: '生產物流' },
+-  { region: '全台灣', filterRegion: null, category: '行銷推廣' },
++const demoCombos = [
++  { region: '北北基', filterRegion: '北部', category: '生產物流', count: 12 },
++  { region: '全台灣', filterRegion: null, category: '行銷推廣', count: 20 },
+ ];
+ 
+-test('homepage chips never advertise a scale from POOL_SCALE', () => {
+-  const { examples, scales } = renderQuickSearchExamples(chipCombos);
+-  assert.equal(examples.length, 2);
+-  for (const { text } of examples) {
+-    assert.ok(scales.every(scale => !text.includes(scale)), text);
+-  }
++test('homepage conversation never advertises a company scale', () => {
++  const { question } = renderHomeDemo(demoCombos);
++  assert.equal(question, '北部有哪些生產物流相關方案？');
++  assert.doesNotMatch(question, /人以下|人企業|不限規模|\d+~\d+/);
+ });
+ 
+-test('homepage chips display the actual filter region once per category', () => {
+-  const { examples } = renderQuickSearchExamples(chipCombos);
+-  assert.deepEqual(Array.from(examples, ({ text }) => text).sort(), [
+-    '搜尋：全台灣有哪些行銷推廣相關方案...',
+-    '搜尋：北部有哪些生產物流相關方案...',
+-  ]);
++test('homepage conversation uses the actual filter region in its question and search parameters', () => {
++  const { question, homeDemo } = renderHomeDemo(demoCombos);
++  assert.equal(question, `${homeDemo.filterRegion}有哪些${homeDemo.category}相關方案？`);
++  assert.equal(renderHomeDemo(demoCombos.slice(1)).question, '全台灣有哪些行銷推廣相關方案？');
++  const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
++  assert.match(html, /handleQuickSearch\(\{ text: demoQuestion, filterRegion: homeDemo\.filterRegion, category: homeDemo\.category \}\)/);
++  assert.match(html, /homeDemo\.filterRegion !== null && <span[^>]*>區域：\{homeDemo\.region\}/);
+ });
+ 
+ test('eligible chip candidates deduplicate the same filter region and category', () => {

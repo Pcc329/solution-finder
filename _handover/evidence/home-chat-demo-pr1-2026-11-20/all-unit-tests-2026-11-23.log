@@ -1,0 +1,599 @@
+(node:3356) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/ask.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\S25036\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ ask: success preserves response and safe single-write behavior (5.7424ms)
+✔ ask: 400 preserves response and safe single-write behavior (3.6409ms)
+✔ ask: 500 preserves response and safe single-write behavior (1.7019ms)
+✔ ask: 429 preserves response and safe single-write behavior (2.0831ms)
+✔ ask: network-error preserves response and safe single-write behavior (0.9958ms)
+✔ ask: invalid-json preserves response and safe single-write behavior (0.7562ms)
+✔ ask: unsafe-code preserves response and safe single-write behavior (1.124ms)
+✔ ask: missing-url preserves response and safe single-write behavior (0.7176ms)
+✔ ask: missing-key preserves response and safe single-write behavior (0.8109ms)
+✔ ask: requireAuth still blocks unauthenticated requests (0.7061ms)
+✔ claude: success preserves response and safe single-write behavior (1.0372ms)
+✔ claude: 400 preserves response and safe single-write behavior (0.7434ms)
+✔ claude: 500 preserves response and safe single-write behavior (2.2695ms)
+✔ claude: 429 preserves response and safe single-write behavior (0.5699ms)
+✔ claude: network-error preserves response and safe single-write behavior (0.6002ms)
+✔ claude: invalid-json preserves response and safe single-write behavior (0.6025ms)
+✔ claude: unsafe-code preserves response and safe single-write behavior (0.809ms)
+✔ claude: missing-url preserves response and safe single-write behavior (0.806ms)
+✔ claude: missing-key preserves response and safe single-write behavior (0.9848ms)
+✔ claude: requireAuth still blocks unauthenticated requests (0.3476ms)
+✔ feedback: success preserves response and safe single-write behavior (1.1466ms)
+✔ feedback: 400 preserves response and safe single-write behavior (0.6058ms)
+✔ feedback: 500 preserves response and safe single-write behavior (0.6432ms)
+✔ feedback: 429 preserves response and safe single-write behavior (0.5997ms)
+✔ feedback: network-error preserves response and safe single-write behavior (0.5411ms)
+✔ feedback: invalid-json preserves response and safe single-write behavior (0.539ms)
+✔ feedback: unsafe-code preserves response and safe single-write behavior (1.1184ms)
+✔ feedback: missing-url preserves response and safe single-write behavior (0.3386ms)
+✔ feedback: missing-key preserves response and safe single-write behavior (0.3025ms)
+✔ feedback: requireAuth still blocks unauthenticated requests (0.2777ms)
+✔ feedback: validated optional fields including zero remain intact (0.5046ms)
+✔ feedback: rejects {"name":""} before writing (0.5567ms)
+✔ feedback: rejects {"name":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing (0.4741ms)
+✔ feedback: rejects {"department":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing (0.3342ms)
+✔ feedback: rejects {"milestone":""} before writing (2.0049ms)
+✔ feedback: rejects {"milestone":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing (0.4061ms)
+✔ feedback: rejects {"milestone":"not-allowed"} before writing (0.2624ms)
+✔ feedback: rejects {"detail":""} before writing (0.3021ms)
+✔ feedback: rejects {"detail":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx before writing (0.2964ms)
+✔ feedback: rejects {"score":0} before writing (0.3651ms)
+✔ feedback: rejects {"score":6} before writing (1.0192ms)
+✔ feedback: rejects {"score":1.5} before writing (0.5642ms)
+✔ feedback: rejects {"relevant_count":-1} before writing (0.3102ms)
+✔ feedback: rejects {"relevant_count":6} before writing (0.3299ms)
+✔ feedback: rejects {"path_choice":"not-allowed"} before writing (0.2854ms)
+✔ feedback: rejects {"path_choice":"xxxxxxxxxxxxxxxxxxxxx"} before writing (0.3019ms)
+✔ feedback: rejects {"would_cite":"not-allowed"} before writing (0.3098ms)
+✔ feedback: rejects {"would_cite":"xxxxxxxxxxx"} before writing (0.2768ms)
+✔ feedback: malformed JSON still returns 400 (0.8408ms)
+✔ feedback: same-IP fourth request is rate limited; another IP is allowed (1.3471ms)
+✔ ask: OPTIONS stays available without auth (0.3167ms)
+✔ claude: OPTIONS stays available without auth (0.2224ms)
+✔ ask: absent search query remains an empty string in storage (0.4741ms)
+✔ migration is byte-for-byte identical to the supplied SQL (4.0624ms)
+(node:24296) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/_lib/company-search.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\S25036\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 1. tax ID exact match returns whitelisted company, all solutions and summary (98.7761ms)
+✔ 2. statuses use prefixes, preserve labels and normalize nullable numeric values (2.7163ms)
+✔ 3. full-width digits, letters and spaces normalize; separated tax IDs match (11.0108ms)
+✔ 4. seven- or nine-digit numeric input is rejected before reads and writes (1.3208ms)
+✔ 5. a single equal name core is exact with or without suffix; optional reads fail independently (39.8607ms)
+✔ 6. partial matches return at most ten ordered candidates and count with one batched solutions query (21.2021ms)
+✔ 7. no match returns zero results and at most five prefix hints; tax ID misses never query hints (5.0162ms)
+✔ 8. user-supplied PostgREST metacharacters are removed from name and prefix filters (3.1772ms)
+✔ 9. invalid lengths and short cores return exact validation messages without storage (3.2788ms)
+✔ 10. every response path omits contact-related fields and never reads contacts (4.9324ms)
+✔ 11. each 200 awaits one complete search log; storage errors preserve payload and non-200 never writes (23.9821ms)
+✔ 12. every read uses anon credentials, including session-authenticated requests and optional tables (16.6271ms)
+fatal: path 'api/companies.js' exists on disk, but not in 'd392cbc1702e23536227df453ffda22980e4479a'
+✔ 13. the sixty-first request is limited before auth; methods precede limiting and expired windows reset (12.5367ms)
+✖ 14. companies without search action preserves main graph response and reads with private cache policy (152.0563ms)
+✔ 15. companies search action dispatches q before graph headers and performs one search log write (5.8313ms)
+✔ two mixed sources: normal count outranks total count; rows sort by status then missing name, stably (7.4201ms)
+✔ equal normal counts use suspected count descending, ignoring delisted counts (2.9644ms)
+✔ equal normal and suspected counts keep first-seen source order, not alphabetical order (1.5201ms)
+✔ suspected-only and delisted-only sources follow sources with normal solutions (1.567ms)
+✔ sorting preserves statistics and filtered group counts when delisted rows are toggled (3.2572ms)
+(node:20508) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/company-detail.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\S25036\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+fatal: invalid object name '4d47b89'.
+node:internal/errors:985
+  const err = new Error(message);
+              ^
+
+Error: Command failed: git show 4d47b89:api/company-detail.js
+fatal: invalid object name '4d47b89'.
+
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/contact-access-log.test.mjs:9:16
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  status: 128,
+  signal: null,
+  output: [ null, '', "fatal: invalid object name '4d47b89'.\n" ],
+  pid: 26704,
+  stdout: '',
+  stderr: "fatal: invalid object name '4d47b89'.\n"
+}
+
+Node.js v24.14.1
+✖ tests\contact-access-log.test.mjs (440.9059ms)
+✔ requires ten normal matching rows and maps example regions to search regions (5.2192ms)
+✔ counts normal solutions across all regions for 全台灣 (0.3525ms)
+✔ excludes suspected, delisted, and missing statuses from the threshold (0.2499ms)
+✔ selects at most three examples and never repeats a category (0.3045ms)
+✔ homepage conversation never advertises a company scale (4.0114ms)
+✔ homepage conversation uses the actual filter region in its question and search parameters (10.9788ms)
+✔ eligible chip candidates deduplicate the same filter region and category (0.4093ms)
+✔ statusLabel fallback: null (2.1498ms)
+✔ statusLabel fallback: undefined (0.2148ms)
+✔ statusLabel fallback: "" (0.1134ms)
+✔ statusLabel fallback: "疑似已下架" (0.1105ms)
+✔ statusLabel fallback: "其他狀態" (0.1309ms)
+✔ statusLabel Phase A: 疑似已下架_平台停止服務未逐筆驗證 (0.2373ms)
+✔ statusLabel Phase A: 疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證 (0.1321ms)
+✔ statusLabel Phase A: 已下架_平台停止服務 (0.0956ms)
+✔ statusLabel Phase A: 已下架_資料異常 (0.1098ms)
+✔ statusLabel Phase A: 疑似待查 (0.219ms)
+✔ statusLabel recorded value: 正常 (0.1658ms)
+✔ statusLabel recorded value: 疑似已下架_平台停止服務未逐筆驗證 (0.0987ms)
+✔ statusLabel recorded value: 疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證 (0.0626ms)
+✔ statusLabel recorded value: 疑似已下架_SME AI平台方案未持續上架未逐筆驗證 (0.0934ms)
+✔ statusLabel recorded value: 疑似已下架_農業雲市集數位館方案未持續上架未逐筆驗證 (0.0598ms)
+✔ statusLabel recorded value: 已下架_平台停止服務 (0.0489ms)
+✔ statusLabel recorded value: 已下架_資料異常 (0.0464ms)
+✔ statusLabel recorded value: 已下架_公司歇業佐證 (0.061ms)
+✔ statusLabel recorded value: 已下架_商品頁失效已逐筆驗證 (0.054ms)
+✔ statusLabel recorded value: 已下架_新創嚴選網官網完整清單連續三次未出現 (0.0486ms)
+✔ statusLabel recorded value: 已下架_個別方案下架已人工查證 (0.0425ms)
+✔ statusLabel recorded value: 已下架_重複資料 (0.0461ms)
+✔ NFKC, whitespace and case normalize equally; different names remain different (7.888ms)
+✔ same company and normalized name merge; platforms retain first appearance (116.2295ms)
+✔ different company or different product name never merge (2.3086ms)
+✔ missing or whitespace company identifiers never merge (0.5853ms)
+✔ empty normalized names never merge, even with the same company (0.4296ms)
+✔ merged statuses count each normalized label in first-appearance order (0.3022ms)
+✔ prices: range, equal, zero, partial and entirely empty (0.2595ms)
+✔ same-company count follows output rows, leaving missing cid blank without mutation (0.3852ms)
+✔ CSV BOM, CRLF, escaping and query metadata order (0.5327ms)
+✔ CSV protects leading formula marker "=SUM(A1)" (0.3554ms)
+✔ CSV protects leading formula marker "+886" (0.1975ms)
+✔ CSV protects leading formula marker "@x" (0.0752ms)
+✔ CSV protects leading formula marker "-1" (0.0696ms)
+✔ CSV protects leading formula marker "\tformula" (0.0833ms)
+✔ CSV protects leading formula marker "\rformula" (0.0836ms)
+✔ CSV sanitizes before escaping and also protects headers (0.1652ms)
+✔ query explanation covers every filter and existing homepage sort labels (0.5285ms)
+✔ output whitelist uses the existing missing-name helper and excludes private fields (0.5222ms)
+✔ normal-only filtering happens before merging; unavailable statuses stay blank (0.4463ms)
+✔ output columns preserve selected order in CSV (0.2359ms)
+✔ PDF and Word allow 500 output rows, reject 501; CSV stays unlimited (0.1614ms)
+✔ filename sanitizes forbidden characters and has an empty-keyword fallback (1.5103ms)
+✔ metadata has ROC time and correct merged/unmerged counts (0.4568ms)
+✔ preview summary uses records when unmerged and omits the merged suffix (0.1859ms)
+✔ preview summary uses products and adds a suffix only for positive merged counts (0.4651ms)
+✔ metadata explicitly reports unavailable status in both merged and unmerged exports (0.3246ms)
+✔ trigger synchronization is idempotent and never invokes React rendering (0.3333ms)
+✔ PDF rejects zero size with the failing page number (2.0598ms)
+✔ PDF rejects short image with the failing page number (0.2477ms)
+✔ PDF rejects all white with the failing page number (0.4283ms)
+✔ PDF rejects too large with the failing page number (0.0931ms)
+✔ PDF accepts a valid non-white canvas (0.4391ms)
+✔ 500-row PDF rasterizes 25 separate pages with 20 rows, first-page metadata and continuous page numbers (432.2069ms)
+✔ PDF fails on page 2 without producing a blob or continuing to page 3 (15.6892ms)
+✔ PDF scales a tall page proportionally without cropping and cleans up on abort (45.2715ms)
+✔ Word builds A4 landscape, repeating colored headers and Microsoft JhengHei (1.6553ms)
+✔ Sortable head: onEnd defers destroy and DOM rebuild to the next tick (7.6244ms)
+✔ Sortable head: a render request during dragging preserves nodes until drop (10.0736ms)
+✔ Sortable columns: onEnd defers destroy and DOM rebuild to the next tick (5.3113ms)
+✔ Sortable columns: a render request during dragging preserves nodes until drop (6.1475ms)
+✔ closing after drop makes a pending deferred render harmless (3.5959ms)
+✔ CDN scripts use anonymous CORS before they are attached (12.9532ms)
+✔ index renders the shared disclosure navigation (5.945ms)
+✔ sources renders the shared disclosure navigation (2.6372ms)
+✔ dashboard renders the shared disclosure navigation (1.1029ms)
+✔ manufacturing renders the shared disclosure navigation (1.2648ms)
+✔ compare renders the shared disclosure navigation (0.6988ms)
+✔ strategy-guide renders the shared disclosure navigation (0.7744ms)
+✔ diagnosis renders the shared disclosure navigation (0.7815ms)
+✔ prefers 中部 × 生產物流 by filterRegion even when another region has more normal rows (29.805ms)
+✔ falls back to the largest regional combo before a larger nationwide combo (0.656ms)
+✔ falls back to the largest nationwide combo and returns null without any eligible combo (0.5854ms)
+✔ counts every matching status for results while eligibility counts only normal rows (0.6486ms)
+✔ takes the first two normal rows by ascending id and reports the first row source (1.8069ms)
+✔ omits missing names from the first two rows, including when both are missing (0.4057ms)
+✔ summarizes sources by count descending then name, limits to seven, and ignores empty sources (8.3267ms)
+✔ mock /api/solutions HTTP 500: catch clears loading, count stays unknown (10.0843ms)
+✔ network rejection also leaves the count unknown (2.0405ms)
+✔ pending request is unknown even with existing data (1.9074ms)
+✔ successful empty response displays a genuine zero (39.6243ms)
+✔ successful response displays the formatted length (1.937ms)
+✔ 旅宿觀光 matches solution text with an empty iv (4.8822ms)
+✔ 製造業 matches solution text with an empty iv (0.3323ms)
+✔ 醫療照護 matches solution text with an empty iv (0.5052ms)
+✔ 建築營造 matches solution text with an empty iv (0.517ms)
+✔ 文化創意 matches solution text with an empty iv (0.3989ms)
+✔ English acronyms require uppercase and word boundaries (0.9924ms)
+✔ missing fields are safe and unknown verticals do not exclude solutions (0.4153ms)
+✔ the page keeps either selected vertical and still applies its other filters (3.5369ms)
+✔ target industry earns one boost using the shared vocabulary and word boundaries (0.7023ms)
+✔ a vertical alone triggers relevance sorting without changing results or price ordering (4.2798ms)
+(node:25604) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/_lib/auth.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\S25036\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ seven-day HMAC tokens match the existing password gate format (16.4386ms)
+✔ login rejects malformed payloads and wrong passwords without touching data (59.8692ms)
+✔ missing, expired and tampered tokens return no data and never query Supabase (10.8258ms)
+✔ service-role read pagination is complete, retains IDs and reflects updates (5.1501ms)
+✔ upstream failure fails closed without leaking service credentials or partial data (1.8389ms)
+✔ AI shares show reviewed pending ranges and handle missing/zero denominators (2.1088ms)
+✔ real booleans drive heatmap, dot matrix and first-wave selection (29.721ms)
+✔ profiles produce two tables with eight platforms, nine dimensions, safe notes and dates (2.6785ms)
+✔ CORS accepts only the exact production origin and rejects all preview origins (3.1718ms)
+✔ CORS preflight allows only the endpoint method and explicit authentication/content headers (1.6081ms)
+✔ all four negative-auth cases stay 401 without data for production and requests without Origin (8.1504ms)
+✔ no token: no requests, no numbers or data in the dashboard DOM (3.5456ms)
+✔ frontend login and data requests go directly to Edge with no cookies or API key (32.6741ms)
+✔ expired or rejected token: return to password screen and erase localStorage (6.5817ms)
+✔ authenticated data appears only after verification; expiry erases all rendered data (7.7587ms)
+✔ logout while a data request is in flight cannot redisplay a stale response (3.3338ms)
+✔ leaving the page clears data and cancels any in-flight rendering (3.3312ms)
+✔ reference view switches, pair filters, search and sortable columns compose (2.3882ms)
+✔ reference summary, warning, AI badges and static next steps retain their meaning (1.8159ms)
+✔ heatmap cells expose keyboard buttons, symmetric selection and disabled empty intersections (3.2459ms)
+✔ frontend heatmap, view, chip and column handlers update the vendor list (8.0351ms)
+✔ invitation labels are authoritative even when counts contradict historical thresholds (0.4416ms)
+✔ missing or invalid invitation tiers show unknown cumulative KPIs without inferring a tier (1.4214ms)
+✔ exclusive invitation tiers partition cross-platform vendors and produce cumulative cards (0.5719ms)
+✔ trial caps the top bucket, splits platform counts, and accumulates down to all cross-platform vendors (0.6995ms)
+✔ tier sorting, exclusive filters, search, pair filters and pagination compose (3.3336ms)
+✔ dedicated tier cells escape database reasons and labels including attribute injection (0.5127ms)
+✔ seven platform source badges classify three survey and four database sources exactly (1.8405ms)
+✔ missing survey names warn with exact missing names and leave static scope notes intact (1.4456ms)
+✔ missing platform names return escaped plain text and never classify unknown vendor columns (0.8998ms)
+✔ coverage explanations use plain platform names without source badges (0.2049ms)
+✔ AI methods and nonzero missing-ID counts are generated dynamically without duplicated notes (0.4237ms)
+✔ data response timestamps use fixed Taipei minute format including midnight and date rollover (0.4651ms)
+✔ frontend wave controls, default sorting and trial section render together and refresh from new tiers (13.2757ms)
+✔ frontend puts version warning above KPI and preserves notes when a survey name is absent (5.1883ms)
+✔ new public notes and labels contain no personal, client or database identifiers (0.5044ms)
+(node:25688) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/solutions.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\S25036\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cloud marketplace plus III survey counts only one evidenced program (14.4445ms)
+✔ government platform listings and procurement qualification do not add programs (1.4956ms)
+✔ two evidenced programs survive while SME platform is excluded (2.0919ms)
+✔ all six allowed names count; all four excluded names and future names do not (2.4538ms)
+✔ only excluded or unknown sources return zero and an empty detail list (1.3418ms)
+✔ deduplicates trimmed names without normalizing 台 to 臺 (1.7173ms)
+✔ existing query excludes confirmed retired prefixes but retains suspected retirement and NULL (1.4845ms)
+✔ unlinked companies and empty sources cannot contribute to another company (1.1674ms)
+✔ p labels and solution rows remain present even when sources do not count (1.1139ms)
+✔ legacy Airtable source flag is ignored; the same Supabase program evidence is returned (1.0838ms)
+✔ agricultural digital hall alone keeps its label and counts once (1.2938ms)
+✔ agricultural AI hall alone keeps its label and counts once (1.5777ms)
+✔ both agricultural halls count once with digital input first: true (1.0915ms)
+✔ agricultural group retains its first position with digital input first: true (0.8941ms)
+✔ agricultural group follows an earlier program with digital input first: true (2.8915ms)
+✔ both agricultural halls count once with digital input first: false (1.3604ms)
+✔ agricultural group retains its first position with digital input first: false (0.8382ms)
+✔ agricultural group follows an earlier program with digital input first: false (1.3465ms)
+✔ AI hall does not allow excluded, unknown or display-only source names (1.2431ms)
+✔ all eight allowed source names form exactly seven ordered program groups (0.9381ms)
+✔ rainforest keeps its exact source label and counts one evidenced program per company (0.9221ms)
+✔ agricultural hall grouping stays within each linked company (0.851ms)
+✔ public copy uses the current database brand (32.0716ms)
+fatal: path 'supabase/functions/sf-mcp/index.ts' exists on disk, but not in 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e'
+fatal: path 'supabase/functions/sf-mcp/index.ts' exists on disk, but not in 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e'
+[sf-mcp] search_companies 失敗： 資本額涵蓋率查詢未回傳計數
+(node:5872) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ standalone Edge Function imports only npm/jsr packages, with no local or dynamic imports (3.6349ms)
+✔ browser and inline MCP definitions independently load identical placeholder lists and behavior (7.5882ms)
+✔ eight real SDK registrations advertise Chinese title and object output schemas (21.02ms)
+✔ real SDK HTTP tools/list and tools/call preserve structured/text responses (137.0772ms)
+✔ describe_data: success validates against actual outputSchema; touch exactly once before queries (13.4338ms)
+✔ search_solutions: success validates against actual outputSchema; touch exactly once before queries (12.1367ms)
+✔ search_companies: success validates against actual outputSchema; touch exactly once before queries (7.6323ms)
+✔ get_solution: success validates against actual outputSchema; touch exactly once before queries (6.1852ms)
+✔ get_solutions: success validates against actual outputSchema; touch exactly once before queries (10.8506ms)
+✔ data_status: success validates against actual outputSchema; touch exactly once before queries (5.9463ms)
+✔ whoami: success validates against actual outputSchema; touch exactly once before queries (5.9497ms)
+✔ count_solutions: success validates against actual outputSchema; touch exactly once before queries (6.8876ms)
+✔ search_solutions: one search RPC with city=undefined, global totals and page-only enrichment (11.2927ms)
+✔ search_solutions: one search RPC with city=["台北市"], global totals and page-only enrichment (11.2992ms)
+✔ search_companies: one RPC, totals beyond former cap, sentinel excluded, per-company counts not five previews (8.0497ms)
+✔ company count-only sentinel preserves totals, including empty out-of-range page (9.7858ms)
+✔ normal_only wins, forwarded unchanged; notes retain city, conflict, partial failure and suspect instruction in <=3 entries (8.8511ms)
+✔ include_delisted scope does not mislabel confirmed delisted as normal in summary (7.0851ms)
+✔ no next page at final row; omit empty summary context and unknown clause (7.3026ms)
+✔ zero result is not error and suggests next step: {"keyword":"入住自動化"} (8.3077ms)
+✔ zero result is not error and suggests next step: {"city":["臺北市"]} (5.7612ms)
+✔ zero result is not error and suggests next step: {"category":["資安"],"program":["來源"],"max_price":0,"is_ai":false,"is_gov":true,"is_startup":false} (13.2156ms)
+✔ zero result is not error and suggests next step: {"normal_only":true} (6.0171ms)
+✔ zero companies keeps city unknown count and suggests unknown records (8.2728ms)
+✔ solution empty RPC page reports counting limitation without extra RPC (3.6028ms)
+✔ handler error is sanitized Chinese JSON; actual SDK skips output validation for isError (13.5515ms)
+✔ handler failure logs the actual error only to console, not to the user response (8.2143ms)
+✔ non-Error handler failure is logged using String(err), while response remains sanitized (6.9582ms)
+✔ touch fail-open / observe-only: {"touch":{"error":{"message":"private"},"data":null}} (6.0392ms)
+✔ touch fail-open / observe-only: {"throwTouch":true} (5.8276ms)
+✔ touch fail-open / observe-only: {"touch":{"data":[{"over_limit":true,"limit_per_minute":30}],"error":null}} (5.8785ms)
+✔ injected enforce=true blocks before handler, with deterministic retry seconds (7.2164ms)
+✖ describe topics index/default, all and every section preserve v1.1 except specified edits (104.9385ms)
+✖ three handlers without capital retain query/body logic (58.2084ms)
+✔ migration hash pinned, skill exact appendix hash, old scanning removed, no business writes/private RPC (2.6649ms)
+✔ all four name outputs and actual schemas: null (34.9887ms)
+✔ all four name outputs and actual schemas: undefined (27.8527ms)
+✔ all four name outputs and actual schemas: "" (18.5017ms)
+✔ all four name outputs and actual schemas: "  " (20.9052ms)
+✔ all four name outputs and actual schemas: "缺" (17.2166ms)
+✔ all four name outputs and actual schemas: " 缺 " (14.2156ms)
+✔ all four name outputs and actual schemas: "缺漏" (18.6533ms)
+✔ all four name outputs and actual schemas: "待補" (18.5089ms)
+✔ all four name outputs and actual schemas: "無" (16.9991ms)
+✔ all four name outputs and actual schemas: "-" (13.2081ms)
+✔ all four name outputs and actual schemas: "—" (12.9127ms)
+✔ all four name outputs and actual schemas: "N/A" (17.6142ms)
+✔ all four name outputs and actual schemas: "NA" (16.9571ms)
+✔ all four name outputs and actual schemas: "null" (16.9058ms)
+✔ all four name outputs and actual schemas: "?" (15.0874ms)
+✔ all four name outputs and actual schemas: "？" (14.5826ms)
+✔ all four name outputs and actual schemas: "律果簽" (16.5206ms)
+✔ all four name outputs and actual schemas: "HackMD" (15.1417ms)
+✔ all four name outputs and actual schemas: "AI" (26.5666ms)
+✔ all four name outputs and actual schemas: " AI " (35.1719ms)
+✔ describe_data: 42501 denies access before any query or handler and logs server-side (9.6546ms)
+✔ search_solutions: 42501 denies access before any query or handler and logs server-side (7.489ms)
+✔ search_companies: 42501 denies access before any query or handler and logs server-side (11.5228ms)
+✔ get_solution: 42501 denies access before any query or handler and logs server-side (10.0439ms)
+✔ get_solutions: 42501 denies access before any query or handler and logs server-side (5.5439ms)
+✔ data_status: 42501 denies access before any query or handler and logs server-side (8.4936ms)
+✔ whoami: 42501 denies access before any query or handler and logs server-side (5.5744ms)
+✔ count_solutions: 42501 denies access before any query or handler and logs server-side (5.824ms)
+✔ summary city text uses official 臺 while RPC parameters and keyword stay unchanged (20.2312ms)
+✔ describe_data index uses the first complete sentence, not a list heading fragment (6.6549ms)
+✔ name display preserves RPC page order, scores, totals and request parameters (12.5843ms)
+✔ capital schema is limited to search_companies and validates bounds (9.1177ms)
+✔ capital bounds and sorting reach the DB with city, normal_only and pagination (9.3929ms)
+✔ capital remains null through search and both detail tools (35.0389ms)
+✔ capital remains 0 through search and both detail tools (30.6873ms)
+✔ capital remains 100000000 through search and both detail tools (30.1406ms)
+✔ capital unknown count survives empty pages and counts remain server totals (7.7985ms)
+✔ coverage refreshes for every call, includes zero as known and handles empty denominator (31.4646ms)
+✔ missing coverage fails without publishing capital with fabricated disclosure (6.5866ms)
+✔ unaffected search and missing detail results do not fetch or expose capital (36.7992ms)
+✔ describe_data capital topic and index disclose definition and denominator (11.4239ms)
+▶ capital migration executes in PostgreSQL with legacy parity, DB filtering, sorting and live coverage
+  ✔ six legacy queries preserve every old column, row and order (44.8034ms)
+  ✔ bounds filter before counts and pagination; full-table scope differs (34.1733ms)
+  ✔ sorting is global, stable across pages, NULL last; previews remain capped at five (11.8095ms)
+  ✔ sentinel preserves totals and unknowns for empty and out-of-range pages (4.879ms)
+  ✔ coverage counts all companies, counts zero, refreshes after isolated test update (3.1261ms)
+  ✔ anonymous denied, authenticated read-only invoker allowed, overload removed (9.1218ms)
+  ✔ all handoff verification queries are SELECT statements and execute before deployment (19.2197ms)
+✔ capital migration executes in PostgreSQL with legacy parity, DB filtering, sorting and live coverage (3392.7566ms)
+(node:11632) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ quota migration checks grants and defaults, isolates accounts and aggregates by Taipei day and tool (2957.8342ms)
+ℹ 自檢通過：白名單 2 筆，既有帳號預設 human／300，用量表 RLS 與函式權限正確
+ℹ 資料筆數前後一致（solutions: 2，sf_mcp_users: 2）
+▶ negative migrations fail self-check and roll back all schema changes
+  ✔ RLS (31.9855ms)
+  ✔ SECURITY DEFINER (16.9186ms)
+  ✔ default table privileges (16.7958ms)
+✔ negative migrations fail self-check and roll back all schema changes (1483.7365ms)
+ℹ 自檢失敗：sf_mcp_daily_usage 未啟用 RLS
+ℹ 自檢失敗：sf_mcp_quota_check() 必須使用 SECURITY DEFINER
+ℹ 自檢失敗：anon 有 sf_mcp_daily_usage 的直接存取權
+✔ MCP calls with real local SQL stop at 300 rows and at an account-specific limit of 20 (1413.397ms)
+ℹ 第 7 次查詢（第 301 筆）被擋。 今日查詢明細已達上限（300 筆），每日 00:00 重置。如有盤點需求，請洽資料維護者。
+ℹ 第 3 次查詢（第 21 筆）被擋。 今日查詢明細已達上限（20 筆），每日 00:00 重置。如有盤點需求，請洽資料維護者。
+(node:14792) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ over-limit check blocks all four detail handlers and skips consumption (141.0828ms)
+✔ quota check 42501 blocks; other errors log and let the handler run (20.9544ms)
+✔ all eight successful handlers record exactly one call and their actual row usage (91.5653ms)
+✔ handler failures skip consumption and consume failures keep the successful result (11.2946ms)
+✔ offset caps and company page size validate, forward the limit and stop pagination at the boundary (14.2601ms)
+✔ price ranges cover every boundary, lists omit exact values and details retain them (7.2802ms)
+✔ whoami includes usage on success and omits it when quota lookup fails (10.5045ms)
+✔ per-minute enforcement is on by default and runs before the daily check (8.344ms)
+✔ missing name null uses the unified label (1.8842ms)
+✔ missing name undefined uses the unified label (0.4566ms)
+✔ missing name "" uses the unified label (0.1482ms)
+✔ missing name "  " uses the unified label (1.5074ms)
+✔ missing name "缺" uses the unified label (0.244ms)
+✔ missing name " 缺 " uses the unified label (0.6345ms)
+✔ missing name "缺漏" uses the unified label (0.312ms)
+✔ missing name "待補" uses the unified label (3.2906ms)
+✔ missing name "無" uses the unified label (3.2678ms)
+✔ missing name "-" uses the unified label (0.6991ms)
+✔ missing name "—" uses the unified label (6.6215ms)
+✔ missing name "N/A" uses the unified label (0.184ms)
+✔ missing name "NA" uses the unified label (0.0803ms)
+✔ missing name "null" uses the unified label (0.0564ms)
+✔ missing name "?" uses the unified label (0.0961ms)
+✔ missing name "？" uses the unified label (1.6584ms)
+✔ provided name "律果簽" is preserved exactly (1.2128ms)
+✔ provided name "HackMD" is preserved exactly (0.2511ms)
+✔ provided name "AI" is preserved exactly (0.1641ms)
+✔ provided name " AI " is preserved exactly (0.0742ms)
+✔ provided name "缺工管理" is preserved exactly (0.0691ms)
+✔ provided name "NA 平台" is preserved exactly (0.0696ms)
+✔ provided name "Null Analytics" is preserved exactly (0.2096ms)
+✔ name A-Z keeps missing names last, stable, without sorting by the fallback label (28.7433ms)
+✔ all pages rendering solution names load the same helper and stylesheet (5.5564ms)
+✔ same-score groups put missing names last without changing relevance priority (4.5176ms)
+✔ price and company groups put missing names last without reordering the groups (4.0665ms)
+✔ openROIModal normalizes stored names and preserves the missing style flag (21.7195ms)
+✔ company solution list button: null renders （名稱未提供） with correct missing style (1.5979ms)
+✔ company solution list p: null renders （名稱未提供） with correct missing style (0.4469ms)
+✔ company solution list button: "缺" renders （名稱未提供） with correct missing style (0.164ms)
+✔ company solution list p: "缺" renders （名稱未提供） with correct missing style (0.1398ms)
+✔ company solution list button: "HackMD" renders HackMD with correct missing style (0.9298ms)
+✔ company solution list p: "HackMD" renders HackMD with correct missing style (0.4174ms)
+✔ company solution list keeps the delisted filter and stable missing-last order within each source (3.0704ms)
+✔ source cards define exactly eleven distinct program types (4.1067ms)
+✔ agri digital and AI halls each have a source card (0.3684ms)
+✔ rainforest has its own source card with the manual verification disclosure (0.6235ms)
+✔ subtitle and structure source counts match the number of source cards (0.596ms)
+✔ unclassified note refers to the listed sources (1.762ms)
+✔ delistedReason: 已下架_平台停止服務 (3.7377ms)
+✔ delistedReason: 已下架_資料異常 (0.3851ms)
+✔ delistedReason: 已下架_公司歇業佐證 (0.1766ms)
+✔ delistedReason: 已下架_商品頁失效已逐筆驗證 (0.1861ms)
+✔ delistedReason: 已下架_新創嚴選網官網完整清單連續三次未出現 (0.167ms)
+✔ delistedReason: 已下架_個別方案下架已人工查證 (0.1417ms)
+✔ delistedReason: 已下架_重複資料 (0.1428ms)
+✔ delistedReason uses the generic explanation for 已下架_測試 (0.1621ms)
+✔ delistedReason uses the generic explanation for 已下架 (0.1842ms)
+✔ delistedReason returns null for "正常" (0.3215ms)
+✔ delistedReason returns null for "疑似已下架_平台停止服務未逐筆驗證" (0.1759ms)
+✔ delistedReason returns null for null (0.1354ms)
+✔ delistedReason returns null for "" (0.0729ms)
+✔ sourceStatusHelp names the platform when available (0.1769ms)
+✔ sourceStatusHelp omits the parentheses when the platform name is missing (0.1582ms)
+✔ sourceStatusHelp describes a discontinued platform (0.1071ms)
+✔ sourceStatusHelp returns null for labels without help (0.3627ms)
+▶ index.html and export-results-core.mjs return the same status labels
+  ✔ null (1.1786ms)
+  ✔ "" (1.664ms)
+  ✔ "正常" (0.2366ms)
+  ✔ "疑似已下架_平台停止服務未逐筆驗證" (0.176ms)
+  ✔ "疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證" (0.1716ms)
+  ✔ "疑似已下架_SME AI平台方案未持續上架未逐筆驗證" (0.1506ms)
+  ✔ "疑似已下架_農業雲市集數位館方案未持續上架未逐筆驗證" (0.1396ms)
+  ✔ "已下架_平台停止服務" (0.1433ms)
+  ✔ "已下架_資料異常" (0.2363ms)
+  ✔ "已下架_公司歇業佐證" (0.2177ms)
+  ✔ "已下架_商品頁失效已逐筆驗證" (0.1473ms)
+  ✔ "已下架_新創嚴選網官網完整清單連續三次未出現" (0.1072ms)
+  ✔ "已下架_個別方案下架已人工查證" (0.1092ms)
+  ✔ "已下架_重複資料" (0.0813ms)
+  ✔ "已下架" (0.0832ms)
+  ✔ "其他狀態" (6.2916ms)
+✔ index.html and export-results-core.mjs return the same status labels (20.2249ms)
+fatal: path 'api/solutions.js' exists on disk, but not in 'a64548bf28fc445211834d970ad119903a8b8df0'
+node:internal/errors:985
+  const err = new Error(message);
+              ^
+
+Error: Command failed: git show a64548bf28fc445211834d970ad119903a8b8df0:api/solutions.js
+fatal: path 'api/solutions.js' exists on disk, but not in 'a64548bf28fc445211834d970ad119903a8b8df0'
+
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/supabase-read-equivalence.test.mjs:14:18
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    '',
+    "fatal: path 'api/solutions.js' exists on disk, but not in 'a64548bf28fc445211834d970ad119903a8b8df0'\n"
+  ],
+  pid: 21808,
+  stdout: '',
+  stderr: "fatal: path 'api/solutions.js' exists on disk, but not in 'a64548bf28fc445211834d970ad119903a8b8df0'\n"
+}
+
+Node.js v24.14.1
+✖ tests\supabase-read-equivalence.test.mjs (356.3508ms)
+✔ Tiffany theme defines all approved tokens (4.9296ms)
+✔ index loads the theme before local CSS and uses approved text colors (5.0651ms)
+✔ sources loads the theme before local CSS and uses approved text colors (1.2709ms)
+✔ dashboard loads the theme before local CSS and uses approved text colors (3.0254ms)
+✔ manufacturing loads the theme before local CSS and uses approved text colors (3.0732ms)
+✔ compare loads the theme before local CSS and uses approved text colors (1.0485ms)
+✔ strategy-guide loads the theme before local CSS and uses approved text colors (1.0519ms)
+✔ diagnosis loads the theme before local CSS and uses approved text colors (1.1767ms)
+✔ feedback loads the theme before local CSS and uses approved text colors (0.5925ms)
+✔ normal solution status keeps its PR #310 colors (1.3414ms)
+ℹ tests 417
+ℹ suites 0
+ℹ pass 412
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7380.7754
+
+✖ failing tests:
+
+test at tests\company-search.test.mjs:333:1
+✖ 14. companies without search action preserves main graph response and reads with private cache policy (152.0563ms)
+  Error: Command failed: git show d392cbc1702e23536227df453ffda22980e4479a:api/companies.js
+  fatal: path 'api/companies.js' exists on disk, but not in 'd392cbc1702e23536227df453ffda22980e4479a'
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at checkExecSyncError (node:child_process:925:11)
+      at execFileSync (node:child_process:961:15)
+      at TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/company-search.test.mjs:334:18)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12) {
+    status: 128,
+    signal: null,
+    output: [ null, '', "fatal: path 'api/companies.js' exists on disk, but not in 'd392cbc1702e23536227df453ffda22980e4479a'\n" ],
+    pid: 10544,
+    stdout: '',
+    stderr: "fatal: path 'api/companies.js' exists on disk, but not in 'd392cbc1702e23536227df453ffda22980e4479a'\n"
+  }
+
+test at tests\contact-access-log.test.mjs:1:1
+✖ tests\contact-access-log.test.mjs (440.9059ms)
+  'test failed'
+
+test at tests\sf-mcp\sf-mcp-v1-2.test.mjs:308:1
+✖ describe topics index/default, all and every section preserve v1.1 except specified edits (104.9385ms)
+  Error: Command failed: git show a91e900893fbb68bb0b574c488f38bf9afbe2b9e:supabase/functions/sf-mcp/index.ts
+  fatal: path 'supabase/functions/sf-mcp/index.ts' exists on disk, but not in 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e'
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at checkExecSyncError (node:child_process:925:11)
+      at execFileSync (node:child_process:961:15)
+      at TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/sf-mcp/sf-mcp-v1-2.test.mjs:309:18)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12) {
+    status: 128,
+    signal: null,
+    output: [ null, '', "fatal: path 'supabase/functions/sf-mcp/index.ts' exists on disk, but not in 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e'\n" ],
+    pid: 25140,
+    stdout: '',
+    stderr: "fatal: path 'supabase/functions/sf-mcp/index.ts' exists on disk, but not in 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e'\n"
+  }
+
+test at tests\sf-mcp\sf-mcp-v1-2.test.mjs:335:1
+✖ three handlers without capital retain query/body logic (58.2084ms)
+  Error: Command failed: git show a91e900893fbb68bb0b574c488f38bf9afbe2b9e:supabase/functions/sf-mcp/index.ts
+  fatal: path 'supabase/functions/sf-mcp/index.ts' exists on disk, but not in 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e'
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at checkExecSyncError (node:child_process:925:11)
+      at execFileSync (node:child_process:961:15)
+      at TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/sf-mcp/sf-mcp-v1-2.test.mjs:336:18)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12) {
+    status: 128,
+    signal: null,
+    output: [ null, '', "fatal: path 'supabase/functions/sf-mcp/index.ts' exists on disk, but not in 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e'\n" ],
+    pid: 11768,
+    stdout: '',
+    stderr: "fatal: path 'supabase/functions/sf-mcp/index.ts' exists on disk, but not in 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e'\n"
+  }
+
+test at tests\supabase-read-equivalence.test.mjs:1:1
+✖ tests\supabase-read-equivalence.test.mjs (356.3508ms)
+  'test failed'

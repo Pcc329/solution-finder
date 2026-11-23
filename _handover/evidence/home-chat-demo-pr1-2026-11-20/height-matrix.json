@@ -1,0 +1,167 @@
+{
+  "viewports": [
+    {
+      "width": 1280,
+      "height": 800,
+      "states": [
+        {
+          "state": "loading",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 1,
+          "summaryText": "目前收錄 — 個來源，前台可查詢的方案共 — 筆。先看幾個：",
+          "heroHeight": 1305,
+          "firstRoundHeight": 268,
+          "firstRoundVisibility": "visible",
+          "sourceGridHeight": 216,
+          "sourceGridVisibility": "visible"
+        },
+        {
+          "state": "normal",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 1,
+          "summaryText": "目前收錄 9 個來源，前台可查詢的方案共 37 筆。先看幾個：",
+          "heroHeight": 1305,
+          "firstRoundHeight": 268,
+          "firstRoundVisibility": "visible",
+          "sourceGridHeight": 216,
+          "sourceGridVisibility": "visible"
+        },
+        {
+          "state": "empty",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 1,
+          "summaryText": "目前沒有可顯示的來源",
+          "heroHeight": 1305,
+          "firstRoundHeight": 268,
+          "firstRoundVisibility": "hidden",
+          "sourceGridHeight": 216,
+          "sourceGridVisibility": "hidden"
+        },
+        {
+          "state": "no-eligible-combo",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 1,
+          "summaryText": "目前收錄 9 個來源，前台可查詢的方案共 9 筆。先看幾個：",
+          "heroHeight": 1305,
+          "firstRoundHeight": 268,
+          "firstRoundVisibility": "hidden",
+          "sourceGridHeight": 216,
+          "sourceGridVisibility": "visible"
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "states": [
+        {
+          "state": "loading",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 1,
+          "summaryText": "目前收錄 — 個來源，前台可查詢的方案共 — 筆。先看幾個：",
+          "heroHeight": 1305,
+          "firstRoundHeight": 268,
+          "firstRoundVisibility": "visible",
+          "sourceGridHeight": 216,
+          "sourceGridVisibility": "visible"
+        },
+        {
+          "state": "normal",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 1,
+          "summaryText": "目前收錄 9 個來源，前台可查詢的方案共 37 筆。先看幾個：",
+          "heroHeight": 1305,
+          "firstRoundHeight": 268,
+          "firstRoundVisibility": "visible",
+          "sourceGridHeight": 216,
+          "sourceGridVisibility": "visible"
+        },
+        {
+          "state": "empty",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 1,
+          "summaryText": "目前沒有可顯示的來源",
+          "heroHeight": 1305,
+          "firstRoundHeight": 268,
+          "firstRoundVisibility": "hidden",
+          "sourceGridHeight": 216,
+          "sourceGridVisibility": "hidden"
+        },
+        {
+          "state": "no-eligible-combo",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 1,
+          "summaryText": "目前收錄 9 個來源，前台可查詢的方案共 9 筆。先看幾個：",
+          "heroHeight": 1305,
+          "firstRoundHeight": 268,
+          "firstRoundVisibility": "hidden",
+          "sourceGridHeight": 216,
+          "sourceGridVisibility": "visible"
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "height": 844,
+      "states": [
+        {
+          "state": "loading",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 2,
+          "summaryText": "目前收錄 — 個來源，前台可查詢的方案共 — 筆。先看幾個：",
+          "heroHeight": 1563.75,
+          "firstRoundHeight": 292,
+          "firstRoundVisibility": "visible",
+          "sourceGridHeight": 440,
+          "sourceGridVisibility": "visible"
+        },
+        {
+          "state": "normal",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 2,
+          "summaryText": "目前收錄 9 個來源，前台可查詢的方案共 37 筆。先看幾個：",
+          "heroHeight": 1563.75,
+          "firstRoundHeight": 292,
+          "firstRoundVisibility": "visible",
+          "sourceGridHeight": 440,
+          "sourceGridVisibility": "visible"
+        },
+        {
+          "state": "empty",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 1,
+          "summaryText": "目前沒有可顯示的來源",
+          "heroHeight": 1563.75,
+          "firstRoundHeight": 292,
+          "firstRoundVisibility": "hidden",
+          "sourceGridHeight": 440,
+          "sourceGridVisibility": "hidden"
+        },
+        {
+          "state": "no-eligible-combo",
+          "summaryHeight": 48,
+          "lineHeight": 24,
+          "renderedLines": 2,
+          "summaryText": "目前收錄 9 個來源，前台可查詢的方案共 9 筆。先看幾個：",
+          "heroHeight": 1563.75,
+          "firstRoundHeight": 292,
+          "firstRoundVisibility": "hidden",
+          "sourceGridHeight": 440,
+          "sourceGridVisibility": "visible"
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

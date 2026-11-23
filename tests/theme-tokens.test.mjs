@@ -17,11 +17,11 @@ test('Tiffany theme defines all approved tokens', () => {
     '--sf-accent-700': '#087F7B',
     '--sf-accent-800': '#085F5C',
     '--sf-on-accent': '#0B2B2A',
-    '--sf-hero-bg': '#0B3B3A',
-    '--sf-hero-kicker': '#6FDCD8',
-    '--sf-hero-lead': '#D5E4E4',
-    '--sf-hero-chip-border': '#2A7B78',
-    '--sf-hero-chip-text': '#BFEDEB',
+    '--sf-hero-bg': '#F4F7F7',
+    '--sf-hero-kicker': '#085F5C',
+    '--sf-hero-title': '#0B2B2A',
+    '--sf-hero-lead': '#4B5563',
+    '--sf-chat-user-bg': '#0B3C3B',
   });
 });
 
