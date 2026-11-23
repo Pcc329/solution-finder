@@ -1,0 +1,294 @@
+diff --git a/public/index.html b/public/index.html
+index eede26b..44c867e 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -11,6 +11,7 @@
+   <script src="/solution-name.js"></script>
+   <script src="/status-help.js"></script>
+   <script src="/example-combos.js"></script>
++  <script src="/home-demo.js"></script>
+   <script src="/industry-vertical.js"></script>
+   <script type="module" src="/export-results-panel.mjs"></script>
+   <link rel="stylesheet" href="/solution-name.css">
+@@ -138,6 +139,17 @@
+     .no-scrollbar::-webkit-scrollbar { display: none; }
+     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+     .roi-entry { display: none !important; }
++    .home-demo-question { width: fit-content; max-width: 100%; margin-left: auto; border-radius: 20px 20px 4px 20px; padding: 10px 14px; background: var(--sf-chat-user-bg); color: #ffffff; font-size: 14px; font-weight: 700; line-height: 1.5; text-align: left; }
++    .home-demo-first { min-height: 292px; }
++    .home-demo-analysis { min-height: 40px; display: flex; flex-wrap: wrap; align-content: center; align-items: center; gap: 4px 8px; margin-top: 6px; color: #4B5563; font-size: 11px; line-height: 18px; }
++    .home-demo-answer { min-height: 172px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff; }
++    .home-demo-source-summary { min-height: 48px; }
++    .home-demo-source-card { min-height: 104px; }
++    @media (min-width: 640px) {
++      .home-demo-analysis { min-height: 28px; font-size: 12px; }
++      .home-demo-answer { padding: 16px 20px; }
++      .home-demo-first { min-height: 268px; }
++    }
+     .badge-violet { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+     .solution-image-frame { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; }
+     .solution-image-detail { max-width: 640px; margin: 0 auto 1rem; }
+@@ -574,14 +586,6 @@
+       const companyRequest = useRef(0);
+       const companyRequestPending = useRef(false);
+       const [placeholderText, setPlaceholderText] = useState(() => createRandomSearchSentence());
+-      const [initialExamples] = useState(() => {
+-        const categories = [...POOL_CATEGORY];
+-        return Array.from({ length: 3 }, () => {
+-          const index = Math.floor(Math.random() * categories.length);
+-          const [category] = categories.splice(index, 1);
+-          return { text: formatCategoryExample({ region: "全台灣", category }) };
+-        });
+-      });
+       const exampleCombos = useMemo(() => {
+         if (loading) return null;
+         return ExampleCombos.getEligibleExampleCombos(allData, POOL_REGION, POOL_CATEGORY);
+@@ -590,18 +594,8 @@
+         if (loading) return null;
+         return ExampleCombos.getEligibleExampleCombos(allData, POOL_REGION, POOL_CATEGORY, { keepRegionLabels: true });
+       }, [allData, loading]);
+-      const quickSearchExamples = useMemo(() => {
+-        if (exampleCombos === null) return initialExamples;
+-        const shuffled = [...exampleCombos];
+-        for (let index = shuffled.length - 1; index > 0; index -= 1) {
+-          const other = Math.floor(Math.random() * (index + 1));
+-          [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
+-        }
+-        return ExampleCombos.selectDistinctExampleCombos(shuffled).map(combo => ({
+-          ...combo,
+-          text: formatCategoryExample({ region: combo.filterRegion ?? "全台灣", category: combo.category }),
+-        }));
+-      }, [exampleCombos, initialExamples]);
++      const demoCombo = useMemo(() => loading ? null : HomeDemo.pickDemoCombo(allData, exampleCombos), [allData, exampleCombos, loading]);
++      const demoSources = useMemo(() => HomeDemo.summarizeSources(allData), [allData]);
+       const [isSearching, setIsSearching] = useState(false);
+       const [filters, setFilters] = useState({
+         region: [], isAI: null, isStartup: null, isGov: null, pricingModel: null,
+@@ -1434,18 +1428,28 @@
+         document.getElementById(`home-tab-${nextTab}`).focus();
+       };
+ 
++      const homeDemo = demoCombo ?? { region: "中部", filterRegion: "中部", category: "生產物流", resultCount: null, examples: [], source: "" };
++      const demoQuestion = `${homeDemo.region}有哪些${homeDemo.category}相關方案？`;
++      const openHomeCompany = () => {
++        setHomeTab("company");
++        window.requestAnimationFrame(() => {
++          window.scrollTo(0, 0);
++          document.getElementById("company-home-query")?.focus({ preventScroll: true });
++        });
++      };
++
+       const renderHome = () => (
+         <div className="min-h-screen bg-white text-slate-900">
+-          <section className="bg-[var(--sf-hero-bg)] px-4 py-10 text-center sm:px-6 md:py-14" aria-labelledby="home-title">
++          <section className="bg-[var(--sf-hero-bg)] px-4 py-4 text-center sm:px-6 md:py-6" aria-labelledby="home-title">
+             <div className="mx-auto max-w-5xl">
+-              <p className="mb-4 text-xs font-bold tracking-widest text-[var(--sf-hero-kicker)]">SOLUTION FINDER・資服產業資料庫</p>
+-              <h1 id="home-title" className="mx-auto max-w-3xl text-balance text-3xl font-black leading-snug tracking-tight text-white md:text-5xl md:leading-tight">
++              <p className="mb-2 text-xs font-bold tracking-widest text-[var(--sf-hero-kicker)]">SOLUTION FINDER・資服產業資料庫</p>
++              <h1 id="home-title" className="mx-auto max-w-3xl text-balance text-3xl font-black leading-snug tracking-tight text-[var(--sf-hero-title)] md:text-5xl md:leading-tight">
+                 <span className="inline-block whitespace-nowrap">政府計畫收錄的</span><wbr /><span className="inline-block whitespace-nowrap">數位轉型方案與廠商，</span><wbr /><span className="inline-block whitespace-nowrap">一處查齊</span>
+               </h1>
+-              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-[var(--sf-hero-lead)] md:text-base">
++              <p className="mx-auto mt-2 max-w-xl text-xs leading-relaxed text-[var(--sf-hero-lead)] md:text-base">
+                 彙整多個政府計畫的方案與提供廠商，並定期查核每筆資料的狀態
+               </p>
+-              <div className="mx-auto mt-8 max-w-3xl rounded-2xl bg-white p-3 text-left shadow-lg sm:p-5">
++              <div className="mx-auto mt-4 max-w-3xl rounded-2xl border border-slate-200 bg-white p-3 text-left sm:p-5">
+                 <div role="tablist" aria-label="搜尋方式" onKeyDown={handleHomeTabKeyDown}
+                   className="mb-3 flex gap-1 border-b border-slate-200 pb-3">
+                   {[["solution", "找方案"], ["company", "找公司"]].map(([id, label]) => (
+@@ -1487,21 +1491,61 @@
+                   正在讀取方案資料...
+                 </div>
+               </div>
+-              <div className="mx-auto mt-4 max-w-3xl text-[var(--sf-hero-chip-text)]"
+-                aria-hidden={homeTab !== "solution" || quickSearchExamples.length === 0}
+-                style={{ visibility: homeTab === "solution" && quickSearchExamples.length > 0 ? "visible" : "hidden" }}>
+-                <div className="text-xs font-bold">試試看</div>
+-                <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
+-                  {Array.from({ length: 3 }, (_, index) => {
+-                    const example = quickSearchExamples[index];
+-                    return example ? (
+-                      <button key={index} type="button" disabled={loading} onClick={() => handleQuickSearch(example)}
+-                        className="h-12 rounded-full border border-[var(--sf-hero-chip-border)] px-3 text-xs font-medium transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400">
+-                        {example.text}
+-                      </button>
+-                    ) : <span key={index} aria-hidden="true" className="invisible h-12" />;
+-                  })}
+-                </div>
++              <div className="mx-auto mt-3 max-w-3xl">
++                <a id="home-demo-capsule" href="/sources.html" className="inline-block rounded-full bg-brand-50 px-3 py-2 text-xs font-medium leading-5 text-brand-800 hover:underline">
++                  {loading || error ? "—" : allData.length.toLocaleString()} 筆方案・{loading || error ? "—" : databaseStats?.companyTotal?.toLocaleString() ?? "—"} 家廠商・來源狀態定期查核 →
++                </a>
++              </div>
++              <div className="mx-auto mt-4 max-w-3xl text-left" aria-label="首頁對話示範">
++                <section id="home-demo-first" className="home-demo-first" aria-label="地區與類別示範"
++                  aria-hidden={!loading && !demoCombo} style={{ visibility: loading || demoCombo ? "visible" : "hidden" }}>
++                  <p className="home-demo-question">{demoQuestion}</p>
++                  <div className="home-demo-analysis font-mono">
++                    <span>AI 解析</span>
++                    {homeDemo.filterRegion !== null && <span className="rounded bg-violet-50 px-1.5 text-violet-800">區域：{homeDemo.region} ✓</span>}
++                    <span className="rounded bg-brand-50 px-1.5 text-brand-800">類別：{homeDemo.category} ✓</span>
++                    <span>1 點（示意）</span>
++                  </div>
++                  <div className="mt-2 flex items-start gap-2">
++                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white" aria-hidden="true">
++                      <img src="/brand/logo-mark.svg" alt="" width="24" height="24" />
++                    </span>
++                    <div id="home-demo-answer" className="home-demo-answer min-w-0 flex-1 text-sm leading-5 text-slate-800">
++                      <p>
++                        {homeDemo.filterRegion !== null ? `公司位於${homeDemo.region}、類別為${homeDemo.category}` : `類別為${homeDemo.category}`}的方案共 <strong id="home-demo-result-count" className="tabular-nums">{loading ? "—" : homeDemo.resultCount?.toLocaleString() ?? "—"}</strong> 筆。
++                        {loading ? "例如 —、—。" : homeDemo.examples.length > 0 ? `例如 ${homeDemo.examples.join("、")}。` : ""}
++                      </p>
++                      <p className="mt-2 text-xs leading-5 text-slate-600">資料來源：{loading ? "—" : homeDemo.source || "—"}等政府計畫平台</p>
++                      <button id="home-demo-try" type="button" disabled={loading || !demoCombo}
++                        onClick={() => handleQuickSearch({ text: demoQuestion, filterRegion: homeDemo.filterRegion, category: homeDemo.category })}
++                        className="mt-2 min-h-[36px] rounded-full border border-brand-200 px-4 py-1.5 text-xs font-bold text-brand-800 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400">試試這題 →</button>
++                    </div>
++                  </div>
++                </section>
++                <section className="mt-6" aria-label="收錄來源示範">
++                  <p className="home-demo-question">收錄了哪些計畫的資料？</p>
++                  <p className="home-demo-source-summary mt-3 text-sm leading-6 text-slate-800">
++                    {!loading && demoSources.sourceCount === 0 ? "目前沒有可顯示的來源" : <>目前收錄 {loading ? "—" : demoSources.sourceCount.toLocaleString()} 個來源，前台可查詢的方案共 {loading ? "—" : allData.length.toLocaleString()} 筆。先看幾個：</>}
++                  </p>
++                  <div id="home-demo-sources" className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4"
++                    aria-hidden={!loading && demoSources.sourceCount === 0} style={{ visibility: loading || demoSources.sourceCount > 0 ? "visible" : "hidden" }}>
++                    {Array.from({ length: 7 }, (_, index) => {
++                      const source = demoSources.top[index];
++                      return <div key={index} className="home-demo-source-card rounded-xl border border-slate-200 bg-white p-3"
++                        aria-hidden={!loading && !source} style={{ visibility: loading || source ? "visible" : "hidden" }}>
++                        <p className="min-h-[40px] text-xs leading-5 text-slate-600">{loading ? "—" : source?.name}</p>
++                        <p className="mt-1 text-xl font-bold leading-7 tabular-nums text-slate-900">{loading ? "—" : source?.count.toLocaleString()}</p>
++                      </div>;
++                    })}
++                    <a href="/sources.html" className="home-demo-source-card flex items-center justify-center rounded-xl border border-dashed border-brand-200 px-3 text-sm font-bold text-brand-800 hover:bg-brand-50">看全部來源 →</a>
++                  </div>
++                </section>
++                <section className="mt-6" aria-label="找公司示範">
++                  <p className="home-demo-question">想查某一家公司的方案呢？</p>
++                  <p className="mt-3 text-sm leading-6 text-slate-800">切到「找公司」，輸入 8 碼統編或公司名稱，就能看到這家公司在各計畫收錄的方案與目前狀態。</p>
++                  <button type="button" onClick={openHomeCompany} className="mt-3 min-h-[44px] rounded-full border border-brand-200 bg-white px-5 py-2 text-sm font-bold text-brand-800 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400">前往找公司 →</button>
++                </section>
++                <p className="mt-6 text-center text-xs leading-5 text-slate-600">示範內容依目前資料即時計算・「點」為計量示意，尚未實作</p>
+               </div>
+             </div>
+           </section>
+diff --git a/public/theme.css b/public/theme.css
+index 8cc11e1..165a594 100644
+--- a/public/theme.css
++++ b/public/theme.css
+@@ -8,9 +8,9 @@
+   --sf-accent-700: #087F7B;
+   --sf-accent-800: #085F5C;
+   --sf-on-accent: #0B2B2A;
+-  --sf-hero-bg: #0B3B3A;
+-  --sf-hero-kicker: #6FDCD8;
+-  --sf-hero-lead: #D5E4E4;
+-  --sf-hero-chip-border: #2A7B78;
+-  --sf-hero-chip-text: #BFEDEB;
++  --sf-hero-bg: #F4F7F7;
++  --sf-hero-kicker: #085F5C;
++  --sf-hero-title: #0B2B2A;
++  --sf-hero-lead: #4B5563;
++  --sf-chat-user-bg: #0B3C3B;
+ }
+diff --git a/tests/example-combos.test.mjs b/tests/example-combos.test.mjs
+index 45f43d8..9bb635c 100644
+--- a/tests/example-combos.test.mjs
++++ b/tests/example-combos.test.mjs
+@@ -14,8 +14,8 @@ function rows(count, r, cat, rs = '正常') {
+ test('requires ten normal matching rows and maps example regions to search regions', () => {
+   const items = [
+     ...rows(10, '北部', '生產物流、行銷推廣'),
+-    ...rows(9, '中部', ['生產物流']),
+-    ...rows(10, '南部', ['生產物流']),
++    ...rows(9, '中部', '生產物流'),
++    ...rows(10, '南部', '生產物流'),
+   ];
+   const combos = getEligibleExampleCombos(
+     items,
+@@ -63,40 +63,35 @@ test('selects at most three examples and never repeats a category', () => {
+   assert.equal(selectDistinctExampleCombos([]).length, 0);
+ });
+ 
+-function renderQuickSearchExamples(exampleCombos) {
++function renderHomeDemo(exampleCombos) {
+   const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+-  const sentenceSource = html.slice(html.indexOf('    const POOL_CATEGORY'), html.indexOf('    const HOME_POPULAR_FILTERS'));
+-  const chipStart = html.indexOf('      const quickSearchExamples =');
+-  const chipSource = html.slice(chipStart, html.indexOf('      const [isSearching', chipStart));
+-  return vm.runInNewContext(sentenceSource + chipSource + '({ examples: quickSearchExamples, scales: POOL_SCALE })', {
+-    ExampleCombos: context.ExampleCombos,
+-    exampleCombos,
+-    initialExamples: [],
+-    Math: Object.assign(Object.create(Math), { random: () => 0 }),
+-    useMemo: compute => compute(),
++  const start = html.indexOf('      const homeDemo =');
++  const source = html.slice(start, html.indexOf('      const openHomeCompany', start));
++  const demoContext = {};
++  vm.runInNewContext(readFileSync(new URL('../public/home-demo.js', import.meta.url), 'utf8'), demoContext);
++  return vm.runInNewContext(source + '({ question: demoQuestion, homeDemo })', {
++    demoCombo: demoContext.HomeDemo.pickDemoCombo([], exampleCombos),
+   });
+ }
+ 
+-const chipCombos = [
+-  { region: '北北基', filterRegion: '北部', category: '生產物流' },
+-  { region: '桃竹苗', filterRegion: '北部', category: '生產物流' },
+-  { region: '全台灣', filterRegion: null, category: '行銷推廣' },
++const demoCombos = [
++  { region: '北北基', filterRegion: '北部', category: '生產物流', count: 12 },
++  { region: '全台灣', filterRegion: null, category: '行銷推廣', count: 20 },
+ ];
+ 
+-test('homepage chips never advertise a scale from POOL_SCALE', () => {
+-  const { examples, scales } = renderQuickSearchExamples(chipCombos);
+-  assert.equal(examples.length, 2);
+-  for (const { text } of examples) {
+-    assert.ok(scales.every(scale => !text.includes(scale)), text);
+-  }
++test('homepage conversation never advertises a company scale', () => {
++  const { question } = renderHomeDemo(demoCombos);
++  assert.equal(question, '北部有哪些生產物流相關方案？');
++  assert.doesNotMatch(question, /人以下|人企業|不限規模|\d+~\d+/);
+ });
+ 
+-test('homepage chips display the actual filter region once per category', () => {
+-  const { examples } = renderQuickSearchExamples(chipCombos);
+-  assert.deepEqual(Array.from(examples, ({ text }) => text).sort(), [
+-    '搜尋：全台灣有哪些行銷推廣相關方案...',
+-    '搜尋：北部有哪些生產物流相關方案...',
+-  ]);
++test('homepage conversation uses the actual filter region in its question and search parameters', () => {
++  const { question, homeDemo } = renderHomeDemo(demoCombos);
++  assert.equal(question, `${homeDemo.filterRegion}有哪些${homeDemo.category}相關方案？`);
++  assert.equal(renderHomeDemo(demoCombos.slice(1)).question, '全台灣有哪些行銷推廣相關方案？');
++  const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
++  assert.match(html, /handleQuickSearch\(\{ text: demoQuestion, filterRegion: homeDemo\.filterRegion, category: homeDemo\.category \}\)/);
++  assert.match(html, /homeDemo\.filterRegion !== null && <span[^>]*>區域：\{homeDemo\.region\}/);
+ });
+ 
+ test('eligible chip candidates deduplicate the same filter region and category', () => {
+diff --git a/tests/theme-tokens.test.mjs b/tests/theme-tokens.test.mjs
+index c88a26e..e32b9a0 100644
+--- a/tests/theme-tokens.test.mjs
++++ b/tests/theme-tokens.test.mjs
+@@ -17,11 +17,11 @@ test('Tiffany theme defines all approved tokens', () => {
+     '--sf-accent-700': '#087F7B',
+     '--sf-accent-800': '#085F5C',
+     '--sf-on-accent': '#0B2B2A',
+-    '--sf-hero-bg': '#0B3B3A',
+-    '--sf-hero-kicker': '#6FDCD8',
+-    '--sf-hero-lead': '#D5E4E4',
+-    '--sf-hero-chip-border': '#2A7B78',
+-    '--sf-hero-chip-text': '#BFEDEB',
++    '--sf-hero-bg': '#F4F7F7',
++    '--sf-hero-kicker': '#085F5C',
++    '--sf-hero-title': '#0B2B2A',
++    '--sf-hero-lead': '#4B5563',
++    '--sf-chat-user-bg': '#0B3C3B',
+   });
+ });
+ 

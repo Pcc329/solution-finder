@@ -1,0 +1,138 @@
+{
+  "fixture": {
+    "total": 37,
+    "normalPreferred": 10,
+    "expectedPreferredResults": 13
+  },
+  "viewports": [
+    {
+      "width": 1280,
+      "height": 800,
+      "heroBefore": {
+        "x": 0,
+        "y": 61,
+        "width": 1280,
+        "height": 1305,
+        "bottom": 1366
+      },
+      "heroAfter": {
+        "x": 0,
+        "y": 61,
+        "width": 1280,
+        "height": 1305,
+        "bottom": 1366
+      },
+      "input": {
+        "x": 277,
+        "y": 363,
+        "width": 616.390625,
+        "height": 48,
+        "bottom": 411
+      },
+      "answer": {
+        "x": 292,
+        "y": 603,
+        "width": 732,
+        "height": 172,
+        "bottom": 775
+      },
+      "demoCount": 13,
+      "filteredResultsLength": 13,
+      "quickSearchAiCalls": 0,
+      "manualSearchAiCalls": 1,
+      "companyFocused": true
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "heroBefore": {
+        "x": 0,
+        "y": 61,
+        "width": 768,
+        "height": 1305,
+        "bottom": 1366
+      },
+      "heroAfter": {
+        "x": 0,
+        "y": 61,
+        "width": 768,
+        "height": 1305,
+        "bottom": 1366
+      },
+      "input": {
+        "x": 45,
+        "y": 363,
+        "width": 568.390625,
+        "height": 48,
+        "bottom": 411
+      },
+      "answer": {
+        "x": 60,
+        "y": 603,
+        "width": 684,
+        "height": 172,
+        "bottom": 775
+      },
+      "demoCount": 13,
+      "filteredResultsLength": 13,
+      "quickSearchAiCalls": 0,
+      "manualSearchAiCalls": 1,
+      "companyFocused": true
+    },
+    {
+      "width": 375,
+      "height": 844,
+      "heroBefore": {
+        "x": 0,
+        "y": 61,
+        "width": 375,
+        "height": 1563.75,
+        "bottom": 1624.75
+      },
+      "heroAfter": {
+        "x": 0,
+        "y": 61,
+        "width": 375,
+        "height": 1563.75,
+        "bottom": 1624.75
+      },
+      "input": {
+        "x": 29,
+        "y": 365.75,
+        "width": 207.390625,
+        "height": 48,
+        "bottom": 413.75
+      },
+      "answer": {
+        "x": 52,
+        "y": 609.75,
+        "width": 307,
+        "height": 172,
+        "bottom": 781.75
+      },
+      "demoCount": 13,
+      "filteredResultsLength": 13,
+      "quickSearchAiCalls": 0,
+      "manualSearchAiCalls": 1,
+      "companyFocused": true
+    }
+  ],
+  "states": [
+    {
+      "name": "empty",
+      "heroBefore": 1563.75,
+      "heroAfter": 1563.75
+    },
+    {
+      "name": "missing-source-and-names",
+      "heroBefore": 1563.75,
+      "heroAfter": 1563.75
+    },
+    {
+      "name": "nationwide",
+      "heroBefore": 1563.75,
+      "heroAfter": 1563.75
+    }
+  ],
+  "passed": true
+}
