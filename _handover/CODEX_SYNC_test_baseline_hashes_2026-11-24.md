@@ -8,7 +8,7 @@
 - 程式僅修改四個測試檔、五處 hash，並在每處上方加入指定格式的歷史重寫註解。斷言與其他程式均未修改。
 - 紅燈：417 項，412 通過、5 失敗；綠燈：483 項，483 通過、0 失敗。兩次皆無 skipped、cancelled 或 todo。
 - 完整測試包含 `tests/sf-mcp/`。增加的 66 項來自兩個原本在載入階段失敗的測試檔恢復執行。
-- PR：建立後補記連結；不 merge。
+- PR：[PR #317](https://github.com/Pcc329/solution-finder/pull/317)，base `main`，狀態 open，未 merge；未啟用自動 merge。
 
 ## Hash 對照
 
@@ -66,3 +66,12 @@
 ### OneDrive 獨立 clone
 
 OneDrive 的驗證目錄由本任務以 `git clone --no-checkout` 開始建立，其後透過 `git fetch` 取回 main；具有獨立 `.git`，不是 worktree。該處沒有本任務的未推送 commit，只有未追蹤的紅燈證據。依使用者要求保留目錄，本任務不刪除；PR merge 後由使用者處理。後續修改、綠燈測試、commit、push 均在上述 repos 工作目錄執行。
+
+## Commit 與推送
+
+- 修正 commit：`22d5396954a2f895b3a9385191c7e20434aa75db`，訊息 `test: 更新歷史重寫後的行為等價測試基準 commit`。
+- 七個檔案皆逐一以明確檔名執行 `git add`：四個測試檔、紅燈 log、綠燈 log、此 SYNC；未使用 `git add .`。
+- 完整暫存內容的 `git diff --cached --check` 通過；包含兩份 log 與 SYNC。
+- 首次 push 前，`git ls-remote --heads origin` 確認遠端無此分支，遠端 main 仍為規格指定基準。
+- 首次 push 使用明確分支 refspec，未使用 force；push 後遠端 SHA 與修正 commit 完全相同。
+- PR 建立後，另以文件 commit 補記 PR 連結與本節；沒有新增程式修改。
