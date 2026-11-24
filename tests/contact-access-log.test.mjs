@@ -6,7 +6,8 @@ import handler from '../api/company-detail.js';
 import { createSessionValue } from '../_lib/auth.js';
 
 // All inputs are synthetic. Compare the entire payload with the actual main baseline.
-const source = execFileSync('git', ['show', '4d47b89:api/company-detail.js'], {
+// 2026-11-18 歷史重寫：原 4d47b89 → 041f14d（PR #259 merge-base）
+const source = execFileSync('git', ['show', '041f14d9205a67f2eb9893dedfbfd58f10c02e3f:api/company-detail.js'], {
   cwd: new URL('../', import.meta.url), encoding: 'utf8',
 }).replace("'../_lib/auth.js'", JSON.stringify(new URL('../_lib/auth.js', import.meta.url).href));
 const baseline = (await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`)).default;
