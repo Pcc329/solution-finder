@@ -331,7 +331,8 @@ test('13. the sixty-first request is limited before auth; methods precede limiti
 });
 
 test('14. companies without search action preserves main graph response and reads with private cache policy', async () => {
-  const source = execFileSync('git', ['show', 'd392cbc1702e23536227df453ffda22980e4479a:api/companies.js'],
+  // 2026-11-18 歷史重寫：原 d392cbc → ee27d08（PR #259）
+  const source = execFileSync('git', ['show', 'ee27d0847e090033ed201ec4c45453e76f57ccae:api/companies.js'],
     { cwd: new URL('../', import.meta.url), encoding: 'utf8' });
   // PR 3 intentionally changes only the graph Cache-Control policy from the pinned main baseline.
   const resolved = source.replace("'s-maxage=300'", "'private, no-store'")

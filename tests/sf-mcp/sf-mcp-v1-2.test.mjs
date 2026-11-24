@@ -306,7 +306,8 @@ test('injected enforce=true blocks before handler, with deterministic retry seco
   assert.equal(db.calls.length, 1)
 })
 test('describe topics index/default, all and every section preserve v1.1 except specified edits', async () => {
-  const before = execFileSync('git', ['show', 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e:supabase/functions/sf-mcp/index.ts'], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n')
+  // 2026-11-18 歷史重寫：原 a91e900 → 5757b58（PR #205）
+  const before = execFileSync('git', ['show', '5757b58410e38855a4019dfc48e0a10fa5b72ccf:supabase/functions/sf-mcp/index.ts'], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n')
   const guide = before.split('const DATA_GUIDE = `')[1].split('`')[0]
     .replace('資策會產業調查等。', '資策會產業調查、智慧雨林擴散案（廠商官網）等。\n- 智慧雨林擴散案（廠商官網）：擴散案核定之資服業者中，官網有具名產品且與核定計畫名稱相關者，以人工查核收錄；方案內容為廠商自述，未經平台審核。')
     .replace('正常：在來源平台上架中。', '正常：在來源平台上架中，或由廠商官網公開提供。')
@@ -333,7 +334,8 @@ test('describe topics index/default, all and every section preserve v1.1 except 
   }
 })
 test('three handlers without capital retain query/body logic', () => {
-  const before = execFileSync('git', ['show', 'a91e900893fbb68bb0b574c488f38bf9afbe2b9e:supabase/functions/sf-mcp/index.ts'], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n')
+  // 2026-11-18 歷史重寫：原 a91e900 → 5757b58（PR #205）
+  const before = execFileSync('git', ['show', '5757b58410e38855a4019dfc48e0a10fa5b72ccf:supabase/functions/sf-mcp/index.ts'], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n')
   for (const name of ['data_status', 'whoami', 'count_solutions']) {
     const body = (text) => text.split(`'${name}',\n`)[1].split(/\n\s+async /)[1].split('\n        )')[0].trim()
     const normalize = (text) => text

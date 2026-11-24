@@ -5,7 +5,8 @@ import test from 'node:test';
 import { fixture } from './fixtures/supabase-read.fixture.mjs';
 
 // Pin the actual main revision containing merged PR #204; no network or SQL is used.
-const MAIN_REVISION = 'a64548bf28fc445211834d970ad119903a8b8df0';
+// 2026-11-18 歷史重寫：原 a64548b → 531d0cb（PR #204）
+const MAIN_REVISION = '531d0cb9a9765ca7d0277ee8098bdbfad8415e1f';
 const root = new URL('../', import.meta.url);
 const authUrl = new URL('../_lib/auth.js', import.meta.url).href;
 const apis = ['solutions', 'cases', 'stats', 'companies'];
