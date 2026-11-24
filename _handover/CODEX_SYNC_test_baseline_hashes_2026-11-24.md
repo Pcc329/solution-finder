@@ -43,12 +43,17 @@
 
 證據目錄：`_handover/evidence/test-baseline-hashes-2026-11-24/`。
 
+下列兩份 repos log 各自的 Windows 工作目錄（CRLF）與 repo 儲存版本（LF）差異只有換行字元，內容相同；已將工作目錄的 CRLF 正規化為 LF，逐位元組比對確認。
+
+repo 儲存版本的 SHA-256 以 Node.js `execFileSync` 取得 `git show HEAD:<路徑>` 的原始位元組，再用 `crypto.createHash('sha256')` 計算，避免 PowerShell 管線轉碼或換行轉換。
+
 ### 紅燈 log
 
 - repos 檔案：[red-tests.tap.log](evidence/test-baseline-hashes-2026-11-24/red-tests.tap.log)。
 - 原檔：`C:\Users\S25036\OneDrive - 易勝資訊股份有限公司\文件\ChatGPT\產業資料庫\_test_baseline_hashes_validation_2026-11-24\_handover\evidence\test-baseline-hashes-2026-11-24\red-tests.tap.log`。
-- 整理前先計算 OneDrive 原檔 SHA-256：`3c6039197423769e13b2404b960a0a96779e2ace0bc0b0de6d4344b25a3aec65`。
-- 整理後 repos 版本 SHA-256：`c52b38b02d3177168cc4b514027e94bf55c5533b07b3e081ee0aed062da60d02`。
+- 整理前先計算 OneDrive 原檔 SHA-256（Windows 工作目錄（CRLF））：`3c6039197423769e13b2404b960a0a96779e2ace0bc0b0de6d4344b25a3aec65`。
+- 整理後 repos 版本 SHA-256（Windows 工作目錄（CRLF））：`c52b38b02d3177168cc4b514027e94bf55c5533b07b3e081ee0aed062da60d02`。
+- repo 儲存版本（LF）SHA-256：`458df2e9b07360d558c69d4681a9b7282bbed230004e260702eb82a86533c062`。
 - 修改行號：423、1681、1705。
 - 修改內容：僅移除只含空格行的空格，每行四個空格，共 12 bytes；保留空白行本身、原換行字元及其餘所有內容。
 - 整理前確認 repos 複本與 OneDrive 原檔逐位元組相同；整理後逐行及位元組核對，只有指定三行的空格移除，總行數不變。
@@ -59,7 +64,8 @@
 ### 綠燈 log
 
 - 檔案：[green-tests.tap.log](evidence/test-baseline-hashes-2026-11-24/green-tests.tap.log)。
-- SHA-256：`ebec1669ae7c0630fd8c8b3a29d767924b525213a4f771746f47233534924623`。
+- Windows 工作目錄（CRLF）SHA-256：`ebec1669ae7c0630fd8c8b3a29d767924b525213a4f771746f47233534924623`。
+- repo 儲存版本（LF）SHA-256：`8bacbf02227d46d9855f34822570a29b8ea5f406827e9dda324a3cc628311d3f`。
 - `git diff --cached --check`：exit code 0，無行尾空白，未整理或改寫。
 - 總計 483 tests、483 pass、0 fail、0 skipped、0 cancelled、0 todo。
 
