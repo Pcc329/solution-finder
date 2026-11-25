@@ -1,0 +1,3757 @@
+TAP version 13
+# (node:11036) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/ask.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: ask: success preserves response and safe single-write behavior
+ok 1 - ask: success preserves response and safe single-write behavior
+  ---
+  duration_ms: 14.5547
+  type: 'test'
+  ...
+# Subtest: ask: 400 preserves response and safe single-write behavior
+ok 2 - ask: 400 preserves response and safe single-write behavior
+  ---
+  duration_ms: 14.4185
+  type: 'test'
+  ...
+# Subtest: ask: 500 preserves response and safe single-write behavior
+ok 3 - ask: 500 preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.0556
+  type: 'test'
+  ...
+# Subtest: ask: 429 preserves response and safe single-write behavior
+ok 4 - ask: 429 preserves response and safe single-write behavior
+  ---
+  duration_ms: 3.1945
+  type: 'test'
+  ...
+# Subtest: ask: network-error preserves response and safe single-write behavior
+ok 5 - ask: network-error preserves response and safe single-write behavior
+  ---
+  duration_ms: 5.4616
+  type: 'test'
+  ...
+# Subtest: ask: invalid-json preserves response and safe single-write behavior
+ok 6 - ask: invalid-json preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.1741
+  type: 'test'
+  ...
+# Subtest: ask: unsafe-code preserves response and safe single-write behavior
+ok 7 - ask: unsafe-code preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.2799
+  type: 'test'
+  ...
+# Subtest: ask: missing-url preserves response and safe single-write behavior
+ok 8 - ask: missing-url preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.3141
+  type: 'test'
+  ...
+# Subtest: ask: missing-key preserves response and safe single-write behavior
+ok 9 - ask: missing-key preserves response and safe single-write behavior
+  ---
+  duration_ms: 4.847
+  type: 'test'
+  ...
+# Subtest: ask: requireAuth still blocks unauthenticated requests
+ok 10 - ask: requireAuth still blocks unauthenticated requests
+  ---
+  duration_ms: 1.3063
+  type: 'test'
+  ...
+# Subtest: claude: success preserves response and safe single-write behavior
+ok 11 - claude: success preserves response and safe single-write behavior
+  ---
+  duration_ms: 7.4352
+  type: 'test'
+  ...
+# Subtest: claude: 400 preserves response and safe single-write behavior
+ok 12 - claude: 400 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.9931
+  type: 'test'
+  ...
+# Subtest: claude: 500 preserves response and safe single-write behavior
+ok 13 - claude: 500 preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.0961
+  type: 'test'
+  ...
+# Subtest: claude: 429 preserves response and safe single-write behavior
+ok 14 - claude: 429 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.8257
+  type: 'test'
+  ...
+# Subtest: claude: network-error preserves response and safe single-write behavior
+ok 15 - claude: network-error preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.7696
+  type: 'test'
+  ...
+# Subtest: claude: invalid-json preserves response and safe single-write behavior
+ok 16 - claude: invalid-json preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.5096
+  type: 'test'
+  ...
+# Subtest: claude: unsafe-code preserves response and safe single-write behavior
+ok 17 - claude: unsafe-code preserves response and safe single-write behavior
+  ---
+  duration_ms: 2.0119
+  type: 'test'
+  ...
+# Subtest: claude: missing-url preserves response and safe single-write behavior
+ok 18 - claude: missing-url preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.7502
+  type: 'test'
+  ...
+# Subtest: claude: missing-key preserves response and safe single-write behavior
+ok 19 - claude: missing-key preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.7983
+  type: 'test'
+  ...
+# Subtest: claude: requireAuth still blocks unauthenticated requests
+ok 20 - claude: requireAuth still blocks unauthenticated requests
+  ---
+  duration_ms: 0.4225
+  type: 'test'
+  ...
+# Subtest: feedback: success preserves response and safe single-write behavior
+ok 21 - feedback: success preserves response and safe single-write behavior
+  ---
+  duration_ms: 2.6657
+  type: 'test'
+  ...
+# Subtest: feedback: 400 preserves response and safe single-write behavior
+ok 22 - feedback: 400 preserves response and safe single-write behavior
+  ---
+  duration_ms: 6.832
+  type: 'test'
+  ...
+# Subtest: feedback: 500 preserves response and safe single-write behavior
+ok 23 - feedback: 500 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.5459
+  type: 'test'
+  ...
+# Subtest: feedback: 429 preserves response and safe single-write behavior
+ok 24 - feedback: 429 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4582
+  type: 'test'
+  ...
+# Subtest: feedback: network-error preserves response and safe single-write behavior
+ok 25 - feedback: network-error preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.9242
+  type: 'test'
+  ...
+# Subtest: feedback: invalid-json preserves response and safe single-write behavior
+ok 26 - feedback: invalid-json preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.5962
+  type: 'test'
+  ...
+# Subtest: feedback: unsafe-code preserves response and safe single-write behavior
+ok 27 - feedback: unsafe-code preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4714
+  type: 'test'
+  ...
+# Subtest: feedback: missing-url preserves response and safe single-write behavior
+ok 28 - feedback: missing-url preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.3253
+  type: 'test'
+  ...
+# Subtest: feedback: missing-key preserves response and safe single-write behavior
+ok 29 - feedback: missing-key preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.31
+  type: 'test'
+  ...
+# Subtest: feedback: requireAuth still blocks unauthenticated requests
+ok 30 - feedback: requireAuth still blocks unauthenticated requests
+  ---
+  duration_ms: 0.2731
+  type: 'test'
+  ...
+# Subtest: feedback: validated optional fields including zero remain intact
+ok 31 - feedback: validated optional fields including zero remain intact
+  ---
+  duration_ms: 0.4891
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"name":""} before writing
+ok 32 - feedback: rejects {"name":""} before writing
+  ---
+  duration_ms: 0.7771
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"name":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 33 - feedback: rejects {"name":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.4495
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"department":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 34 - feedback: rejects {"department":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.3583
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"milestone":""} before writing
+ok 35 - feedback: rejects {"milestone":""} before writing
+  ---
+  duration_ms: 0.3351
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"milestone":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 36 - feedback: rejects {"milestone":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.3266
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"milestone":"not-allowed"} before writing
+ok 37 - feedback: rejects {"milestone":"not-allowed"} before writing
+  ---
+  duration_ms: 0.2966
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"detail":""} before writing
+ok 38 - feedback: rejects {"detail":""} before writing
+  ---
+  duration_ms: 0.2912
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"detail":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx before writing
+ok 39 - feedback: rejects {"detail":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx before writing
+  ---
+  duration_ms: 0.2813
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"score":0} before writing
+ok 40 - feedback: rejects {"score":0} before writing
+  ---
+  duration_ms: 0.3064
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"score":6} before writing
+ok 41 - feedback: rejects {"score":6} before writing
+  ---
+  duration_ms: 0.312
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"score":1.5} before writing
+ok 42 - feedback: rejects {"score":1.5} before writing
+  ---
+  duration_ms: 1.2081
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"relevant_count":-1} before writing
+ok 43 - feedback: rejects {"relevant_count":-1} before writing
+  ---
+  duration_ms: 0.3602
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"relevant_count":6} before writing
+ok 44 - feedback: rejects {"relevant_count":6} before writing
+  ---
+  duration_ms: 0.4589
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"path_choice":"not-allowed"} before writing
+ok 45 - feedback: rejects {"path_choice":"not-allowed"} before writing
+  ---
+  duration_ms: 0.3714
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"path_choice":"xxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 46 - feedback: rejects {"path_choice":"xxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 1.2844
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"would_cite":"not-allowed"} before writing
+ok 47 - feedback: rejects {"would_cite":"not-allowed"} before writing
+  ---
+  duration_ms: 0.3994
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"would_cite":"xxxxxxxxxxx"} before writing
+ok 48 - feedback: rejects {"would_cite":"xxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.3171
+  type: 'test'
+  ...
+# Subtest: feedback: malformed JSON still returns 400
+ok 49 - feedback: malformed JSON still returns 400
+  ---
+  duration_ms: 0.5113
+  type: 'test'
+  ...
+# Subtest: feedback: same-IP fourth request is rate limited; another IP is allowed
+ok 50 - feedback: same-IP fourth request is rate limited; another IP is allowed
+  ---
+  duration_ms: 1.5937
+  type: 'test'
+  ...
+# Subtest: ask: OPTIONS stays available without auth
+ok 51 - ask: OPTIONS stays available without auth
+  ---
+  duration_ms: 0.331
+  type: 'test'
+  ...
+# Subtest: claude: OPTIONS stays available without auth
+ok 52 - claude: OPTIONS stays available without auth
+  ---
+  duration_ms: 0.2362
+  type: 'test'
+  ...
+# Subtest: ask: absent search query remains an empty string in storage
+ok 53 - ask: absent search query remains an empty string in storage
+  ---
+  duration_ms: 0.8137
+  type: 'test'
+  ...
+# Subtest: migration is byte-for-byte identical to the supplied SQL
+ok 54 - migration is byte-for-byte identical to the supplied SQL
+  ---
+  duration_ms: 1.917
+  type: 'test'
+  ...
+# (node:14932) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/_lib/company-search.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: 1. tax ID exact match returns whitelisted company, all solutions and summary
+ok 55 - 1. tax ID exact match returns whitelisted company, all solutions and summary
+  ---
+  duration_ms: 120.9777
+  type: 'test'
+  ...
+# Subtest: 2. statuses use prefixes, preserve labels and normalize nullable numeric values
+ok 56 - 2. statuses use prefixes, preserve labels and normalize nullable numeric values
+  ---
+  duration_ms: 3.489
+  type: 'test'
+  ...
+# Subtest: 3. full-width digits, letters and spaces normalize; separated tax IDs match
+ok 57 - 3. full-width digits, letters and spaces normalize; separated tax IDs match
+  ---
+  duration_ms: 8.7726
+  type: 'test'
+  ...
+# Subtest: 4. seven- or nine-digit numeric input is rejected before reads and writes
+ok 58 - 4. seven- or nine-digit numeric input is rejected before reads and writes
+  ---
+  duration_ms: 1.7171
+  type: 'test'
+  ...
+# Subtest: 5. a single equal name core is exact with or without suffix; optional reads fail independently
+ok 59 - 5. a single equal name core is exact with or without suffix; optional reads fail independently
+  ---
+  duration_ms: 19.3956
+  type: 'test'
+  ...
+# Subtest: 6. partial matches return at most ten ordered candidates and count with one batched solutions query
+ok 60 - 6. partial matches return at most ten ordered candidates and count with one batched solutions query
+  ---
+  duration_ms: 7.5772
+  type: 'test'
+  ...
+# Subtest: 7. no match returns zero results and at most five prefix hints; tax ID misses never query hints
+ok 61 - 7. no match returns zero results and at most five prefix hints; tax ID misses never query hints
+  ---
+  duration_ms: 5.67
+  type: 'test'
+  ...
+# Subtest: 8. user-supplied PostgREST metacharacters are removed from name and prefix filters
+ok 62 - 8. user-supplied PostgREST metacharacters are removed from name and prefix filters
+  ---
+  duration_ms: 2.6332
+  type: 'test'
+  ...
+# Subtest: 9. invalid lengths and short cores return exact validation messages without storage
+ok 63 - 9. invalid lengths and short cores return exact validation messages without storage
+  ---
+  duration_ms: 2.8585
+  type: 'test'
+  ...
+# Subtest: 10. every response path omits contact-related fields and never reads contacts
+ok 64 - 10. every response path omits contact-related fields and never reads contacts
+  ---
+  duration_ms: 4.2209
+  type: 'test'
+  ...
+# Subtest: 11. each 200 awaits one complete search log; storage errors preserve payload and non-200 never writes
+ok 65 - 11. each 200 awaits one complete search log; storage errors preserve payload and non-200 never writes
+  ---
+  duration_ms: 12.8426
+  type: 'test'
+  ...
+# Subtest: 12. every business read uses anon credentials; v2 role lookup alone uses service role
+ok 66 - 12. every business read uses anon credentials; v2 role lookup alone uses service role
+  ---
+  duration_ms: 9.659
+  type: 'test'
+  ...
+# Subtest: 13. the sixty-first request is limited before auth; methods precede limiting and expired windows reset
+ok 67 - 13. the sixty-first request is limited before auth; methods precede limiting and expired windows reset
+  ---
+  duration_ms: 12.2992
+  type: 'test'
+  ...
+# Subtest: 14. companies without search action preserves main graph response and reads with private cache policy
+ok 68 - 14. companies without search action preserves main graph response and reads with private cache policy
+  ---
+  duration_ms: 143.7782
+  type: 'test'
+  ...
+# Subtest: 15. companies search action dispatches q before graph headers and performs one search log write
+ok 69 - 15. companies search action dispatches q before graph headers and performs one search log write
+  ---
+  duration_ms: 3.1257
+  type: 'test'
+  ...
+# Subtest: two mixed sources: normal count outranks total count; rows sort by status then missing name, stably
+ok 70 - two mixed sources: normal count outranks total count; rows sort by status then missing name, stably
+  ---
+  duration_ms: 5.9637
+  type: 'test'
+  ...
+# Subtest: equal normal counts use suspected count descending, ignoring delisted counts
+ok 71 - equal normal counts use suspected count descending, ignoring delisted counts
+  ---
+  duration_ms: 5.052
+  type: 'test'
+  ...
+# Subtest: equal normal and suspected counts keep first-seen source order, not alphabetical order
+ok 72 - equal normal and suspected counts keep first-seen source order, not alphabetical order
+  ---
+  duration_ms: 3.4785
+  type: 'test'
+  ...
+# Subtest: suspected-only and delisted-only sources follow sources with normal solutions
+ok 73 - suspected-only and delisted-only sources follow sources with normal solutions
+  ---
+  duration_ms: 2.8478
+  type: 'test'
+  ...
+# Subtest: sorting preserves statistics and filtered group counts when delisted rows are toggled
+ok 74 - sorting preserves statistics and filtered group counts when delisted rows are toggled
+  ---
+  duration_ms: 4.1943
+  type: 'test'
+  ...
+# (node:10224) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/company-detail.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: 1. success awaits one contact log plus one usage log with complete typed fields from filtered contacts
+ok 75 - 1. success awaits one contact log plus one usage log with complete typed fields from filtered contacts
+  ---
+  duration_ms: 16.9914
+  type: 'test'
+  ...
+# Subtest: 2. POST body and logs never contain raw IP, session, email or mobile
+ok 76 - 2. POST body and logs never contain raw IP, session, email or mobile
+  ---
+  duration_ms: 2.2797
+  type: 'test'
+  ...
+# Subtest: 3. HMAC uses the first forwarded IP or socket fallback and changes with salt
+ok 77 - 3. HMAC uses the first forwarded IP or socket fallback and changes with salt
+  ---
+  duration_ms: 5.0303
+  type: 'test'
+  ...
+# Subtest: 4. missing or empty salt writes null hashes, emits one safe error and preserves 200 payload
+ok 78 - 4. missing or empty salt writes null hashes, emits one safe error and preserves 200 payload
+  ---
+  duration_ms: 4.9281
+  type: 'test'
+  ...
+# Subtest: 5. POST 500, missing table or network failure preserves the entire baseline response
+ok 79 - 5. POST 500, missing table or network failure preserves the entire baseline response
+  ---
+  duration_ms: 6.5217
+  type: 'test'
+  ...
+# Subtest: 6. non-200 responses never POST; the thirty-first request retains the existing rate limit
+ok 80 - 6. non-200 responses never POST; the thirty-first request retains the existing rate limit
+  ---
+  duration_ms: 13.3474
+  type: 'test'
+  ...
+# Subtest: 7. API-key authentication has no session hash; a valid session takes precedence when both exist
+ok 81 - 7. API-key authentication has no session hash; a valid session takes precedence when both exist
+  ---
+  duration_ms: 2.5265
+  type: 'test'
+  ...
+# Subtest: 8. explicitly enabled shared v1 session remains compatible with contact and usage logging
+ok 82 - 8. explicitly enabled shared v1 session remains compatible with contact and usage logging
+  ---
+  duration_ms: 6.3142
+  type: 'test'
+  ...
+# Subtest: requires ten normal matching rows and maps example regions to search regions
+ok 83 - requires ten normal matching rows and maps example regions to search regions
+  ---
+  duration_ms: 4.0671
+  type: 'test'
+  ...
+# Subtest: counts normal solutions across all regions for 全台灣
+ok 84 - counts normal solutions across all regions for 全台灣
+  ---
+  duration_ms: 0.534
+  type: 'test'
+  ...
+# Subtest: excludes suspected, delisted, and missing statuses from the threshold
+ok 85 - excludes suspected, delisted, and missing statuses from the threshold
+  ---
+  duration_ms: 0.3172
+  type: 'test'
+  ...
+# Subtest: selects at most three examples and never repeats a category
+ok 86 - selects at most three examples and never repeats a category
+  ---
+  duration_ms: 0.2846
+  type: 'test'
+  ...
+# Subtest: homepage conversation never advertises a company scale
+ok 87 - homepage conversation never advertises a company scale
+  ---
+  duration_ms: 5.9743
+  type: 'test'
+  ...
+# Subtest: homepage conversation uses the actual filter region in its question and search parameters
+ok 88 - homepage conversation uses the actual filter region in its question and search parameters
+  ---
+  duration_ms: 12.275
+  type: 'test'
+  ...
+# Subtest: eligible chip candidates deduplicate the same filter region and category
+ok 89 - eligible chip candidates deduplicate the same filter region and category
+  ---
+  duration_ms: 0.3929
+  type: 'test'
+  ...
+# Subtest: statusLabel fallback: null
+ok 90 - statusLabel fallback: null
+  ---
+  duration_ms: 5.4532
+  type: 'test'
+  ...
+# Subtest: statusLabel fallback: undefined
+ok 91 - statusLabel fallback: undefined
+  ---
+  duration_ms: 0.7795
+  type: 'test'
+  ...
+# Subtest: statusLabel fallback: ""
+ok 92 - statusLabel fallback: ""
+  ---
+  duration_ms: 1.3365
+  type: 'test'
+  ...
+# Subtest: statusLabel fallback: "疑似已下架"
+ok 93 - statusLabel fallback: "疑似已下架"
+  ---
+  duration_ms: 0.166
+  type: 'test'
+  ...
+# Subtest: statusLabel fallback: "其他狀態"
+ok 94 - statusLabel fallback: "其他狀態"
+  ---
+  duration_ms: 0.1865
+  type: 'test'
+  ...
+# Subtest: statusLabel Phase A: 疑似已下架_平台停止服務未逐筆驗證
+ok 95 - statusLabel Phase A: 疑似已下架_平台停止服務未逐筆驗證
+  ---
+  duration_ms: 0.4484
+  type: 'test'
+  ...
+# Subtest: statusLabel Phase A: 疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證
+ok 96 - statusLabel Phase A: 疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證
+  ---
+  duration_ms: 0.3945
+  type: 'test'
+  ...
+# Subtest: statusLabel Phase A: 已下架_平台停止服務
+ok 97 - statusLabel Phase A: 已下架_平台停止服務
+  ---
+  duration_ms: 0.2617
+  type: 'test'
+  ...
+# Subtest: statusLabel Phase A: 已下架_資料異常
+ok 98 - statusLabel Phase A: 已下架_資料異常
+  ---
+  duration_ms: 0.1707
+  type: 'test'
+  ...
+# Subtest: statusLabel Phase A: 疑似待查
+ok 99 - statusLabel Phase A: 疑似待查
+  ---
+  duration_ms: 0.23
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 正常
+ok 100 - statusLabel recorded value: 正常
+  ---
+  duration_ms: 0.1431
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 疑似已下架_平台停止服務未逐筆驗證
+ok 101 - statusLabel recorded value: 疑似已下架_平台停止服務未逐筆驗證
+  ---
+  duration_ms: 0.123
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證
+ok 102 - statusLabel recorded value: 疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證
+  ---
+  duration_ms: 0.2487
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 疑似已下架_SME AI平台方案未持續上架未逐筆驗證
+ok 103 - statusLabel recorded value: 疑似已下架_SME AI平台方案未持續上架未逐筆驗證
+  ---
+  duration_ms: 0.0679
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 疑似已下架_農業雲市集數位館方案未持續上架未逐筆驗證
+ok 104 - statusLabel recorded value: 疑似已下架_農業雲市集數位館方案未持續上架未逐筆驗證
+  ---
+  duration_ms: 0.0649
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 已下架_平台停止服務
+ok 105 - statusLabel recorded value: 已下架_平台停止服務
+  ---
+  duration_ms: 0.1127
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 已下架_資料異常
+ok 106 - statusLabel recorded value: 已下架_資料異常
+  ---
+  duration_ms: 0.0732
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 已下架_公司歇業佐證
+ok 107 - statusLabel recorded value: 已下架_公司歇業佐證
+  ---
+  duration_ms: 0.0585
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 已下架_商品頁失效已逐筆驗證
+ok 108 - statusLabel recorded value: 已下架_商品頁失效已逐筆驗證
+  ---
+  duration_ms: 0.1017
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 已下架_新創嚴選網官網完整清單連續三次未出現
+ok 109 - statusLabel recorded value: 已下架_新創嚴選網官網完整清單連續三次未出現
+  ---
+  duration_ms: 0.0932
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 已下架_個別方案下架已人工查證
+ok 110 - statusLabel recorded value: 已下架_個別方案下架已人工查證
+  ---
+  duration_ms: 0.0987
+  type: 'test'
+  ...
+# Subtest: statusLabel recorded value: 已下架_重複資料
+ok 111 - statusLabel recorded value: 已下架_重複資料
+  ---
+  duration_ms: 0.066
+  type: 'test'
+  ...
+# Subtest: NFKC, whitespace and case normalize equally; different names remain different
+ok 112 - NFKC, whitespace and case normalize equally; different names remain different
+  ---
+  duration_ms: 4.05
+  type: 'test'
+  ...
+# Subtest: same company and normalized name merge; platforms retain first appearance
+ok 113 - same company and normalized name merge; platforms retain first appearance
+  ---
+  duration_ms: 101.4887
+  type: 'test'
+  ...
+# Subtest: different company or different product name never merge
+ok 114 - different company or different product name never merge
+  ---
+  duration_ms: 0.4482
+  type: 'test'
+  ...
+# Subtest: missing or whitespace company identifiers never merge
+ok 115 - missing or whitespace company identifiers never merge
+  ---
+  duration_ms: 0.3771
+  type: 'test'
+  ...
+# Subtest: empty normalized names never merge, even with the same company
+ok 116 - empty normalized names never merge, even with the same company
+  ---
+  duration_ms: 0.3905
+  type: 'test'
+  ...
+# Subtest: merged statuses count each normalized label in first-appearance order
+ok 117 - merged statuses count each normalized label in first-appearance order
+  ---
+  duration_ms: 0.2704
+  type: 'test'
+  ...
+# Subtest: prices: range, equal, zero, partial and entirely empty
+ok 118 - prices: range, equal, zero, partial and entirely empty
+  ---
+  duration_ms: 0.2123
+  type: 'test'
+  ...
+# Subtest: same-company count follows output rows, leaving missing cid blank without mutation
+ok 119 - same-company count follows output rows, leaving missing cid blank without mutation
+  ---
+  duration_ms: 0.383
+  type: 'test'
+  ...
+# Subtest: CSV BOM, CRLF, escaping and query metadata order
+ok 120 - CSV BOM, CRLF, escaping and query metadata order
+  ---
+  duration_ms: 0.5564
+  type: 'test'
+  ...
+# Subtest: CSV protects leading formula marker "=SUM(A1)"
+ok 121 - CSV protects leading formula marker "=SUM(A1)"
+  ---
+  duration_ms: 0.2178
+  type: 'test'
+  ...
+# Subtest: CSV protects leading formula marker "+886"
+ok 122 - CSV protects leading formula marker "+886"
+  ---
+  duration_ms: 0.1915
+  type: 'test'
+  ...
+# Subtest: CSV protects leading formula marker "@x"
+ok 123 - CSV protects leading formula marker "@x"
+  ---
+  duration_ms: 0.0991
+  type: 'test'
+  ...
+# Subtest: CSV protects leading formula marker "-1"
+ok 124 - CSV protects leading formula marker "-1"
+  ---
+  duration_ms: 0.0828
+  type: 'test'
+  ...
+# Subtest: CSV protects leading formula marker "\\tformula"
+ok 125 - CSV protects leading formula marker "\\tformula"
+  ---
+  duration_ms: 0.106
+  type: 'test'
+  ...
+# Subtest: CSV protects leading formula marker "\\rformula"
+ok 126 - CSV protects leading formula marker "\\rformula"
+  ---
+  duration_ms: 0.0973
+  type: 'test'
+  ...
+# Subtest: CSV sanitizes before escaping and also protects headers
+ok 127 - CSV sanitizes before escaping and also protects headers
+  ---
+  duration_ms: 0.1491
+  type: 'test'
+  ...
+# Subtest: query explanation covers every filter and existing homepage sort labels
+ok 128 - query explanation covers every filter and existing homepage sort labels
+  ---
+  duration_ms: 0.566
+  type: 'test'
+  ...
+# Subtest: output whitelist uses the existing missing-name helper and excludes private fields
+ok 129 - output whitelist uses the existing missing-name helper and excludes private fields
+  ---
+  duration_ms: 0.5434
+  type: 'test'
+  ...
+# Subtest: normal-only filtering happens before merging; unavailable statuses stay blank
+ok 130 - normal-only filtering happens before merging; unavailable statuses stay blank
+  ---
+  duration_ms: 0.4182
+  type: 'test'
+  ...
+# Subtest: output columns preserve selected order in CSV
+ok 131 - output columns preserve selected order in CSV
+  ---
+  duration_ms: 0.262
+  type: 'test'
+  ...
+# Subtest: PDF and Word allow 500 output rows, reject 501; CSV stays unlimited
+ok 132 - PDF and Word allow 500 output rows, reject 501; CSV stays unlimited
+  ---
+  duration_ms: 0.1701
+  type: 'test'
+  ...
+# Subtest: filename sanitizes forbidden characters and has an empty-keyword fallback
+ok 133 - filename sanitizes forbidden characters and has an empty-keyword fallback
+  ---
+  duration_ms: 1.5009
+  type: 'test'
+  ...
+# Subtest: metadata has ROC time and correct merged/unmerged counts
+ok 134 - metadata has ROC time and correct merged/unmerged counts
+  ---
+  duration_ms: 0.4207
+  type: 'test'
+  ...
+# Subtest: preview summary uses records when unmerged and omits the merged suffix
+ok 135 - preview summary uses records when unmerged and omits the merged suffix
+  ---
+  duration_ms: 0.1667
+  type: 'test'
+  ...
+# Subtest: preview summary uses products and adds a suffix only for positive merged counts
+ok 136 - preview summary uses products and adds a suffix only for positive merged counts
+  ---
+  duration_ms: 0.3131
+  type: 'test'
+  ...
+# Subtest: metadata explicitly reports unavailable status in both merged and unmerged exports
+ok 137 - metadata explicitly reports unavailable status in both merged and unmerged exports
+  ---
+  duration_ms: 0.178
+  type: 'test'
+  ...
+# Subtest: trigger synchronization is idempotent and never invokes React rendering
+ok 138 - trigger synchronization is idempotent and never invokes React rendering
+  ---
+  duration_ms: 0.2985
+  type: 'test'
+  ...
+# Subtest: PDF rejects zero size with the failing page number
+ok 139 - PDF rejects zero size with the failing page number
+  ---
+  duration_ms: 0.6384
+  type: 'test'
+  ...
+# Subtest: PDF rejects short image with the failing page number
+ok 140 - PDF rejects short image with the failing page number
+  ---
+  duration_ms: 0.1524
+  type: 'test'
+  ...
+# Subtest: PDF rejects all white with the failing page number
+ok 141 - PDF rejects all white with the failing page number
+  ---
+  duration_ms: 0.1074
+  type: 'test'
+  ...
+# Subtest: PDF rejects too large with the failing page number
+ok 142 - PDF rejects too large with the failing page number
+  ---
+  duration_ms: 0.0598
+  type: 'test'
+  ...
+# Subtest: PDF accepts a valid non-white canvas
+ok 143 - PDF accepts a valid non-white canvas
+  ---
+  duration_ms: 0.209
+  type: 'test'
+  ...
+# Subtest: 500-row PDF rasterizes 25 separate pages with 20 rows, first-page metadata and continuous page numbers
+ok 144 - 500-row PDF rasterizes 25 separate pages with 20 rows, first-page metadata and continuous page numbers
+  ---
+  duration_ms: 381.5883
+  type: 'test'
+  ...
+# Subtest: PDF fails on page 2 without producing a blob or continuing to page 3
+ok 145 - PDF fails on page 2 without producing a blob or continuing to page 3
+  ---
+  duration_ms: 11.0392
+  type: 'test'
+  ...
+# Subtest: PDF scales a tall page proportionally without cropping and cleans up on abort
+ok 146 - PDF scales a tall page proportionally without cropping and cleans up on abort
+  ---
+  duration_ms: 35.2403
+  type: 'test'
+  ...
+# Subtest: Word builds A4 landscape, repeating colored headers and Microsoft JhengHei
+ok 147 - Word builds A4 landscape, repeating colored headers and Microsoft JhengHei
+  ---
+  duration_ms: 1.3421
+  type: 'test'
+  ...
+# Subtest: Sortable head: onEnd defers destroy and DOM rebuild to the next tick
+ok 148 - Sortable head: onEnd defers destroy and DOM rebuild to the next tick
+  ---
+  duration_ms: 6.3919
+  type: 'test'
+  ...
+# Subtest: Sortable head: a render request during dragging preserves nodes until drop
+ok 149 - Sortable head: a render request during dragging preserves nodes until drop
+  ---
+  duration_ms: 4.0144
+  type: 'test'
+  ...
+# Subtest: Sortable columns: onEnd defers destroy and DOM rebuild to the next tick
+ok 150 - Sortable columns: onEnd defers destroy and DOM rebuild to the next tick
+  ---
+  duration_ms: 3.886
+  type: 'test'
+  ...
+# Subtest: Sortable columns: a render request during dragging preserves nodes until drop
+ok 151 - Sortable columns: a render request during dragging preserves nodes until drop
+  ---
+  duration_ms: 2.6639
+  type: 'test'
+  ...
+# Subtest: closing after drop makes a pending deferred render harmless
+ok 152 - closing after drop makes a pending deferred render harmless
+  ---
+  duration_ms: 2.6098
+  type: 'test'
+  ...
+# Subtest: CDN scripts use anonymous CORS before they are attached
+ok 153 - CDN scripts use anonymous CORS before they are attached
+  ---
+  duration_ms: 2.3619
+  type: 'test'
+  ...
+# Subtest: index renders the shared disclosure navigation
+ok 154 - index renders the shared disclosure navigation
+  ---
+  duration_ms: 4.2863
+  type: 'test'
+  ...
+# Subtest: sources renders the shared disclosure navigation
+ok 155 - sources renders the shared disclosure navigation
+  ---
+  duration_ms: 11.842
+  type: 'test'
+  ...
+# Subtest: dashboard renders the shared disclosure navigation
+ok 156 - dashboard renders the shared disclosure navigation
+  ---
+  duration_ms: 2.584
+  type: 'test'
+  ...
+# Subtest: manufacturing renders the shared disclosure navigation
+ok 157 - manufacturing renders the shared disclosure navigation
+  ---
+  duration_ms: 2.4003
+  type: 'test'
+  ...
+# Subtest: compare renders the shared disclosure navigation
+ok 158 - compare renders the shared disclosure navigation
+  ---
+  duration_ms: 1.6237
+  type: 'test'
+  ...
+# Subtest: strategy-guide renders the shared disclosure navigation
+ok 159 - strategy-guide renders the shared disclosure navigation
+  ---
+  duration_ms: 1.8033
+  type: 'test'
+  ...
+# Subtest: diagnosis renders the shared disclosure navigation
+ok 160 - diagnosis renders the shared disclosure navigation
+  ---
+  duration_ms: 1.5813
+  type: 'test'
+  ...
+# Subtest: prefers 中部 × 生產物流 by filterRegion even when another region has more normal rows
+ok 161 - prefers 中部 × 生產物流 by filterRegion even when another region has more normal rows
+  ---
+  duration_ms: 23.8272
+  type: 'test'
+  ...
+# Subtest: falls back to the largest regional combo before a larger nationwide combo
+ok 162 - falls back to the largest regional combo before a larger nationwide combo
+  ---
+  duration_ms: 0.5422
+  type: 'test'
+  ...
+# Subtest: falls back to the largest nationwide combo and returns null without any eligible combo
+ok 163 - falls back to the largest nationwide combo and returns null without any eligible combo
+  ---
+  duration_ms: 0.3281
+  type: 'test'
+  ...
+# Subtest: counts every matching status for results while eligibility counts only normal rows
+ok 164 - counts every matching status for results while eligibility counts only normal rows
+  ---
+  duration_ms: 0.3411
+  type: 'test'
+  ...
+# Subtest: takes the first two normal rows by ascending id and reports the first row source
+ok 165 - takes the first two normal rows by ascending id and reports the first row source
+  ---
+  duration_ms: 1.8387
+  type: 'test'
+  ...
+# Subtest: omits missing names from the first two rows, including when both are missing
+ok 166 - omits missing names from the first two rows, including when both are missing
+  ---
+  duration_ms: 0.3608
+  type: 'test'
+  ...
+# Subtest: summarizes sources by count descending then name, limits to seven, and ignores empty sources
+ok 167 - summarizes sources by count descending then name, limits to seven, and ignores empty sources
+  ---
+  duration_ms: 3.2831
+  type: 'test'
+  ...
+# Subtest: mock /api/solutions HTTP 500: catch clears loading, count stays unknown
+ok 168 - mock /api/solutions HTTP 500: catch clears loading, count stays unknown
+  ---
+  duration_ms: 3.8222
+  type: 'test'
+  ...
+# Subtest: network rejection also leaves the count unknown
+ok 169 - network rejection also leaves the count unknown
+  ---
+  duration_ms: 1.5273
+  type: 'test'
+  ...
+# Subtest: pending request is unknown even with existing data
+ok 170 - pending request is unknown even with existing data
+  ---
+  duration_ms: 1.3329
+  type: 'test'
+  ...
+# Subtest: successful empty response displays a genuine zero
+ok 171 - successful empty response displays a genuine zero
+  ---
+  duration_ms: 31.1144
+  type: 'test'
+  ...
+# Subtest: successful response displays the formatted length
+ok 172 - successful response displays the formatted length
+  ---
+  duration_ms: 3.9686
+  type: 'test'
+  ...
+# Subtest: gate preserves exact notice, personal email/password form, title, pure JS and no inline events
+ok 173 - gate preserves exact notice, personal email/password form, title, pure JS and no inline events
+  ---
+  duration_ms: 6.3741
+  type: 'test'
+  ...
+# Subtest: gate does not expose shared entry for undefined
+ok 174 - gate does not expose shared entry for undefined
+  ---
+  duration_ms: 1.327
+  type: 'test'
+  ...
+# Subtest: gate does not expose shared entry for false
+ok 175 - gate does not expose shared entry for false
+  ---
+  duration_ms: 1.091
+  type: 'test'
+  ...
+# Subtest: gate does not expose shared entry for true
+ok 176 - gate does not expose shared entry for true
+  ---
+  duration_ms: 1.1718
+  type: 'test'
+  ...
+# Subtest: gate does not expose shared entry for 1
+ok 177 - gate does not expose shared entry for 1
+  ---
+  duration_ms: 1.1359
+  type: 'test'
+  ...
+# Subtest: shared entry appears only after explicit server flag; toggled request contains password only
+ok 178 - shared entry appears only after explicit server flag; toggled request contains password only
+  ---
+  duration_ms: 2.521
+  type: 'test'
+  ...
+# Subtest: login must-change opens change form and only reloads after successful update
+ok 179 - login must-change opens change form and only reloads after successful update
+  ---
+  duration_ms: 2.8719
+  type: 'test'
+  ...
+# Subtest: session-check must-change opens change form and only reloads after successful update
+ok 180 - session-check must-change opens change form and only reloads after successful update
+  ---
+  duration_ms: 1.3658
+  type: 'test'
+  ...
+# Subtest: authenticated normal session leaves page accessible without a gate
+ok 181 - authenticated normal session leaves page accessible without a gate
+  ---
+  duration_ms: 1.8784
+  type: 'test'
+  ...
+# Subtest: server errors appear as text, including password policy errors; network errors use fixed message
+ok 182 - server errors appear as text, including password policy errors; network errors use fixed message
+  ---
+  duration_ms: 1.8139
+  type: 'test'
+  ...
+# Subtest: session-check network failure gives login gate with fixed service message and no shared entry
+ok 183 - session-check network failure gives login gate with fixed service message and no shared entry
+  ---
+  duration_ms: 1.338
+  type: 'test'
+  ...
+# (node:25360) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/auth.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: v2 signs exactly the version, expiry and UUID; v1 wire format stays identical
+ok 184 - v2 signs exactly the version, expiry and UUID; v1 wire format stays identical
+  ---
+  duration_ms: 6.2983
+  type: 'test'
+  ...
+# Subtest: v2 rejects user-tamper before looking up roles
+ok 185 - v2 rejects user-tamper before looking up roles
+  ---
+  duration_ms: 2.3126
+  type: 'test'
+  ...
+# Subtest: v2 rejects signature-tamper before looking up roles
+ok 186 - v2 rejects signature-tamper before looking up roles
+  ---
+  duration_ms: 6.1842
+  type: 'test'
+  ...
+# Subtest: v2 rejects expired before looking up roles
+ok 187 - v2 rejects expired before looking up roles
+  ---
+  duration_ms: 1.3195
+  type: 'test'
+  ...
+# Subtest: v2 rejects non-uuid before looking up roles
+ok 188 - v2 rejects non-uuid before looking up roles
+  ---
+  duration_ms: 1.0177
+  type: 'test'
+  ...
+# Subtest: v2 rejects extra before looking up roles
+ok 189 - v2 rejects extra before looking up roles
+  ---
+  duration_ms: 2.2358
+  type: 'test'
+  ...
+# Subtest: v2 rejects missing-secret before looking up roles
+ok 190 - v2 rejects missing-secret before looking up roles
+  ---
+  duration_ms: 0.6742
+  type: 'test'
+  ...
+# Subtest: v2 rejects missing-cookie before looking up roles
+ok 191 - v2 rejects missing-cookie before looking up roles
+  ---
+  duration_ms: 0.9612
+  type: 'test'
+  ...
+# Subtest: active v2 returns user identity; status cache refreshes at 60 seconds
+ok 192 - active v2 returns user identity; status cache refreshes at 60 seconds
+  ---
+  duration_ms: 5.9215
+  type: 'test'
+  ...
+# Subtest: suspension remains cached inside TTL and is denied after expiry with cookie cleared
+ok 193 - suspension remains cached inside TTL and is denied after expiry with cookie cleared
+  ---
+  duration_ms: 1.4624
+  type: 'test'
+  ...
+# Subtest: role inactive denies and clears session
+ok 194 - role inactive denies and clears session
+  ---
+  duration_ms: 0.6279
+  type: 'test'
+  ...
+# Subtest: role missing denies and clears session
+ok 195 - role missing denies and clears session
+  ---
+  duration_ms: 0.5543
+  type: 'test'
+  ...
+# Subtest: role lookup non-2xx fails closed and is never cached
+ok 196 - role lookup non-2xx fails closed and is never cached
+  ---
+  duration_ms: 1.3642
+  type: 'test'
+  ...
+# Subtest: role lookup throw fails closed and is never cached
+ok 197 - role lookup throw fails closed and is never cached
+  ---
+  duration_ms: 0.9324
+  type: 'test'
+  ...
+# Subtest: role lookup missing-url fails closed and is never cached
+ok 198 - role lookup missing-url fails closed and is never cached
+  ---
+  duration_ms: 0.8735
+  type: 'test'
+  ...
+# Subtest: role lookup missing-key fails closed and is never cached
+ok 199 - role lookup missing-key fails closed and is never cached
+  ---
+  duration_ms: 0.8019
+  type: 'test'
+  ...
+# Subtest: role lookup malformed fails closed and is never cached
+ok 200 - role lookup malformed fails closed and is never cached
+  ---
+  duration_ms: 0.9425
+  type: 'test'
+  ...
+# Subtest: expired cached status is not served after failed revalidation
+ok 201 - expired cached status is not served after failed revalidation
+  ---
+  duration_ms: 0.7629
+  type: 'test'
+  ...
+# Subtest: must-change-password blocks business API and is allowed explicitly for auth actions
+ok 202 - must-change-password blocks business API and is allowed explicitly for auth actions
+  ---
+  duration_ms: 0.5845
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: undefined
+ok 203 - shared v1 switch is strict: undefined
+  ---
+  duration_ms: 0.4843
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: ""
+ok 204 - shared v1 switch is strict: ""
+  ---
+  duration_ms: 0.3618
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: "TRUE"
+ok 205 - shared v1 switch is strict: "TRUE"
+  ---
+  duration_ms: 0.3176
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: "1"
+ok 206 - shared v1 switch is strict: "1"
+  ---
+  duration_ms: 0.3579
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: "false"
+ok 207 - shared v1 switch is strict: "false"
+  ---
+  duration_ms: 0.3215
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: "true"
+ok 208 - shared v1 switch is strict: "true"
+  ---
+  duration_ms: 0.3243
+  type: 'test'
+  ...
+# Subtest: allowlisted API key bypasses role database even when unavailable
+ok 209 - allowlisted API key bypasses role database even when unavailable
+  ---
+  duration_ms: 0.3761
+  type: 'test'
+  ...
+# Subtest: login normalizes email, issues a 7-day v2 cookie, and exposes no Supabase tokens
+ok 210 - login normalizes email, issues a 7-day v2 cookie, and exposes no Supabase tokens
+  ---
+  duration_ms: 3.6004
+  type: 'test'
+  ...
+# Subtest: login keeps nonexistent and incorrect-password errors indistinguishable
+ok 211 - login keeps nonexistent and incorrect-password errors indistinguishable
+  ---
+  duration_ms: 2.8128
+  type: 'test'
+  ...
+# Subtest: login denies inactive account
+ok 212 - login denies inactive account
+  ---
+  duration_ms: 3.5422
+  type: 'test'
+  ...
+# Subtest: login denies missing account
+ok 213 - login denies missing account
+  ---
+  duration_ms: 1.4391
+  type: 'test'
+  ...
+# Subtest: login refreshes cached inactive status after account reactivation
+ok 214 - login refreshes cached inactive status after account reactivation
+  ---
+  duration_ms: 1.122
+  type: 'test'
+  ...
+# Subtest: login IP request 21 is limited; method check precedes limiter; 60-second window expires
+ok 215 - login IP request 21 is limited; method check precedes limiter; 60-second window expires
+  ---
+  duration_ms: 1.1226
+  type: 'test'
+  ...
+# Subtest: login: six Supabase 429 grants return 503 without account lock
+ok 216 - login: six Supabase 429 grants return 503 without account lock
+  ---
+  duration_ms: 1.6525
+  type: 'test'
+  ...
+# Subtest: login: six Supabase 500 grants return 503 without account lock
+ok 217 - login: six Supabase 500 grants return 503 without account lock
+  ---
+  duration_ms: 2.0103
+  type: 'test'
+  ...
+# Subtest: login: six Supabase 503 grants return 503 without account lock
+ok 218 - login: six Supabase 503 grants return 503 without account lock
+  ---
+  duration_ms: 1.0061
+  type: 'test'
+  ...
+# Subtest: login: five credential failures (400) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 219 - login: five credential failures (400) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 1.1146
+  type: 'test'
+  ...
+# Subtest: login: five credential failures (401) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 220 - login: five credential failures (401) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 1.3195
+  type: 'test'
+  ...
+# Subtest: login: five credential failures (403) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 221 - login: five credential failures (403) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 0.6038
+  type: 'test'
+  ...
+# Subtest: login: grant network failure gives 503 without leaking upstream error
+ok 222 - login: grant network failure gives 503 without leaking upstream error
+  ---
+  duration_ms: 0.5868
+  type: 'test'
+  ...
+# Subtest: change-password: six Supabase 429 grants return 503 without account lock
+ok 223 - change-password: six Supabase 429 grants return 503 without account lock
+  ---
+  duration_ms: 2.2637
+  type: 'test'
+  ...
+# Subtest: change-password: six Supabase 500 grants return 503 without account lock
+ok 224 - change-password: six Supabase 500 grants return 503 without account lock
+  ---
+  duration_ms: 1.5897
+  type: 'test'
+  ...
+# Subtest: change-password: six Supabase 503 grants return 503 without account lock
+ok 225 - change-password: six Supabase 503 grants return 503 without account lock
+  ---
+  duration_ms: 1.3974
+  type: 'test'
+  ...
+# Subtest: change-password: five credential failures (400) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 226 - change-password: five credential failures (400) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 2.7145
+  type: 'test'
+  ...
+# Subtest: change-password: five credential failures (401) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 227 - change-password: five credential failures (401) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 8.0789
+  type: 'test'
+  ...
+# Subtest: change-password: five credential failures (403) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 228 - change-password: five credential failures (403) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 1.306
+  type: 'test'
+  ...
+# Subtest: change-password: grant network failure gives 503 without leaking upstream error
+ok 229 - change-password: grant network failure gives 503 without leaking upstream error
+  ---
+  duration_ms: 1.3061
+  type: 'test'
+  ...
+# Subtest: successful login clears accumulated account failures
+ok 230 - successful login clears accumulated account failures
+  ---
+  duration_ms: 2.1095
+  type: 'test'
+  ...
+# Subtest: change-password IP limiter is separate from login; socket fallback works
+ok 231 - change-password IP limiter is separate from login; socket fallback works
+  ---
+  duration_ms: 2.0388
+  type: 'test'
+  ...
+# Subtest: login account failures do not lock the separate change-password account counter
+ok 232 - login account failures do not lock the separate change-password account counter
+  ---
+  duration_ms: 0.9681
+  type: 'test'
+  ...
+# Subtest: shared login requires exact enabled switch; personal login validates email before fetch
+ok 233 - shared login requires exact enabled switch; personal login validates email before fetch
+  ---
+  duration_ms: 0.7635
+  type: 'test'
+  ...
+# Subtest: change-password rejects shared credentials
+ok 234 - change-password rejects shared credentials
+  ---
+  duration_ms: 0.5318
+  type: 'test'
+  ...
+# Subtest: change-password rejects api_key credentials
+ok 235 - change-password rejects api_key credentials
+  ---
+  duration_ms: 0.317
+  type: 'test'
+  ...
+# Subtest: change-password rejects none credentials
+ok 236 - change-password rejects none credentials
+  ---
+  duration_ms: 0.2636
+  type: 'test'
+  ...
+# Subtest: change-password rejects seven characters before password grant
+ok 237 - change-password rejects seven characters before password grant
+  ---
+  duration_ms: 0.5203
+  type: 'test'
+  ...
+# Subtest: change-password rejects over 72 bytes before password grant
+ok 238 - change-password rejects over 72 bytes before password grant
+  ---
+  duration_ms: 0.4656
+  type: 'test'
+  ...
+# Subtest: change-password rejects same password before password grant
+ok 239 - change-password rejects same password before password grant
+  ---
+  duration_ms: 0.6472
+  type: 'test'
+  ...
+# Subtest: change-password rejects account name ignoring case before password grant
+ok 240 - change-password rejects account name ignoring case before password grant
+  ---
+  duration_ms: 6.7762
+  type: 'test'
+  ...
+# Subtest: change-password rejects blacklist ignoring case before password grant
+ok 241 - change-password rejects blacklist ignoring case before password grant
+  ---
+  duration_ms: 0.7929
+  type: 'test'
+  ...
+# Subtest: password length uses Unicode code points and accepts eight Chinese characters
+ok 242 - password length uses Unicode code points and accepts eight Chinese characters
+  ---
+  duration_ms: 0.6023
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 12345678
+ok 243 - required common-password blacklist: 12345678
+  ---
+  duration_ms: 0.3906
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 123456789
+ok 244 - required common-password blacklist: 123456789
+  ---
+  duration_ms: 0.2412
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 1234567890
+ok 245 - required common-password blacklist: 1234567890
+  ---
+  duration_ms: 0.2135
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 87654321
+ok 246 - required common-password blacklist: 87654321
+  ---
+  duration_ms: 0.2173
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 11111111
+ok 247 - required common-password blacklist: 11111111
+  ---
+  duration_ms: 1.2534
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 00000000
+ok 248 - required common-password blacklist: 00000000
+  ---
+  duration_ms: 0.2314
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: password
+ok 249 - required common-password blacklist: password
+  ---
+  duration_ms: 0.2226
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: password1
+ok 250 - required common-password blacklist: password1
+  ---
+  duration_ms: 0.2058
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: passw0rd
+ok 251 - required common-password blacklist: passw0rd
+  ---
+  duration_ms: 0.2133
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: qwertyui
+ok 252 - required common-password blacklist: qwertyui
+  ---
+  duration_ms: 0.2763
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: qwerty123
+ok 253 - required common-password blacklist: qwerty123
+  ---
+  duration_ms: 0.2812
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: abcd1234
+ok 254 - required common-password blacklist: abcd1234
+  ---
+  duration_ms: 0.2405
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 1qaz2wsx
+ok 255 - required common-password blacklist: 1qaz2wsx
+  ---
+  duration_ms: 0.2089
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: iloveyou
+ok 256 - required common-password blacklist: iloveyou
+  ---
+  duration_ms: 0.2527
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: a1234567
+ok 257 - required common-password blacklist: a1234567
+  ---
+  duration_ms: 0.2398
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: aa123456
+ok 258 - required common-password blacklist: aa123456
+  ---
+  duration_ms: 0.1891
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: iii12345
+ok 259 - required common-password blacklist: iii12345
+  ---
+  duration_ms: 0.1949
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: iii@1234
+ok 260 - required common-password blacklist: iii@1234
+  ---
+  duration_ms: 0.216
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: solution
+ok 261 - required common-password blacklist: solution
+  ---
+  duration_ms: 0.219
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: solution1
+ok 262 - required common-password blacklist: solution1
+  ---
+  duration_ms: 0.2262
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: sf123456
+ok 263 - required common-password blacklist: sf123456
+  ---
+  duration_ms: 0.249
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: admin123
+ok 264 - required common-password blacklist: admin123
+  ---
+  duration_ms: 0.2248
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: welcome1
+ok 265 - required common-password blacklist: welcome1
+  ---
+  duration_ms: 0.2161
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: taiwan123
+ok 266 - required common-password blacklist: taiwan123
+  ---
+  duration_ms: 0.2059
+  type: 'test'
+  ...
+# Subtest: password change grants, updates with ephemeral Bearer, clears flag and invalidates cache without replacing session
+ok 267 - password change grants, updates with ephemeral Bearer, clears flag and invalidates cache without replacing session
+  ---
+  duration_ms: 1.6348
+  type: 'test'
+  ...
+# Subtest: password put-status failure is a safe 502 and preserves must-change restriction
+ok 268 - password put-status failure is a safe 502 and preserves must-change restriction
+  ---
+  duration_ms: 0.904
+  type: 'test'
+  ...
+# Subtest: password put-throw failure is a safe 502 and preserves must-change restriction
+ok 269 - password put-throw failure is a safe 502 and preserves must-change restriction
+  ---
+  duration_ms: 1.1198
+  type: 'test'
+  ...
+# Subtest: password patch-status failure is a safe 502 and preserves must-change restriction
+ok 270 - password patch-status failure is a safe 502 and preserves must-change restriction
+  ---
+  duration_ms: 1.5461
+  type: 'test'
+  ...
+# Subtest: password patch-throw failure is a safe 502 and preserves must-change restriction
+ok 271 - password patch-throw failure is a safe 502 and preserves must-change restriction
+  ---
+  duration_ms: 0.9069
+  type: 'test'
+  ...
+# Subtest: password change rejects password grant for a different user
+ok 272 - password change rejects password grant for a different user
+  ---
+  duration_ms: 0.6001
+  type: 'test'
+  ...
+# Subtest: session-check provides user-only identity and allows must-change-password
+ok 273 - session-check provides user-only identity and allows must-change-password
+  ---
+  duration_ms: 0.8202
+  type: 'test'
+  ...
+# Subtest: session-check distinguishes unauthorized from unavailable; logout still expires cookie
+ok 274 - session-check distinguishes unauthorized from unavailable; logout still expires cookie
+  ---
+  duration_ms: 1.4178
+  type: 'test'
+  ...
+# Subtest: claude: one user usage row with correct identity and no content
+ok 275 - claude: one user usage row with correct identity and no content
+  ---
+  duration_ms: 55.2734
+  type: 'test'
+  ...
+# Subtest: claude: one api_key usage row with correct identity and no content
+ok 276 - claude: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 1.3946
+  type: 'test'
+  ...
+# Subtest: claude: one shared usage row with correct identity and no content
+ok 277 - claude: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 10.023
+  type: 'test'
+  ...
+# Subtest: claude: usage storage rejection and throw both preserve complete endpoint response
+ok 278 - claude: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 3.8669
+  type: 'test'
+  ...
+# Subtest: claude: non-2xx Anthropic response still meters exactly once
+ok 279 - claude: non-2xx Anthropic response still meters exactly once
+  ---
+  duration_ms: 1.3881
+  type: 'test'
+  ...
+# Subtest: claude: Anthropic network exception does not meter
+ok 280 - claude: Anthropic network exception does not meter
+  ---
+  duration_ms: 0.7432
+  type: 'test'
+  ...
+# Subtest: ask: one user usage row with correct identity and no content
+ok 281 - ask: one user usage row with correct identity and no content
+  ---
+  duration_ms: 2.1365
+  type: 'test'
+  ...
+# Subtest: ask: one api_key usage row with correct identity and no content
+ok 282 - ask: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 1.5069
+  type: 'test'
+  ...
+# Subtest: ask: one shared usage row with correct identity and no content
+ok 283 - ask: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 1.7965
+  type: 'test'
+  ...
+# Subtest: ask: usage storage rejection and throw both preserve complete endpoint response
+ok 284 - ask: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 2.5234
+  type: 'test'
+  ...
+# Subtest: ask: non-2xx Anthropic response still meters exactly once
+ok 285 - ask: non-2xx Anthropic response still meters exactly once
+  ---
+  duration_ms: 1.7038
+  type: 'test'
+  ...
+# Subtest: ask: Anthropic network exception does not meter
+ok 286 - ask: Anthropic network exception does not meter
+  ---
+  duration_ms: 0.8358
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: one user usage row with correct identity and no content
+ok 287 - manufacturing-analyze: one user usage row with correct identity and no content
+  ---
+  duration_ms: 2.3214
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: one api_key usage row with correct identity and no content
+ok 288 - manufacturing-analyze: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 1.0358
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: one shared usage row with correct identity and no content
+ok 289 - manufacturing-analyze: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 0.9185
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: usage storage rejection and throw both preserve complete endpoint response
+ok 290 - manufacturing-analyze: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 1.2851
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: non-2xx Anthropic response still meters exactly once
+ok 291 - manufacturing-analyze: non-2xx Anthropic response still meters exactly once
+  ---
+  duration_ms: 1.0706
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: Anthropic network exception does not meter
+ok 292 - manufacturing-analyze: Anthropic network exception does not meter
+  ---
+  duration_ms: 1.0008
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: one user usage row with correct identity and no content
+ok 293 - manufacturing-recommend: one user usage row with correct identity and no content
+  ---
+  duration_ms: 6.8345
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: one api_key usage row with correct identity and no content
+ok 294 - manufacturing-recommend: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 1.1479
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: one shared usage row with correct identity and no content
+ok 295 - manufacturing-recommend: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 1.104
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: usage storage rejection and throw both preserve complete endpoint response
+ok 296 - manufacturing-recommend: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 1.7687
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: non-2xx Anthropic response still meters exactly once
+ok 297 - manufacturing-recommend: non-2xx Anthropic response still meters exactly once
+  ---
+  duration_ms: 1.2901
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: Anthropic network exception does not meter
+ok 298 - manufacturing-recommend: Anthropic network exception does not meter
+  ---
+  duration_ms: 0.604
+  type: 'test'
+  ...
+# Subtest: company-detail: one user usage row with correct identity and no content
+ok 299 - company-detail: one user usage row with correct identity and no content
+  ---
+  duration_ms: 2.7615
+  type: 'test'
+  ...
+# Subtest: company-detail: one api_key usage row with correct identity and no content
+ok 300 - company-detail: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 1.5555
+  type: 'test'
+  ...
+# Subtest: company-detail: one shared usage row with correct identity and no content
+ok 301 - company-detail: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 1.9154
+  type: 'test'
+  ...
+# Subtest: company-detail: usage storage rejection and throw both preserve complete endpoint response
+ok 302 - company-detail: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 2.46
+  type: 'test'
+  ...
+# Subtest: recordUsage strips non-allowlisted keys and non-primitive values; hash fallback is unchanged
+ok 303 - recordUsage strips non-allowlisted keys and non-primitive values; hash fallback is unchanged
+  ---
+  duration_ms: 1.7616
+  type: 'test'
+  ...
+# Subtest: static guard: every requireAuth call awaits; business 10, auth actions 2, total 12
+ok 304 - static guard: every requireAuth call awaits; business 10, auth actions 2, total 12
+  ---
+  duration_ms: 6.9793
+  type: 'test'
+  ...
+# Subtest: restricted sources match main 2675eb5 exactly after only explicitly permitted edits
+ok 305 - restricted sources match main 2675eb5 exactly after only explicitly permitted edits
+  ---
+  duration_ms: 610.6534
+  type: 'test'
+  ...
+# Subtest: 旅宿觀光 matches solution text with an empty iv
+ok 306 - 旅宿觀光 matches solution text with an empty iv
+  ---
+  duration_ms: 3.4462
+  type: 'test'
+  ...
+# Subtest: 製造業 matches solution text with an empty iv
+ok 307 - 製造業 matches solution text with an empty iv
+  ---
+  duration_ms: 0.2873
+  type: 'test'
+  ...
+# Subtest: 醫療照護 matches solution text with an empty iv
+ok 308 - 醫療照護 matches solution text with an empty iv
+  ---
+  duration_ms: 0.8467
+  type: 'test'
+  ...
+# Subtest: 建築營造 matches solution text with an empty iv
+ok 309 - 建築營造 matches solution text with an empty iv
+  ---
+  duration_ms: 0.3606
+  type: 'test'
+  ...
+# Subtest: 文化創意 matches solution text with an empty iv
+ok 310 - 文化創意 matches solution text with an empty iv
+  ---
+  duration_ms: 0.2291
+  type: 'test'
+  ...
+# Subtest: English acronyms require uppercase and word boundaries
+ok 311 - English acronyms require uppercase and word boundaries
+  ---
+  duration_ms: 0.7913
+  type: 'test'
+  ...
+# Subtest: missing fields are safe and unknown verticals do not exclude solutions
+ok 312 - missing fields are safe and unknown verticals do not exclude solutions
+  ---
+  duration_ms: 1.0122
+  type: 'test'
+  ...
+# Subtest: the page keeps either selected vertical and still applies its other filters
+ok 313 - the page keeps either selected vertical and still applies its other filters
+  ---
+  duration_ms: 4.6235
+  type: 'test'
+  ...
+# Subtest: target industry earns one boost using the shared vocabulary and word boundaries
+ok 314 - target industry earns one boost using the shared vocabulary and word boundaries
+  ---
+  duration_ms: 1.5639
+  type: 'test'
+  ...
+# Subtest: a vertical alone triggers relevance sorting without changing results or price ordering
+ok 315 - a vertical alone triggers relevance sorting without changing results or price ordering
+  ---
+  duration_ms: 5.9393
+  type: 'test'
+  ...
+# (node:13120) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/_lib/auth.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: seven-day HMAC tokens match the existing password gate format
+ok 316 - seven-day HMAC tokens match the existing password gate format
+  ---
+  duration_ms: 22.7679
+  type: 'test'
+  ...
+# Subtest: login rejects malformed payloads and wrong passwords without touching data
+ok 317 - login rejects malformed payloads and wrong passwords without touching data
+  ---
+  duration_ms: 95.0252
+  type: 'test'
+  ...
+# Subtest: missing, expired and tampered tokens return no data and never query Supabase
+ok 318 - missing, expired and tampered tokens return no data and never query Supabase
+  ---
+  duration_ms: 3.6888
+  type: 'test'
+  ...
+# Subtest: service-role read pagination is complete, retains IDs and reflects updates
+ok 319 - service-role read pagination is complete, retains IDs and reflects updates
+  ---
+  duration_ms: 4.4915
+  type: 'test'
+  ...
+# Subtest: upstream failure fails closed without leaking service credentials or partial data
+ok 320 - upstream failure fails closed without leaking service credentials or partial data
+  ---
+  duration_ms: 5.1185
+  type: 'test'
+  ...
+# Subtest: AI shares show reviewed pending ranges and handle missing/zero denominators
+ok 321 - AI shares show reviewed pending ranges and handle missing/zero denominators
+  ---
+  duration_ms: 1.3528
+  type: 'test'
+  ...
+# Subtest: real booleans drive heatmap, dot matrix and first-wave selection
+ok 322 - real booleans drive heatmap, dot matrix and first-wave selection
+  ---
+  duration_ms: 32.5123
+  type: 'test'
+  ...
+# Subtest: profiles produce two tables with eight platforms, nine dimensions, safe notes and dates
+ok 323 - profiles produce two tables with eight platforms, nine dimensions, safe notes and dates
+  ---
+  duration_ms: 2.2925
+  type: 'test'
+  ...
+# Subtest: CORS accepts only the exact production origin and rejects all preview origins
+ok 324 - CORS accepts only the exact production origin and rejects all preview origins
+  ---
+  duration_ms: 2.5845
+  type: 'test'
+  ...
+# Subtest: CORS preflight allows only the endpoint method and explicit authentication/content headers
+ok 325 - CORS preflight allows only the endpoint method and explicit authentication/content headers
+  ---
+  duration_ms: 2.3386
+  type: 'test'
+  ...
+# Subtest: all four negative-auth cases stay 401 without data for production and requests without Origin
+ok 326 - all four negative-auth cases stay 401 without data for production and requests without Origin
+  ---
+  duration_ms: 13.1665
+  type: 'test'
+  ...
+# Subtest: no token: no requests, no numbers or data in the dashboard DOM
+ok 327 - no token: no requests, no numbers or data in the dashboard DOM
+  ---
+  duration_ms: 5.0206
+  type: 'test'
+  ...
+# Subtest: frontend login and data requests go directly to Edge with no cookies or API key
+ok 328 - frontend login and data requests go directly to Edge with no cookies or API key
+  ---
+  duration_ms: 28.4747
+  type: 'test'
+  ...
+# Subtest: expired or rejected token: return to password screen and erase localStorage
+ok 329 - expired or rejected token: return to password screen and erase localStorage
+  ---
+  duration_ms: 11.1752
+  type: 'test'
+  ...
+# Subtest: authenticated data appears only after verification; expiry erases all rendered data
+ok 330 - authenticated data appears only after verification; expiry erases all rendered data
+  ---
+  duration_ms: 12.0531
+  type: 'test'
+  ...
+# Subtest: logout while a data request is in flight cannot redisplay a stale response
+ok 331 - logout while a data request is in flight cannot redisplay a stale response
+  ---
+  duration_ms: 9.103
+  type: 'test'
+  ...
+# Subtest: leaving the page clears data and cancels any in-flight rendering
+ok 332 - leaving the page clears data and cancels any in-flight rendering
+  ---
+  duration_ms: 3.0408
+  type: 'test'
+  ...
+# Subtest: reference view switches, pair filters, search and sortable columns compose
+ok 333 - reference view switches, pair filters, search and sortable columns compose
+  ---
+  duration_ms: 2.1545
+  type: 'test'
+  ...
+# Subtest: reference summary, warning, AI badges and static next steps retain their meaning
+ok 334 - reference summary, warning, AI badges and static next steps retain their meaning
+  ---
+  duration_ms: 0.4641
+  type: 'test'
+  ...
+# Subtest: heatmap cells expose keyboard buttons, symmetric selection and disabled empty intersections
+ok 335 - heatmap cells expose keyboard buttons, symmetric selection and disabled empty intersections
+  ---
+  duration_ms: 0.8258
+  type: 'test'
+  ...
+# Subtest: frontend heatmap, view, chip and column handlers update the vendor list
+ok 336 - frontend heatmap, view, chip and column handlers update the vendor list
+  ---
+  duration_ms: 7.8432
+  type: 'test'
+  ...
+# Subtest: invitation labels are authoritative even when counts contradict historical thresholds
+ok 337 - invitation labels are authoritative even when counts contradict historical thresholds
+  ---
+  duration_ms: 0.4261
+  type: 'test'
+  ...
+# Subtest: missing or invalid invitation tiers show unknown cumulative KPIs without inferring a tier
+ok 338 - missing or invalid invitation tiers show unknown cumulative KPIs without inferring a tier
+  ---
+  duration_ms: 1.6015
+  type: 'test'
+  ...
+# Subtest: exclusive invitation tiers partition cross-platform vendors and produce cumulative cards
+ok 339 - exclusive invitation tiers partition cross-platform vendors and produce cumulative cards
+  ---
+  duration_ms: 0.6961
+  type: 'test'
+  ...
+# Subtest: trial caps the top bucket, splits platform counts, and accumulates down to all cross-platform vendors
+ok 340 - trial caps the top bucket, splits platform counts, and accumulates down to all cross-platform vendors
+  ---
+  duration_ms: 0.609
+  type: 'test'
+  ...
+# Subtest: tier sorting, exclusive filters, search, pair filters and pagination compose
+ok 341 - tier sorting, exclusive filters, search, pair filters and pagination compose
+  ---
+  duration_ms: 1.9594
+  type: 'test'
+  ...
+# Subtest: dedicated tier cells escape database reasons and labels including attribute injection
+ok 342 - dedicated tier cells escape database reasons and labels including attribute injection
+  ---
+  duration_ms: 0.4149
+  type: 'test'
+  ...
+# Subtest: seven platform source badges classify three survey and four database sources exactly
+ok 343 - seven platform source badges classify three survey and four database sources exactly
+  ---
+  duration_ms: 6.287
+  type: 'test'
+  ...
+# Subtest: missing survey names warn with exact missing names and leave static scope notes intact
+ok 344 - missing survey names warn with exact missing names and leave static scope notes intact
+  ---
+  duration_ms: 2.6155
+  type: 'test'
+  ...
+# Subtest: missing platform names return escaped plain text and never classify unknown vendor columns
+ok 345 - missing platform names return escaped plain text and never classify unknown vendor columns
+  ---
+  duration_ms: 1.0861
+  type: 'test'
+  ...
+# Subtest: coverage explanations use plain platform names without source badges
+ok 346 - coverage explanations use plain platform names without source badges
+  ---
+  duration_ms: 0.2627
+  type: 'test'
+  ...
+# Subtest: AI methods and nonzero missing-ID counts are generated dynamically without duplicated notes
+ok 347 - AI methods and nonzero missing-ID counts are generated dynamically without duplicated notes
+  ---
+  duration_ms: 0.6376
+  type: 'test'
+  ...
+# Subtest: data response timestamps use fixed Taipei minute format including midnight and date rollover
+ok 348 - data response timestamps use fixed Taipei minute format including midnight and date rollover
+  ---
+  duration_ms: 0.8503
+  type: 'test'
+  ...
+# Subtest: frontend wave controls, default sorting and trial section render together and refresh from new tiers
+ok 349 - frontend wave controls, default sorting and trial section render together and refresh from new tiers
+  ---
+  duration_ms: 12.4207
+  type: 'test'
+  ...
+# Subtest: frontend puts version warning above KPI and preserves notes when a survey name is absent
+ok 350 - frontend puts version warning above KPI and preserves notes when a survey name is absent
+  ---
+  duration_ms: 5.0968
+  type: 'test'
+  ...
+# Subtest: new public notes and labels contain no personal, client or database identifiers
+ok 351 - new public notes and labels contain no personal, client or database identifiers
+  ---
+  duration_ms: 0.892
+  type: 'test'
+  ...
+# (node:6356) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/solutions.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: cloud marketplace plus III survey counts only one evidenced program
+ok 352 - cloud marketplace plus III survey counts only one evidenced program
+  ---
+  duration_ms: 9.2174
+  type: 'test'
+  ...
+# Subtest: government platform listings and procurement qualification do not add programs
+ok 353 - government platform listings and procurement qualification do not add programs
+  ---
+  duration_ms: 2.8483
+  type: 'test'
+  ...
+# Subtest: two evidenced programs survive while SME platform is excluded
+ok 354 - two evidenced programs survive while SME platform is excluded
+  ---
+  duration_ms: 10.2865
+  type: 'test'
+  ...
+# Subtest: all six allowed names count; all four excluded names and future names do not
+ok 355 - all six allowed names count; all four excluded names and future names do not
+  ---
+  duration_ms: 2.0617
+  type: 'test'
+  ...
+# Subtest: only excluded or unknown sources return zero and an empty detail list
+ok 356 - only excluded or unknown sources return zero and an empty detail list
+  ---
+  duration_ms: 1.1045
+  type: 'test'
+  ...
+# Subtest: deduplicates trimmed names without normalizing 台 to 臺
+ok 357 - deduplicates trimmed names without normalizing 台 to 臺
+  ---
+  duration_ms: 1.0467
+  type: 'test'
+  ...
+# Subtest: existing query excludes confirmed retired prefixes but retains suspected retirement and NULL
+ok 358 - existing query excludes confirmed retired prefixes but retains suspected retirement and NULL
+  ---
+  duration_ms: 1.0822
+  type: 'test'
+  ...
+# Subtest: unlinked companies and empty sources cannot contribute to another company
+ok 359 - unlinked companies and empty sources cannot contribute to another company
+  ---
+  duration_ms: 1.0944
+  type: 'test'
+  ...
+# Subtest: p labels and solution rows remain present even when sources do not count
+ok 360 - p labels and solution rows remain present even when sources do not count
+  ---
+  duration_ms: 0.9672
+  type: 'test'
+  ...
+# Subtest: legacy Airtable source flag is ignored; the same Supabase program evidence is returned
+ok 361 - legacy Airtable source flag is ignored; the same Supabase program evidence is returned
+  ---
+  duration_ms: 1.0898
+  type: 'test'
+  ...
+# Subtest: agricultural digital hall alone keeps its label and counts once
+ok 362 - agricultural digital hall alone keeps its label and counts once
+  ---
+  duration_ms: 1.2579
+  type: 'test'
+  ...
+# Subtest: agricultural AI hall alone keeps its label and counts once
+ok 363 - agricultural AI hall alone keeps its label and counts once
+  ---
+  duration_ms: 0.8385
+  type: 'test'
+  ...
+# Subtest: both agricultural halls count once with digital input first: true
+ok 364 - both agricultural halls count once with digital input first: true
+  ---
+  duration_ms: 0.8847
+  type: 'test'
+  ...
+# Subtest: agricultural group retains its first position with digital input first: true
+ok 365 - agricultural group retains its first position with digital input first: true
+  ---
+  duration_ms: 2.0344
+  type: 'test'
+  ...
+# Subtest: agricultural group follows an earlier program with digital input first: true
+ok 366 - agricultural group follows an earlier program with digital input first: true
+  ---
+  duration_ms: 1.1811
+  type: 'test'
+  ...
+# Subtest: both agricultural halls count once with digital input first: false
+ok 367 - both agricultural halls count once with digital input first: false
+  ---
+  duration_ms: 0.7237
+  type: 'test'
+  ...
+# Subtest: agricultural group retains its first position with digital input first: false
+ok 368 - agricultural group retains its first position with digital input first: false
+  ---
+  duration_ms: 0.8678
+  type: 'test'
+  ...
+# Subtest: agricultural group follows an earlier program with digital input first: false
+ok 369 - agricultural group follows an earlier program with digital input first: false
+  ---
+  duration_ms: 2.4984
+  type: 'test'
+  ...
+# Subtest: AI hall does not allow excluded, unknown or display-only source names
+ok 370 - AI hall does not allow excluded, unknown or display-only source names
+  ---
+  duration_ms: 3.4224
+  type: 'test'
+  ...
+# Subtest: all eight allowed source names form exactly seven ordered program groups
+ok 371 - all eight allowed source names form exactly seven ordered program groups
+  ---
+  duration_ms: 0.7941
+  type: 'test'
+  ...
+# Subtest: rainforest keeps its exact source label and counts one evidenced program per company
+ok 372 - rainforest keeps its exact source label and counts one evidenced program per company
+  ---
+  duration_ms: 0.6111
+  type: 'test'
+  ...
+# Subtest: agricultural hall grouping stays within each linked company
+ok 373 - agricultural hall grouping stays within each linked company
+  ---
+  duration_ms: 1.1708
+  type: 'test'
+  ...
+# Subtest: public copy uses the current database brand
+ok 374 - public copy uses the current database brand
+  ---
+  duration_ms: 25.85
+  type: 'test'
+  ...
+# [sf-mcp] search_companies 失敗： 資本額涵蓋率查詢未回傳計數
+# (node:7044) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: standalone Edge Function imports only npm/jsr packages, with no local or dynamic imports
+ok 375 - standalone Edge Function imports only npm/jsr packages, with no local or dynamic imports
+  ---
+  duration_ms: 2.9344
+  type: 'test'
+  ...
+# Subtest: browser and inline MCP definitions independently load identical placeholder lists and behavior
+ok 376 - browser and inline MCP definitions independently load identical placeholder lists and behavior
+  ---
+  duration_ms: 3.8552
+  type: 'test'
+  ...
+# Subtest: eight real SDK registrations advertise Chinese title and object output schemas
+ok 377 - eight real SDK registrations advertise Chinese title and object output schemas
+  ---
+  duration_ms: 21.8279
+  type: 'test'
+  ...
+# Subtest: real SDK HTTP tools/list and tools/call preserve structured/text responses
+ok 378 - real SDK HTTP tools/list and tools/call preserve structured/text responses
+  ---
+  duration_ms: 262.2808
+  type: 'test'
+  ...
+# Subtest: describe_data: success validates against actual outputSchema; touch exactly once before queries
+ok 379 - describe_data: success validates against actual outputSchema; touch exactly once before queries
+  ---
+  duration_ms: 66.7098
+  type: 'test'
+  ...
+# Subtest: search_solutions: success validates against actual outputSchema; touch exactly once before queries
+ok 380 - search_solutions: success validates against actual outputSchema; touch exactly once before queries
+  ---
+  duration_ms: 33.3369
+  type: 'test'
+  ...
+# Subtest: search_companies: success validates against actual outputSchema; touch exactly once before queries
+ok 381 - search_companies: success validates against actual outputSchema; touch exactly once before queries
+  ---
+  duration_ms: 24.0977
+  type: 'test'
+  ...
+# Subtest: get_solution: success validates against actual outputSchema; touch exactly once before queries
+ok 382 - get_solution: success validates against actual outputSchema; touch exactly once before queries
+  ---
+  duration_ms: 21.0573
+  type: 'test'
+  ...
+# Subtest: get_solutions: success validates against actual outputSchema; touch exactly once before queries
+ok 383 - get_solutions: success validates against actual outputSchema; touch exactly once before queries
+  ---
+  duration_ms: 35.3789
+  type: 'test'
+  ...
+# Subtest: data_status: success validates against actual outputSchema; touch exactly once before queries
+ok 384 - data_status: success validates against actual outputSchema; touch exactly once before queries
+  ---
+  duration_ms: 16.8086
+  type: 'test'
+  ...
+# Subtest: whoami: success validates against actual outputSchema; touch exactly once before queries
+ok 385 - whoami: success validates against actual outputSchema; touch exactly once before queries
+  ---
+  duration_ms: 8.5239
+  type: 'test'
+  ...
+# Subtest: count_solutions: success validates against actual outputSchema; touch exactly once before queries
+ok 386 - count_solutions: success validates against actual outputSchema; touch exactly once before queries
+  ---
+  duration_ms: 6.7726
+  type: 'test'
+  ...
+# Subtest: search_solutions: one search RPC with city=undefined, global totals and page-only enrichment
+ok 387 - search_solutions: one search RPC with city=undefined, global totals and page-only enrichment
+  ---
+  duration_ms: 8.0072
+  type: 'test'
+  ...
+# Subtest: search_solutions: one search RPC with city=["台北市"], global totals and page-only enrichment
+ok 388 - search_solutions: one search RPC with city=["台北市"], global totals and page-only enrichment
+  ---
+  duration_ms: 27.6104
+  type: 'test'
+  ...
+# Subtest: search_companies: one RPC, totals beyond former cap, sentinel excluded, per-company counts not five previews
+ok 389 - search_companies: one RPC, totals beyond former cap, sentinel excluded, per-company counts not five previews
+  ---
+  duration_ms: 16.0193
+  type: 'test'
+  ...
+# Subtest: company count-only sentinel preserves totals, including empty out-of-range page
+ok 390 - company count-only sentinel preserves totals, including empty out-of-range page
+  ---
+  duration_ms: 17.5803
+  type: 'test'
+  ...
+# Subtest: normal_only wins, forwarded unchanged; notes retain city, conflict, partial failure and suspect instruction in <=3 entries
+ok 391 - normal_only wins, forwarded unchanged; notes retain city, conflict, partial failure and suspect instruction in <=3 entries
+  ---
+  duration_ms: 9.9457
+  type: 'test'
+  ...
+# Subtest: include_delisted scope does not mislabel confirmed delisted as normal in summary
+ok 392 - include_delisted scope does not mislabel confirmed delisted as normal in summary
+  ---
+  duration_ms: 9.1398
+  type: 'test'
+  ...
+# Subtest: no next page at final row; omit empty summary context and unknown clause
+ok 393 - no next page at final row; omit empty summary context and unknown clause
+  ---
+  duration_ms: 9.5753
+  type: 'test'
+  ...
+# Subtest: zero result is not error and suggests next step: {"keyword":"入住自動化"}
+ok 394 - zero result is not error and suggests next step: {"keyword":"入住自動化"}
+  ---
+  duration_ms: 17.5317
+  type: 'test'
+  ...
+# Subtest: zero result is not error and suggests next step: {"city":["臺北市"]}
+ok 395 - zero result is not error and suggests next step: {"city":["臺北市"]}
+  ---
+  duration_ms: 8.1965
+  type: 'test'
+  ...
+# Subtest: zero result is not error and suggests next step: {"category":["資安"],"program":["來源"],"max_price":0,"is_ai":false,"is_gov":true,"is_startup":false}
+ok 396 - zero result is not error and suggests next step: {"category":["資安"],"program":["來源"],"max_price":0,"is_ai":false,"is_gov":true,"is_startup":false}
+  ---
+  duration_ms: 9.2584
+  type: 'test'
+  ...
+# Subtest: zero result is not error and suggests next step: {"normal_only":true}
+ok 397 - zero result is not error and suggests next step: {"normal_only":true}
+  ---
+  duration_ms: 14.8107
+  type: 'test'
+  ...
+# Subtest: zero companies keeps city unknown count and suggests unknown records
+ok 398 - zero companies keeps city unknown count and suggests unknown records
+  ---
+  duration_ms: 16.6471
+  type: 'test'
+  ...
+# Subtest: solution empty RPC page reports counting limitation without extra RPC
+ok 399 - solution empty RPC page reports counting limitation without extra RPC
+  ---
+  duration_ms: 20.6499
+  type: 'test'
+  ...
+# Subtest: handler error is sanitized Chinese JSON; actual SDK skips output validation for isError
+ok 400 - handler error is sanitized Chinese JSON; actual SDK skips output validation for isError
+  ---
+  duration_ms: 10.7263
+  type: 'test'
+  ...
+# Subtest: handler failure logs the actual error only to console, not to the user response
+ok 401 - handler failure logs the actual error only to console, not to the user response
+  ---
+  duration_ms: 6.6591
+  type: 'test'
+  ...
+# Subtest: non-Error handler failure is logged using String(err), while response remains sanitized
+ok 402 - non-Error handler failure is logged using String(err), while response remains sanitized
+  ---
+  duration_ms: 6.708
+  type: 'test'
+  ...
+# Subtest: touch fail-open / observe-only: {"touch":{"error":{"message":"private"},"data":null}}
+ok 403 - touch fail-open / observe-only: {"touch":{"error":{"message":"private"},"data":null}}
+  ---
+  duration_ms: 9.3812
+  type: 'test'
+  ...
+# Subtest: touch fail-open / observe-only: {"throwTouch":true}
+ok 404 - touch fail-open / observe-only: {"throwTouch":true}
+  ---
+  duration_ms: 22.3263
+  type: 'test'
+  ...
+# Subtest: touch fail-open / observe-only: {"touch":{"data":[{"over_limit":true,"limit_per_minute":30}],"error":null}}
+ok 405 - touch fail-open / observe-only: {"touch":{"data":[{"over_limit":true,"limit_per_minute":30}],"error":null}}
+  ---
+  duration_ms: 6.442
+  type: 'test'
+  ...
+# Subtest: injected enforce=true blocks before handler, with deterministic retry seconds
+ok 406 - injected enforce=true blocks before handler, with deterministic retry seconds
+  ---
+  duration_ms: 7.3014
+  type: 'test'
+  ...
+# Subtest: describe topics index/default, all and every section preserve v1.1 except specified edits
+ok 407 - describe topics index/default, all and every section preserve v1.1 except specified edits
+  ---
+  duration_ms: 184.8343
+  type: 'test'
+  ...
+# Subtest: three handlers without capital retain query/body logic
+ok 408 - three handlers without capital retain query/body logic
+  ---
+  duration_ms: 105.781
+  type: 'test'
+  ...
+# Subtest: migration hash pinned, skill exact appendix hash, old scanning removed, no business writes/private RPC
+ok 409 - migration hash pinned, skill exact appendix hash, old scanning removed, no business writes/private RPC
+  ---
+  duration_ms: 5.6743
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: null
+ok 410 - all four name outputs and actual schemas: null
+  ---
+  duration_ms: 30.5612
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: undefined
+ok 411 - all four name outputs and actual schemas: undefined
+  ---
+  duration_ms: 23.7668
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: ""
+ok 412 - all four name outputs and actual schemas: ""
+  ---
+  duration_ms: 19.1746
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "  "
+ok 413 - all four name outputs and actual schemas: "  "
+  ---
+  duration_ms: 17.4671
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "缺"
+ok 414 - all four name outputs and actual schemas: "缺"
+  ---
+  duration_ms: 25.6346
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: " 缺 "
+ok 415 - all four name outputs and actual schemas: " 缺 "
+  ---
+  duration_ms: 19.6439
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "缺漏"
+ok 416 - all four name outputs and actual schemas: "缺漏"
+  ---
+  duration_ms: 17.2459
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "待補"
+ok 417 - all four name outputs and actual schemas: "待補"
+  ---
+  duration_ms: 11.3509
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "無"
+ok 418 - all four name outputs and actual schemas: "無"
+  ---
+  duration_ms: 26.8389
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "-"
+ok 419 - all four name outputs and actual schemas: "-"
+  ---
+  duration_ms: 26.9739
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "—"
+ok 420 - all four name outputs and actual schemas: "—"
+  ---
+  duration_ms: 22.1619
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "N/A"
+ok 421 - all four name outputs and actual schemas: "N/A"
+  ---
+  duration_ms: 28.0871
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "NA"
+ok 422 - all four name outputs and actual schemas: "NA"
+  ---
+  duration_ms: 18.9396
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "null"
+ok 423 - all four name outputs and actual schemas: "null"
+  ---
+  duration_ms: 19.7369
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "?"
+ok 424 - all four name outputs and actual schemas: "?"
+  ---
+  duration_ms: 19.592
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "？"
+ok 425 - all four name outputs and actual schemas: "？"
+  ---
+  duration_ms: 33.8512
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "律果簽"
+ok 426 - all four name outputs and actual schemas: "律果簽"
+  ---
+  duration_ms: 39.2123
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "HackMD"
+ok 427 - all four name outputs and actual schemas: "HackMD"
+  ---
+  duration_ms: 63.1751
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: "AI"
+ok 428 - all four name outputs and actual schemas: "AI"
+  ---
+  duration_ms: 56.7472
+  type: 'test'
+  ...
+# Subtest: all four name outputs and actual schemas: " AI "
+ok 429 - all four name outputs and actual schemas: " AI "
+  ---
+  duration_ms: 68.561
+  type: 'test'
+  ...
+# Subtest: describe_data: 42501 denies access before any query or handler and logs server-side
+ok 430 - describe_data: 42501 denies access before any query or handler and logs server-side
+  ---
+  duration_ms: 15.0185
+  type: 'test'
+  ...
+# Subtest: search_solutions: 42501 denies access before any query or handler and logs server-side
+ok 431 - search_solutions: 42501 denies access before any query or handler and logs server-side
+  ---
+  duration_ms: 9.6751
+  type: 'test'
+  ...
+# Subtest: search_companies: 42501 denies access before any query or handler and logs server-side
+ok 432 - search_companies: 42501 denies access before any query or handler and logs server-side
+  ---
+  duration_ms: 48.4432
+  type: 'test'
+  ...
+# Subtest: get_solution: 42501 denies access before any query or handler and logs server-side
+ok 433 - get_solution: 42501 denies access before any query or handler and logs server-side
+  ---
+  duration_ms: 10.8278
+  type: 'test'
+  ...
+# Subtest: get_solutions: 42501 denies access before any query or handler and logs server-side
+ok 434 - get_solutions: 42501 denies access before any query or handler and logs server-side
+  ---
+  duration_ms: 24.6825
+  type: 'test'
+  ...
+# Subtest: data_status: 42501 denies access before any query or handler and logs server-side
+ok 435 - data_status: 42501 denies access before any query or handler and logs server-side
+  ---
+  duration_ms: 39.0023
+  type: 'test'
+  ...
+# Subtest: whoami: 42501 denies access before any query or handler and logs server-side
+ok 436 - whoami: 42501 denies access before any query or handler and logs server-side
+  ---
+  duration_ms: 15.9104
+  type: 'test'
+  ...
+# Subtest: count_solutions: 42501 denies access before any query or handler and logs server-side
+ok 437 - count_solutions: 42501 denies access before any query or handler and logs server-side
+  ---
+  duration_ms: 8.8459
+  type: 'test'
+  ...
+# Subtest: summary city text uses official 臺 while RPC parameters and keyword stay unchanged
+ok 438 - summary city text uses official 臺 while RPC parameters and keyword stay unchanged
+  ---
+  duration_ms: 26.2051
+  type: 'test'
+  ...
+# Subtest: describe_data index uses the first complete sentence, not a list heading fragment
+ok 439 - describe_data index uses the first complete sentence, not a list heading fragment
+  ---
+  duration_ms: 14.4047
+  type: 'test'
+  ...
+# Subtest: name display preserves RPC page order, scores, totals and request parameters
+ok 440 - name display preserves RPC page order, scores, totals and request parameters
+  ---
+  duration_ms: 5.9517
+  type: 'test'
+  ...
+# Subtest: capital schema is limited to search_companies and validates bounds
+ok 441 - capital schema is limited to search_companies and validates bounds
+  ---
+  duration_ms: 12.2149
+  type: 'test'
+  ...
+# Subtest: capital bounds and sorting reach the DB with city, normal_only and pagination
+ok 442 - capital bounds and sorting reach the DB with city, normal_only and pagination
+  ---
+  duration_ms: 9.9649
+  type: 'test'
+  ...
+# Subtest: capital remains null through search and both detail tools
+ok 443 - capital remains null through search and both detail tools
+  ---
+  duration_ms: 26.3004
+  type: 'test'
+  ...
+# Subtest: capital remains 0 through search and both detail tools
+ok 444 - capital remains 0 through search and both detail tools
+  ---
+  duration_ms: 29.7666
+  type: 'test'
+  ...
+# Subtest: capital remains 100000000 through search and both detail tools
+ok 445 - capital remains 100000000 through search and both detail tools
+  ---
+  duration_ms: 25.0877
+  type: 'test'
+  ...
+# Subtest: capital unknown count survives empty pages and counts remain server totals
+ok 446 - capital unknown count survives empty pages and counts remain server totals
+  ---
+  duration_ms: 7.0574
+  type: 'test'
+  ...
+# Subtest: coverage refreshes for every call, includes zero as known and handles empty denominator
+ok 447 - coverage refreshes for every call, includes zero as known and handles empty denominator
+  ---
+  duration_ms: 13.3253
+  type: 'test'
+  ...
+# Subtest: missing coverage fails without publishing capital with fabricated disclosure
+ok 448 - missing coverage fails without publishing capital with fabricated disclosure
+  ---
+  duration_ms: 9.2103
+  type: 'test'
+  ...
+# Subtest: unaffected search and missing detail results do not fetch or expose capital
+ok 449 - unaffected search and missing detail results do not fetch or expose capital
+  ---
+  duration_ms: 20.1264
+  type: 'test'
+  ...
+# Subtest: describe_data capital topic and index disclose definition and denominator
+ok 450 - describe_data capital topic and index disclose definition and denominator
+  ---
+  duration_ms: 7.8875
+  type: 'test'
+  ...
+# Subtest: capital migration executes in PostgreSQL with legacy parity, DB filtering, sorting and live coverage
+    # Subtest: six legacy queries preserve every old column, row and order
+    ok 1 - six legacy queries preserve every old column, row and order
+      ---
+      duration_ms: 42.5336
+      type: 'test'
+      ...
+    # Subtest: bounds filter before counts and pagination; full-table scope differs
+    ok 2 - bounds filter before counts and pagination; full-table scope differs
+      ---
+      duration_ms: 29.4503
+      type: 'test'
+      ...
+    # Subtest: sorting is global, stable across pages, NULL last; previews remain capped at five
+    ok 3 - sorting is global, stable across pages, NULL last; previews remain capped at five
+      ---
+      duration_ms: 11.7107
+      type: 'test'
+      ...
+    # Subtest: sentinel preserves totals and unknowns for empty and out-of-range pages
+    ok 4 - sentinel preserves totals and unknowns for empty and out-of-range pages
+      ---
+      duration_ms: 5.7251
+      type: 'test'
+      ...
+    # Subtest: coverage counts all companies, counts zero, refreshes after isolated test update
+    ok 5 - coverage counts all companies, counts zero, refreshes after isolated test update
+      ---
+      duration_ms: 3.6708
+      type: 'test'
+      ...
+    # Subtest: anonymous denied, authenticated read-only invoker allowed, overload removed
+    ok 6 - anonymous denied, authenticated read-only invoker allowed, overload removed
+      ---
+      duration_ms: 6.2663
+      type: 'test'
+      ...
+    # Subtest: all handoff verification queries are SELECT statements and execute before deployment
+    ok 7 - all handoff verification queries are SELECT statements and execute before deployment
+      ---
+      duration_ms: 19.891
+      type: 'test'
+      ...
+    1..7
+ok 451 - capital migration executes in PostgreSQL with legacy parity, DB filtering, sorting and live coverage
+  ---
+  duration_ms: 3895.8524
+  type: 'test'
+  ...
+# (node:14568) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: quota migration checks grants and defaults, isolates accounts and aggregates by Taipei day and tool
+ok 452 - quota migration checks grants and defaults, isolates accounts and aggregates by Taipei day and tool
+  ---
+  duration_ms: 3603.1396
+  type: 'test'
+  ...
+# 自檢通過：白名單 2 筆，既有帳號預設 human／300，用量表 RLS 與函式權限正確
+# 資料筆數前後一致（solutions: 2，sf_mcp_users: 2）
+# Subtest: negative migrations fail self-check and roll back all schema changes
+    # Subtest: RLS
+    ok 1 - RLS
+      ---
+      duration_ms: 36.3744
+      type: 'test'
+      ...
+    # Subtest: SECURITY DEFINER
+    ok 2 - SECURITY DEFINER
+      ---
+      duration_ms: 24.1871
+      type: 'test'
+      ...
+    # Subtest: default table privileges
+    ok 3 - default table privileges
+      ---
+      duration_ms: 21.2327
+      type: 'test'
+      ...
+    1..3
+ok 453 - negative migrations fail self-check and roll back all schema changes
+  ---
+  duration_ms: 1603.6403
+  type: 'test'
+  ...
+# 自檢失敗：sf_mcp_daily_usage 未啟用 RLS
+# 自檢失敗：sf_mcp_quota_check() 必須使用 SECURITY DEFINER
+# 自檢失敗：anon 有 sf_mcp_daily_usage 的直接存取權
+# Subtest: MCP calls with real local SQL stop at 300 rows and at an account-specific limit of 20
+ok 454 - MCP calls with real local SQL stop at 300 rows and at an account-specific limit of 20
+  ---
+  duration_ms: 1354.0526
+  type: 'test'
+  ...
+# 第 7 次查詢（第 301 筆）被擋。 今日查詢明細已達上限（300 筆），每日 00:00 重置。如有盤點需求，請洽資料維護者。
+# 第 3 次查詢（第 21 筆）被擋。 今日查詢明細已達上限（20 筆），每日 00:00 重置。如有盤點需求，請洽資料維護者。
+# (node:19692) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: over-limit check blocks all four detail handlers and skips consumption
+ok 455 - over-limit check blocks all four detail handlers and skips consumption
+  ---
+  duration_ms: 172.3041
+  type: 'test'
+  ...
+# Subtest: quota check 42501 blocks; other errors log and let the handler run
+ok 456 - quota check 42501 blocks; other errors log and let the handler run
+  ---
+  duration_ms: 49.8326
+  type: 'test'
+  ...
+# Subtest: all eight successful handlers record exactly one call and their actual row usage
+ok 457 - all eight successful handlers record exactly one call and their actual row usage
+  ---
+  duration_ms: 77.8616
+  type: 'test'
+  ...
+# Subtest: handler failures skip consumption and consume failures keep the successful result
+ok 458 - handler failures skip consumption and consume failures keep the successful result
+  ---
+  duration_ms: 24.4103
+  type: 'test'
+  ...
+# Subtest: offset caps and company page size validate, forward the limit and stop pagination at the boundary
+ok 459 - offset caps and company page size validate, forward the limit and stop pagination at the boundary
+  ---
+  duration_ms: 23.8417
+  type: 'test'
+  ...
+# Subtest: price ranges cover every boundary, lists omit exact values and details retain them
+ok 460 - price ranges cover every boundary, lists omit exact values and details retain them
+  ---
+  duration_ms: 19.8496
+  type: 'test'
+  ...
+# Subtest: whoami includes usage on success and omits it when quota lookup fails
+ok 461 - whoami includes usage on success and omits it when quota lookup fails
+  ---
+  duration_ms: 29.3909
+  type: 'test'
+  ...
+# Subtest: per-minute enforcement is on by default and runs before the daily check
+ok 462 - per-minute enforcement is on by default and runs before the daily check
+  ---
+  duration_ms: 14.8678
+  type: 'test'
+  ...
+# Subtest: missing name null uses the unified label
+ok 463 - missing name null uses the unified label
+  ---
+  duration_ms: 5.0374
+  type: 'test'
+  ...
+# Subtest: missing name undefined uses the unified label
+ok 464 - missing name undefined uses the unified label
+  ---
+  duration_ms: 1.0576
+  type: 'test'
+  ...
+# Subtest: missing name "" uses the unified label
+ok 465 - missing name "" uses the unified label
+  ---
+  duration_ms: 0.362
+  type: 'test'
+  ...
+# Subtest: missing name "  " uses the unified label
+ok 466 - missing name "  " uses the unified label
+  ---
+  duration_ms: 0.4115
+  type: 'test'
+  ...
+# Subtest: missing name "缺" uses the unified label
+ok 467 - missing name "缺" uses the unified label
+  ---
+  duration_ms: 0.356
+  type: 'test'
+  ...
+# Subtest: missing name " 缺 " uses the unified label
+ok 468 - missing name " 缺 " uses the unified label
+  ---
+  duration_ms: 0.2004
+  type: 'test'
+  ...
+# Subtest: missing name "缺漏" uses the unified label
+ok 469 - missing name "缺漏" uses the unified label
+  ---
+  duration_ms: 0.2329
+  type: 'test'
+  ...
+# Subtest: missing name "待補" uses the unified label
+ok 470 - missing name "待補" uses the unified label
+  ---
+  duration_ms: 0.1457
+  type: 'test'
+  ...
+# Subtest: missing name "無" uses the unified label
+ok 471 - missing name "無" uses the unified label
+  ---
+  duration_ms: 0.1389
+  type: 'test'
+  ...
+# Subtest: missing name "-" uses the unified label
+ok 472 - missing name "-" uses the unified label
+  ---
+  duration_ms: 0.3161
+  type: 'test'
+  ...
+# Subtest: missing name "—" uses the unified label
+ok 473 - missing name "—" uses the unified label
+  ---
+  duration_ms: 1.7123
+  type: 'test'
+  ...
+# Subtest: missing name "N/A" uses the unified label
+ok 474 - missing name "N/A" uses the unified label
+  ---
+  duration_ms: 0.151
+  type: 'test'
+  ...
+# Subtest: missing name "NA" uses the unified label
+ok 475 - missing name "NA" uses the unified label
+  ---
+  duration_ms: 0.0798
+  type: 'test'
+  ...
+# Subtest: missing name "null" uses the unified label
+ok 476 - missing name "null" uses the unified label
+  ---
+  duration_ms: 0.0681
+  type: 'test'
+  ...
+# Subtest: missing name "?" uses the unified label
+ok 477 - missing name "?" uses the unified label
+  ---
+  duration_ms: 0.1247
+  type: 'test'
+  ...
+# Subtest: missing name "？" uses the unified label
+ok 478 - missing name "？" uses the unified label
+  ---
+  duration_ms: 0.0887
+  type: 'test'
+  ...
+# Subtest: provided name "律果簽" is preserved exactly
+ok 479 - provided name "律果簽" is preserved exactly
+  ---
+  duration_ms: 0.1074
+  type: 'test'
+  ...
+# Subtest: provided name "HackMD" is preserved exactly
+ok 480 - provided name "HackMD" is preserved exactly
+  ---
+  duration_ms: 0.0644
+  type: 'test'
+  ...
+# Subtest: provided name "AI" is preserved exactly
+ok 481 - provided name "AI" is preserved exactly
+  ---
+  duration_ms: 0.1242
+  type: 'test'
+  ...
+# Subtest: provided name " AI " is preserved exactly
+ok 482 - provided name " AI " is preserved exactly
+  ---
+  duration_ms: 0.0484
+  type: 'test'
+  ...
+# Subtest: provided name "缺工管理" is preserved exactly
+ok 483 - provided name "缺工管理" is preserved exactly
+  ---
+  duration_ms: 0.0466
+  type: 'test'
+  ...
+# Subtest: provided name "NA 平台" is preserved exactly
+ok 484 - provided name "NA 平台" is preserved exactly
+  ---
+  duration_ms: 0.0528
+  type: 'test'
+  ...
+# Subtest: provided name "Null Analytics" is preserved exactly
+ok 485 - provided name "Null Analytics" is preserved exactly
+  ---
+  duration_ms: 0.0477
+  type: 'test'
+  ...
+# Subtest: name A-Z keeps missing names last, stable, without sorting by the fallback label
+ok 486 - name A-Z keeps missing names last, stable, without sorting by the fallback label
+  ---
+  duration_ms: 18.3158
+  type: 'test'
+  ...
+# Subtest: all pages rendering solution names load the same helper and stylesheet
+ok 487 - all pages rendering solution names load the same helper and stylesheet
+  ---
+  duration_ms: 4.9122
+  type: 'test'
+  ...
+# Subtest: same-score groups put missing names last without changing relevance priority
+ok 488 - same-score groups put missing names last without changing relevance priority
+  ---
+  duration_ms: 1.2916
+  type: 'test'
+  ...
+# Subtest: price and company groups put missing names last without reordering the groups
+ok 489 - price and company groups put missing names last without reordering the groups
+  ---
+  duration_ms: 1.7744
+  type: 'test'
+  ...
+# Subtest: openROIModal normalizes stored names and preserves the missing style flag
+ok 490 - openROIModal normalizes stored names and preserves the missing style flag
+  ---
+  duration_ms: 6.8655
+  type: 'test'
+  ...
+# Subtest: company solution list button: null renders （名稱未提供） with correct missing style
+ok 491 - company solution list button: null renders （名稱未提供） with correct missing style
+  ---
+  duration_ms: 3.3435
+  type: 'test'
+  ...
+# Subtest: company solution list p: null renders （名稱未提供） with correct missing style
+ok 492 - company solution list p: null renders （名稱未提供） with correct missing style
+  ---
+  duration_ms: 0.8183
+  type: 'test'
+  ...
+# Subtest: company solution list button: "缺" renders （名稱未提供） with correct missing style
+ok 493 - company solution list button: "缺" renders （名稱未提供） with correct missing style
+  ---
+  duration_ms: 0.2707
+  type: 'test'
+  ...
+# Subtest: company solution list p: "缺" renders （名稱未提供） with correct missing style
+ok 494 - company solution list p: "缺" renders （名稱未提供） with correct missing style
+  ---
+  duration_ms: 0.144
+  type: 'test'
+  ...
+# Subtest: company solution list button: "HackMD" renders HackMD with correct missing style
+ok 495 - company solution list button: "HackMD" renders HackMD with correct missing style
+  ---
+  duration_ms: 0.5013
+  type: 'test'
+  ...
+# Subtest: company solution list p: "HackMD" renders HackMD with correct missing style
+ok 496 - company solution list p: "HackMD" renders HackMD with correct missing style
+  ---
+  duration_ms: 0.1904
+  type: 'test'
+  ...
+# Subtest: company solution list keeps the delisted filter and stable missing-last order within each source
+ok 497 - company solution list keeps the delisted filter and stable missing-last order within each source
+  ---
+  duration_ms: 0.6777
+  type: 'test'
+  ...
+# Subtest: source cards define exactly eleven distinct program types
+ok 498 - source cards define exactly eleven distinct program types
+  ---
+  duration_ms: 6.0752
+  type: 'test'
+  ...
+# Subtest: agri digital and AI halls each have a source card
+ok 499 - agri digital and AI halls each have a source card
+  ---
+  duration_ms: 0.284
+  type: 'test'
+  ...
+# Subtest: rainforest has its own source card with the manual verification disclosure
+ok 500 - rainforest has its own source card with the manual verification disclosure
+  ---
+  duration_ms: 1.2057
+  type: 'test'
+  ...
+# Subtest: subtitle and structure source counts match the number of source cards
+ok 501 - subtitle and structure source counts match the number of source cards
+  ---
+  duration_ms: 0.5141
+  type: 'test'
+  ...
+# Subtest: unclassified note refers to the listed sources
+ok 502 - unclassified note refers to the listed sources
+  ---
+  duration_ms: 0.6441
+  type: 'test'
+  ...
+# Subtest: delistedReason: 已下架_平台停止服務
+ok 503 - delistedReason: 已下架_平台停止服務
+  ---
+  duration_ms: 3.4103
+  type: 'test'
+  ...
+# Subtest: delistedReason: 已下架_資料異常
+ok 504 - delistedReason: 已下架_資料異常
+  ---
+  duration_ms: 0.2565
+  type: 'test'
+  ...
+# Subtest: delistedReason: 已下架_公司歇業佐證
+ok 505 - delistedReason: 已下架_公司歇業佐證
+  ---
+  duration_ms: 0.1252
+  type: 'test'
+  ...
+# Subtest: delistedReason: 已下架_商品頁失效已逐筆驗證
+ok 506 - delistedReason: 已下架_商品頁失效已逐筆驗證
+  ---
+  duration_ms: 1.2366
+  type: 'test'
+  ...
+# Subtest: delistedReason: 已下架_新創嚴選網官網完整清單連續三次未出現
+ok 507 - delistedReason: 已下架_新創嚴選網官網完整清單連續三次未出現
+  ---
+  duration_ms: 0.3152
+  type: 'test'
+  ...
+# Subtest: delistedReason: 已下架_個別方案下架已人工查證
+ok 508 - delistedReason: 已下架_個別方案下架已人工查證
+  ---
+  duration_ms: 0.1419
+  type: 'test'
+  ...
+# Subtest: delistedReason: 已下架_重複資料
+ok 509 - delistedReason: 已下架_重複資料
+  ---
+  duration_ms: 0.1247
+  type: 'test'
+  ...
+# Subtest: delistedReason uses the generic explanation for 已下架_測試
+ok 510 - delistedReason uses the generic explanation for 已下架_測試
+  ---
+  duration_ms: 0.1684
+  type: 'test'
+  ...
+# Subtest: delistedReason uses the generic explanation for 已下架
+ok 511 - delistedReason uses the generic explanation for 已下架
+  ---
+  duration_ms: 0.3628
+  type: 'test'
+  ...
+# Subtest: delistedReason returns null for "正常"
+ok 512 - delistedReason returns null for "正常"
+  ---
+  duration_ms: 0.4147
+  type: 'test'
+  ...
+# Subtest: delistedReason returns null for "疑似已下架_平台停止服務未逐筆驗證"
+ok 513 - delistedReason returns null for "疑似已下架_平台停止服務未逐筆驗證"
+  ---
+  duration_ms: 0.1428
+  type: 'test'
+  ...
+# Subtest: delistedReason returns null for null
+ok 514 - delistedReason returns null for null
+  ---
+  duration_ms: 0.1661
+  type: 'test'
+  ...
+# Subtest: delistedReason returns null for ""
+ok 515 - delistedReason returns null for ""
+  ---
+  duration_ms: 0.0843
+  type: 'test'
+  ...
+# Subtest: sourceStatusHelp names the platform when available
+ok 516 - sourceStatusHelp names the platform when available
+  ---
+  duration_ms: 0.1898
+  type: 'test'
+  ...
+# Subtest: sourceStatusHelp omits the parentheses when the platform name is missing
+ok 517 - sourceStatusHelp omits the parentheses when the platform name is missing
+  ---
+  duration_ms: 0.1859
+  type: 'test'
+  ...
+# Subtest: sourceStatusHelp describes a discontinued platform
+ok 518 - sourceStatusHelp describes a discontinued platform
+  ---
+  duration_ms: 0.1031
+  type: 'test'
+  ...
+# Subtest: sourceStatusHelp returns null for labels without help
+ok 519 - sourceStatusHelp returns null for labels without help
+  ---
+  duration_ms: 0.1657
+  type: 'test'
+  ...
+# Subtest: index.html and export-results-core.mjs return the same status labels
+    # Subtest: null
+    ok 1 - null
+      ---
+      duration_ms: 1.1331
+      type: 'test'
+      ...
+    # Subtest: ""
+    ok 2 - ""
+      ---
+      duration_ms: 5.0237
+      type: 'test'
+      ...
+    # Subtest: "正常"
+    ok 3 - "正常"
+      ---
+      duration_ms: 0.3
+      type: 'test'
+      ...
+    # Subtest: "疑似已下架_平台停止服務未逐筆驗證"
+    ok 4 - "疑似已下架_平台停止服務未逐筆驗證"
+      ---
+      duration_ms: 0.1673
+      type: 'test'
+      ...
+    # Subtest: "疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證"
+    ok 5 - "疑似已下架_雲市集工業館平台方案未持續上架未逐筆驗證"
+      ---
+      duration_ms: 0.1467
+      type: 'test'
+      ...
+    # Subtest: "疑似已下架_SME AI平台方案未持續上架未逐筆驗證"
+    ok 6 - "疑似已下架_SME AI平台方案未持續上架未逐筆驗證"
+      ---
+      duration_ms: 0.4557
+      type: 'test'
+      ...
+    # Subtest: "疑似已下架_農業雲市集數位館方案未持續上架未逐筆驗證"
+    ok 7 - "疑似已下架_農業雲市集數位館方案未持續上架未逐筆驗證"
+      ---
+      duration_ms: 0.531
+      type: 'test'
+      ...
+    # Subtest: "已下架_平台停止服務"
+    ok 8 - "已下架_平台停止服務"
+      ---
+      duration_ms: 0.255
+      type: 'test'
+      ...
+    # Subtest: "已下架_資料異常"
+    ok 9 - "已下架_資料異常"
+      ---
+      duration_ms: 0.2864
+      type: 'test'
+      ...
+    # Subtest: "已下架_公司歇業佐證"
+    ok 10 - "已下架_公司歇業佐證"
+      ---
+      duration_ms: 0.1985
+      type: 'test'
+      ...
+    # Subtest: "已下架_商品頁失效已逐筆驗證"
+    ok 11 - "已下架_商品頁失效已逐筆驗證"
+      ---
+      duration_ms: 7.4506
+      type: 'test'
+      ...
+    # Subtest: "已下架_新創嚴選網官網完整清單連續三次未出現"
+    ok 12 - "已下架_新創嚴選網官網完整清單連續三次未出現"
+      ---
+      duration_ms: 0.5646
+      type: 'test'
+      ...
+    # Subtest: "已下架_個別方案下架已人工查證"
+    ok 13 - "已下架_個別方案下架已人工查證"
+      ---
+      duration_ms: 0.1168
+      type: 'test'
+      ...
+    # Subtest: "已下架_重複資料"
+    ok 14 - "已下架_重複資料"
+      ---
+      duration_ms: 1.9554
+      type: 'test'
+      ...
+    # Subtest: "已下架"
+    ok 15 - "已下架"
+      ---
+      duration_ms: 0.4121
+      type: 'test'
+      ...
+    # Subtest: "其他狀態"
+    ok 16 - "其他狀態"
+      ---
+      duration_ms: 1.5466
+      type: 'test'
+      ...
+    1..16
+ok 520 - index.html and export-results-core.mjs return the same status labels
+  ---
+  duration_ms: 51.9192
+  type: 'test'
+  ...
+# (node:13788) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/solutions.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: solutions: same fixture produces deep-equal JSON, requests and logs
+ok 521 - solutions: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 32.5151
+  type: 'test'
+  ...
+# Subtest: solutions: missing SUPABASE_URL preserves 500 response
+ok 522 - solutions: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.8914
+  type: 'test'
+  ...
+# Subtest: solutions: missing SUPABASE_ANON_KEY preserves 500 response
+ok 523 - solutions: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.7389
+  type: 'test'
+  ...
+# Subtest: solutions: HTTP 500 preserves error handling
+ok 524 - solutions: HTTP 500 preserves error handling
+  ---
+  duration_ms: 4.7149
+  type: 'test'
+  ...
+# Subtest: solutions: network failure preserves error handling
+ok 525 - solutions: network failure preserves error handling
+  ---
+  duration_ms: 7.9907
+  type: 'test'
+  ...
+# Subtest: solutions: ignored legacy source flag airtable still reads Supabase
+ok 526 - solutions: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 3.9436
+  type: 'test'
+  ...
+# Subtest: solutions: ignored legacy source flag unset still reads Supabase
+ok 527 - solutions: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 10.5733
+  type: 'test'
+  ...
+# Subtest: solutions: ignored legacy source flag invalid-value still reads Supabase
+ok 528 - solutions: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 3.7193
+  type: 'test'
+  ...
+# Subtest: solutions: authentication behavior remains unchanged
+ok 529 - solutions: authentication behavior remains unchanged
+  ---
+  duration_ms: 0.8989
+  type: 'test'
+  ...
+# Subtest: cases: same fixture produces deep-equal JSON, requests and logs
+ok 530 - cases: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 3.1795
+  type: 'test'
+  ...
+# Subtest: cases: missing SUPABASE_URL preserves 500 response
+ok 531 - cases: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.7568
+  type: 'test'
+  ...
+# Subtest: cases: missing SUPABASE_ANON_KEY preserves 500 response
+ok 532 - cases: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.5338
+  type: 'test'
+  ...
+# Subtest: cases: HTTP 500 preserves error handling
+ok 533 - cases: HTTP 500 preserves error handling
+  ---
+  duration_ms: 2.6534
+  type: 'test'
+  ...
+# Subtest: cases: network failure preserves error handling
+ok 534 - cases: network failure preserves error handling
+  ---
+  duration_ms: 3.8888
+  type: 'test'
+  ...
+# Subtest: cases: ignored legacy source flag airtable still reads Supabase
+ok 535 - cases: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 2.3634
+  type: 'test'
+  ...
+# Subtest: cases: ignored legacy source flag unset still reads Supabase
+ok 536 - cases: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 1.2979
+  type: 'test'
+  ...
+# Subtest: cases: ignored legacy source flag invalid-value still reads Supabase
+ok 537 - cases: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 0.7406
+  type: 'test'
+  ...
+# Subtest: cases: authentication behavior remains unchanged
+ok 538 - cases: authentication behavior remains unchanged
+  ---
+  duration_ms: 0.4482
+  type: 'test'
+  ...
+# Subtest: stats: same fixture produces deep-equal JSON, requests and logs
+ok 539 - stats: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 5.3492
+  type: 'test'
+  ...
+# Subtest: stats: missing SUPABASE_URL preserves 500 response
+ok 540 - stats: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.6673
+  type: 'test'
+  ...
+# Subtest: stats: missing SUPABASE_ANON_KEY preserves 500 response
+ok 541 - stats: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.6332
+  type: 'test'
+  ...
+# Subtest: stats: HTTP 500 preserves error handling
+ok 542 - stats: HTTP 500 preserves error handling
+  ---
+  duration_ms: 0.6939
+  type: 'test'
+  ...
+# Subtest: stats: network failure preserves error handling
+ok 543 - stats: network failure preserves error handling
+  ---
+  duration_ms: 0.6489
+  type: 'test'
+  ...
+# Subtest: stats: ignored legacy source flag airtable still reads Supabase
+ok 544 - stats: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 3.2107
+  type: 'test'
+  ...
+# Subtest: stats: ignored legacy source flag unset still reads Supabase
+ok 545 - stats: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 2.0257
+  type: 'test'
+  ...
+# Subtest: stats: ignored legacy source flag invalid-value still reads Supabase
+ok 546 - stats: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 3.5875
+  type: 'test'
+  ...
+# Subtest: stats: authentication behavior remains unchanged
+ok 547 - stats: authentication behavior remains unchanged
+  ---
+  duration_ms: 2.4772
+  type: 'test'
+  ...
+# Subtest: companies: same fixture produces deep-equal JSON, requests and logs
+ok 548 - companies: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 7.6252
+  type: 'test'
+  ...
+# Subtest: companies: missing SUPABASE_URL preserves 500 response
+ok 549 - companies: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.6363
+  type: 'test'
+  ...
+# Subtest: companies: missing SUPABASE_ANON_KEY preserves 500 response
+ok 550 - companies: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.5494
+  type: 'test'
+  ...
+# Subtest: companies: HTTP 500 preserves error handling
+ok 551 - companies: HTTP 500 preserves error handling
+  ---
+  duration_ms: 1.6005
+  type: 'test'
+  ...
+# Subtest: companies: network failure preserves error handling
+ok 552 - companies: network failure preserves error handling
+  ---
+  duration_ms: 0.4872
+  type: 'test'
+  ...
+# Subtest: companies: ignored legacy source flag airtable still reads Supabase
+ok 553 - companies: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 0.7952
+  type: 'test'
+  ...
+# Subtest: companies: ignored legacy source flag unset still reads Supabase
+ok 554 - companies: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 1.0831
+  type: 'test'
+  ...
+# Subtest: companies: ignored legacy source flag invalid-value still reads Supabase
+ok 555 - companies: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 0.7006
+  type: 'test'
+  ...
+# Subtest: companies: authentication behavior remains unchanged
+ok 556 - companies: authentication behavior remains unchanged
+  ---
+  duration_ms: 0.3091
+  type: 'test'
+  ...
+# Subtest: companies: filter=startup output remains identical
+ok 557 - companies: filter=startup output remains identical
+  ---
+  duration_ms: 0.773
+  type: 'test'
+  ...
+# Subtest: companies: filter=award output remains identical
+ok 558 - companies: filter=award output remains identical
+  ---
+  duration_ms: 1.589
+  type: 'test'
+  ...
+# Subtest: companies: filter=large output remains identical
+ok 559 - companies: filter=large output remains identical
+  ---
+  duration_ms: 1.559
+  type: 'test'
+  ...
+# Subtest: companies: filter=ai output remains identical
+ok 560 - companies: filter=ai output remains identical
+  ---
+  duration_ms: 0.8464
+  type: 'test'
+  ...
+# Subtest: companies: filter=erp output remains identical
+ok 561 - companies: filter=erp output remains identical
+  ---
+  duration_ms: 0.9529
+  type: 'test'
+  ...
+# Subtest: companies: filter=sec output remains identical
+ok 562 - companies: filter=sec output remains identical
+  ---
+  duration_ms: 1.0995
+  type: 'test'
+  ...
+# Subtest: companies: filter=unknown output remains identical
+ok 563 - companies: filter=unknown output remains identical
+  ---
+  duration_ms: 1.0285
+  type: 'test'
+  ...
+# Subtest: companies: default 200-item limit remains identical
+ok 564 - companies: default 200-item limit remains identical
+  ---
+  duration_ms: 3.6023
+  type: 'test'
+  ...
+# Subtest: cases: non-GET still returns 405
+ok 565 - cases: non-GET still returns 405
+  ---
+  duration_ms: 0.5732
+  type: 'test'
+  ...
+# Subtest: cases: industry-code lookup failure retains raw codes
+ok 566 - cases: industry-code lookup failure retains raw codes
+  ---
+  duration_ms: 1.1492
+  type: 'test'
+  ...
+# Subtest: stats: maintenance failure remains null without failing other statistics
+ok 567 - stats: maintenance failure remains null without failing other statistics
+  ---
+  duration_ms: 5.7099
+  type: 'test'
+  ...
+# Subtest: solutions: optional data_source failure remains graceful
+ok 568 - solutions: optional data_source failure remains graceful
+  ---
+  duration_ms: 9.5059
+  type: 'test'
+  ...
+# Subtest: solutions: optional record_status HTTP failure preserves historical response
+ok 569 - solutions: optional record_status HTTP failure preserves historical response
+  ---
+  duration_ms: 2.8414
+  type: 'test'
+  ...
+# Subtest: solutions: optional record_status network failure preserves historical response
+ok 570 - solutions: optional record_status network failure preserves historical response
+  ---
+  duration_ms: 2.747
+  type: 'test'
+  ...
+# Subtest: solutions: loaded status retains suspected status and normalizes null to normal
+ok 571 - solutions: loaded status retains suspected status and normalizes null to normal
+  ---
+  duration_ms: 6.6173
+  type: 'test'
+  ...
+# Subtest: solutions: image URLs join by solution_id and include only active rows
+ok 572 - solutions: image URLs join by solution_id and include only active rows
+  ---
+  duration_ms: 5.5226
+  type: 'test'
+  ...
+# Subtest: solutions: image lookup 404 retains HTTP 200
+ok 573 - solutions: image lookup 404 retains HTTP 200
+  ---
+  duration_ms: 4.0998
+  type: 'test'
+  ...
+# Subtest: solutions: image lookup 403 retains HTTP 200
+ok 574 - solutions: image lookup 403 retains HTTP 200
+  ---
+  duration_ms: 5.7459
+  type: 'test'
+  ...
+# Subtest: solutions: image lookup network failure retains HTTP 200
+ok 575 - solutions: image lookup network failure retains HTTP 200
+  ---
+  duration_ms: 5.3637
+  type: 'test'
+  ...
+# Subtest: solutions: multi-page requests remain identical
+ok 576 - solutions: multi-page requests remain identical
+  ---
+  duration_ms: 76.1042
+  type: 'test'
+  ...
+# Subtest: stats: multi-page requests remain identical
+ok 577 - stats: multi-page requests remain identical
+  ---
+  duration_ms: 30.3903
+  type: 'test'
+  ...
+# Subtest: companies: multi-page requests remain identical
+ok 578 - companies: multi-page requests remain identical
+  ---
+  duration_ms: 13.6626
+  type: 'test'
+  ...
+# Subtest: solutions: exact-page 416 handling remains identical
+ok 579 - solutions: exact-page 416 handling remains identical
+  ---
+  duration_ms: 220.2836
+  type: 'test'
+  ...
+# Subtest: stats: exact-page 416 handling remains identical
+ok 580 - stats: exact-page 416 handling remains identical
+  ---
+  duration_ms: 43.4375
+  type: 'test'
+  ...
+# Subtest: four read APIs and public assets contain no live Airtable/source-switch references
+ok 581 - four read APIs and public assets contain no live Airtable/source-switch references
+  ---
+  duration_ms: 126.8697
+  type: 'test'
+  ...
+# Subtest: Tiffany theme defines all approved tokens
+ok 582 - Tiffany theme defines all approved tokens
+  ---
+  duration_ms: 8.5274
+  type: 'test'
+  ...
+# Subtest: index loads the theme before local CSS and uses approved text colors
+ok 583 - index loads the theme before local CSS and uses approved text colors
+  ---
+  duration_ms: 5.3638
+  type: 'test'
+  ...
+# Subtest: sources loads the theme before local CSS and uses approved text colors
+ok 584 - sources loads the theme before local CSS and uses approved text colors
+  ---
+  duration_ms: 1.348
+  type: 'test'
+  ...
+# Subtest: dashboard loads the theme before local CSS and uses approved text colors
+ok 585 - dashboard loads the theme before local CSS and uses approved text colors
+  ---
+  duration_ms: 2.1981
+  type: 'test'
+  ...
+# Subtest: manufacturing loads the theme before local CSS and uses approved text colors
+ok 586 - manufacturing loads the theme before local CSS and uses approved text colors
+  ---
+  duration_ms: 3.3061
+  type: 'test'
+  ...
+# Subtest: compare loads the theme before local CSS and uses approved text colors
+ok 587 - compare loads the theme before local CSS and uses approved text colors
+  ---
+  duration_ms: 0.7853
+  type: 'test'
+  ...
+# Subtest: strategy-guide loads the theme before local CSS and uses approved text colors
+ok 588 - strategy-guide loads the theme before local CSS and uses approved text colors
+  ---
+  duration_ms: 1.1285
+  type: 'test'
+  ...
+# Subtest: diagnosis loads the theme before local CSS and uses approved text colors
+ok 589 - diagnosis loads the theme before local CSS and uses approved text colors
+  ---
+  duration_ms: 1.4786
+  type: 'test'
+  ...
+# Subtest: feedback loads the theme before local CSS and uses approved text colors
+ok 590 - feedback loads the theme before local CSS and uses approved text colors
+  ---
+  duration_ms: 0.6884
+  type: 'test'
+  ...
+# Subtest: normal solution status keeps its PR \#310 colors
+ok 591 - normal solution status keeps its PR \#310 colors
+  ---
+  duration_ms: 1.7993
+  type: 'test'
+  ...
+1..591
+# tests 617
+# suites 0
+# pass 617
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8103.7341

@@ -1,0 +1,40 @@
+{
+  "base": "d9f1529645db57c1fcb84943e9912ad14d556565",
+  "branch": "feat/iam-p2-signup-request-2026-11-25",
+  "prBase": "feat/iam-p2-personal-login-2026-11-25",
+  "logs": {
+    "baseline": {
+      "sha256LF": "9937348e6bb78ed03a50f185be20cd818a5905292d6ffe6a325150faae02e70a",
+      "totals": {
+        "tests": 617,
+        "pass": 617,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "files": 25
+    },
+    "final": {
+      "sha256LF": "6e78acb9a1efbfa269aeb1d4008ad8c0cd31852cd9b38bd3f156db0f46c04ab7",
+      "totals": {
+        "tests": 694,
+        "pass": 694,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "files": 26
+    }
+  },
+  "protectedFilesSHA256LF": {
+    "api/solutions.js": "d19eab22b72860063c2c642633bc3c88bc06973c4d03921314b4b02edfad5b8d",
+    "api/ask.js": "297defddee20a9953c391d09e30f1ce8d990182f9f18d9945bf1596b47e15893",
+    "api/claude.js": "c592ffc11227ce7a3809ecd18e1dc977e56f70ac61e482a022022f3a513473a0",
+    "api/stats.js": "9ebaa4a6989a2603f026b1e37779e1ebb39445432aa9f074331775756bb2c61f"
+  },
+  "apiFunctionCount": 12,
+  "existingTestEdits": "Exact original text plus only authorized fixture fields, select and rewrite guard; all assertions otherwise identical",
+  "scope": "Original spec plus user-approved two fixture lines; no changes to migrations, supabase/functions or page script tags"
+}

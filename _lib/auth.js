@@ -85,7 +85,7 @@ export async function getUserRole(userId, { refresh = false } = {}) {
     if (!url || !key) throw new Error();
     const endpoint = new URL('/rest/v1/user_roles', url);
     endpoint.search = new URLSearchParams({
-      select: 'email,role,is_active,must_change_password', user_id: `eq.${userId}`, limit: '1',
+      select: 'email,role,is_active,must_change_password,signup_source,approved_at', user_id: `eq.${userId}`, limit: '1',
     }).toString();
     const response = await fetch(endpoint, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
     if (!response.ok) throw new Error();
@@ -94,9 +94,12 @@ export async function getUserRole(userId, { refresh = false } = {}) {
     if (!rows.length) return null;
     const row = rows[0];
     if (typeof row.email !== 'string' || !['super', 'admin', 'user'].includes(row.role)
-      || typeof row.is_active !== 'boolean' || typeof row.must_change_password !== 'boolean') throw new Error();
+      || typeof row.is_active !== 'boolean' || typeof row.must_change_password !== 'boolean'
+      || !['super', 'self'].includes(row.signup_source)
+      || (row.approved_at !== null && typeof row.approved_at !== 'string')) throw new Error();
     const result = { email: row.email, role: row.role, isActive: row.is_active,
-      mustChangePassword: row.must_change_password, fetchedAt: Date.now() };
+      mustChangePassword: row.must_change_password, signupSource: row.signup_source,
+      approvedAt: row.approved_at, fetchedAt: Date.now() };
     authCache.set(userId, result);
     return result;
   } catch {

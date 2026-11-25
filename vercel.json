@@ -18,6 +18,7 @@
     { "source": "/api/logout", "destination": "/api/auth?action=logout" },
     { "source": "/api/session-check", "destination": "/api/auth?action=session-check" },
     { "source": "/api/change-password", "destination": "/api/auth?action=change-password" },
+    { "source": "/api/signup", "destination": "/api/auth?action=signup" },
     { "source": "/api/company-search", "destination": "/api/companies?action=search" }
   ],
   "headers": [

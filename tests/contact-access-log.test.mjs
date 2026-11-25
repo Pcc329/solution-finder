@@ -67,7 +67,7 @@ async function invoke(options = {}) {
       const table = endpoint.pathname.split('/').at(-1);
       const call = { table, ...request };
       calls.push(call);
-      if (table === 'user_roles') return { ok: true, json: async () => [{ email: 'synthetic@iii.org.tw', role: 'user', is_active: true, must_change_password: false }] };
+      if (table === 'user_roles') return { ok: true, json: async () => [{ email: 'synthetic@iii.org.tw', role: 'user', is_active: true, must_change_password: false, signup_source: 'super', approved_at: '2026-11-25T06:54:39Z' }] };
       if (table === 'usage_logs') {
         call.row = JSON.parse(request.body);
         return { ok: true, status: 201 };
