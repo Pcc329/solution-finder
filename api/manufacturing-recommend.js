@@ -1,5 +1,6 @@
 // api/manufacturing-recommend.js - manufacturing recommendation summary
 import { requireAuth } from '../_lib/auth.js';
+import { recordUsage } from '../_lib/usage.js';
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -12,7 +13,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
-  if (!requireAuth(req, res)) return;
+  const auth = await requireAuth(req, res); if (!auth) return;
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
@@ -95,6 +96,7 @@ ${JSON.stringify(compactSolutions)}
       }),
     });
 
+    await recordUsage(req, auth, 'ai_manufacturing', { endpoint: 'manufacturing-recommend', ok: response.ok, status: response.status });
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Manufacturing recommend API error:', response.status, errorText);

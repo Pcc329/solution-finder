@@ -8,7 +8,7 @@ import { fixture } from './fixtures/supabase-read.fixture.mjs';
 // 2026-11-18 歷史重寫：原 a64548b → 531d0cb（PR #204）
 const MAIN_REVISION = '531d0cb9a9765ca7d0277ee8098bdbfad8415e1f';
 const root = new URL('../', import.meta.url);
-const authUrl = new URL('../_lib/auth.js', import.meta.url).href;
+const authUrl = new URL('./fixtures/iam-v1-auth.mjs', import.meta.url).href;
 const apis = ['solutions', 'cases', 'stats', 'companies'];
 const originals = {}, current = {};
 for (const api of apis) {

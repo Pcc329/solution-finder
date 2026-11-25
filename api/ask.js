@@ -1,5 +1,6 @@
 // api/ask.js — Vercel Serverless Function
 import { requireAuth } from '../_lib/auth.js';
+import { recordUsage } from '../_lib/usage.js';
 import { insertSupabase } from '../_lib/supabase-insert.js';
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,7 +14,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
-  if (!requireAuth(req, res)) return;
+  const auth = await requireAuth(req, res); if (!auth) return;
 
   async function writeLog({ question, resultCount, searchQuery, answerLength }) {
     await insertSupabase('ask_logs', {
@@ -108,6 +109,7 @@ export default async function handler(req, res) {
       }),
     });
 
+    await recordUsage(req, auth, 'ai_ask', { endpoint: 'ask', ok: response.ok, status: response.status });
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Anthropic API error: ${response.status} ${errorText}`);

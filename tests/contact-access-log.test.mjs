@@ -3,13 +3,14 @@ import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import test from 'node:test';
 import handler from '../api/company-detail.js';
-import { createSessionValue } from '../_lib/auth.js';
+import { createSessionValue, createUserSessionValue, resetAuthCacheForTests } from '../_lib/auth.js';
+const userId = '11111111-2222-4333-8444-555555555555';
 
 // All inputs are synthetic. Compare the entire payload with the actual main baseline.
 // 2026-11-18 歷史重寫：原 4d47b89 → 041f14d（PR #259 merge-base）
 const source = execFileSync('git', ['show', '041f14d9205a67f2eb9893dedfbfd58f10c02e3f:api/company-detail.js'], {
   cwd: new URL('../', import.meta.url), encoding: 'utf8',
-}).replace("'../_lib/auth.js'", JSON.stringify(new URL('../_lib/auth.js', import.meta.url).href));
+}).replace("'../_lib/auth.js'", JSON.stringify(new URL('./fixtures/iam-v1-auth.mjs', import.meta.url).href));
 const baseline = (await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`)).default;
 const fixtures = {
   companies: [{ company_id: 'synthetic-company', company_name: 'Synthetic company', capital: 100 }],
@@ -25,20 +26,23 @@ async function invoke(options = {}) {
     SUPABASE_URL: 'https://synthetic-supabase.invalid',
     SUPABASE_SERVICE_ROLE_KEY: 'synthetic-service-role',
     SESSION_SECRET: 'synthetic-session-secret', API_KEYS_ALLOWLIST: 'synthetic-api-key',
+    SHARED_PASSWORD_ENABLED: options.auth === 'shared' ? 'true' : '',
     LOG_HASH_SALT: options.salt ?? 'synthetic-log-salt',
   };
   const savedEnv = Object.fromEntries(Object.keys(env).map(key => [key, process.env[key]]));
   const originalFetch = globalThis.fetch, originalError = console.error;
   const calls = [], logs = [];
   const ip = options.ip ?? `synthetic-ip-${++ipCounter}`;
-  const session = createSessionValue(Date.now() + 60_000, env.SESSION_SECRET);
-  const auth = options.auth ?? 'session';
+  const auth = options.auth ?? (options.missingConfig ? 'api_key' : 'session');
+  const session = options.baseline || auth === 'shared'
+    ? createSessionValue(Date.now() + 60_000, env.SESSION_SECRET)
+    : createUserSessionValue(Date.now() + 60_000, userId, env.SESSION_SECRET);
   const req = {
     method: options.method ?? 'GET', query: { company_id: options.companyId ?? 'synthetic-company' },
     headers: { ...(options.socket ? {} : { 'x-forwarded-for': `${ip}, synthetic-proxy` }),
       ...(['api_key', 'both'].includes(auth) ? { 'x-api-key': env.API_KEYS_ALLOWLIST } : {}) },
     socket: { remoteAddress: ip },
-    cookies: ['session', 'both'].includes(auth) ? { sf_session: session } : {},
+    cookies: ['session', 'both', 'shared'].includes(auth) ? { sf_session: session } : {},
   };
   const res = {
     statusCode: undefined, body: undefined,
@@ -53,6 +57,7 @@ async function invoke(options = {}) {
   let postSettled = false;
   try {
     Object.assign(process.env, env);
+    resetAuthCacheForTests();
     if (options.noSalt) delete process.env.LOG_HASH_SALT;
     if (options.missingConfig) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     console.error = (...args) => logs.push(args.join(' '));
@@ -62,6 +67,11 @@ async function invoke(options = {}) {
       const table = endpoint.pathname.split('/').at(-1);
       const call = { table, ...request };
       calls.push(call);
+      if (table === 'user_roles') return { ok: true, json: async () => [{ email: 'synthetic@iii.org.tw', role: 'user', is_active: true, must_change_password: false }] };
+      if (table === 'usage_logs') {
+        call.row = JSON.parse(request.body);
+        return { ok: true, status: 201 };
+      }
       if (request.method === 'POST') {
         assert.equal(table, 'contact_access_logs');
         call.row = JSON.parse(request.body);
@@ -82,7 +92,8 @@ async function invoke(options = {}) {
       return { ok: true, json: async () => structuredClone(data) };
     };
     await (options.baseline ? baseline : handler)(req, res);
-    return { res, calls, writes: calls.filter(call => call.method === 'POST'), logs, ip, session };
+    return { res, calls, writes: calls.filter(call => call.table === 'contact_access_logs'),
+      usage: calls.filter(call => call.table === 'usage_logs'), logs, ip, session };
   } finally {
     globalThis.fetch = originalFetch;
     console.error = originalError;
@@ -92,13 +103,15 @@ async function invoke(options = {}) {
   }
 }
 
-test('1. success awaits exactly one service-role POST with complete typed fields from filtered contacts', async () => {
-  const { res, writes, logs } = await invoke();
+test('1. success awaits one contact log plus one usage log with complete typed fields from filtered contacts', async () => {
+  const { res, writes, usage, logs } = await invoke();
   assert.equal(res.statusCode, 200);
   assert.deepEqual(res.body, (await invoke({ baseline: true })).res.body);
   assert.equal(writes.length, 1);
+  assert.equal(usage.length, 1);
+  assert.deepEqual(usage[0].row, { user_id: userId, auth_method: 'user', action: 'contact_view', detail: { company_id: 'synthetic-company' }, ip_hash: writes[0].row.ip_hash });
   assert.deepEqual(Object.keys(writes[0].row).sort(), [
-    'company_id', 'contact_count', 'has_email', 'has_mobile', 'auth_method', 'session_hash', 'ip_hash',
+    'company_id', 'contact_count', 'has_email', 'has_mobile', 'auth_method', 'user_id', 'session_hash', 'ip_hash',
   ].sort());
   assert.deepEqual(writes[0].headers, {
     apikey: 'synthetic-service-role', Authorization: 'Bearer synthetic-service-role',
@@ -108,6 +121,7 @@ test('1. success awaits exactly one service-role POST with complete typed fields
   assert.equal(row.company_id, 'synthetic-company');
   assert.equal(row.contact_count, res.body.contacts.length);
   assert.equal(row.auth_method, 'session');
+  assert.equal(row.user_id, userId);
   assert.equal(row.has_email, true);
   assert.equal(row.has_mobile, true);
   for (const key of ['session_hash', 'ip_hash']) assert.match(row[key], /^[a-f0-9]{64}$/);
@@ -175,9 +189,11 @@ test('6. non-200 responses never POST; the thirty-first request retains the exis
     [{ readFailure: 'contacts' }, 500], [{ readFailure: 'awards' }, 500],
     [{ method: 'OPTIONS', auth: 'none' }, 204], [{ method: 'POST' }, 405],
   ]) {
-    const { res, writes } = await invoke(options);
+    const { res, writes, usage, calls } = await invoke(options);
     assert.equal(res.statusCode, expected);
     assert.equal(writes.length, 0);
+    assert.equal(usage.length, 0);
+    assert.equal(calls.filter(call => call.method === 'POST').length, 0);
   }
   const ip = `synthetic-rate-limit-${++ipCounter}`;
   for (let i = 0; i < 30; i += 1) assert.equal((await invoke({ ip, notFound: true })).res.statusCode, 404);
@@ -190,9 +206,19 @@ test('7. API-key authentication has no session hash; a valid session takes prece
   const { res, writes } = await invoke({ auth: 'api_key' });
   assert.equal(res.statusCode, 200);
   assert.equal(writes[0].row.auth_method, 'api_key');
+  assert.equal(writes[0].row.user_id, null);
   assert.equal(writes[0].row.session_hash, null);
   assert.match(writes[0].row.ip_hash, /^[a-f0-9]{64}$/);
   const both = await invoke({ auth: 'both' });
   assert.equal(both.writes[0].row.auth_method, 'session');
   assert.match(both.writes[0].row.session_hash, /^[a-f0-9]{64}$/);
+});
+
+test('8. explicitly enabled shared v1 session remains compatible with contact and usage logging', async () => {
+  const { res, writes, usage } = await invoke({ auth: 'shared' });
+  assert.equal(res.statusCode, 200);
+  assert.equal(writes[0].row.auth_method, 'session');
+  assert.equal(writes[0].row.user_id, null);
+  assert.equal(usage[0].row.auth_method, 'shared');
+  assert.equal(usage[0].row.user_id, null);
 });

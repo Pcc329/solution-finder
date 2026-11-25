@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import test from 'node:test';
 import ask from '../api/ask.js';
 import claude from '../api/claude.js';
@@ -31,7 +31,7 @@ async function invoke(api, mode = 'success', options = {}) {
     SUPABASE_ANON_KEY: 'synthetic-anon-must-not-be-used',
     ANTHROPIC_API_KEY: 'synthetic-anthropic',
     CLAUDE_API_KEY: 'synthetic-claude',
-    API_KEYS_ALLOWLIST: 'synthetic-auth',
+    API_KEYS_ALLOWLIST: 'synthetic-auth', LOG_HASH_SALT: 'synthetic-log-salt',
   };
   const oldEnv = Object.fromEntries(Object.keys(env).map(key => [key, process.env[key]]));
   const originalFetch = globalThis.fetch;
@@ -47,8 +47,9 @@ async function invoke(api, mode = 'success', options = {}) {
       const endpoint = String(url);
       calls.push({ endpoint, ...request, row: JSON.parse(request.body) });
       if (endpoint === 'https://api.anthropic.com/v1/messages') {
-        return { ok: true, json: async () => ({ content: [{ type: 'text', text: api === 'ask' ? answer : JSON.stringify(searchResult) }] }) };
+        return { ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text: api === 'ask' ? answer : JSON.stringify(searchResult) }] }) };
       }
+      if (endpoint.endsWith('/rest/v1/usage_logs')) return { ok: true, status: 201 };
       assert.equal(endpoint, `${env.SUPABASE_URL}/rest/v1/${tables[api]}`);
       if (mode === 'network-error') throw new Error(privateMarker);
       if (mode === 'success') {
@@ -79,7 +80,7 @@ async function invoke(api, mode = 'success', options = {}) {
       end() { return this; },
     };
     await handlers[api](req, res);
-    return { res, calls, logs };
+    return { res, calls, logs, ip: req.headers['x-forwarded-for'] };
   } finally {
     globalThis.fetch = originalFetch;
     console.error = originalError;
@@ -93,10 +94,18 @@ async function invoke(api, mode = 'success', options = {}) {
 for (const api of Object.keys(handlers)) {
   for (const mode of ['success', '400', '500', '429', 'network-error', 'invalid-json', 'unsafe-code', 'missing-url', 'missing-key']) {
     test(`${api}: ${mode} preserves response and safe single-write behavior`, async () => {
-      const { res, calls, logs } = await invoke(api, mode);
+      const { res, calls, logs, ip } = await invoke(api, mode);
       const missingConfig = mode.startsWith('missing-');
-      const storageCalls = calls.filter(call => call.endpoint.includes('/rest/v1/'));
+      const storageCalls = calls.filter(call => call.endpoint.endsWith(`/rest/v1/${tables[api]}`));
+      const usageCalls = calls.filter(call => call.endpoint.endsWith('/rest/v1/usage_logs'));
+      assert.equal(usageCalls.length, missingConfig || api === 'feedback' ? 0 : 1);
+      if (usageCalls.length) {
+        assert.deepEqual(usageCalls[0].row, { user_id: null, auth_method: 'api_key',
+          action: api === 'ask' ? 'ai_ask' : 'ai_search', detail: { endpoint: api, ok: true, status: 200 }, ip_hash: createHmac('sha256', 'synthetic-log-salt').update(ip).digest('hex') });
+        assert.deepEqual(calls.map(call => call.endpoint), ['https://api.anthropic.com/v1/messages', 'https://synthetic-supabase.invalid/rest/v1/usage_logs', `https://synthetic-supabase.invalid/rest/v1/${tables[api]}`]);
+      }
       assert.equal(storageCalls.length, missingConfig ? 0 : 1);
+      assert.equal(calls.filter(call => call.endpoint.includes('/rest/v1/')).length, storageCalls.length + usageCalls.length);
       assert.equal(calls.some(call => call.endpoint.includes('airtable')), false);
       if (storageCalls.length) {
         const call = storageCalls[0];
@@ -115,11 +124,14 @@ for (const api of Object.keys(handlers)) {
         assert.deepEqual(res.body, api === 'ask' ? { answer } : api === 'claude' ? searchResult : { ok: true });
       }
       assert.equal(calls.filter(call => call.endpoint.includes('anthropic')).length, api === 'feedback' ? 0 : 1);
-      assert.equal(logs.length, mode === 'success' || (api === 'feedback' && missingConfig) ? 0 : 1);
+      const usageErrors = logs.filter(log => log.includes('table=usage_logs '));
+      assert.equal(usageErrors.length, api !== 'feedback' && missingConfig ? 1 : 0);
+      const businessLogs = logs.filter(log => !log.includes('table=usage_logs '));
+      assert.equal(businessLogs.length, mode === 'success' || (api === 'feedback' && missingConfig) ? 0 : 1);
       for (const log of logs) {
         const status = missingConfig || mode === 'network-error' ? 'unknown' : mode === '500' ? '500' : mode === '429' ? '429' : '400';
         const code = missingConfig || ['network-error', 'invalid-json', 'unsafe-code'].includes(mode) ? 'unknown' : '23514';
-        assert.match(log, new RegExp(`^\\[Supabase Error\\] status=${status} table=${tables[api]} code=${code} time=\\d{4}-\\d{2}-\\d{2}T.+Z$`));
+        assert.match(log, new RegExp(`^\\[Supabase Error\\] status=${status} table=${log.includes('table=usage_logs ') ? 'usage_logs' : tables[api]} code=${code} time=\\d{4}-\\d{2}-\\d{2}T.+Z$`));
         assert.equal(log.includes(privateMarker), false);
         for (const field of ['message=', 'details=', 'hint=', 'endpoint=', 'synthetic-service-role']) assert.equal(log.includes(field), false);
       }
@@ -186,7 +198,7 @@ for (const api of ['ask', 'claude']) {
 test('ask: absent search query remains an empty string in storage', async () => {
   const { res, calls } = await invoke('ask', 'success', { body: { ...bodies.ask, searchQuery: '' } });
   assert.equal(res.statusCode, 200);
-  assert.equal(calls[1].row.search_query, '');
+  assert.equal(calls.find(call => call.endpoint.endsWith('/rest/v1/ask_logs')).row.search_query, '');
 });
 
 test('migration is byte-for-byte identical to the supplied SQL', () => {

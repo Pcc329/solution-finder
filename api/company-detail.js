@@ -1,6 +1,7 @@
 // api/company-detail.js - Vercel Serverless Function
 import crypto from 'node:crypto';
-import { requireAuth, verifySession } from '../_lib/auth.js';
+import { requireAuth } from '../_lib/auth.js';
+import { recordUsage } from '../_lib/usage.js';
 import { insertSupabase } from '../_lib/supabase-insert.js';
 const OVERFLOW_CAPITAL_THRESHOLD = 2147483647;
 const VERIFIED_MATCH_METHODS = new Set(['EXACT', 'PARTIAL', 'PARTIAL_GROUP']);
@@ -62,8 +63,8 @@ function hashForLog(value) {
   return salt ? crypto.createHmac('sha256', salt).update(value).digest('hex') : null;
 }
 
-function buildAccessLogRow(req, companyId, contacts, clientIp) {
-  const sessionAuth = verifySession(req);
+function buildAccessLogRow(req, companyId, contacts, clientIp, auth) {
+  const sessionAuth = auth.method === 'user' || auth.method === 'shared';
   if (!process.env.LOG_HASH_SALT) {
     console.error('[Contact Access Log Error] code=missing_hash_salt');
   }
@@ -73,6 +74,7 @@ function buildAccessLogRow(req, companyId, contacts, clientIp) {
     has_email: contacts.some(contact => Boolean(contact.email)),
     has_mobile: contacts.some(contact => Boolean(contact.mobile)),
     auth_method: sessionAuth ? 'session' : 'api_key',
+    user_id: auth.method === 'user' ? auth.userId : null,
     session_hash: sessionAuth ? hashForLog(req.cookies.sf_session) : null,
     ip_hash: hashForLog(clientIp),
   };
@@ -91,7 +93,7 @@ export default async function handler(req, res) {
   if (!checkRateLimit(clientIp)) {
     return res.status(429).json({ error: '查詢過於頻繁，請稍後再試' });
   }
-  if (!requireAuth(req, res)) return;
+  const auth = await requireAuth(req, res); if (!auth) return;
 
   const companyId = String(req.query?.company_id || '').trim();
   if (!companyId) {
@@ -176,10 +178,11 @@ export default async function handler(req, res) {
     // Await before responding: Vercel may stop execution after the response.
     // Keep all logging failures isolated from the existing response.
     try {
-      await insertSupabase('contact_access_logs', buildAccessLogRow(req, companyId, responseBody.contacts, clientIp));
+      await insertSupabase('contact_access_logs', buildAccessLogRow(req, companyId, responseBody.contacts, clientIp, auth));
     } catch {
       console.error('[Contact Access Log Error] code=unknown');
     }
+    await recordUsage(req, auth, 'contact_view', { company_id: companyId });
     return res.status(200).json(responseBody);
   } catch (err) {
     console.error('Company detail API error:', err);

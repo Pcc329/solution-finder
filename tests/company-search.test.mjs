@@ -4,7 +4,8 @@ import { execFileSync } from 'node:child_process';
 import handler from '../_lib/company-search.js';
 import companiesHandler from '../api/companies.js';
 import { fixture as graphFixture } from './fixtures/supabase-read.fixture.mjs';
-import { createSessionValue } from '../_lib/auth.js';
+import { createUserSessionValue, resetAuthCacheForTests } from '../_lib/auth.js';
+const userId = '11111111-2222-4333-8444-555555555555';
 
 const company = { company_id: '10000001', company_name: '合成科技股份有限公司', city: '測試市',
   region: '測試區', is_startup: true, logo_url: null, tax_primary_name: '合成行業', it_code_rank: 1,
@@ -46,6 +47,7 @@ async function invoke(q = company.company_id, options = {}) {
   };
   try {
     Object.assign(process.env, env);
+    resetAuthCacheForTests();
     if (options.now !== undefined) Date.now = () => options.now;
     if (options.missing) delete process.env[options.missing];
     if (options.missingWriteKey) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -56,6 +58,7 @@ async function invoke(q = company.company_id, options = {}) {
       const table = url.pathname.split('/').at(-1);
       const call = { table, url, ...request };
       calls.push(call);
+      if (table === 'user_roles') return { ok: true, json: async () => [{ email: 'synthetic@iii.org.tw', role: 'user', is_active: true, must_change_password: false }] };
       if (request.method === 'POST') {
         assert.equal(table, 'search_logs');
         call.row = JSON.parse(request.body);
@@ -107,11 +110,12 @@ async function invoke(q = company.company_id, options = {}) {
         ...(options.auth === false || options.auth === 'session' ? {} : { 'x-api-key': env.API_KEYS_ALLOWLIST }) },
       socket: { remoteAddress: identity },
       cookies: options.auth === 'session'
-        ? { sf_session: createSessionValue(Date.now() + 60_000, env.SESSION_SECRET) } : {},
+        ? { sf_session: createUserSessionValue(Date.now() + 60_000, userId, env.SESSION_SECRET) } : {},
     };
     await (options.handler ?? handler)(req, res);
     return { res, calls, logs, responseHeaders, writes: calls.filter(call => call.method === 'POST'),
-      reads: calls.filter(call => call.method !== 'POST') };
+      authReads: calls.filter(call => call.table === 'user_roles'),
+      reads: calls.filter(call => call.method !== 'POST' && call.table !== 'user_roles') };
   } finally {
     globalThis.fetch = originalFetch;
     console.error = originalError;
@@ -303,9 +307,11 @@ test('11. each 200 awaits one complete search log; storage errors preserve paylo
   }
 });
 
-test('12. every read uses anon credentials, including session-authenticated requests and optional tables', async () => {
+test('12. every business read uses anon credentials; v2 role lookup alone uses service role', async () => {
   for (const options of [{}, { auth: 'session' }, { companies: [] }]) {
-    const { res, reads } = await invoke(undefined, options); assert.equal(res.statusCode, 200);
+    const { res, reads, authReads } = await invoke(undefined, options); assert.equal(res.statusCode, 200);
+    assert.equal(authReads.length, options.auth === 'session' ? 1 : 0);
+    for (const call of authReads) assert.deepEqual(call.headers, { apikey: 'synthetic-service-role', Authorization: 'Bearer synthetic-service-role' });
     for (const call of reads) {
       assert.equal(call.headers.apikey, 'synthetic-anon'); assert.equal(call.headers.Authorization, 'Bearer synthetic-anon');
       assert.equal(Object.values(call.headers).includes('synthetic-service-role'), false);
@@ -336,7 +342,7 @@ test('14. companies without search action preserves main graph response and read
     { cwd: new URL('../', import.meta.url), encoding: 'utf8' });
   // PR 3 intentionally changes only the graph Cache-Control policy from the pinned main baseline.
   const resolved = source.replace("'s-maxage=300'", "'private, no-store'")
-    .replace("'../_lib/auth.js'", JSON.stringify(new URL('../_lib/auth.js', import.meta.url).href));
+    .replace("'../_lib/auth.js'", JSON.stringify(new URL('./fixtures/iam-v1-auth.mjs', import.meta.url).href));
   const baseline = (await import(`data:text/javascript;base64,${Buffer.from(resolved).toString('base64')}`)).default;
   async function graph(api, query, authenticated = true, configured = true) {
     const env = { SUPABASE_URL: 'https://synthetic-supabase.invalid', SUPABASE_ANON_KEY: 'synthetic-anon',

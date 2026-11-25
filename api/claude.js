@@ -1,6 +1,7 @@
 // api/claude.js — Vercel Serverless Function
 // 接收前端的搜尋語句，用 Claude 解析成篩選條件，回傳 JSON
 import { requireAuth } from '../_lib/auth.js';
+import { recordUsage } from '../_lib/usage.js';
 import { insertSupabase } from '../_lib/supabase-insert.js';
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,7 +10,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  if (!requireAuth(req, res)) return;
+  const auth = await requireAuth(req, res); if (!auth) return;
 
   const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
   if (!CLAUDE_API_KEY) return res.status(500).json({ error: 'CLAUDE_API_KEY not configured' });
@@ -98,6 +99,7 @@ export default async function handler(req, res) {
       }),
     });
 
+    await recordUsage(req, auth, 'ai_search', { endpoint: 'claude', ok: response.ok, status: response.status });
     if (!response.ok) {
       const errorData = await response.text();
       console.error('Claude API error:', response.status, errorData);
