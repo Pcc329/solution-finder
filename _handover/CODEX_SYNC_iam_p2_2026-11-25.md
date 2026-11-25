@@ -5,8 +5,8 @@
 - Repo：`Pcc329/solution-finder`；工作目錄：`C:\Users\S25036\Documents\Codex\repos\solution-finder`。未另建 clone。
 - 依使用者要求先執行 `git fetch origin`；核對 `origin/main = 2675eb5498271a65ae6e597ecbb4d2b07e28e589`（PR #318）後才建立分支。
 - 分支：`feat/iam-p2-personal-login-2026-11-25`。
-- PR：建立後補記；不得 merge、不得啟用 auto-merge。Preview 實測由 PPC 依規格六執行，本次未連線正式 Supabase、Vercel 或 Anthropic。
-- 程式、測試與證據 commit SHA：提交後補記。最後文件 commit 會再補 PR 連結；本文件無法自我包含自身 commit SHA，最終分支 HEAD 以 PR commits 與交付回覆為準。
+- PR：[PR #319](https://github.com/Pcc329/solution-finder/pull/319)，base `main`，狀態 open、未 merge，未啟用 auto-merge。Preview 實測由 PPC 依規格六執行，本次未連線正式 Supabase、Vercel 或 Anthropic。
+- 分支實作、測試與證據 commit SHA：`8e491c9092dcb04374913d2df6e16e91028e88ab`。本次補記 PR 連結為後續文件 commit；最終分支 HEAD 以 [PR commits](https://github.com/Pcc329/solution-finder/pull/319/commits) 與交付回覆所列 SHA 為準（文件不能自我包含自身 commit SHA）。
 
 ## 本次行為
 
@@ -139,3 +139,10 @@ index 62a06e4..7b52d49 100644
 -  if (!requireAuth(req, res)) return;
 +  if (!(await requireAuth(req, res))) return;
 ```
+
+## 提交後確認
+
+- `git diff --cached --check` 通過，29 個檔案皆明確列名 stage。
+- 四份 log 已逐一用 `git show HEAD:<path>` 的原始 bytes 再驗證為 LF，SHA-256 全部符合 verification.json 與本文件。
+- 實作 commit 一般 push 至指定功能分支，未推 main、未 force。PR #319 建立時 base SHA 仍為 `2675eb5498271a65ae6e597ecbb4d2b07e28e589`，head SHA 即上述實作 commit。
+- 補記 PR 後的 commit 僅更新本 SYNC，程式、測試及 evidence log 不再變更；沒有因文件補記重跑相同測試。
