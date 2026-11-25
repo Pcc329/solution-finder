@@ -6,7 +6,8 @@
 - 建分支前已執行 `git fetch origin`，確認 `origin/feat/iam-p2-personal-login-2026-11-25` 為 `d9f1529645db57c1fcb84943e9912ad14d556565`。工作目錄乾淨後才建立新分支。
 - 新分支：`feat/iam-p2-signup-request-2026-11-25`。
 - PR base：`feat/iam-p2-personal-login-2026-11-25`，疊在 [PR #319](https://github.com/Pcc329/solution-finder/pull/319)；不 merge，不推 main 或 base 分支。
-- PR 連結及提交 SHA 於建 PR 後補記於本文件末尾。本文不能自我包含自身 commit SHA；最後文件 commit 以 PR commits、分支 HEAD 及交付回覆所列 SHA 為準。
+- PR：[PR #320](https://github.com/Pcc329/solution-finder/pull/320)，base `feat/iam-p2-personal-login-2026-11-25`；已確認 base SHA 仍為 `d9f1529645db57c1fcb84943e9912ad14d556565`，open、未 merge。
+- 程式、測試、證據與本文件初版 commit：`b2a2ea90f65bd6dc7b7b2773119691c73698cc6b`。最後一筆僅補記交付資訊的文件 commit，見 [PR commits](https://github.com/Pcc329/solution-finder/pull/320/commits) 與 PR 描述所列最終 HEAD SHA；文件無法自我包含自身 commit SHA。
 
 ## 完成行為與修改檔案
 
@@ -83,3 +84,9 @@ order by u.created_at desc;
 ## 待 PPC Preview 驗收
 
 本 PR 保持未合併。由 PPC 依規格六在 Preview 驗證申請、核准前登入訊息、SQL 核准後登入無需改密碼，以及同 email 重複申請 409。正式資料庫與 Supabase 公開註冊設定均由 PPC 維護，本次沒有操作。
+
+## 提交後確認
+
+- 14 個檔案逐一列名 stage，`git diff --cached --check` 通過；兩份完整 log 已使用 `git show HEAD:<path>` 原始 blob bytes 再驗證，均為 LF 且 SHA-256 符合上表。
+- 實作 commit 已一般 push 至新分支，未推 main 或 PR #319 分支、未 force。已建立 PR #320，明確 base 為 PR #319 的功能分支。
+- 本次後續文件 commit 僅補記 PR 與交付資訊，程式、測試和 evidence 無變更，無須重跑相同測試。最終文件 commit SHA 同時記錄於 PR 描述與交付回覆。
