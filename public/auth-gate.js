@@ -9,6 +9,8 @@
     gate.id = 'sf-auth-gate';
     const changing = mode === 'change';
     const shared = mode === 'shared';
+    const signingUp = mode === 'signup';
+    const completed = mode === 'signup-success';
     gate.innerHTML = `
       <style>
         #sf-auth-gate { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; padding: 24px; overflow-y: auto; background: rgba(15, 23, 42, 0.72); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif; }
@@ -21,23 +23,36 @@
         #sf-auth-gate button:disabled { cursor: wait; opacity: 0.7; }
         #sf-auth-gate [role="alert"] { min-height: 20px; margin: 12px 0 0; color: #c2410c; font-size: 14px; }
         #sf-auth-gate .sf-auth-notice { margin-top: 20px; font-size: 13px; }
-        #sf-auth-gate .sf-auth-switch { display: block; margin-top: 16px; color: #087c70; text-align: center; }
+        #sf-auth-gate .sf-auth-switch, #sf-auth-gate .sf-auth-signup, #sf-auth-gate .sf-auth-back { display: block; margin-top: 16px; color: #087c70; text-align: center; }
       </style>
       <div class="sf-auth-card" role="dialog" aria-modal="true" aria-labelledby="sf-auth-title">
-        <form novalidate>
+        ${completed ? '<h1 id="sf-auth-title">內部系統登入</h1><p>申請已送出。請通知系統管理者核准，核准後即可使用此 email 與密碼登入。</p>' : `<form novalidate>
           <h1 id="sf-auth-title">內部系統登入</h1>
-          <p>${changing ? '首次登入請先變更密碼。至少 8 個字元，可使用中文；請勿使用常見密碼' : shared ? '請輸入共用密碼以使用 Solution Finder。' : '請使用院內 email 與密碼登入。'}</p>
+          <p>${signingUp ? '請填寫姓名、院內 email（@iii.org.tw 或 @isd4.biz）並自行設定密碼。送出後需由系統管理者核准，核准前無法登入。' : changing ? '首次登入請先變更密碼。至少 8 個字元，可使用中文；請勿使用常見密碼' : shared ? '請輸入共用密碼以使用 Solution Finder。' : '請使用院內 email 與密碼登入。'}</p>
+          ${signingUp ? '<label for="sf-auth-name">姓名</label><input id="sf-auth-name" name="name" type="text" autocomplete="name" required>' : ''}
           ${!changing && !shared ? '<label for="sf-auth-email">院內 email</label><input id="sf-auth-email" name="email" type="email" autocomplete="username" required>' : ''}
           <label for="sf-auth-password">${changing ? '目前密碼' : shared ? '共用密碼' : '密碼'}</label>
-          <input id="sf-auth-password" name="password" type="password" autocomplete="current-password" required>
+          <input id="sf-auth-password" name="password" type="password" autocomplete="${signingUp ? 'new-password' : 'current-password'}" required>
+          ${signingUp ? '<label for="sf-auth-confirm-password">確認密碼</label><input id="sf-auth-confirm-password" name="confirm_password" type="password" autocomplete="new-password" required><p>至少 8 個字元，可使用中文；請勿使用常見密碼</p>' : ''}
           ${changing ? '<label for="sf-auth-new-password">新密碼</label><input id="sf-auth-new-password" name="new_password" type="password" autocomplete="new-password" required><label for="sf-auth-confirm-password">確認新密碼</label><input id="sf-auth-confirm-password" name="confirm_password" type="password" autocomplete="new-password" required>' : ''}
           <p role="alert" aria-live="polite"></p>
-          <button type="submit">${changing ? '變更密碼' : '登入'}</button>
-        </form>
+          <button type="submit">${signingUp ? '送出申請' : changing ? '變更密碼' : '登入'}</button>
+        </form>`}
         <p class="sf-auth-notice">${notice}</p>
-        ${!changing && (shared || sharedEnabled) ? `<a class="sf-auth-switch" href="#">${shared ? '使用個人帳號登入' : '使用共用密碼登入'}</a>` : ''}
+        ${mode === 'personal' ? '<a class="sf-auth-signup" href="#">還沒有帳號？申請帳號</a>' : ''}
+        ${signingUp || completed ? '<a class="sf-auth-back" href="#">返回登入</a>' : ''}
+        ${!changing && !signingUp && !completed && (shared || sharedEnabled) ? `<a class="sf-auth-switch" href="#">${shared ? '使用個人帳號登入' : '使用共用密碼登入'}</a>` : ''}
       </div>`;
     document.body.append(gate);
+    gate.querySelector('.sf-auth-signup')?.addEventListener('click', event => {
+      event.preventDefault();
+      addGate('signup');
+    });
+    gate.querySelector('.sf-auth-back')?.addEventListener('click', event => {
+      event.preventDefault();
+      addGate('personal');
+    });
+    if (completed) return;
     const form = gate.querySelector('form');
     const button = gate.querySelector('button');
     const error = gate.querySelector('[role="alert"]');
@@ -53,14 +68,18 @@
       const password = gate.querySelector('#sf-auth-password').value;
       const body = changing ? {
         current_password: password, new_password: gate.querySelector('#sf-auth-new-password').value,
-      } : { password, ...(!shared ? { email: gate.querySelector('#sf-auth-email').value } : {}) };
+      } : signingUp ? { name: gate.querySelector('#sf-auth-name').value, email: gate.querySelector('#sf-auth-email').value, password } : { password, ...(!shared ? { email: gate.querySelector('#sf-auth-email').value } : {}) };
       if (changing && body.new_password !== gate.querySelector('#sf-auth-confirm-password').value) {
         error.textContent = '兩次新密碼不一致';
         return;
       }
+      if (signingUp && password !== gate.querySelector('#sf-auth-confirm-password').value) {
+        error.textContent = '兩次密碼不一致';
+        return;
+      }
       button.disabled = true;
       try {
-        const response = await fetch(changing ? '/api/change-password' : '/api/login', {
+        const response = await fetch(signingUp ? '/api/signup' : changing ? '/api/change-password' : '/api/login', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
         });
@@ -69,7 +88,8 @@
           error.textContent = data.error || '登入失敗，請稍後再試';
           return;
         }
-        if (!changing && data.must_change_password === true) addGate('change');
+        if (signingUp) addGate('signup-success');
+        else if (!changing && data.must_change_password === true) addGate('change');
         else window.location.reload();
       } catch {
         error.textContent = unavailable;

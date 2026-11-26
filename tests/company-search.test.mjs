@@ -58,7 +58,7 @@ async function invoke(q = company.company_id, options = {}) {
       const table = url.pathname.split('/').at(-1);
       const call = { table, url, ...request };
       calls.push(call);
-      if (table === 'user_roles') return { ok: true, json: async () => [{ email: 'synthetic@iii.org.tw', role: 'user', is_active: true, must_change_password: false }] };
+      if (table === 'user_roles') return { ok: true, json: async () => [{ email: 'synthetic@iii.org.tw', role: 'user', is_active: true, must_change_password: false, signup_source: 'super', approved_at: '2026-11-25T06:54:39Z' }] };
       if (request.method === 'POST') {
         assert.equal(table, 'search_logs');
         call.row = JSON.parse(request.body);

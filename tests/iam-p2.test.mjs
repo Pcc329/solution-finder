@@ -52,7 +52,7 @@ const roleCalls = () => ctx.calls.filter(call => call.url.pathname.endsWith('/us
 beforeEach(() => {
   counter += 1;
   ctx = { now: 1_900_000_000_000, ip: `synthetic-ip-${counter}`, email: `person${counter}@iii.org.tw`,
-    role: { email: `person${counter}@iii.org.tw`, role: 'user', is_active: true, must_change_password: false },
+    role: { email: `person${counter}@iii.org.tw`, role: 'user', is_active: true, must_change_password: false, signup_source: 'super', approved_at: '2026-11-25T06:54:39Z' },
     roleStatus: 200, grantStatus: 200, updateStatus: 200, patchStatus: 204, usageStatus: 201,
     aiStatus: 200, calls: [], events: [], logs: [] };
   Object.assign(process.env, { SESSION_SECRET: secret, SUPABASE_URL: 'https://synthetic-supabase.invalid',
@@ -84,7 +84,7 @@ beforeEach(() => {
         if (ctx.patchStatus < 300) ctx.role.must_change_password = false;
         return response(ctx.patchStatus);
       }
-      assert.equal(url.searchParams.get('select'), 'email,role,is_active,must_change_password');
+      assert.equal(url.searchParams.get('select'), 'email,role,is_active,must_change_password,signup_source,approved_at');
       assert.equal(url.searchParams.get('limit'), '1');
       if (ctx.roleThrow) throw new Error('synthetic-secret-error');
       return response(ctx.roleStatus, ctx.noRole ? [] : [ctx.role]);
@@ -462,9 +462,10 @@ test('restricted sources match main 2675eb5 exactly after only explicitly permit
   }
   const configBefore = JSON.parse(execFileSync('git', ['show', '2675eb5:vercel.json'], { cwd: root, encoding: 'utf8' }));
   const config = JSON.parse(readFileSync(new URL('vercel.json', root), 'utf8'));
-  const added = config.rewrites.filter(item => item.source === '/api/change-password');
-  assert.deepEqual(added, [{ source: '/api/change-password', destination: '/api/auth?action=change-password' }]);
-  config.rewrites = config.rewrites.filter(item => item.source !== '/api/change-password');
+  const added = config.rewrites.filter(item => ['/api/change-password', '/api/signup'].includes(item.source));
+  assert.deepEqual(added, [{ source: '/api/change-password', destination: '/api/auth?action=change-password' },
+    { source: '/api/signup', destination: '/api/auth?action=signup' }]);
+  config.rewrites = config.rewrites.filter(item => !['/api/change-password', '/api/signup'].includes(item.source));
   assert.deepEqual(config, configBefore);
   assert.equal(readdirSync(new URL('api/', root)).filter(file => file.endsWith('.js')).length, 12);
 });

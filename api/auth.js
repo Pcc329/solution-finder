@@ -6,6 +6,9 @@ import { passwordPolicyError } from '../_lib/password-policy.js';
 const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const ipLimits = new Map();
 const accountLimits = new Map();
+const signupIpLimits = new Map();
+const SIGNUP_WINDOW_MS = 60 * 60_000;
+const signupUnavailable = '申請服務暫時無法使用，請稍後再試';
 const LOCK_MS = 15 * 60_000;
 const unavailable = '登入服務暫時無法使用，請稍後再試';
 
@@ -54,6 +57,70 @@ async function passwordGrant(email, password) {
   });
 }
 
+async function signup(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const now = Date.now();
+  for (const [key, record] of signupIpLimits) {
+    if (now - record.start >= SIGNUP_WINDOW_MS) signupIpLimits.delete(key);
+  }
+  const ip = req.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+  const record = signupIpLimits.get(ip) || { start: now, count: 0 };
+  signupIpLimits.set(ip, record);
+  record.count += 1;
+  if (record.count > 5) return res.status(429).json({ error: '申請次數過多，請稍後再試' });
+  const name = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
+  if ([...name].length < 1 || [...name].length > 50) return res.status(400).json({ error: '姓名需為 1～50 個字元' });
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: '請輸入有效的 email' });
+  if (!email.endsWith('@iii.org.tw') && !email.endsWith('@isd4.biz')) {
+    return res.status(400).json({ error: '請使用院內 email（@iii.org.tw 或 @isd4.biz）' });
+  }
+  const password = req.body?.password;
+  const policyError = passwordPolicyError('', password, email);
+  if (policyError) return res.status(400).json({ error: policyError });
+  let userId, url, headers;
+  try {
+    url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) throw new Error();
+    headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
+    const response = await fetch(new URL('/auth/v1/admin/users', url), {
+      method: 'POST', headers, body: JSON.stringify({ email, password, email_confirm: true }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if ([data?.error_code, data?.code].some(code => ['email_exists', 'user_already_exists'].includes(code))) {
+      return res.status(409).json({ error: '此 email 已申請或已有帳號，請洽系統管理者' });
+    }
+    if (response.status === 422) return res.status(400).json({ error: '申請資料不符合要求，請確認 email 與密碼' });
+    if (!response.ok || typeof data?.id !== 'string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(data.id)) throw new Error();
+    userId = data.id;
+  } catch {
+    return res.status(503).json({ error: signupUnavailable });
+  }
+  let error = signupUnavailable;
+  try {
+    const response = await fetch(new URL('/rest/v1/user_roles', url), {
+      method: 'POST', headers: { ...headers, Prefer: 'return=minimal' },
+      body: JSON.stringify({ user_id: userId, email, role: 'user', signup_source: 'self',
+        is_active: false, must_change_password: false, note: `自行申請；申請人填寫姓名：${name}` }),
+    });
+    if (response.ok) return res.status(201).json({ ok: true, pending: true });
+    const data = await response.json().catch(() => ({}));
+    if (data?.code === '23514' && typeof data.message === 'string' && data.message.includes('待核准申請已達')) {
+      error = '目前待核准的申請已滿，請洽系統管理者';
+    }
+  } catch {
+    // A failed role insert must also compensate when the request throws.
+  }
+  try {
+    const response = await fetch(new URL(`/auth/v1/admin/users/${userId}`, url), { method: 'DELETE', headers });
+    if (!response.ok) throw new Error();
+  } catch {
+    console.error('[Signup Error] code=orphan_auth_user');
+  }
+  return res.status(503).json({ error });
+}
+
 async function login(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!allowIp(req, 'login')) return tooMany(res);
@@ -87,6 +154,9 @@ async function login(req, res) {
     const userId = data.user?.id;
     // Always refresh after a new password grant, including reactivation by an administrator.
     const user = await getUserRole(userId, { refresh: true });
+    if (user && !user.isActive && user.signupSource === 'self' && user.approvedAt === null) {
+      return res.status(403).json({ error: '帳號申請審核中，核准後即可登入', code: 'pending_approval' });
+    }
     if (!user?.isActive) return res.status(403).json({ error: '帳號未啟用，請洽系統管理者' });
     const value = createUserSessionValue(Date.now() + SESSION_MAX_AGE_SECONDS * 1000, userId, process.env.SESSION_SECRET);
     setSession(res, value);
@@ -183,8 +253,9 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
   const action = String(req.query?.action || '').trim();
+  if (action === 'signup') return signup(req, res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (action === 'login') return login(req, res);
   if (action === 'logout') return logout(req, res);
   if (action === 'session-check') return sessionCheck(req, res);
