@@ -559,11 +559,18 @@
     </a>
     <div class="global-nav-actions">
       <div class="global-nav-more">
-        <button type="button" class="global-nav-toggle" aria-expanded="false" aria-controls="global-nav-menu">更多功能</button>
+        <button type="button" class="global-nav-toggle" aria-label="選單" aria-expanded="false" aria-controls="global-nav-menu">
+          <svg class="global-nav-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+          <span class="global-nav-avatar" data-sf-account-avatar></span>
+        </button>
         <div id="global-nav-menu" class="global-nav-menu" hidden>
+          <div class="global-nav-account" data-sf-account-identity></div>
+          <p class="global-nav-section">功能</p>
+          <a class="global-nav-link" href="/">首頁搜尋</a>
           <a class="global-nav-link" href="/sources.html" aria-current="page">資料來源</a>
           <a class="global-nav-link" href="/dashboard.html">知識庫</a>
           <a class="global-nav-link" href="/manufacturing.html">方案探索</a>
+          <div class="global-nav-account-actions" data-sf-account-actions></div>
         </div>
       </div>
     </div>
