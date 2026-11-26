@@ -7,7 +7,8 @@
     document.getElementById('sf-auth-gate')?.remove();
     const gate = document.createElement('div');
     gate.id = 'sf-auth-gate';
-    const changing = mode === 'change';
+    const voluntary = mode === 'change-voluntary';
+    const changing = mode === 'change' || voluntary;
     const shared = mode === 'shared';
     const signingUp = mode === 'signup';
     const completed = mode === 'signup-success';
@@ -23,12 +24,12 @@
         #sf-auth-gate button:disabled { cursor: wait; opacity: 0.7; }
         #sf-auth-gate [role="alert"] { min-height: 20px; margin: 12px 0 0; color: #c2410c; font-size: 14px; }
         #sf-auth-gate .sf-auth-notice { margin-top: 20px; font-size: 13px; }
-        #sf-auth-gate .sf-auth-switch, #sf-auth-gate .sf-auth-signup, #sf-auth-gate .sf-auth-back { display: block; margin-top: 16px; color: #087c70; text-align: center; }
+        #sf-auth-gate .sf-auth-switch, #sf-auth-gate .sf-auth-signup, #sf-auth-gate .sf-auth-back { display: block; margin-top: 16px; color: #087c70; text-align: center; }${voluntary ? '\n        #sf-auth-gate .sf-auth-cancel { display: block; margin-top: 16px; color: #087c70; text-align: center; }' : ''}
       </style>
       <div class="sf-auth-card" role="dialog" aria-modal="true" aria-labelledby="sf-auth-title">
         ${completed ? '<h1 id="sf-auth-title">內部系統登入</h1><p>申請已送出。請通知系統管理者核准，核准後即可使用此 email 與密碼登入。</p>' : `<form novalidate>
-          <h1 id="sf-auth-title">內部系統登入</h1>
-          <p>${signingUp ? '請填寫姓名、院內 email（@iii.org.tw 或 @isd4.biz）並自行設定密碼。送出後需由系統管理者核准，核准前無法登入。' : changing ? '首次登入請先變更密碼。至少 8 個字元，可使用中文；請勿使用常見密碼' : shared ? '請輸入共用密碼以使用 Solution Finder。' : '請使用院內 email 與密碼登入。'}</p>
+          <h1 id="sf-auth-title">${voluntary ? '變更密碼' : '內部系統登入'}</h1>
+          <p>${signingUp ? '請填寫姓名、院內 email（@iii.org.tw 或 @isd4.biz）並自行設定密碼。送出後需由系統管理者核准，核准前無法登入。' : voluntary ? '至少 8 個字元，可使用中文；請勿使用常見密碼' : changing ? '首次登入請先變更密碼。至少 8 個字元，可使用中文；請勿使用常見密碼' : shared ? '請輸入共用密碼以使用 Solution Finder。' : '請使用院內 email 與密碼登入。'}</p>
           ${signingUp ? '<label for="sf-auth-name">姓名</label><input id="sf-auth-name" name="name" type="text" autocomplete="name" required>' : ''}
           ${!changing && !shared ? '<label for="sf-auth-email">院內 email</label><input id="sf-auth-email" name="email" type="email" autocomplete="username" required>' : ''}
           <label for="sf-auth-password">${changing ? '目前密碼' : shared ? '共用密碼' : '密碼'}</label>
@@ -39,7 +40,7 @@
           <button type="submit">${signingUp ? '送出申請' : changing ? '變更密碼' : '登入'}</button>
         </form>`}
         <p class="sf-auth-notice">${notice}</p>
-        ${mode === 'personal' ? '<a class="sf-auth-signup" href="#">還沒有帳號？申請帳號</a>' : ''}
+        ${voluntary ? '<a class="sf-auth-cancel" href="#">取消</a>' : mode === 'personal' ? '<a class="sf-auth-signup" href="#">還沒有帳號？申請帳號</a>' : ''}
         ${signingUp || completed ? '<a class="sf-auth-back" href="#">返回登入</a>' : ''}
         ${!changing && !signingUp && !completed && (shared || sharedEnabled) ? `<a class="sf-auth-switch" href="#">${shared ? '使用個人帳號登入' : '使用共用密碼登入'}</a>` : ''}
       </div>`;
@@ -51,6 +52,10 @@
     gate.querySelector('.sf-auth-back')?.addEventListener('click', event => {
       event.preventDefault();
       addGate('personal');
+    });
+    if (voluntary) gate.querySelector('.sf-auth-cancel').addEventListener('click', event => {
+      event.preventDefault();
+      gate.remove();
     });
     if (completed) return;
     const form = gate.querySelector('form');
@@ -88,13 +93,101 @@
           error.textContent = data.error || '登入失敗，請稍後再試';
           return;
         }
-        if (signingUp) addGate('signup-success');
+        if (voluntary) {
+          const card = gate.querySelector('.sf-auth-card');
+          card.innerHTML = `<h1 id="sf-auth-title">變更密碼</h1><p>密碼已變更。下次登入請使用新密碼。</p><button type="button" class="sf-auth-close">關閉</button><p class="sf-auth-notice">${notice}</p>`;
+          card.querySelector('.sf-auth-close').addEventListener('click', () => gate.remove());
+        } else if (signingUp) addGate('signup-success');
         else if (!changing && data.must_change_password === true) addGate('change');
         else window.location.reload();
       } catch {
         error.textContent = unavailable;
       } finally {
         button.disabled = false;
+      }
+    });
+  }
+
+  // Placement is confined to these scoped styles; account actions can move to a future nav.
+  function accountMenuMarkup(personal) {
+    return `
+      <style>
+        #sf-account-menu { position: fixed; left: 16px; bottom: 16px; z-index: 150; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif; color: #172033; }
+        #sf-account-menu .sf-account-toggle { display: grid; place-items: center; box-sizing: border-box; width: 44px; height: 44px; padding: 10px; border: 1px solid #dbe3ea; border-radius: 50%; background: #fff; color: #0b9d8d; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.15); cursor: pointer; }
+        #sf-account-menu .sf-account-toggle svg { width: 22px; height: 22px; }
+        #sf-account-menu #sf-account-panel { box-sizing: border-box; position: absolute; left: 0; bottom: 54px; width: min(260px, calc(100vw - 32px)); padding: 16px; border: 1px solid #dbe3ea; border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18); }
+        #sf-account-menu #sf-account-panel[hidden] { display: none; }
+        #sf-account-menu .sf-account-label { margin: 0 0 4px; color: #5f6c80; font-size: 12px; }
+        #sf-account-menu .sf-account-email { margin: 0; overflow-wrap: anywhere; font-size: 14px; }
+        #sf-account-menu hr { margin: 12px 0; border: 0; border-top: 1px solid #dbe3ea; }
+        #sf-account-menu [role="menuitem"] { display: block; width: 100%; padding: 10px 8px; border: 0; border-radius: 6px; background: #fff; color: #172033; text-align: left; font: inherit; cursor: pointer; }
+        #sf-account-menu [role="menuitem"]:hover { background: #f0fdfa; }
+        #sf-account-menu button:focus-visible { outline: 2px solid #0b9d8d; outline-offset: 2px; }
+        #sf-account-menu button:disabled { cursor: wait; opacity: 0.7; }
+        #sf-account-menu .sf-account-error { margin: 8px 0 0; color: #c2410c; font-size: 13px; overflow-wrap: anywhere; }
+        @media print { #sf-account-menu { display: none; } }
+      </style>
+      <button type="button" class="sf-account-toggle" aria-label="帳號選單" title="帳號選單" aria-haspopup="true" aria-controls="sf-account-panel" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"></circle><path d="M4 21v-2a8 8 0 0 1 16 0v2"></path></svg>
+      </button>
+      <div id="sf-account-panel" role="menu" hidden>
+        ${personal ? '<p class="sf-account-label">目前登入</p><p class="sf-account-email"></p><hr><button type="button" role="menuitem" class="sf-account-change">變更密碼</button>' : '<p class="sf-account-label">共用密碼登入中</p>'}
+        <button type="button" role="menuitem" class="sf-account-logout">登出</button>
+        <p class="sf-account-error" role="alert"></p>
+      </div>`;
+  }
+
+  let removeAccountListeners;
+  function addAccountMenu(session) {
+    removeAccountListeners?.();
+    document.getElementById('sf-account-menu')?.remove();
+    const menu = document.createElement('div');
+    menu.id = 'sf-account-menu';
+    const personal = session.method === 'user';
+    menu.innerHTML = accountMenuMarkup(personal);
+    if (personal) menu.querySelector('.sf-account-email').textContent = session.email;
+    document.body.append(menu);
+
+    const toggle = menu.querySelector('.sf-account-toggle');
+    const panel = menu.querySelector('#sf-account-panel');
+    panel.hidden = true;
+    const setOpen = open => {
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+    toggle.addEventListener('click', () => setOpen(panel.hidden));
+    const outsideClick = event => {
+      if (!panel.hidden && !menu.contains(event.target)) setOpen(false);
+    };
+    const escape = event => {
+      if (!panel.hidden && event.key === 'Escape') {
+        setOpen(false);
+        toggle.focus();
+      }
+    };
+    document.addEventListener('click', outsideClick);
+    document.addEventListener('keydown', escape);
+    removeAccountListeners = () => {
+      document.removeEventListener('click', outsideClick);
+      document.removeEventListener('keydown', escape);
+    };
+    if (personal) menu.querySelector('.sf-account-change').addEventListener('click', () => {
+      setOpen(false);
+      addGate('change-voluntary');
+    });
+    const logout = menu.querySelector('.sf-account-logout');
+    const error = menu.querySelector('.sf-account-error');
+    logout.addEventListener('click', async () => {
+      logout.disabled = true;
+      error.textContent = '';
+      try {
+        const response = await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+        if (!response.ok) throw new Error('logout failed');
+        window.location.reload();
+      } catch {
+        error.textContent = '登出失敗，請稍後再試';
+      } finally {
+        logout.disabled = false;
       }
     });
   }
@@ -106,6 +199,7 @@
       sharedEnabled = data.shared_login_enabled === true;
       if (response.ok && data.authenticated === true) {
         if (data.must_change_password === true) addGate('change');
+        else if (data.method === 'shared' || (data.method === 'user' && typeof data.email === 'string' && data.email.trim() !== '')) addAccountMenu(data);
       } else addGate('personal', response.status === 401 ? '' : data.error || unavailable);
     } catch {
       addGate('personal', unavailable);
