@@ -2,6 +2,7 @@
   const notice = '本系統為院內試行服務。登入後，AI 搜尋與查看公司聯絡資訊的使用紀錄（時間、帳號、功能）將被保存，用於服務改善與成本統計，不作其他用途。';
   const unavailable = '登入服務暫時無法使用，請稍後再試';
   let sharedEnabled = false;
+  let navSession;
 
   function addGate(mode = 'personal', initialError = '') {
     document.getElementById('sf-auth-gate')?.remove();
@@ -108,7 +109,7 @@
     });
   }
 
-  // Placement is confined to these scoped styles; account actions can move to a future nav.
+  // Floating account menu remains the fallback for pages without navigation.
   function accountMenuMarkup(personal) {
     return `
       <style>
@@ -177,20 +178,66 @@
     });
     const logout = menu.querySelector('.sf-account-logout');
     const error = menu.querySelector('.sf-account-error');
-    logout.addEventListener('click', async () => {
-      logout.disabled = true;
-      error.textContent = '';
-      try {
-        const response = await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
-        if (!response.ok) throw new Error('logout failed');
-        window.location.reload();
-      } catch {
-        error.textContent = '登出失敗，請稍後再試';
-      } finally {
-        logout.disabled = false;
-      }
-    });
+    logout.addEventListener('click', () => logoutAccount(logout, error));
   }
+
+  async function logoutAccount(logout, error) {
+    logout.disabled = true;
+    error.textContent = '';
+    try {
+      const response = await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+      if (!response.ok) throw new Error('logout failed');
+      window.location.reload();
+    } catch {
+      error.textContent = '登出失敗，請稍後再試';
+    } finally {
+      logout.disabled = false;
+    }
+  }
+
+  function fillNavAccount(session) {
+    const nav = document.getElementById('global-nav');
+    const identity = nav?.querySelector('[data-sf-account-identity]');
+    const actions = nav?.querySelector('[data-sf-account-actions]');
+    const avatar = nav?.querySelector('[data-sf-account-avatar]');
+    if (!identity || !actions || !avatar) return false;
+    identity.textContent = '';
+    actions.textContent = '';
+    avatar.textContent = '';
+    const personal = session.method === 'user';
+    if (personal) {
+      const initial = session.email.charAt(0).toUpperCase();
+      avatar.textContent = initial;
+      identity.innerHTML = '<span class="global-nav-account-photo"></span><div class="global-nav-account-details"><p class="global-nav-account-label">目前登入</p><p class="global-nav-account-email"></p></div>';
+      identity.querySelector('.global-nav-account-photo').textContent = initial;
+      identity.querySelector('.global-nav-account-email').textContent = session.email;
+      const roles = { super: '系統管理者', admin: '管理者', user: '一般使用者' };
+      if (Object.hasOwn(roles, session.role)) {
+        const role = document.createElement('span');
+        role.setAttribute('class', 'global-nav-account-role');
+        role.textContent = roles[session.role];
+        identity.querySelector('.global-nav-account-details').append(role);
+      }
+    } else identity.textContent = '共用密碼登入中';
+    actions.innerHTML = '<p class="global-nav-section">帳號</p>'
+      + (personal ? '<button type="button" class="global-nav-account-change">變更密碼</button>' : '')
+      + '<button type="button" class="global-nav-account-logout">登出</button><p class="global-nav-account-error" role="alert"></p>';
+    if (personal) actions.querySelector('.global-nav-account-change').addEventListener('click', () => {
+      const toggle = nav.querySelector('.global-nav-toggle');
+      if (toggle?.getAttribute('aria-expanded') === 'true') toggle.click();
+      addGate('change-voluntary');
+    });
+    const logout = actions.querySelector('.global-nav-account-logout');
+    const error = actions.querySelector('.global-nav-account-error');
+    logout.addEventListener('click', () => logoutAccount(logout, error));
+    return true;
+  }
+
+  window.SFAccount = {
+    mountNav() {
+      if (navSession) fillNavAccount(navSession);
+    },
+  };
 
   document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -199,7 +246,10 @@
       sharedEnabled = data.shared_login_enabled === true;
       if (response.ok && data.authenticated === true) {
         if (data.must_change_password === true) addGate('change');
-        else if (data.method === 'shared' || (data.method === 'user' && typeof data.email === 'string' && data.email.trim() !== '')) addAccountMenu(data);
+        else if (data.method === 'shared' || (data.method === 'user' && typeof data.email === 'string' && data.email.trim() !== '')) {
+          navSession = data;
+          if (!fillNavAccount(data) && (document.getElementById('global-nav') || !document.body.querySelector('[data-sf-nav="deferred"]'))) addAccountMenu(data);
+        }
       } else addGate('personal', response.status === 401 ? '' : data.error || unavailable);
     } catch {
       addGate('personal', unavailable);

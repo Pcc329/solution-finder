@@ -165,10 +165,15 @@
       .solution-image-card:not(:empty) + div > div { display: flex; flex-direction: column; justify-content: center; min-width: 110px; border-left: 1px solid #f1f5f9; padding-left: 1rem; }
       .solution-image-card:not(:empty) + div > i { order: 2; align-self: center; margin-top: 0; }
     }
+    .home-demo-block { padding: 16px; border: 1px solid var(--sf-accent-100); border-radius: 16px; background: color-mix(in srgb, var(--sf-accent-50) 55%, #ffffff); }
+    .home-demo-block-label { margin: 0 0 8px; color: var(--sf-accent-800); font-size: 12px; font-weight: 700; }
+    @media (min-width: 768px) {
+      .home-demo-block { padding: 20px; }
+    }
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root" data-sf-nav="deferred"></div>
   <script type="text/babel">
     const { useState, useMemo, useEffect, useCallback, useRef } = React;
     const { createPortal } = ReactDOM;
@@ -519,6 +524,8 @@
       const menuRoot = useRef(null);
       const toggle = useRef(null);
 
+      useEffect(() => { window.SFAccount?.mountNav?.(); }, []);
+
       useEffect(() => {
         if (!open) return;
 
@@ -551,14 +558,19 @@
           </div>
           <div className="global-nav-actions">
             <div className="global-nav-more" ref={menuRoot}>
-              <button type="button" className="global-nav-toggle" ref={toggle}
+              <button type="button" className="global-nav-toggle" ref={toggle} aria-label="選單"
                 aria-expanded={open} aria-controls="global-nav-menu" onClick={() => setOpen(value => !value)}>
-                更多功能
+                <svg className="global-nav-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+                <span className="global-nav-avatar" data-sf-account-avatar></span>
               </button>
               <div id="global-nav-menu" className="global-nav-menu" hidden={!open}>
+                <div className="global-nav-account" data-sf-account-identity></div>
+                <p className="global-nav-section">功能</p>
+                <a className="global-nav-link" href="/">首頁搜尋</a>
                 <a className="global-nav-link" href="/sources.html">資料來源</a>
                 <a className="global-nav-link" href="/dashboard.html">知識庫</a>
                 <a className="global-nav-link" href="/manufacturing.html">方案探索</a>
+                <div className="global-nav-account-actions" data-sf-account-actions></div>
               </div>
             </div>
           </div>
@@ -1497,8 +1509,9 @@
                 </a>
               </div>
               <div className="mx-auto mt-4 max-w-3xl text-left" aria-label="首頁對話示範">
-                <section id="home-demo-first" className="home-demo-first" aria-label="地區與類別示範"
+                <section id="home-demo-first" className="home-demo-first home-demo-block" aria-label="地區與類別示範"
                   aria-hidden={!loading && !demoCombo} style={{ visibility: loading || demoCombo ? "visible" : "hidden" }}>
+                  <p className="home-demo-block-label">問答 1</p>
                   <p className="home-demo-question">{demoQuestion}</p>
                   <div className="home-demo-analysis font-mono">
                     <span>AI 解析</span>
@@ -1522,7 +1535,8 @@
                     </div>
                   </div>
                 </section>
-                <section className="mt-6" aria-label="收錄來源示範">
+                <section className="mt-6 home-demo-block" aria-label="收錄來源示範">
+                  <p className="home-demo-block-label">問答 2</p>
                   <p className="home-demo-question">收錄了哪些計畫的資料？</p>
                   <p className="home-demo-source-summary mt-3 text-sm leading-6 text-slate-800">
                     {!loading && demoSources.sourceCount === 0 ? "目前沒有可顯示的來源" : <>目前收錄 {loading ? "—" : demoSources.sourceCount.toLocaleString()} 個來源，前台可查詢的方案共 {loading ? "—" : allData.length.toLocaleString()} 筆。先看幾個：</>}
@@ -1540,7 +1554,8 @@
                     <a href="/sources.html" className="home-demo-source-card flex items-center justify-center rounded-xl border border-dashed border-brand-200 px-3 text-sm font-bold text-brand-800 hover:bg-brand-50">看全部來源 →</a>
                   </div>
                 </section>
-                <section className="mt-6" aria-label="找公司示範">
+                <section className="mt-6 home-demo-block" aria-label="找公司示範">
+                  <p className="home-demo-block-label">問答 3</p>
                   <p className="home-demo-question">想查某一家公司的方案呢？</p>
                   <p className="mt-3 text-sm leading-6 text-slate-800">切到「找公司」，輸入 8 碼統編或公司名稱，就能看到這家公司在各計畫收錄的方案與目前狀態。</p>
                   <button type="button" onClick={openHomeCompany} className="mt-3 min-h-[44px] rounded-full border border-brand-200 bg-white px-5 py-2 text-sm font-bold text-brand-800 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-400">前往找公司 →</button>
