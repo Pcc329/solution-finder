@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
-  if (!requireAuth(req, res)) return;
+  if (!(await requireAuth(req, res))) return;
 
   async function fetchAllSupabasePaged(url, anonKey, table, selectCols, orderBy, filters = {}) {
     const endpoint = new URL(`/rest/v1/${table}`, url);

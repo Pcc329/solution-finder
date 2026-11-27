@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 'private, no-store');
 
-  if (!requireAuth(req, res)) return;
+  if (!(await requireAuth(req, res))) return;
 
   function normalizeCid(value) {
     if (Array.isArray(value)) return String(value[0] || '').replace(/^\uFEFF/, '').trim();

@@ -14,3 +14,30 @@
   --sf-hero-lead: #4B5563;
   --sf-chat-user-bg: #0B3C3B;
 }
+
+#global-nav .global-nav-toggle { border-radius: 999px; padding: 4px 6px 4px 10px; gap: 8px; }
+#global-nav .global-nav-toggle::after { content: none; }
+#global-nav .global-nav-burger { width: 18px; height: 18px; color: var(--sf-accent-700); }
+#global-nav .global-nav-avatar { display: grid; place-items: center; flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%; background: var(--sf-accent-50); color: var(--sf-accent-800); font-size: 12px; font-weight: 700; }
+#global-nav .global-nav-avatar:empty { display: none; }
+#global-nav .global-nav-menu { width: min(260px, calc(100vw - 32px)); padding: 8px; }
+#global-nav [data-sf-account-identity]:empty { display: none; }
+#global-nav [data-sf-account-actions]:empty { display: none; }
+#global-nav .global-nav-account { display: flex; align-items: center; gap: 10px; padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+#global-nav .global-nav-account-photo { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; background: var(--sf-accent-50); color: var(--sf-accent-800); font-size: 16px; font-weight: 700; }
+#global-nav .global-nav-account-details { min-width: 0; }
+#global-nav .global-nav-account-label { margin: 0 0 4px; color: #6b7280; font-size: 12px; }
+#global-nav .global-nav-account-email { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+#global-nav .global-nav-account-role { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; background: var(--sf-accent-50); color: var(--sf-accent-800); font-size: 11px; }
+#global-nav .global-nav-section { margin: 0; padding: 8px 12px 4px; color: #6b7280; font-size: 12px; }
+#global-nav .global-nav-account-actions { margin-top: 4px; border-top: 1px solid #e5e7eb; }
+#global-nav .global-nav-account-change,
+#global-nav .global-nav-account-logout { display: block; width: 100%; padding: 10px 12px; border: 0; border-radius: 6px; background: #ffffff; color: var(--sf-accent-700); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+#global-nav .global-nav-account-change:hover,
+#global-nav .global-nav-account-logout:hover { background: var(--sf-accent-50); color: var(--sf-accent-800); }
+#global-nav .global-nav-account-logout { color: #b91c1c; }
+#global-nav .global-nav-account-change:focus-visible,
+#global-nav .global-nav-account-logout:focus-visible { outline: 2px solid var(--sf-accent-400); outline-offset: 2px; }
+#global-nav .global-nav-account-logout:disabled { cursor: wait; opacity: 0.7; }
+#global-nav .global-nav-account-error { margin: 4px 12px; color: #c2410c; font-size: 13px; overflow-wrap: anywhere; }
+#global-nav .global-nav-account-error:empty { display: none; }

@@ -229,7 +229,7 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
   if (!checkRateLimit(clientIp)) return res.status(429).json({ error: '查詢過於頻繁，請稍後再試' });
-  if (!requireAuth(req, res)) return;
+  if (!(await requireAuth(req, res))) return;
   const input = parseQuery(req.query?.q);
   if (input.error) return res.status(400).json({ error: input.error });
   const config = { url: process.env.SUPABASE_URL, anonKey: process.env.SUPABASE_ANON_KEY };

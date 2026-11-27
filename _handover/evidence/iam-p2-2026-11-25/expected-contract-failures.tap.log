@@ -1,0 +1,1689 @@
+TAP version 13
+# (node:8416) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/ask.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: ask: success preserves response and safe single-write behavior
+not ok 1 - ask: success preserves response and safe single-write behavior
+  ---
+  duration_ms: 24.0555
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+  ...
+# Subtest: ask: 400 preserves response and safe single-write behavior
+not ok 2 - ask: 400 preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.2761
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: 500 preserves response and safe single-write behavior
+not ok 3 - ask: 500 preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.0224
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: 429 preserves response and safe single-write behavior
+not ok 4 - ask: 429 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.7225
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: network-error preserves response and safe single-write behavior
+not ok 5 - ask: network-error preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.6517
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: invalid-json preserves response and safe single-write behavior
+not ok 6 - ask: invalid-json preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.5199
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: unsafe-code preserves response and safe single-write behavior
+not ok 7 - ask: unsafe-code preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4559
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: missing-url preserves response and safe single-write behavior
+not ok 8 - ask: missing-url preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.2641
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:118:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: missing-key preserves response and safe single-write behavior
+not ok 9 - ask: missing-key preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.7247
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:118:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: requireAuth still blocks unauthenticated requests
+ok 10 - ask: requireAuth still blocks unauthenticated requests
+  ---
+  duration_ms: 0.5846
+  type: 'test'
+  ...
+# Subtest: claude: success preserves response and safe single-write behavior
+not ok 11 - claude: success preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.2027
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: 400 preserves response and safe single-write behavior
+not ok 12 - claude: 400 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.709
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: 500 preserves response and safe single-write behavior
+not ok 13 - claude: 500 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.6569
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: 429 preserves response and safe single-write behavior
+not ok 14 - claude: 429 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.6519
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: network-error preserves response and safe single-write behavior
+not ok 15 - claude: network-error preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.777
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: invalid-json preserves response and safe single-write behavior
+not ok 16 - claude: invalid-json preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.64
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: unsafe-code preserves response and safe single-write behavior
+not ok 17 - claude: unsafe-code preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.5307
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:99:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: missing-url preserves response and safe single-write behavior
+not ok 18 - claude: missing-url preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.825
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:118:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: missing-key preserves response and safe single-write behavior
+not ok 19 - claude: missing-key preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.7433
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:95:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:118:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: requireAuth still blocks unauthenticated requests
+ok 20 - claude: requireAuth still blocks unauthenticated requests
+  ---
+  duration_ms: 0.3456
+  type: 'test'
+  ...
+# Subtest: feedback: success preserves response and safe single-write behavior
+ok 21 - feedback: success preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.0098
+  type: 'test'
+  ...
+# Subtest: feedback: 400 preserves response and safe single-write behavior
+ok 22 - feedback: 400 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.6992
+  type: 'test'
+  ...
+# Subtest: feedback: 500 preserves response and safe single-write behavior
+ok 23 - feedback: 500 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.6997
+  type: 'test'
+  ...
+# Subtest: feedback: 429 preserves response and safe single-write behavior
+ok 24 - feedback: 429 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.739
+  type: 'test'
+  ...
+# Subtest: feedback: network-error preserves response and safe single-write behavior
+ok 25 - feedback: network-error preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4882
+  type: 'test'
+  ...
+# Subtest: feedback: invalid-json preserves response and safe single-write behavior
+ok 26 - feedback: invalid-json preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.5181
+  type: 'test'
+  ...
+# Subtest: feedback: unsafe-code preserves response and safe single-write behavior
+ok 27 - feedback: unsafe-code preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4954
+  type: 'test'
+  ...
+# Subtest: feedback: missing-url preserves response and safe single-write behavior
+ok 28 - feedback: missing-url preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.2997
+  type: 'test'
+  ...
+# Subtest: feedback: missing-key preserves response and safe single-write behavior
+ok 29 - feedback: missing-key preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.298
+  type: 'test'
+  ...
+# Subtest: feedback: requireAuth still blocks unauthenticated requests
+ok 30 - feedback: requireAuth still blocks unauthenticated requests
+  ---
+  duration_ms: 0.2466
+  type: 'test'
+  ...
+# Subtest: feedback: validated optional fields including zero remain intact
+ok 31 - feedback: validated optional fields including zero remain intact
+  ---
+  duration_ms: 0.4782
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"name":""} before writing
+ok 32 - feedback: rejects {"name":""} before writing
+  ---
+  duration_ms: 0.4748
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"name":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 33 - feedback: rejects {"name":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.4048
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"department":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 34 - feedback: rejects {"department":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.3268
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"milestone":""} before writing
+ok 35 - feedback: rejects {"milestone":""} before writing
+  ---
+  duration_ms: 0.3285
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"milestone":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 36 - feedback: rejects {"milestone":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.2976
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"milestone":"not-allowed"} before writing
+ok 37 - feedback: rejects {"milestone":"not-allowed"} before writing
+  ---
+  duration_ms: 0.3171
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"detail":""} before writing
+ok 38 - feedback: rejects {"detail":""} before writing
+  ---
+  duration_ms: 0.2695
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"detail":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx before writing
+ok 39 - feedback: rejects {"detail":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx before writing
+  ---
+  duration_ms: 0.2219
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"score":0} before writing
+ok 40 - feedback: rejects {"score":0} before writing
+  ---
+  duration_ms: 0.2562
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"score":6} before writing
+ok 41 - feedback: rejects {"score":6} before writing
+  ---
+  duration_ms: 0.3669
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"score":1.5} before writing
+ok 42 - feedback: rejects {"score":1.5} before writing
+  ---
+  duration_ms: 0.1899
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"relevant_count":-1} before writing
+ok 43 - feedback: rejects {"relevant_count":-1} before writing
+  ---
+  duration_ms: 0.1927
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"relevant_count":6} before writing
+ok 44 - feedback: rejects {"relevant_count":6} before writing
+  ---
+  duration_ms: 0.2401
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"path_choice":"not-allowed"} before writing
+ok 45 - feedback: rejects {"path_choice":"not-allowed"} before writing
+  ---
+  duration_ms: 0.2486
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"path_choice":"xxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 46 - feedback: rejects {"path_choice":"xxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.3713
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"would_cite":"not-allowed"} before writing
+ok 47 - feedback: rejects {"would_cite":"not-allowed"} before writing
+  ---
+  duration_ms: 0.3496
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"would_cite":"xxxxxxxxxxx"} before writing
+ok 48 - feedback: rejects {"would_cite":"xxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.2897
+  type: 'test'
+  ...
+# Subtest: feedback: malformed JSON still returns 400
+ok 49 - feedback: malformed JSON still returns 400
+  ---
+  duration_ms: 0.2806
+  type: 'test'
+  ...
+# Subtest: feedback: same-IP fourth request is rate limited; another IP is allowed
+ok 50 - feedback: same-IP fourth request is rate limited; another IP is allowed
+  ---
+  duration_ms: 0.8975
+  type: 'test'
+  ...
+# Subtest: ask: OPTIONS stays available without auth
+ok 51 - ask: OPTIONS stays available without auth
+  ---
+  duration_ms: 0.335
+  type: 'test'
+  ...
+# Subtest: claude: OPTIONS stays available without auth
+ok 52 - claude: OPTIONS stays available without auth
+  ---
+  duration_ms: 0.2332
+  type: 'test'
+  ...
+# Subtest: ask: absent search query remains an empty string in storage
+not ok 53 - ask: absent search query remains an empty string in storage
+  ---
+  duration_ms: 0.859
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:186:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    undefined !== ''
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:189:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: migration is byte-for-byte identical to the supplied SQL
+ok 54 - migration is byte-for-byte identical to the supplied SQL
+  ---
+  duration_ms: 1.3327
+  type: 'test'
+  ...
+# (node:15188) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/_lib/company-search.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: 1. tax ID exact match returns whitelisted company, all solutions and summary
+ok 55 - 1. tax ID exact match returns whitelisted company, all solutions and summary
+  ---
+  duration_ms: 53.126
+  type: 'test'
+  ...
+# Subtest: 2. statuses use prefixes, preserve labels and normalize nullable numeric values
+ok 56 - 2. statuses use prefixes, preserve labels and normalize nullable numeric values
+  ---
+  duration_ms: 6.4876
+  type: 'test'
+  ...
+# Subtest: 3. full-width digits, letters and spaces normalize; separated tax IDs match
+ok 57 - 3. full-width digits, letters and spaces normalize; separated tax IDs match
+  ---
+  duration_ms: 4.7341
+  type: 'test'
+  ...
+# Subtest: 4. seven- or nine-digit numeric input is rejected before reads and writes
+ok 58 - 4. seven- or nine-digit numeric input is rejected before reads and writes
+  ---
+  duration_ms: 1.3882
+  type: 'test'
+  ...
+# Subtest: 5. a single equal name core is exact with or without suffix; optional reads fail independently
+ok 59 - 5. a single equal name core is exact with or without suffix; optional reads fail independently
+  ---
+  duration_ms: 16.318
+  type: 'test'
+  ...
+# Subtest: 6. partial matches return at most ten ordered candidates and count with one batched solutions query
+ok 60 - 6. partial matches return at most ten ordered candidates and count with one batched solutions query
+  ---
+  duration_ms: 2.4018
+  type: 'test'
+  ...
+# Subtest: 7. no match returns zero results and at most five prefix hints; tax ID misses never query hints
+ok 61 - 7. no match returns zero results and at most five prefix hints; tax ID misses never query hints
+  ---
+  duration_ms: 1.8105
+  type: 'test'
+  ...
+# Subtest: 8. user-supplied PostgREST metacharacters are removed from name and prefix filters
+ok 62 - 8. user-supplied PostgREST metacharacters are removed from name and prefix filters
+  ---
+  duration_ms: 2.4531
+  type: 'test'
+  ...
+# Subtest: 9. invalid lengths and short cores return exact validation messages without storage
+ok 63 - 9. invalid lengths and short cores return exact validation messages without storage
+  ---
+  duration_ms: 2.6146
+  type: 'test'
+  ...
+# Subtest: 10. every response path omits contact-related fields and never reads contacts
+ok 64 - 10. every response path omits contact-related fields and never reads contacts
+  ---
+  duration_ms: 2.8529
+  type: 'test'
+  ...
+# Subtest: 11. each 200 awaits one complete search log; storage errors preserve payload and non-200 never writes
+ok 65 - 11. each 200 awaits one complete search log; storage errors preserve payload and non-200 never writes
+  ---
+  duration_ms: 5.9714
+  type: 'test'
+  ...
+# Subtest: 12. every read uses anon credentials, including session-authenticated requests and optional tables
+not ok 66 - 12. every read uses anon credentials, including session-authenticated requests and optional tables
+  ---
+  duration_ms: 5.3842
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\company-search.test.mjs:306:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    401 !== 200
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 401
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/company-search.test.mjs:308:69)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: 13. the sixty-first request is limited before auth; methods precede limiting and expired windows reset
+ok 67 - 13. the sixty-first request is limited before auth; methods precede limiting and expired windows reset
+  ---
+  duration_ms: 9.6071
+  type: 'test'
+  ...
+# Subtest: 14. companies without search action preserves main graph response and reads with private cache policy
+not ok 68 - 14. companies without search action preserves main graph response and reads with private cache policy
+  ---
+  duration_ms: 86.6432
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\company-search.test.mjs:333:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    200 !== 401
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 401
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/company-search.test.mjs:390:12)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: 15. companies search action dispatches q before graph headers and performs one search log write
+ok 69 - 15. companies search action dispatches q before graph headers and performs one search log write
+  ---
+  duration_ms: 3.2543
+  type: 'test'
+  ...
+# (node:24920) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/company-detail.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: 1. success awaits exactly one service-role POST with complete typed fields from filtered contacts
+not ok 70 - 1. success awaits exactly one service-role POST with complete typed fields from filtered contacts
+  ---
+  duration_ms: 4.3699
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\contact-access-log.test.mjs:95:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    401 !== 200
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 401
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/contact-access-log.test.mjs:97:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+  ...
+# Subtest: 2. POST body and logs never contain raw IP, session, email or mobile
+not ok 71 - 2. POST body and logs never contain raw IP, session, email or mobile
+  ---
+  duration_ms: 2.1012
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\contact-access-log.test.mjs:123:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'body')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/contact-access-log.test.mjs:125:32)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: 3. HMAC uses the first forwarded IP or socket fallback and changes with salt
+not ok 72 - 3. HMAC uses the first forwarded IP or socket fallback and changes with salt
+  ---
+  duration_ms: 0.8026
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\contact-access-log.test.mjs:133:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'row')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/contact-access-log.test.mjs:135:50)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: 4. missing or empty salt writes null hashes, emits one safe error and preserves 200 payload
+not ok 73 - 4. missing or empty salt writes null hashes, emits one safe error and preserves 200 payload
+  ---
+  duration_ms: 0.5398
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\contact-access-log.test.mjs:146:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    401 !== 200
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 401
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/contact-access-log.test.mjs:149:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: 5. POST 500, missing table or network failure preserves the entire baseline response
+not ok 74 - 5. POST 500, missing table or network failure preserves the entire baseline response
+  ---
+  duration_ms: 1.8645
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\contact-access-log.test.mjs:157:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    401 !== 200
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 401
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/contact-access-log.test.mjs:161:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: 6. non-200 responses never POST; the thirty-first request retains the existing rate limit
+not ok 75 - 6. non-200 responses never POST; the thirty-first request retains the existing rate limit
+  ---
+  duration_ms: 0.4469
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\contact-access-log.test.mjs:171:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    401 !== 404
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 404
+  actual: 401
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/contact-access-log.test.mjs:179:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: 7. API-key authentication has no session hash; a valid session takes precedence when both exist
+not ok 76 - 7. API-key authentication has no session hash; a valid session takes precedence when both exist
+  ---
+  duration_ms: 10.808
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\contact-access-log.test.mjs:189:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + 'api_key'
+    - 'session'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'session'
+  actual: 'api_key'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/contact-access-log.test.mjs:196:10)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# (node:18236) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/_lib/auth.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: solutions: same fixture produces deep-equal JSON, requests and logs
+ok 77 - solutions: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 25.3616
+  type: 'test'
+  ...
+# Subtest: solutions: missing SUPABASE_URL preserves 500 response
+ok 78 - solutions: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.5887
+  type: 'test'
+  ...
+# Subtest: solutions: missing SUPABASE_ANON_KEY preserves 500 response
+ok 79 - solutions: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.4334
+  type: 'test'
+  ...
+# Subtest: solutions: HTTP 500 preserves error handling
+ok 80 - solutions: HTTP 500 preserves error handling
+  ---
+  duration_ms: 2.8019
+  type: 'test'
+  ...
+# Subtest: solutions: network failure preserves error handling
+ok 81 - solutions: network failure preserves error handling
+  ---
+  duration_ms: 3.044
+  type: 'test'
+  ...
+# Subtest: solutions: ignored legacy source flag airtable still reads Supabase
+ok 82 - solutions: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 2.8942
+  type: 'test'
+  ...
+# Subtest: solutions: ignored legacy source flag unset still reads Supabase
+ok 83 - solutions: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 5.0761
+  type: 'test'
+  ...
+# Subtest: solutions: ignored legacy source flag invalid-value still reads Supabase
+ok 84 - solutions: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 3.6971
+  type: 'test'
+  ...
+# Subtest: solutions: authentication behavior remains unchanged
+not ok 85 - solutions: authentication behavior remains unchanged
+  ---
+  duration_ms: 2.9071
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\supabase-read-equivalence.test.mjs:275:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    One complete status pagination alongside main pagination
+
+    0 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    assertSolutionsParity (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/supabase-read-equivalence.test.mjs:131:10)
+    parity (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/supabase-read-equivalence.test.mjs:228:5)
+    async TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/supabase-read-equivalence.test.mjs:275:75)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: cases: same fixture produces deep-equal JSON, requests and logs
+ok 86 - cases: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 2.9798
+  type: 'test'
+  ...
+# Subtest: cases: missing SUPABASE_URL preserves 500 response
+ok 87 - cases: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.6019
+  type: 'test'
+  ...
+# Subtest: cases: missing SUPABASE_ANON_KEY preserves 500 response
+ok 88 - cases: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 1.0991
+  type: 'test'
+  ...
+# Subtest: cases: HTTP 500 preserves error handling
+ok 89 - cases: HTTP 500 preserves error handling
+  ---
+  duration_ms: 0.4667
+  type: 'test'
+  ...
+# Subtest: cases: network failure preserves error handling
+ok 90 - cases: network failure preserves error handling
+  ---
+  duration_ms: 0.4718
+  type: 'test'
+  ...
+# Subtest: cases: ignored legacy source flag airtable still reads Supabase
+ok 91 - cases: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 1.3912
+  type: 'test'
+  ...
+# Subtest: cases: ignored legacy source flag unset still reads Supabase
+ok 92 - cases: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 1.0861
+  type: 'test'
+  ...
+# Subtest: cases: ignored legacy source flag invalid-value still reads Supabase
+ok 93 - cases: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 0.9882
+  type: 'test'
+  ...
+# Subtest: cases: authentication behavior remains unchanged
+not ok 94 - cases: authentication behavior remains unchanged
+  ---
+  duration_ms: 2.4817
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\supabase-read-equivalence.test.mjs:275:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+      {
+    +   body: {
+    +     error: '未授權，請先登入'
+    +   },
+    -   body: [
+    -     {
+    -       ai_maturity_stage: '',
+    -       case_id: 1,
+    -       case_name: 'Synthetic real case',
+    -       case_relationship_type: '客戶案例',
+    -       case_type: '',
+    -       company_display_name: '',
+    -       company_size: '',
+    -       diagnosis: 'Synthetic diagnosis',
+    -       difficulty_level: '',
+    -       industry: '製造',
+    -       industry_code: 'C25 金屬製品製造業',
+    -       is_real: true,
+    -       key_technology: '',
+    -       outcome: '',
+    -       outcome_status: '',
+    -       pain_point_domain: '',
+    -       pain_points: 'Synthetic pain point',
+    -       provider_linked_company_id: '11111111',
+    -       replicable_condition: '',
+    -       resistance: '',
+    -       resolution: '',
+    -       secondary_industry_codes: [
+    -         'M71'
+    -       ]
+    -     },
+    -     {
+    -       ai_maturity_stage: '',
+    -       case_id: 2,
+    -       case_name: 'Synthetic nulls case',
+    -       case_relationship_type: '',
+    -       case_type: '',
+    -       company_display_name: '',
+    -       company_size: '',
+    -       diagnosis: '',
+    -       difficulty_level: '',
+    -       industry: '',
+    -       industry_code: 'UNKNOWN',
+    -       is_real: true,
+    -       key_technology: '',
+    -       outcome: '',
+    -       outcome_status: '',
+    -       pain_point_domain: '',
+    -       pain_points: '',
+    -       provider_linked_company_id: '',
+    -       replicable_condition: '',
+    -       resistance: '',
+    -       resolution: '',
+    -       secondary_industry_codes: []
+    -     },
+    -     {
+    -       ai_maturity_stage: '',
+    -       case_id: 3,
+    -       case_name: 'Synthetic demonstration',
+    -       case_relationship_type: '',
+    -       case_type: '',
+    -       company_display_name: '',
+    -       company_size: '',
+    -       diagnosis: '',
+    -       difficulty_level: '',
+    -       industry: '',
+    -       industry_code: '',
+    -       is_real: false,
+    -       key_technology: '',
+    -       outcome: '',
+    -       outcome_status: '',
+    -       pain_point_domain: '',
+    -       pain_points: '',
+    -       provider_linked_company_id: '',
+    -       replicable_condition: '',
+    -       resistance: '',
+    -       resolution: '',
+    -       secondary_industry_codes: []
+    -     }
+    -   ],
+        headers: {
+          'Access-Control-Allow-Methods': 'GET',
+          'Access-Control-Allow-Origin': '*'
+        },
+    +   statusCode: 401
+    -   statusCode: 200
+      }
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    statusCode: 200
+    headers:
+      Access-Control-Allow-Origin: '*'
+      Access-Control-Allow-Methods: 'GET'
+    body:
+      0:
+        case_id: 1
+        case_name: 'Synthetic real case'
+        industry: '製造'
+        industry_code: 'C25 金屬製品製造業'
+        secondary_industry_codes:
+          0: 'M71'
+        company_size: ''
+        company_display_name: ''
+        pain_points: 'Synthetic pain point'
+        diagnosis: 'Synthetic diagnosis'
+        resistance: ''
+        resolution: ''
+        outcome: ''
+        replicable_condition: ''
+        case_type: ''
+        outcome_status: ''
+        pain_point_domain: ''
+        key_technology: ''
+        ai_maturity_stage: ''
+        difficulty_level: ''
+        is_real: true
+        provider_linked_company_id: '11111111'
+        case_relationship_type: '客戶案例'
+      1:
+        case_id: 2
+        case_name: 'Synthetic nulls case'
+        industry: ''
+        industry_code: 'UNKNOWN'
+        secondary_industry_codes:
+        company_size: ''
+        company_display_name: ''
+        pain_points: ''
+        diagnosis: ''
+        resistance: ''
+        resolution: ''
+        outcome: ''
+        replicable_condition: ''
+        case_type: ''
+        outcome_status: ''
+        pain_point_domain: ''
+        key_technology: ''
+        ai_maturity_stage: ''
+        difficulty_level: ''
+        is_real: true
+        provider_linked_company_id: ''
+        case_relationship_type: ''
+      2:
+        case_id: 3
+        case_name: 'Synthetic demonstration'
+        industry: ''
+        industry_code: ''
+        secondary_industry_codes:
+        company_size: ''
+        company_display_name: ''
+        pain_points: ''
+        diagnosis: ''
+        resistance: ''
+        resolution: ''
+        outcome: ''
+        replicable_condition: ''
+        case_type: ''
+        outcome_status: ''
+        pain_point_domain: ''
+        key_technology: ''
+        ai_maturity_stage: ''
+        difficulty_level: ''
+        is_real: false
+        provider_linked_company_id: ''
+        case_relationship_type: ''
+  actual:
+    statusCode: 401
+    headers:
+      Access-Control-Allow-Origin: '*'
+      Access-Control-Allow-Methods: 'GET'
+    body:
+      error: '未授權，請先登入'
+  operator: 'deepStrictEqual'
+  stack: |-
+    parity (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/supabase-read-equivalence.test.mjs:231:10)
+    async TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/supabase-read-equivalence.test.mjs:275:75)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: stats: same fixture produces deep-equal JSON, requests and logs
+ok 95 - stats: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 3.3338
+  type: 'test'
+  ...
+# Subtest: stats: missing SUPABASE_URL preserves 500 response
+ok 96 - stats: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.356
+  type: 'test'
+  ...
+# Subtest: stats: missing SUPABASE_ANON_KEY preserves 500 response
+ok 97 - stats: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.2967
+  type: 'test'
+  ...
+# Subtest: stats: HTTP 500 preserves error handling
+ok 98 - stats: HTTP 500 preserves error handling
+  ---
+  duration_ms: 0.4925
+  type: 'test'
+  ...
+# Subtest: stats: network failure preserves error handling
+ok 99 - stats: network failure preserves error handling
+  ---
+  duration_ms: 0.5218
+  type: 'test'
+  ...
+# Subtest: stats: ignored legacy source flag airtable still reads Supabase
+ok 100 - stats: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 1.0344
+  type: 'test'
+  ...
+# Subtest: stats: ignored legacy source flag unset still reads Supabase
+ok 101 - stats: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 0.9451
+  type: 'test'
+  ...
+# Subtest: stats: ignored legacy source flag invalid-value still reads Supabase
+ok 102 - stats: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 0.9782
+  type: 'test'
+  ...
+# Subtest: stats: authentication behavior remains unchanged
+ok 103 - stats: authentication behavior remains unchanged
+  ---
+  duration_ms: 1.4861
+  type: 'test'
+  ...
+# Subtest: companies: same fixture produces deep-equal JSON, requests and logs
+ok 104 - companies: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 3.7439
+  type: 'test'
+  ...
+# Subtest: companies: missing SUPABASE_URL preserves 500 response
+ok 105 - companies: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.3868
+  type: 'test'
+  ...
+# Subtest: companies: missing SUPABASE_ANON_KEY preserves 500 response
+ok 106 - companies: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.3699
+  type: 'test'
+  ...
+# Subtest: companies: HTTP 500 preserves error handling
+ok 107 - companies: HTTP 500 preserves error handling
+  ---
+  duration_ms: 0.6247
+  type: 'test'
+  ...
+# Subtest: companies: network failure preserves error handling
+ok 108 - companies: network failure preserves error handling
+  ---
+  duration_ms: 0.4265
+  type: 'test'
+  ...
+# Subtest: companies: ignored legacy source flag airtable still reads Supabase
+ok 109 - companies: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 0.7032
+  type: 'test'
+  ...
+# Subtest: companies: ignored legacy source flag unset still reads Supabase
+ok 110 - companies: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 0.8542
+  type: 'test'
+  ...
+# Subtest: companies: ignored legacy source flag invalid-value still reads Supabase
+ok 111 - companies: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 0.625
+  type: 'test'
+  ...
+# Subtest: companies: authentication behavior remains unchanged
+not ok 112 - companies: authentication behavior remains unchanged
+  ---
+  duration_ms: 0.8444
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\supabase-read-equivalence.test.mjs:275:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+      {
+    +   body: {
+    +     error: '未授權，請先登入'
+    +   },
+    -   body: [
+    -     {
+    -       avg_score: 4.5,
+    -       award_count: 2,
+    -       city: '臺北市',
+    -       contact_count: 1,
+    -       est_year: 2020,
+    -       has_award: true,
+    -       id: 'rec-company-01',
+    -       industry: '製造業',
+    -       is_startup: true,
+    -       name: 'Synthetic Alpha',
+    -       solution_count: 2,
+    -       tags: [
+    -         'AI工具',
+    -         'ERP',
+    -         '資安'
+    -       ],
+    -       tech_tags: [
+    -         'AI',
+    -         'ERP'
+    -       ]
+    -     },
+    -     {
+    -       avg_score: 0,
+    -       award_count: 0,
+    -       city: '高雄市',
+    -       contact_count: 0,
+    -       est_year: null,
+    -       has_award: false,
+    -       id: 'rec-company-02',
+    -       industry: '資訊服務',
+    -       is_startup: false,
+    -       name: 'Synthetic Beta',
+    -       solution_count: 1,
+    -       tags: [],
+    -       tech_tags: ''
+    -     },
+    -     {
+    -       avg_score: null,
+    -       award_count: 0,
+    -       city: '',
+    -       contact_count: 0,
+    -       est_year: null,
+    -       has_award: false,
+    -       id: 'rec-company-04',
+    -       industry: '資訊服務',
+    -       is_startup: false,
+    -       name: 'Synthetic no-ID company',
+    -       solution_count: 0,
+    -       tags: [
+    -         '資安'
+    -       ],
+    -       tech_tags: [
+    -         'security'
+    -       ]
+    -     },
+    -     {
+    -       avg_score: null,
+    -       award_count: 0,
+    -       city: '',
+    -       contact_count: 0,
+    -       est_year: null,
+    -       has_award: false,
+    -       id: 'rec-company-03',
+    -       industry: '資訊服務',
+    -       is_startup: false,
+    -       name: 'Synthetic suspended',
+    -       solution_count: 0,
+    -       tags: [],
+    -       tech_tags: ''
+    -     }
+    -   ],
+        headers: {
+          'Access-Control-Allow-Methods': 'GET',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'private, no-store'
+        },
+    +   statusCode: 401
+    -   statusCode: 200
+      }
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    statusCode: 200
+    headers:
+      Access-Control-Allow-Origin: '*'
+      Access-Control-Allow-Methods: 'GET'
+      Cache-Control: 'private, no-store'
+    body:
+      0:
+        id: 'rec-company-01'
+        name: 'Synthetic Alpha'
+        is_startup: true
+        has_award: true
+        award_count: 2
+        solution_count: 2
+        contact_count: 1
+        industry: '製造業'
+        city: '臺北市'
+        est_year: 2020
+        tech_tags:
+          0: 'AI'
+          1: 'ERP'
+        avg_score: 4.5
+        tags:
+          0: 'AI工具'
+          1: 'ERP'
+          2: '資安'
+      1:
+        id: 'rec-company-02'
+        name: 'Synthetic Beta'
+        is_startup: false
+        has_award: false
+        award_count: 0
+        solution_count: 1
+        contact_count: 0
+        industry: '資訊服務'
+        city: '高雄市'
+        est_year: ~
+        tech_tags: ''
+        avg_score: 0
+        tags:
+      2:
+        id: 'rec-company-04'
+        name: 'Synthetic no-ID company'
+        is_startup: false
+        has_award: false
+        award_count: 0
+        solution_count: 0
+        contact_count: 0
+        industry: '資訊服務'
+        city: ''
+        est_year: ~
+        tech_tags:
+          0: 'security'
+        avg_score: ~
+        tags:
+          0: '資安'
+      3:
+        id: 'rec-company-03'
+        name: 'Synthetic suspended'
+        is_startup: false
+        has_award: false
+        award_count: 0
+        solution_count: 0
+        contact_count: 0
+        industry: '資訊服務'
+        city: ''
+        est_year: ~
+        tech_tags: ''
+        avg_score: ~
+        tags:
+  actual:
+    statusCode: 401
+    headers:
+      Access-Control-Allow-Origin: '*'
+      Access-Control-Allow-Methods: 'GET'
+      Cache-Control: 'private, no-store'
+    body:
+      error: '未授權，請先登入'
+  operator: 'deepStrictEqual'
+  stack: |-
+    parity (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/supabase-read-equivalence.test.mjs:231:10)
+    async TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/supabase-read-equivalence.test.mjs:275:75)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: companies: filter=startup output remains identical
+ok 113 - companies: filter=startup output remains identical
+  ---
+  duration_ms: 0.7758
+  type: 'test'
+  ...
+# Subtest: companies: filter=award output remains identical
+ok 114 - companies: filter=award output remains identical
+  ---
+  duration_ms: 0.6392
+  type: 'test'
+  ...
+# Subtest: companies: filter=large output remains identical
+ok 115 - companies: filter=large output remains identical
+  ---
+  duration_ms: 0.6761
+  type: 'test'
+  ...
+# Subtest: companies: filter=ai output remains identical
+ok 116 - companies: filter=ai output remains identical
+  ---
+  duration_ms: 0.7313
+  type: 'test'
+  ...
+# Subtest: companies: filter=erp output remains identical
+ok 117 - companies: filter=erp output remains identical
+  ---
+  duration_ms: 0.6957
+  type: 'test'
+  ...
+# Subtest: companies: filter=sec output remains identical
+ok 118 - companies: filter=sec output remains identical
+  ---
+  duration_ms: 0.6615
+  type: 'test'
+  ...
+# Subtest: companies: filter=unknown output remains identical
+ok 119 - companies: filter=unknown output remains identical
+  ---
+  duration_ms: 0.5833
+  type: 'test'
+  ...
+# Subtest: companies: default 200-item limit remains identical
+ok 120 - companies: default 200-item limit remains identical
+  ---
+  duration_ms: 2.3305
+  type: 'test'
+  ...
+# Subtest: cases: non-GET still returns 405
+ok 121 - cases: non-GET still returns 405
+  ---
+  duration_ms: 0.3232
+  type: 'test'
+  ...
+# Subtest: cases: industry-code lookup failure retains raw codes
+ok 122 - cases: industry-code lookup failure retains raw codes
+  ---
+  duration_ms: 0.7415
+  type: 'test'
+  ...
+# Subtest: stats: maintenance failure remains null without failing other statistics
+ok 123 - stats: maintenance failure remains null without failing other statistics
+  ---
+  duration_ms: 2.2172
+  type: 'test'
+  ...
+# Subtest: solutions: optional data_source failure remains graceful
+ok 124 - solutions: optional data_source failure remains graceful
+  ---
+  duration_ms: 2.0734
+  type: 'test'
+  ...
+# Subtest: solutions: optional record_status HTTP failure preserves historical response
+ok 125 - solutions: optional record_status HTTP failure preserves historical response
+  ---
+  duration_ms: 1.9316
+  type: 'test'
+  ...
+# Subtest: solutions: optional record_status network failure preserves historical response
+ok 126 - solutions: optional record_status network failure preserves historical response
+  ---
+  duration_ms: 4.9131
+  type: 'test'
+  ...
+# Subtest: solutions: loaded status retains suspected status and normalizes null to normal
+ok 127 - solutions: loaded status retains suspected status and normalizes null to normal
+  ---
+  duration_ms: 1.5038
+  type: 'test'
+  ...
+# Subtest: solutions: image URLs join by solution_id and include only active rows
+ok 128 - solutions: image URLs join by solution_id and include only active rows
+  ---
+  duration_ms: 1.424
+  type: 'test'
+  ...
+# Subtest: solutions: image lookup 404 retains HTTP 200
+ok 129 - solutions: image lookup 404 retains HTTP 200
+  ---
+  duration_ms: 1.3347
+  type: 'test'
+  ...
+# Subtest: solutions: image lookup 403 retains HTTP 200
+ok 130 - solutions: image lookup 403 retains HTTP 200
+  ---
+  duration_ms: 1.3064
+  type: 'test'
+  ...
+# Subtest: solutions: image lookup network failure retains HTTP 200
+ok 131 - solutions: image lookup network failure retains HTTP 200
+  ---
+  duration_ms: 2.074
+  type: 'test'
+  ...
+# Subtest: solutions: multi-page requests remain identical
+ok 132 - solutions: multi-page requests remain identical
+  ---
+  duration_ms: 35.4962
+  type: 'test'
+  ...
+# Subtest: stats: multi-page requests remain identical
+ok 133 - stats: multi-page requests remain identical
+  ---
+  duration_ms: 11.499
+  type: 'test'
+  ...
+# Subtest: companies: multi-page requests remain identical
+ok 134 - companies: multi-page requests remain identical
+  ---
+  duration_ms: 8.4541
+  type: 'test'
+  ...
+# Subtest: solutions: exact-page 416 handling remains identical
+ok 135 - solutions: exact-page 416 handling remains identical
+  ---
+  duration_ms: 31.6562
+  type: 'test'
+  ...
+# Subtest: stats: exact-page 416 handling remains identical
+ok 136 - stats: exact-page 416 handling remains identical
+  ---
+  duration_ms: 10.3975
+  type: 'test'
+  ...
+# Subtest: four read APIs and public assets contain no live Airtable/source-switch references
+ok 137 - four read APIs and public assets contain no live Airtable/source-switch references
+  ---
+  duration_ms: 33.359
+  type: 'test'
+  ...
+1..137
+# tests 137
+# suites 0
+# pass 106
+# fail 31
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 954.0727

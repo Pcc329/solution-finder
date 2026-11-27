@@ -1,0 +1,1730 @@
+TAP version 13
+# (node:6656) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/ask.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: ask: success preserves response and safe single-write behavior
+not ok 1 - ask: success preserves response and safe single-write behavior
+  ---
+  duration_ms: 5.1089
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+  ...
+# Subtest: ask: 400 preserves response and safe single-write behavior
+not ok 2 - ask: 400 preserves response and safe single-write behavior
+  ---
+  duration_ms: 2.6755
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: 500 preserves response and safe single-write behavior
+not ok 3 - ask: 500 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.8812
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: 429 preserves response and safe single-write behavior
+not ok 4 - ask: 429 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.8061
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: network-error preserves response and safe single-write behavior
+not ok 5 - ask: network-error preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.7711
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: invalid-json preserves response and safe single-write behavior
+not ok 6 - ask: invalid-json preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.0081
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: unsafe-code preserves response and safe single-write behavior
+not ok 7 - ask: unsafe-code preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.8612
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: ask: missing-url preserves response and safe single-write behavior
+ok 8 - ask: missing-url preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.6319
+  type: 'test'
+  ...
+# Subtest: ask: missing-key preserves response and safe single-write behavior
+ok 9 - ask: missing-key preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.7935
+  type: 'test'
+  ...
+# Subtest: ask: requireAuth still blocks unauthenticated requests
+ok 10 - ask: requireAuth still blocks unauthenticated requests
+  ---
+  duration_ms: 0.5727
+  type: 'test'
+  ...
+# Subtest: claude: success preserves response and safe single-write behavior
+not ok 11 - claude: success preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.0655
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: 400 preserves response and safe single-write behavior
+not ok 12 - claude: 400 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.69
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: 500 preserves response and safe single-write behavior
+not ok 13 - claude: 500 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4463
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: 429 preserves response and safe single-write behavior
+not ok 14 - claude: 429 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.3877
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: network-error preserves response and safe single-write behavior
+not ok 15 - claude: network-error preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.5146
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: invalid-json preserves response and safe single-write behavior
+not ok 16 - claude: invalid-json preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4676
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: unsafe-code preserves response and safe single-write behavior
+not ok 17 - claude: unsafe-code preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.3525
+  type: 'test'
+  location: 'C:\\Users\\S25036\\Documents\\Codex\\repos\\solution-finder\\tests\\airtable-write-migration.test.mjs:96:5'
+  failureType: 'testCodeFailure'
+  error: 'env is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/tests/airtable-write-migration.test.mjs:105:105)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1125:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:787:7)
+  ...
+# Subtest: claude: missing-url preserves response and safe single-write behavior
+ok 18 - claude: missing-url preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4196
+  type: 'test'
+  ...
+# Subtest: claude: missing-key preserves response and safe single-write behavior
+ok 19 - claude: missing-key preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4651
+  type: 'test'
+  ...
+# Subtest: claude: requireAuth still blocks unauthenticated requests
+ok 20 - claude: requireAuth still blocks unauthenticated requests
+  ---
+  duration_ms: 0.2153
+  type: 'test'
+  ...
+# Subtest: feedback: success preserves response and safe single-write behavior
+ok 21 - feedback: success preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.6002
+  type: 'test'
+  ...
+# Subtest: feedback: 400 preserves response and safe single-write behavior
+ok 22 - feedback: 400 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.3929
+  type: 'test'
+  ...
+# Subtest: feedback: 500 preserves response and safe single-write behavior
+ok 23 - feedback: 500 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.3572
+  type: 'test'
+  ...
+# Subtest: feedback: 429 preserves response and safe single-write behavior
+ok 24 - feedback: 429 preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.2908
+  type: 'test'
+  ...
+# Subtest: feedback: network-error preserves response and safe single-write behavior
+ok 25 - feedback: network-error preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.5479
+  type: 'test'
+  ...
+# Subtest: feedback: invalid-json preserves response and safe single-write behavior
+ok 26 - feedback: invalid-json preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.4269
+  type: 'test'
+  ...
+# Subtest: feedback: unsafe-code preserves response and safe single-write behavior
+ok 27 - feedback: unsafe-code preserves response and safe single-write behavior
+  ---
+  duration_ms: 1.4508
+  type: 'test'
+  ...
+# Subtest: feedback: missing-url preserves response and safe single-write behavior
+ok 28 - feedback: missing-url preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.3129
+  type: 'test'
+  ...
+# Subtest: feedback: missing-key preserves response and safe single-write behavior
+ok 29 - feedback: missing-key preserves response and safe single-write behavior
+  ---
+  duration_ms: 0.2739
+  type: 'test'
+  ...
+# Subtest: feedback: requireAuth still blocks unauthenticated requests
+ok 30 - feedback: requireAuth still blocks unauthenticated requests
+  ---
+  duration_ms: 0.2424
+  type: 'test'
+  ...
+# Subtest: feedback: validated optional fields including zero remain intact
+ok 31 - feedback: validated optional fields including zero remain intact
+  ---
+  duration_ms: 0.4542
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"name":""} before writing
+ok 32 - feedback: rejects {"name":""} before writing
+  ---
+  duration_ms: 0.4071
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"name":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 33 - feedback: rejects {"name":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.3443
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"department":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 34 - feedback: rejects {"department":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.2621
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"milestone":""} before writing
+ok 35 - feedback: rejects {"milestone":""} before writing
+  ---
+  duration_ms: 0.3086
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"milestone":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 36 - feedback: rejects {"milestone":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.2869
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"milestone":"not-allowed"} before writing
+ok 37 - feedback: rejects {"milestone":"not-allowed"} before writing
+  ---
+  duration_ms: 0.2971
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"detail":""} before writing
+ok 38 - feedback: rejects {"detail":""} before writing
+  ---
+  duration_ms: 0.2884
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"detail":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx before writing
+ok 39 - feedback: rejects {"detail":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx before writing
+  ---
+  duration_ms: 0.2726
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"score":0} before writing
+ok 40 - feedback: rejects {"score":0} before writing
+  ---
+  duration_ms: 0.3878
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"score":6} before writing
+ok 41 - feedback: rejects {"score":6} before writing
+  ---
+  duration_ms: 0.5874
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"score":1.5} before writing
+ok 42 - feedback: rejects {"score":1.5} before writing
+  ---
+  duration_ms: 0.3626
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"relevant_count":-1} before writing
+ok 43 - feedback: rejects {"relevant_count":-1} before writing
+  ---
+  duration_ms: 0.3643
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"relevant_count":6} before writing
+ok 44 - feedback: rejects {"relevant_count":6} before writing
+  ---
+  duration_ms: 0.3566
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"path_choice":"not-allowed"} before writing
+ok 45 - feedback: rejects {"path_choice":"not-allowed"} before writing
+  ---
+  duration_ms: 0.4602
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"path_choice":"xxxxxxxxxxxxxxxxxxxxx"} before writing
+ok 46 - feedback: rejects {"path_choice":"xxxxxxxxxxxxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.3359
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"would_cite":"not-allowed"} before writing
+ok 47 - feedback: rejects {"would_cite":"not-allowed"} before writing
+  ---
+  duration_ms: 0.3653
+  type: 'test'
+  ...
+# Subtest: feedback: rejects {"would_cite":"xxxxxxxxxxx"} before writing
+ok 48 - feedback: rejects {"would_cite":"xxxxxxxxxxx"} before writing
+  ---
+  duration_ms: 0.3215
+  type: 'test'
+  ...
+# Subtest: feedback: malformed JSON still returns 400
+ok 49 - feedback: malformed JSON still returns 400
+  ---
+  duration_ms: 0.3984
+  type: 'test'
+  ...
+# Subtest: feedback: same-IP fourth request is rate limited; another IP is allowed
+ok 50 - feedback: same-IP fourth request is rate limited; another IP is allowed
+  ---
+  duration_ms: 1.3633
+  type: 'test'
+  ...
+# Subtest: ask: OPTIONS stays available without auth
+ok 51 - ask: OPTIONS stays available without auth
+  ---
+  duration_ms: 0.3678
+  type: 'test'
+  ...
+# Subtest: claude: OPTIONS stays available without auth
+ok 52 - claude: OPTIONS stays available without auth
+  ---
+  duration_ms: 0.2207
+  type: 'test'
+  ...
+# Subtest: ask: absent search query remains an empty string in storage
+ok 53 - ask: absent search query remains an empty string in storage
+  ---
+  duration_ms: 0.6016
+  type: 'test'
+  ...
+# Subtest: migration is byte-for-byte identical to the supplied SQL
+ok 54 - migration is byte-for-byte identical to the supplied SQL
+  ---
+  duration_ms: 1.2529
+  type: 'test'
+  ...
+# (node:6872) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/_lib/company-search.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: 1. tax ID exact match returns whitelisted company, all solutions and summary
+ok 55 - 1. tax ID exact match returns whitelisted company, all solutions and summary
+  ---
+  duration_ms: 70.1313
+  type: 'test'
+  ...
+# Subtest: 2. statuses use prefixes, preserve labels and normalize nullable numeric values
+ok 56 - 2. statuses use prefixes, preserve labels and normalize nullable numeric values
+  ---
+  duration_ms: 3.3631
+  type: 'test'
+  ...
+# Subtest: 3. full-width digits, letters and spaces normalize; separated tax IDs match
+ok 57 - 3. full-width digits, letters and spaces normalize; separated tax IDs match
+  ---
+  duration_ms: 4.8411
+  type: 'test'
+  ...
+# Subtest: 4. seven- or nine-digit numeric input is rejected before reads and writes
+ok 58 - 4. seven- or nine-digit numeric input is rejected before reads and writes
+  ---
+  duration_ms: 1.2373
+  type: 'test'
+  ...
+# Subtest: 5. a single equal name core is exact with or without suffix; optional reads fail independently
+ok 59 - 5. a single equal name core is exact with or without suffix; optional reads fail independently
+  ---
+  duration_ms: 20.6663
+  type: 'test'
+  ...
+# Subtest: 6. partial matches return at most ten ordered candidates and count with one batched solutions query
+ok 60 - 6. partial matches return at most ten ordered candidates and count with one batched solutions query
+  ---
+  duration_ms: 2.3094
+  type: 'test'
+  ...
+# Subtest: 7. no match returns zero results and at most five prefix hints; tax ID misses never query hints
+ok 61 - 7. no match returns zero results and at most five prefix hints; tax ID misses never query hints
+  ---
+  duration_ms: 1.8091
+  type: 'test'
+  ...
+# Subtest: 8. user-supplied PostgREST metacharacters are removed from name and prefix filters
+ok 62 - 8. user-supplied PostgREST metacharacters are removed from name and prefix filters
+  ---
+  duration_ms: 3.4899
+  type: 'test'
+  ...
+# Subtest: 9. invalid lengths and short cores return exact validation messages without storage
+ok 63 - 9. invalid lengths and short cores return exact validation messages without storage
+  ---
+  duration_ms: 2.8502
+  type: 'test'
+  ...
+# Subtest: 10. every response path omits contact-related fields and never reads contacts
+ok 64 - 10. every response path omits contact-related fields and never reads contacts
+  ---
+  duration_ms: 4.4302
+  type: 'test'
+  ...
+# Subtest: 11. each 200 awaits one complete search log; storage errors preserve payload and non-200 never writes
+ok 65 - 11. each 200 awaits one complete search log; storage errors preserve payload and non-200 never writes
+  ---
+  duration_ms: 14.2793
+  type: 'test'
+  ...
+# Subtest: 12. every read uses anon credentials, including session-authenticated requests and optional tables
+ok 66 - 12. every read uses anon credentials, including session-authenticated requests and optional tables
+  ---
+  duration_ms: 6.3836
+  type: 'test'
+  ...
+# Subtest: 13. the sixty-first request is limited before auth; methods precede limiting and expired windows reset
+ok 67 - 13. the sixty-first request is limited before auth; methods precede limiting and expired windows reset
+  ---
+  duration_ms: 12.7353
+  type: 'test'
+  ...
+# Subtest: 14. companies without search action preserves main graph response and reads with private cache policy
+ok 68 - 14. companies without search action preserves main graph response and reads with private cache policy
+  ---
+  duration_ms: 118.501
+  type: 'test'
+  ...
+# Subtest: 15. companies search action dispatches q before graph headers and performs one search log write
+ok 69 - 15. companies search action dispatches q before graph headers and performs one search log write
+  ---
+  duration_ms: 2.8134
+  type: 'test'
+  ...
+# (node:2444) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/company-detail.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: 1. success awaits one contact log plus one usage log with complete typed fields from filtered contacts
+ok 70 - 1. success awaits one contact log plus one usage log with complete typed fields from filtered contacts
+  ---
+  duration_ms: 20.6875
+  type: 'test'
+  ...
+# Subtest: 2. POST body and logs never contain raw IP, session, email or mobile
+ok 71 - 2. POST body and logs never contain raw IP, session, email or mobile
+  ---
+  duration_ms: 2.9644
+  type: 'test'
+  ...
+# Subtest: 3. HMAC uses the first forwarded IP or socket fallback and changes with salt
+ok 72 - 3. HMAC uses the first forwarded IP or socket fallback and changes with salt
+  ---
+  duration_ms: 4.7185
+  type: 'test'
+  ...
+# Subtest: 4. missing or empty salt writes null hashes, emits one safe error and preserves 200 payload
+ok 73 - 4. missing or empty salt writes null hashes, emits one safe error and preserves 200 payload
+  ---
+  duration_ms: 4.3921
+  type: 'test'
+  ...
+# Subtest: 5. POST 500, missing table or network failure preserves the entire baseline response
+ok 74 - 5. POST 500, missing table or network failure preserves the entire baseline response
+  ---
+  duration_ms: 8.4633
+  type: 'test'
+  ...
+# Subtest: 6. non-200 responses never POST; the thirty-first request retains the existing rate limit
+ok 75 - 6. non-200 responses never POST; the thirty-first request retains the existing rate limit
+  ---
+  duration_ms: 18.2796
+  type: 'test'
+  ...
+# Subtest: 7. API-key authentication has no session hash; a valid session takes precedence when both exist
+ok 76 - 7. API-key authentication has no session hash; a valid session takes precedence when both exist
+  ---
+  duration_ms: 2.6443
+  type: 'test'
+  ...
+# Subtest: 8. explicitly enabled shared v1 session remains compatible with contact and usage logging
+ok 77 - 8. explicitly enabled shared v1 session remains compatible with contact and usage logging
+  ---
+  duration_ms: 3.3127
+  type: 'test'
+  ...
+# (node:3588) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/auth.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: v2 signs exactly the version, expiry and UUID; v1 wire format stays identical
+ok 78 - v2 signs exactly the version, expiry and UUID; v1 wire format stays identical
+  ---
+  duration_ms: 7.4974
+  type: 'test'
+  ...
+# Subtest: v2 rejects user-tamper before looking up roles
+ok 79 - v2 rejects user-tamper before looking up roles
+  ---
+  duration_ms: 1.4993
+  type: 'test'
+  ...
+# Subtest: v2 rejects signature-tamper before looking up roles
+ok 80 - v2 rejects signature-tamper before looking up roles
+  ---
+  duration_ms: 0.7811
+  type: 'test'
+  ...
+# Subtest: v2 rejects expired before looking up roles
+ok 81 - v2 rejects expired before looking up roles
+  ---
+  duration_ms: 0.6599
+  type: 'test'
+  ...
+# Subtest: v2 rejects non-uuid before looking up roles
+ok 82 - v2 rejects non-uuid before looking up roles
+  ---
+  duration_ms: 0.6819
+  type: 'test'
+  ...
+# Subtest: v2 rejects extra before looking up roles
+ok 83 - v2 rejects extra before looking up roles
+  ---
+  duration_ms: 1.7304
+  type: 'test'
+  ...
+# Subtest: v2 rejects missing-secret before looking up roles
+ok 84 - v2 rejects missing-secret before looking up roles
+  ---
+  duration_ms: 0.532
+  type: 'test'
+  ...
+# Subtest: v2 rejects missing-cookie before looking up roles
+ok 85 - v2 rejects missing-cookie before looking up roles
+  ---
+  duration_ms: 0.4245
+  type: 'test'
+  ...
+# Subtest: active v2 returns user identity; status cache refreshes at 60 seconds
+ok 86 - active v2 returns user identity; status cache refreshes at 60 seconds
+  ---
+  duration_ms: 2.9924
+  type: 'test'
+  ...
+# Subtest: suspension remains cached inside TTL and is denied after expiry with cookie cleared
+ok 87 - suspension remains cached inside TTL and is denied after expiry with cookie cleared
+  ---
+  duration_ms: 1.4297
+  type: 'test'
+  ...
+# Subtest: role inactive denies and clears session
+ok 88 - role inactive denies and clears session
+  ---
+  duration_ms: 0.8189
+  type: 'test'
+  ...
+# Subtest: role missing denies and clears session
+ok 89 - role missing denies and clears session
+  ---
+  duration_ms: 1.4872
+  type: 'test'
+  ...
+# Subtest: role lookup non-2xx fails closed and is never cached
+ok 90 - role lookup non-2xx fails closed and is never cached
+  ---
+  duration_ms: 1.8932
+  type: 'test'
+  ...
+# Subtest: role lookup throw fails closed and is never cached
+ok 91 - role lookup throw fails closed and is never cached
+  ---
+  duration_ms: 1.2915
+  type: 'test'
+  ...
+# Subtest: role lookup missing-url fails closed and is never cached
+ok 92 - role lookup missing-url fails closed and is never cached
+  ---
+  duration_ms: 1.0954
+  type: 'test'
+  ...
+# Subtest: role lookup missing-key fails closed and is never cached
+ok 93 - role lookup missing-key fails closed and is never cached
+  ---
+  duration_ms: 0.9398
+  type: 'test'
+  ...
+# Subtest: role lookup malformed fails closed and is never cached
+ok 94 - role lookup malformed fails closed and is never cached
+  ---
+  duration_ms: 0.9252
+  type: 'test'
+  ...
+# Subtest: expired cached status is not served after failed revalidation
+ok 95 - expired cached status is not served after failed revalidation
+  ---
+  duration_ms: 1.0799
+  type: 'test'
+  ...
+# Subtest: must-change-password blocks business API and is allowed explicitly for auth actions
+ok 96 - must-change-password blocks business API and is allowed explicitly for auth actions
+  ---
+  duration_ms: 0.7215
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: undefined
+ok 97 - shared v1 switch is strict: undefined
+  ---
+  duration_ms: 0.6003
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict:
+ok 98 - shared v1 switch is strict:
+  ---
+  duration_ms: 0.7181
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: TRUE
+ok 99 - shared v1 switch is strict: TRUE
+  ---
+  duration_ms: 0.3441
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: 1
+ok 100 - shared v1 switch is strict: 1
+  ---
+  duration_ms: 0.293
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: false
+ok 101 - shared v1 switch is strict: false
+  ---
+  duration_ms: 0.4073
+  type: 'test'
+  ...
+# Subtest: shared v1 switch is strict: true
+ok 102 - shared v1 switch is strict: true
+  ---
+  duration_ms: 0.2623
+  type: 'test'
+  ...
+# Subtest: allowlisted API key bypasses role database even when unavailable
+ok 103 - allowlisted API key bypasses role database even when unavailable
+  ---
+  duration_ms: 0.3769
+  type: 'test'
+  ...
+# Subtest: login normalizes email, issues a 7-day v2 cookie, and exposes no Supabase tokens
+ok 104 - login normalizes email, issues a 7-day v2 cookie, and exposes no Supabase tokens
+  ---
+  duration_ms: 2.0578
+  type: 'test'
+  ...
+# Subtest: login keeps nonexistent and incorrect-password errors indistinguishable
+ok 105 - login keeps nonexistent and incorrect-password errors indistinguishable
+  ---
+  duration_ms: 0.5415
+  type: 'test'
+  ...
+# Subtest: login denies inactive account
+ok 106 - login denies inactive account
+  ---
+  duration_ms: 0.4229
+  type: 'test'
+  ...
+# Subtest: login denies missing account
+ok 107 - login denies missing account
+  ---
+  duration_ms: 0.505
+  type: 'test'
+  ...
+# Subtest: login refreshes cached inactive status after account reactivation
+ok 108 - login refreshes cached inactive status after account reactivation
+  ---
+  duration_ms: 1.3085
+  type: 'test'
+  ...
+# Subtest: login IP request 21 is limited; method check precedes limiter; 60-second window expires
+ok 109 - login IP request 21 is limited; method check precedes limiter; 60-second window expires
+  ---
+  duration_ms: 1.5742
+  type: 'test'
+  ...
+# Subtest: login: six Supabase 429 grants return 503 without account lock
+ok 110 - login: six Supabase 429 grants return 503 without account lock
+  ---
+  duration_ms: 1.5145
+  type: 'test'
+  ...
+# Subtest: login: six Supabase 500 grants return 503 without account lock
+ok 111 - login: six Supabase 500 grants return 503 without account lock
+  ---
+  duration_ms: 1.0617
+  type: 'test'
+  ...
+# Subtest: login: six Supabase 503 grants return 503 without account lock
+ok 112 - login: six Supabase 503 grants return 503 without account lock
+  ---
+  duration_ms: 0.8163
+  type: 'test'
+  ...
+# Subtest: login: five credential failures (400) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 113 - login: five credential failures (400) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 1.029
+  type: 'test'
+  ...
+# Subtest: login: five credential failures (401) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 114 - login: five credential failures (401) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 0.8451
+  type: 'test'
+  ...
+# Subtest: login: five credential failures (403) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 115 - login: five credential failures (403) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 1.1912
+  type: 'test'
+  ...
+# Subtest: login: grant network failure gives 503 without leaking upstream error
+ok 116 - login: grant network failure gives 503 without leaking upstream error
+  ---
+  duration_ms: 0.4229
+  type: 'test'
+  ...
+# Subtest: change-password: six Supabase 429 grants return 503 without account lock
+ok 117 - change-password: six Supabase 429 grants return 503 without account lock
+  ---
+  duration_ms: 1.7699
+  type: 'test'
+  ...
+# Subtest: change-password: six Supabase 500 grants return 503 without account lock
+ok 118 - change-password: six Supabase 500 grants return 503 without account lock
+  ---
+  duration_ms: 1.5935
+  type: 'test'
+  ...
+# Subtest: change-password: six Supabase 503 grants return 503 without account lock
+ok 119 - change-password: six Supabase 503 grants return 503 without account lock
+  ---
+  duration_ms: 2.7555
+  type: 'test'
+  ...
+# Subtest: change-password: five credential failures (400) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 120 - change-password: five credential failures (400) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 7.3318
+  type: 'test'
+  ...
+# Subtest: change-password: five credential failures (401) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 121 - change-password: five credential failures (401) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 3.588
+  type: 'test'
+  ...
+# Subtest: change-password: five credential failures (403) lock account; sixth avoids Supabase; unlocks after 15 minutes
+ok 122 - change-password: five credential failures (403) lock account; sixth avoids Supabase; unlocks after 15 minutes
+  ---
+  duration_ms: 2.3023
+  type: 'test'
+  ...
+# Subtest: change-password: grant network failure gives 503 without leaking upstream error
+ok 123 - change-password: grant network failure gives 503 without leaking upstream error
+  ---
+  duration_ms: 0.5187
+  type: 'test'
+  ...
+# Subtest: successful login clears accumulated account failures
+ok 124 - successful login clears accumulated account failures
+  ---
+  duration_ms: 0.9618
+  type: 'test'
+  ...
+# Subtest: change-password IP limiter is separate from login; socket fallback works
+ok 125 - change-password IP limiter is separate from login; socket fallback works
+  ---
+  duration_ms: 1.4873
+  type: 'test'
+  ...
+# Subtest: login account failures do not lock the separate change-password account counter
+ok 126 - login account failures do not lock the separate change-password account counter
+  ---
+  duration_ms: 1.6419
+  type: 'test'
+  ...
+# Subtest: shared login requires exact enabled switch; personal login validates email before fetch
+ok 127 - shared login requires exact enabled switch; personal login validates email before fetch
+  ---
+  duration_ms: 1.9636
+  type: 'test'
+  ...
+# Subtest: change-password rejects shared credentials
+ok 128 - change-password rejects shared credentials
+  ---
+  duration_ms: 0.957
+  type: 'test'
+  ...
+# Subtest: change-password rejects api_key credentials
+ok 129 - change-password rejects api_key credentials
+  ---
+  duration_ms: 0.4703
+  type: 'test'
+  ...
+# Subtest: change-password rejects none credentials
+ok 130 - change-password rejects none credentials
+  ---
+  duration_ms: 0.3715
+  type: 'test'
+  ...
+# Subtest: change-password rejects seven characters before password grant
+ok 131 - change-password rejects seven characters before password grant
+  ---
+  duration_ms: 0.5613
+  type: 'test'
+  ...
+# Subtest: change-password rejects over 72 bytes before password grant
+ok 132 - change-password rejects over 72 bytes before password grant
+  ---
+  duration_ms: 0.7423
+  type: 'test'
+  ...
+# Subtest: change-password rejects same password before password grant
+ok 133 - change-password rejects same password before password grant
+  ---
+  duration_ms: 0.4312
+  type: 'test'
+  ...
+# Subtest: change-password rejects account name ignoring case before password grant
+ok 134 - change-password rejects account name ignoring case before password grant
+  ---
+  duration_ms: 0.5202
+  type: 'test'
+  ...
+# Subtest: change-password rejects blacklist ignoring case before password grant
+ok 135 - change-password rejects blacklist ignoring case before password grant
+  ---
+  duration_ms: 0.4709
+  type: 'test'
+  ...
+# Subtest: password length uses Unicode code points and accepts eight Chinese characters
+ok 136 - password length uses Unicode code points and accepts eight Chinese characters
+  ---
+  duration_ms: 2.0637
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 12345678
+ok 137 - required common-password blacklist: 12345678
+  ---
+  duration_ms: 0.3635
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 123456789
+ok 138 - required common-password blacklist: 123456789
+  ---
+  duration_ms: 0.233
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 1234567890
+ok 139 - required common-password blacklist: 1234567890
+  ---
+  duration_ms: 0.2211
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 87654321
+ok 140 - required common-password blacklist: 87654321
+  ---
+  duration_ms: 0.2853
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 11111111
+ok 141 - required common-password blacklist: 11111111
+  ---
+  duration_ms: 0.2149
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 00000000
+ok 142 - required common-password blacklist: 00000000
+  ---
+  duration_ms: 0.1743
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: password
+ok 143 - required common-password blacklist: password
+  ---
+  duration_ms: 0.1712
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: password1
+ok 144 - required common-password blacklist: password1
+  ---
+  duration_ms: 0.2145
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: passw0rd
+ok 145 - required common-password blacklist: passw0rd
+  ---
+  duration_ms: 0.1909
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: qwertyui
+ok 146 - required common-password blacklist: qwertyui
+  ---
+  duration_ms: 0.2537
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: qwerty123
+ok 147 - required common-password blacklist: qwerty123
+  ---
+  duration_ms: 0.2467
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: abcd1234
+ok 148 - required common-password blacklist: abcd1234
+  ---
+  duration_ms: 0.2126
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: 1qaz2wsx
+ok 149 - required common-password blacklist: 1qaz2wsx
+  ---
+  duration_ms: 0.1729
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: iloveyou
+ok 150 - required common-password blacklist: iloveyou
+  ---
+  duration_ms: 0.1311
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: a1234567
+ok 151 - required common-password blacklist: a1234567
+  ---
+  duration_ms: 0.1898
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: aa123456
+ok 152 - required common-password blacklist: aa123456
+  ---
+  duration_ms: 0.113
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: iii12345
+ok 153 - required common-password blacklist: iii12345
+  ---
+  duration_ms: 0.11
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: iii@1234
+ok 154 - required common-password blacklist: iii@1234
+  ---
+  duration_ms: 0.176
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: solution
+ok 155 - required common-password blacklist: solution
+  ---
+  duration_ms: 0.1753
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: solution1
+ok 156 - required common-password blacklist: solution1
+  ---
+  duration_ms: 0.3016
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: sf123456
+ok 157 - required common-password blacklist: sf123456
+  ---
+  duration_ms: 0.3154
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: admin123
+ok 158 - required common-password blacklist: admin123
+  ---
+  duration_ms: 3.0403
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: welcome1
+ok 159 - required common-password blacklist: welcome1
+  ---
+  duration_ms: 0.4973
+  type: 'test'
+  ...
+# Subtest: required common-password blacklist: taiwan123
+ok 160 - required common-password blacklist: taiwan123
+  ---
+  duration_ms: 0.2818
+  type: 'test'
+  ...
+# Subtest: password change grants, updates with ephemeral Bearer, clears flag and invalidates cache without replacing session
+ok 161 - password change grants, updates with ephemeral Bearer, clears flag and invalidates cache without replacing session
+  ---
+  duration_ms: 2.0613
+  type: 'test'
+  ...
+# Subtest: password put-status failure is a safe 502 and preserves must-change restriction
+ok 162 - password put-status failure is a safe 502 and preserves must-change restriction
+  ---
+  duration_ms: 0.7413
+  type: 'test'
+  ...
+# Subtest: password put-throw failure is a safe 502 and preserves must-change restriction
+ok 163 - password put-throw failure is a safe 502 and preserves must-change restriction
+  ---
+  duration_ms: 0.6845
+  type: 'test'
+  ...
+# Subtest: password patch-status failure is a safe 502 and preserves must-change restriction
+ok 164 - password patch-status failure is a safe 502 and preserves must-change restriction
+  ---
+  duration_ms: 0.5983
+  type: 'test'
+  ...
+# Subtest: password patch-throw failure is a safe 502 and preserves must-change restriction
+ok 165 - password patch-throw failure is a safe 502 and preserves must-change restriction
+  ---
+  duration_ms: 1.3553
+  type: 'test'
+  ...
+# Subtest: password change rejects password grant for a different user
+ok 166 - password change rejects password grant for a different user
+  ---
+  duration_ms: 0.799
+  type: 'test'
+  ...
+# Subtest: session-check provides user-only identity and allows must-change-password
+ok 167 - session-check provides user-only identity and allows must-change-password
+  ---
+  duration_ms: 0.4797
+  type: 'test'
+  ...
+# Subtest: session-check distinguishes unauthorized from unavailable; logout still expires cookie
+ok 168 - session-check distinguishes unauthorized from unavailable; logout still expires cookie
+  ---
+  duration_ms: 1.2332
+  type: 'test'
+  ...
+# Subtest: claude: one user usage row with correct identity and no content
+ok 169 - claude: one user usage row with correct identity and no content
+  ---
+  duration_ms: 47.5131
+  type: 'test'
+  ...
+# Subtest: claude: one api_key usage row with correct identity and no content
+ok 170 - claude: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 3.4594
+  type: 'test'
+  ...
+# Subtest: claude: one shared usage row with correct identity and no content
+ok 171 - claude: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 0.9114
+  type: 'test'
+  ...
+# Subtest: claude: usage storage rejection and throw both preserve complete endpoint response
+ok 172 - claude: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 2.7764
+  type: 'test'
+  ...
+# Subtest: claude: non-2xx Anthropic response still meters exactly once
+ok 173 - claude: non-2xx Anthropic response still meters exactly once
+  ---
+  duration_ms: 2.0888
+  type: 'test'
+  ...
+# Subtest: claude: Anthropic network exception does not meter
+ok 174 - claude: Anthropic network exception does not meter
+  ---
+  duration_ms: 1.155
+  type: 'test'
+  ...
+# Subtest: ask: one user usage row with correct identity and no content
+ok 175 - ask: one user usage row with correct identity and no content
+  ---
+  duration_ms: 2.7572
+  type: 'test'
+  ...
+# Subtest: ask: one api_key usage row with correct identity and no content
+ok 176 - ask: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 1.0917
+  type: 'test'
+  ...
+# Subtest: ask: one shared usage row with correct identity and no content
+ok 177 - ask: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 0.957
+  type: 'test'
+  ...
+# Subtest: ask: usage storage rejection and throw both preserve complete endpoint response
+ok 178 - ask: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 1.4907
+  type: 'test'
+  ...
+# Subtest: ask: non-2xx Anthropic response still meters exactly once
+ok 179 - ask: non-2xx Anthropic response still meters exactly once
+  ---
+  duration_ms: 1.5264
+  type: 'test'
+  ...
+# Subtest: ask: Anthropic network exception does not meter
+ok 180 - ask: Anthropic network exception does not meter
+  ---
+  duration_ms: 0.5956
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: one user usage row with correct identity and no content
+ok 181 - manufacturing-analyze: one user usage row with correct identity and no content
+  ---
+  duration_ms: 1.9489
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: one api_key usage row with correct identity and no content
+ok 182 - manufacturing-analyze: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 0.9799
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: one shared usage row with correct identity and no content
+ok 183 - manufacturing-analyze: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 0.8482
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: usage storage rejection and throw both preserve complete endpoint response
+ok 184 - manufacturing-analyze: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 3.9286
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: non-2xx Anthropic response still meters exactly once
+ok 185 - manufacturing-analyze: non-2xx Anthropic response still meters exactly once
+  ---
+  duration_ms: 1.2328
+  type: 'test'
+  ...
+# Subtest: manufacturing-analyze: Anthropic network exception does not meter
+ok 186 - manufacturing-analyze: Anthropic network exception does not meter
+  ---
+  duration_ms: 0.7255
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: one user usage row with correct identity and no content
+ok 187 - manufacturing-recommend: one user usage row with correct identity and no content
+  ---
+  duration_ms: 1.8594
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: one api_key usage row with correct identity and no content
+ok 188 - manufacturing-recommend: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 0.9619
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: one shared usage row with correct identity and no content
+ok 189 - manufacturing-recommend: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 0.946
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: usage storage rejection and throw both preserve complete endpoint response
+ok 190 - manufacturing-recommend: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 1.4257
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: non-2xx Anthropic response still meters exactly once
+ok 191 - manufacturing-recommend: non-2xx Anthropic response still meters exactly once
+  ---
+  duration_ms: 1.4726
+  type: 'test'
+  ...
+# Subtest: manufacturing-recommend: Anthropic network exception does not meter
+ok 192 - manufacturing-recommend: Anthropic network exception does not meter
+  ---
+  duration_ms: 0.679
+  type: 'test'
+  ...
+# Subtest: company-detail: one user usage row with correct identity and no content
+ok 193 - company-detail: one user usage row with correct identity and no content
+  ---
+  duration_ms: 2.1894
+  type: 'test'
+  ...
+# Subtest: company-detail: one api_key usage row with correct identity and no content
+ok 194 - company-detail: one api_key usage row with correct identity and no content
+  ---
+  duration_ms: 1.8457
+  type: 'test'
+  ...
+# Subtest: company-detail: one shared usage row with correct identity and no content
+ok 195 - company-detail: one shared usage row with correct identity and no content
+  ---
+  duration_ms: 1.4656
+  type: 'test'
+  ...
+# Subtest: company-detail: usage storage rejection and throw both preserve complete endpoint response
+ok 196 - company-detail: usage storage rejection and throw both preserve complete endpoint response
+  ---
+  duration_ms: 4.8617
+  type: 'test'
+  ...
+# Subtest: recordUsage strips non-allowlisted keys and non-primitive values; hash fallback is unchanged
+ok 197 - recordUsage strips non-allowlisted keys and non-primitive values; hash fallback is unchanged
+  ---
+  duration_ms: 4.0333
+  type: 'test'
+  ...
+# Subtest: static guard: every requireAuth call awaits; business 10, auth actions 2, total 12
+ok 198 - static guard: every requireAuth call awaits; business 10, auth actions 2, total 12
+  ---
+  duration_ms: 5.7334
+  type: 'test'
+  ...
+# Subtest: restricted sources match main 2675eb5 exactly after only explicitly permitted edits
+ok 199 - restricted sources match main 2675eb5 exactly after only explicitly permitted edits
+  ---
+  duration_ms: 229.2779
+  type: 'test'
+  ...
+# (node:9564) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/S25036/Documents/Codex/repos/solution-finder/api/solutions.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\S25036\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: solutions: same fixture produces deep-equal JSON, requests and logs
+ok 200 - solutions: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 21.4874
+  type: 'test'
+  ...
+# Subtest: solutions: missing SUPABASE_URL preserves 500 response
+ok 201 - solutions: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.6132
+  type: 'test'
+  ...
+# Subtest: solutions: missing SUPABASE_ANON_KEY preserves 500 response
+ok 202 - solutions: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.4625
+  type: 'test'
+  ...
+# Subtest: solutions: HTTP 500 preserves error handling
+ok 203 - solutions: HTTP 500 preserves error handling
+  ---
+  duration_ms: 2.6019
+  type: 'test'
+  ...
+# Subtest: solutions: network failure preserves error handling
+ok 204 - solutions: network failure preserves error handling
+  ---
+  duration_ms: 2.1201
+  type: 'test'
+  ...
+# Subtest: solutions: ignored legacy source flag airtable still reads Supabase
+ok 205 - solutions: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 2.61
+  type: 'test'
+  ...
+# Subtest: solutions: ignored legacy source flag unset still reads Supabase
+ok 206 - solutions: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 2.5506
+  type: 'test'
+  ...
+# Subtest: solutions: ignored legacy source flag invalid-value still reads Supabase
+ok 207 - solutions: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 3.8485
+  type: 'test'
+  ...
+# Subtest: solutions: authentication behavior remains unchanged
+ok 208 - solutions: authentication behavior remains unchanged
+  ---
+  duration_ms: 1.0441
+  type: 'test'
+  ...
+# Subtest: cases: same fixture produces deep-equal JSON, requests and logs
+ok 209 - cases: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 2.2038
+  type: 'test'
+  ...
+# Subtest: cases: missing SUPABASE_URL preserves 500 response
+ok 210 - cases: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.4027
+  type: 'test'
+  ...
+# Subtest: cases: missing SUPABASE_ANON_KEY preserves 500 response
+ok 211 - cases: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.3655
+  type: 'test'
+  ...
+# Subtest: cases: HTTP 500 preserves error handling
+ok 212 - cases: HTTP 500 preserves error handling
+  ---
+  duration_ms: 0.9
+  type: 'test'
+  ...
+# Subtest: cases: network failure preserves error handling
+ok 213 - cases: network failure preserves error handling
+  ---
+  duration_ms: 0.5364
+  type: 'test'
+  ...
+# Subtest: cases: ignored legacy source flag airtable still reads Supabase
+ok 214 - cases: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 0.5723
+  type: 'test'
+  ...
+# Subtest: cases: ignored legacy source flag unset still reads Supabase
+ok 215 - cases: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 0.7755
+  type: 'test'
+  ...
+# Subtest: cases: ignored legacy source flag invalid-value still reads Supabase
+ok 216 - cases: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 0.5481
+  type: 'test'
+  ...
+# Subtest: cases: authentication behavior remains unchanged
+ok 217 - cases: authentication behavior remains unchanged
+  ---
+  duration_ms: 0.2976
+  type: 'test'
+  ...
+# Subtest: stats: same fixture produces deep-equal JSON, requests and logs
+ok 218 - stats: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 2.7552
+  type: 'test'
+  ...
+# Subtest: stats: missing SUPABASE_URL preserves 500 response
+ok 219 - stats: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.3054
+  type: 'test'
+  ...
+# Subtest: stats: missing SUPABASE_ANON_KEY preserves 500 response
+ok 220 - stats: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.2724
+  type: 'test'
+  ...
+# Subtest: stats: HTTP 500 preserves error handling
+ok 221 - stats: HTTP 500 preserves error handling
+  ---
+  duration_ms: 0.5175
+  type: 'test'
+  ...
+# Subtest: stats: network failure preserves error handling
+ok 222 - stats: network failure preserves error handling
+  ---
+  duration_ms: 0.5587
+  type: 'test'
+  ...
+# Subtest: stats: ignored legacy source flag airtable still reads Supabase
+ok 223 - stats: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 1.688
+  type: 'test'
+  ...
+# Subtest: stats: ignored legacy source flag unset still reads Supabase
+ok 224 - stats: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 1.7238
+  type: 'test'
+  ...
+# Subtest: stats: ignored legacy source flag invalid-value still reads Supabase
+ok 225 - stats: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 1.4054
+  type: 'test'
+  ...
+# Subtest: stats: authentication behavior remains unchanged
+ok 226 - stats: authentication behavior remains unchanged
+  ---
+  duration_ms: 1.7814
+  type: 'test'
+  ...
+# Subtest: companies: same fixture produces deep-equal JSON, requests and logs
+ok 227 - companies: same fixture produces deep-equal JSON, requests and logs
+  ---
+  duration_ms: 3.142
+  type: 'test'
+  ...
+# Subtest: companies: missing SUPABASE_URL preserves 500 response
+ok 228 - companies: missing SUPABASE_URL preserves 500 response
+  ---
+  duration_ms: 0.3513
+  type: 'test'
+  ...
+# Subtest: companies: missing SUPABASE_ANON_KEY preserves 500 response
+ok 229 - companies: missing SUPABASE_ANON_KEY preserves 500 response
+  ---
+  duration_ms: 0.3175
+  type: 'test'
+  ...
+# Subtest: companies: HTTP 500 preserves error handling
+ok 230 - companies: HTTP 500 preserves error handling
+  ---
+  duration_ms: 0.4704
+  type: 'test'
+  ...
+# Subtest: companies: network failure preserves error handling
+ok 231 - companies: network failure preserves error handling
+  ---
+  duration_ms: 0.5648
+  type: 'test'
+  ...
+# Subtest: companies: ignored legacy source flag airtable still reads Supabase
+ok 232 - companies: ignored legacy source flag airtable still reads Supabase
+  ---
+  duration_ms: 1.0084
+  type: 'test'
+  ...
+# Subtest: companies: ignored legacy source flag unset still reads Supabase
+ok 233 - companies: ignored legacy source flag unset still reads Supabase
+  ---
+  duration_ms: 1.0676
+  type: 'test'
+  ...
+# Subtest: companies: ignored legacy source flag invalid-value still reads Supabase
+ok 234 - companies: ignored legacy source flag invalid-value still reads Supabase
+  ---
+  duration_ms: 0.8742
+  type: 'test'
+  ...
+# Subtest: companies: authentication behavior remains unchanged
+ok 235 - companies: authentication behavior remains unchanged
+  ---
+  duration_ms: 0.3341
+  type: 'test'
+  ...
+# Subtest: companies: filter=startup output remains identical
+ok 236 - companies: filter=startup output remains identical
+  ---
+  duration_ms: 0.6823
+  type: 'test'
+  ...
+# Subtest: companies: filter=award output remains identical
+ok 237 - companies: filter=award output remains identical
+  ---
+  duration_ms: 1.1691
+  type: 'test'
+  ...
+# Subtest: companies: filter=large output remains identical
+ok 238 - companies: filter=large output remains identical
+  ---
+  duration_ms: 0.9463
+  type: 'test'
+  ...
+# Subtest: companies: filter=ai output remains identical
+ok 239 - companies: filter=ai output remains identical
+  ---
+  duration_ms: 1.3254
+  type: 'test'
+  ...
+# Subtest: companies: filter=erp output remains identical
+ok 240 - companies: filter=erp output remains identical
+  ---
+  duration_ms: 0.9714
+  type: 'test'
+  ...
+# Subtest: companies: filter=sec output remains identical
+ok 241 - companies: filter=sec output remains identical
+  ---
+  duration_ms: 0.9027
+  type: 'test'
+  ...
+# Subtest: companies: filter=unknown output remains identical
+ok 242 - companies: filter=unknown output remains identical
+  ---
+  duration_ms: 2.4571
+  type: 'test'
+  ...
+# Subtest: companies: default 200-item limit remains identical
+ok 243 - companies: default 200-item limit remains identical
+  ---
+  duration_ms: 3.1917
+  type: 'test'
+  ...
+# Subtest: cases: non-GET still returns 405
+ok 244 - cases: non-GET still returns 405
+  ---
+  duration_ms: 0.4134
+  type: 'test'
+  ...
+# Subtest: cases: industry-code lookup failure retains raw codes
+ok 245 - cases: industry-code lookup failure retains raw codes
+  ---
+  duration_ms: 0.6278
+  type: 'test'
+  ...
+# Subtest: stats: maintenance failure remains null without failing other statistics
+ok 246 - stats: maintenance failure remains null without failing other statistics
+  ---
+  duration_ms: 1.119
+  type: 'test'
+  ...
+# Subtest: solutions: optional data_source failure remains graceful
+ok 247 - solutions: optional data_source failure remains graceful
+  ---
+  duration_ms: 2.2087
+  type: 'test'
+  ...
+# Subtest: solutions: optional record_status HTTP failure preserves historical response
+ok 248 - solutions: optional record_status HTTP failure preserves historical response
+  ---
+  duration_ms: 1.9351
+  type: 'test'
+  ...
+# Subtest: solutions: optional record_status network failure preserves historical response
+ok 249 - solutions: optional record_status network failure preserves historical response
+  ---
+  duration_ms: 4.3102
+  type: 'test'
+  ...
+# Subtest: solutions: loaded status retains suspected status and normalizes null to normal
+ok 250 - solutions: loaded status retains suspected status and normalizes null to normal
+  ---
+  duration_ms: 2.7991
+  type: 'test'
+  ...
+# Subtest: solutions: image URLs join by solution_id and include only active rows
+ok 251 - solutions: image URLs join by solution_id and include only active rows
+  ---
+  duration_ms: 2.0892
+  type: 'test'
+  ...
+# Subtest: solutions: image lookup 404 retains HTTP 200
+ok 252 - solutions: image lookup 404 retains HTTP 200
+  ---
+  duration_ms: 2.5857
+  type: 'test'
+  ...
+# Subtest: solutions: image lookup 403 retains HTTP 200
+ok 253 - solutions: image lookup 403 retains HTTP 200
+  ---
+  duration_ms: 2.2993
+  type: 'test'
+  ...
+# Subtest: solutions: image lookup network failure retains HTTP 200
+ok 254 - solutions: image lookup network failure retains HTTP 200
+  ---
+  duration_ms: 2.3569
+  type: 'test'
+  ...
+# Subtest: solutions: multi-page requests remain identical
+ok 255 - solutions: multi-page requests remain identical
+  ---
+  duration_ms: 44.7769
+  type: 'test'
+  ...
+# Subtest: stats: multi-page requests remain identical
+ok 256 - stats: multi-page requests remain identical
+  ---
+  duration_ms: 14.5585
+  type: 'test'
+  ...
+# Subtest: companies: multi-page requests remain identical
+ok 257 - companies: multi-page requests remain identical
+  ---
+  duration_ms: 6.8445
+  type: 'test'
+  ...
+# Subtest: solutions: exact-page 416 handling remains identical
+ok 258 - solutions: exact-page 416 handling remains identical
+  ---
+  duration_ms: 32.1248
+  type: 'test'
+  ...
+# Subtest: stats: exact-page 416 handling remains identical
+ok 259 - stats: exact-page 416 handling remains identical
+  ---
+  duration_ms: 12.2006
+  type: 'test'
+  ...
+# Subtest: four read APIs and public assets contain no live Airtable/source-switch references
+ok 260 - four read APIs and public assets contain no live Airtable/source-switch references
+  ---
+  duration_ms: 34.3095
+  type: 'test'
+  ...
+1..260
+# tests 260
+# suites 0
+# pass 246
+# fail 14
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 874.8351

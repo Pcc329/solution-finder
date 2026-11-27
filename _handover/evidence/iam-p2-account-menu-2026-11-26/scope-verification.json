@@ -1,0 +1,460 @@
+{
+  "base": "ed95ac35626d72483c00c0c94787580f09e25bde",
+  "tracked_changes_before_commit": [
+    "public/auth-gate.js"
+  ],
+  "untracked_before_commit": [
+    "_handover/evidence/iam-p2-account-menu-2026-11-26/baseline-verification.json",
+    "_handover/evidence/iam-p2-account-menu-2026-11-26/baseline.tap.log",
+    "_handover/evidence/iam-p2-account-menu-2026-11-26/final-verification.json",
+    "_handover/evidence/iam-p2-account-menu-2026-11-26/final.tap.log",
+    "_handover/evidence/iam-p2-account-menu-2026-11-26/forced-change-parity.json",
+    "tests/iam-p2-account-menu.test.mjs"
+  ],
+  "allowed_scope_only": true,
+  "all_existing_tests_unchanged": true,
+  "api_file_count": 12,
+  "protected_lf_comparisons": [
+    {
+      "file": "_lib/auth.js",
+      "sha256_lf": "dca7f7b4d397765ea096354a591a666148c097c06e4b1e165ec0faba8608dd13",
+      "unchanged": true
+    },
+    {
+      "file": "_lib/company-search.js",
+      "sha256_lf": "8d476e65901c6651bfb070cdad59c1d52d704a66ecae8f53c6f51e16adb07be9",
+      "unchanged": true
+    },
+    {
+      "file": "_lib/password-policy.js",
+      "sha256_lf": "4fcfb4a6da3f1a4f7821961dbd3228408cbf3ffaa75f2ee9375c5e4e6acb4602",
+      "unchanged": true
+    },
+    {
+      "file": "_lib/supabase-insert.js",
+      "sha256_lf": "00cb57e749d192efd3c04c0440bf641627d382f3bf94b48ea77e96b059ae8f72",
+      "unchanged": true
+    },
+    {
+      "file": "_lib/usage.js",
+      "sha256_lf": "fb2bb8bfba7dcbd683591cc76f2959a9996dcb8635eb56577fae7b4502667888",
+      "unchanged": true
+    },
+    {
+      "file": "api/ask.js",
+      "sha256_lf": "297defddee20a9953c391d09e30f1ce8d990182f9f18d9945bf1596b47e15893",
+      "unchanged": true
+    },
+    {
+      "file": "api/auth.js",
+      "sha256_lf": "6682dfd908ea4efca37987459946bdc7419944b594e95cd56ca754c0c722e028",
+      "unchanged": true
+    },
+    {
+      "file": "api/cases.js",
+      "sha256_lf": "f1a94e5000899ca83bf5ad71f5f19f1239dd5ee2debc13c07a8ae6409bf02089",
+      "unchanged": true
+    },
+    {
+      "file": "api/claude.js",
+      "sha256_lf": "c592ffc11227ce7a3809ecd18e1dc977e56f70ac61e482a022022f3a513473a0",
+      "unchanged": true
+    },
+    {
+      "file": "api/companies.js",
+      "sha256_lf": "51bc491393ba2fbd767c8f538b385c1db7280b17728b1dcb75afc38b6d9c6883",
+      "unchanged": true
+    },
+    {
+      "file": "api/company-detail.js",
+      "sha256_lf": "cef6c87fea61ef0c6f84c1304cb2333177236be675df99f8bb269394fdabc89f",
+      "unchanged": true
+    },
+    {
+      "file": "api/csp-report.js",
+      "sha256_lf": "569a57fafbc31f465e1b8be459a84f7ed503fde2886b99c2adab71804d40162d",
+      "unchanged": true
+    },
+    {
+      "file": "api/feedback.js",
+      "sha256_lf": "6a31dc3f7e45f22e7d4e84019f2eff970afada8617a283c1266dc10d254e2ff0",
+      "unchanged": true
+    },
+    {
+      "file": "api/manufacturing-analyze.js",
+      "sha256_lf": "d2c010c79a23f159f8d85fc69aa0a1178a378410e3dd325789a061363f23e1b9",
+      "unchanged": true
+    },
+    {
+      "file": "api/manufacturing-recommend.js",
+      "sha256_lf": "e1cc88406a2cd81d58ac9db4b301c4d36488e889f1b0e0381df16269ff3ab172",
+      "unchanged": true
+    },
+    {
+      "file": "api/solutions.js",
+      "sha256_lf": "d19eab22b72860063c2c642633bc3c88bc06973c4d03921314b4b02edfad5b8d",
+      "unchanged": true
+    },
+    {
+      "file": "api/stats.js",
+      "sha256_lf": "9ebaa4a6989a2603f026b1e37779e1ebb39445432aa9f074331775756bb2c61f",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20260826_create_data_sources.sql",
+      "sha256_lf": "4d175b80e813bae60ce26dbfd12185741c2a7366243698275c2892007dcfca50",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20260910_create_solution_reviews.sql",
+      "sha256_lf": "27d401d78d34bfa1e567af71c44388cf66b41953142556347e668eb4de97466d",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20260914_create_csp_violations.sql",
+      "sha256_lf": "9e607480ee789bb2882442aca316f10147147066d9b03842d8298c72511f69b8",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261001_create_sf_mcp_access.sql",
+      "sha256_lf": "68f99dea24b878c401d23df3a8bd617dfb903e9bfe764c785abf70a2a5b1d5a8",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261001_create_sf_mcp_search.sql",
+      "sha256_lf": "6198fdf445683819bc9a056d4b83b8866352203c72425c432c51e9ec41f92e78",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261002_company_tax_industry.sql",
+      "sha256_lf": "7ef9cc078b85d4a32715ad3d1819c7b96675a0a3c05018d4c4700104fb64bdd6",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261002_normalize_city_taiwan.sql",
+      "sha256_lf": "7a095aa2a1996d592bc9533394c23eded2badf99832bab80513f8588cd8923dc",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261002_rename_iii_industry_survey.sql",
+      "sha256_lf": "0c1533081e16a6e0174a0e7012b623bedb60e05a11842cdd2702e2667f022aa1",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261012_create_airtable_replacement_tables.sql",
+      "sha256_lf": "a8961212bab2f91a37cd071cb65d863f065ea3154561999c8ced017e71ba3003",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261014_sf_mcp_v1_2.sql",
+      "sha256_lf": "0c06539e6472b1a5160f87e7543d3b0ef06e2bf66528169baf50f106205c7b5f",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261015_startup_delist_16.sql",
+      "sha256_lf": "df76c0b0ad00895714af1985a09a4edb1d3ccdb7beb7822222b273922e7622ec",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261019_contact_access_logs.sql",
+      "sha256_lf": "3548230436bc2c8d6b36ac0e0e5163a383790559910b597955eb28e3233e6f38",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261019b_contact_access_logs_append_only.sql",
+      "sha256_lf": "63951f8063c3f4a8b7bc92b8c71a4d6a76a681b2b143f95d6348617e5c4c9e52",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261023_dash_vendor_first_wave.sql",
+      "sha256_lf": "0c82f1a4a27e5e7590ce372ab942a8e1e1e86a47ca59f2db0b37a6f47627bb53",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261023_solution_name_placeholder_v2.sql",
+      "sha256_lf": "1eb0948a77de1be92219e4c00fbaaa66fc498bd14076cf481eb30156fc146bc5",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261104_sf_mcp_v1_3_capital.sql",
+      "sha256_lf": "7d85674d416f3e103f9341fb2e20429b2a13bf499e3fd4f18e9ff35a82c077e0",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261109_solution_images.sql",
+      "sha256_lf": "a23d757faf2de63e8d4e32b8e3de1e6e96a8960b687bc696cc75c8e248a03eaf",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261110_rainforest_pilot_import.sql",
+      "sha256_lf": "2bb31c3fabe0372a9887205348953a2405e3924bcbb5d4897744f1a87f78f2b4",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261110_solution_images_updated_at.sql",
+      "sha256_lf": "5efb3093136cbf7994492073935f6739f2dae89f6adb7c0c0e7709833b40c815",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261111_sf_mcp_v1_4_quota.sql",
+      "sha256_lf": "27220f630ca13f9835ef736733682c57da54c7781f22b5182a0f3d96cfd71779",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261123_freshness_audit_write.sql",
+      "sha256_lf": "bcb61dcc2e388928a98c4f0d3fd64309bd9cb4cb3c5d38002c806b361323e99a",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261124_case_category_fix.sql",
+      "sha256_lf": "5324fa4253c96dbb79fcaec8b4a4bbb9cae2b7b5b4939cbbb54b7ff61673976e",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261124_iam_p1_user_roles_usage_logs.sql",
+      "sha256_lf": "e1e869d7ea93aa0caefe2b7f5ad84098228ae9818e1c9d5c498102df7f824427",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261124_revoke_anon_internal_tables.sql",
+      "sha256_lf": "a9647c9a9cb52575061cd07bab971b7866e25be08d93dd56534735faefbaa40d",
+      "unchanged": true
+    },
+    {
+      "file": "migrations/20261124_revoke_users_public_grants.sql",
+      "sha256_lf": "be66dc2e2fe43345d27649cd85175000f90adfe3d344eb52db5a1c63abe67271",
+      "unchanged": true
+    },
+    {
+      "file": "supabase/functions/dash-data/handler.mjs",
+      "sha256_lf": "74fbe2e49c37ee94669dce61ed59b16c4b2e8fc949bee4e1d533260f20e9f088",
+      "unchanged": true
+    },
+    {
+      "file": "supabase/functions/dash-data/index.ts",
+      "sha256_lf": "1530bc62d1b781a9c73c7d07fd38d3bf11e386bebd4d996230524a8e94828ca8",
+      "unchanged": true
+    },
+    {
+      "file": "supabase/functions/sf-mcp/index.ts",
+      "sha256_lf": "ead1a0d04278631c2d4bc7daceaaab01c91b995de7a3031116f561411b376127",
+      "unchanged": true
+    },
+    {
+      "file": "tests/airtable-write-migration.test.mjs",
+      "sha256_lf": "3b4277feaecf3ae04aa4683cf309b6d33f28f98911b6e30970b709c0e1196390",
+      "unchanged": true
+    },
+    {
+      "file": "tests/company-search.test.mjs",
+      "sha256_lf": "b07ac4d8c077d00eae9e04e1bdf08b4652a77ae51f09a06dd948c5fbffe880c5",
+      "unchanged": true
+    },
+    {
+      "file": "tests/company-sorting.test.mjs",
+      "sha256_lf": "031b53bf6f9a8b4fee43a9974016c4d7229a76b7ede71fb282ed651aa7cab0fe",
+      "unchanged": true
+    },
+    {
+      "file": "tests/contact-access-log.test.mjs",
+      "sha256_lf": "191bd97966226e9cef23900d364268a5c8e3e4de905630aa9872f5a2366bff8c",
+      "unchanged": true
+    },
+    {
+      "file": "tests/example-combos.test.mjs",
+      "sha256_lf": "58dd6ae5498440837092677ad9ba3131faa4fa1057a411fa052e5af755109351",
+      "unchanged": true
+    },
+    {
+      "file": "tests/export-results.test.mjs",
+      "sha256_lf": "0bbc9cf7721311372f78a6e83ec541144c909fba08b754947e2c3a8cd650129b",
+      "unchanged": true
+    },
+    {
+      "file": "tests/fixtures/iam-v1-auth.mjs",
+      "sha256_lf": "444419a4066ae3270c57a58fb2779b2c0a01140f858204c168819d4ecf6567df",
+      "unchanged": true
+    },
+    {
+      "file": "tests/fixtures/supabase-read.fixture.mjs",
+      "sha256_lf": "604620ca26ef2dc4c26bdc7b9eead735e5e94a1c01d5ddde1fecdab7122ce90f",
+      "unchanged": true
+    },
+    {
+      "file": "tests/global-nav.test.mjs",
+      "sha256_lf": "8c3b865cca8977d18b82710508b3afd29815c2fa8489c66e3dcda77ddffec832",
+      "unchanged": true
+    },
+    {
+      "file": "tests/home-demo.test.mjs",
+      "sha256_lf": "b293d81fd3301c4a2e2e9772957a24067eb0e7eb7e9750ea45ac47bc186a1d18",
+      "unchanged": true
+    },
+    {
+      "file": "tests/homepage-count-loading.test.cjs",
+      "sha256_lf": "d8047bb46f0e16134b657004ec82ae44b687dd1c0e52fd430d8693b331a645a8",
+      "unchanged": true
+    },
+    {
+      "file": "tests/iam-p2-gate.test.mjs",
+      "sha256_lf": "fc7810a0ba2e59e716e9bfb1cf55e6e001da9d189a8571502329789c23725069",
+      "unchanged": true
+    },
+    {
+      "file": "tests/iam-p2-signup.test.mjs",
+      "sha256_lf": "c6af3e71d0c9db63aa7114ca04976900872b264d7fc64e016518017375e163b7",
+      "unchanged": true
+    },
+    {
+      "file": "tests/iam-p2.test.mjs",
+      "sha256_lf": "27ec652d14a8220fc66ff73c02feb123ef30a62a0d02daa7919f2fd5044ea88e",
+      "unchanged": true
+    },
+    {
+      "file": "tests/industry-vertical-filter.test.mjs",
+      "sha256_lf": "c566b9769994b7731426a8f822760d678f35c429a715fa5d83a2b72188abc6f8",
+      "unchanged": true
+    },
+    {
+      "file": "tests/platform-overview.test.mjs",
+      "sha256_lf": "7bc45e9e45605def9125961f93d7a1f8615d00cbe498c1dd92ca5e81832ebd4d",
+      "unchanged": true
+    },
+    {
+      "file": "tests/program-badge-allowlist.test.mjs",
+      "sha256_lf": "c9b3a82165006b6f4ba931863b5fa71678b768a5c4a8392a87d1f9879cf12b5e",
+      "unchanged": true
+    },
+    {
+      "file": "tests/public-brand-copy.test.mjs",
+      "sha256_lf": "e4c32f716bed38e74f3bead43717e21caddb01b1af83454518ca764e962ee2e2",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sf-mcp/.gitignore",
+      "sha256_lf": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sf-mcp/package-lock.json",
+      "sha256_lf": "35095dcac0f0ce3a230328b00cb6ec4278900075a3d8b2f5c3cb177210f6229c",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sf-mcp/package.json",
+      "sha256_lf": "23eb0edecc80f092bbea1ed9ec0721dbf62458c3b02d37adf9566a922f846d56",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sf-mcp/quota-test-helpers.mjs",
+      "sha256_lf": "a0161bd93afe9737f2f26c5cb032e5c8d95753259eb1ba9e307a3bfeefa4a836",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sf-mcp/sf-mcp-v1-2.test.mjs",
+      "sha256_lf": "66af55eed33675d4ad2283e4e97f1b238eca6559584dbbb066ac2855efc8a117",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sf-mcp/sf-mcp-v1-3-capital-sql.test.mjs",
+      "sha256_lf": "1c8bd6c1c114b1e3a0210ad047e65749ddadd9a9f4aea9303042441b3293e438",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sf-mcp/sf-mcp-v1-4-quota-sql.test.mjs",
+      "sha256_lf": "4aad78e769fdda7d9a2032424bb7858c9bbc2c1670cb8d7fe459442ab2ebbf15",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sf-mcp/sf-mcp-v1-4-quota.test.mjs",
+      "sha256_lf": "a114cb6a455585063505995ac35d5d9cba3a000c827ecdfeedf6b22ded7f0513",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sf-mcp/sf_search_parity_gen_test.js",
+      "sha256_lf": "83cc1d4e357313d7f590349f13644d3dd397c4750bc1a746b2a3dc448261c454",
+      "unchanged": true
+    },
+    {
+      "file": "tests/solution-name.test.mjs",
+      "sha256_lf": "bceef8fe352d8130789681f6c3b6d9995a3edf4303679b0433f240cdac89653c",
+      "unchanged": true
+    },
+    {
+      "file": "tests/sources-page.test.mjs",
+      "sha256_lf": "01dfd0f50bcbdd6753a6be7fc616be6dcbdfa81b5aaf27ed1b6d15617eef798a",
+      "unchanged": true
+    },
+    {
+      "file": "tests/status-help.test.mjs",
+      "sha256_lf": "ac8b8aa728087416dc9dd1f578dde8930757eecd20d51b178bd6ee6192100a64",
+      "unchanged": true
+    },
+    {
+      "file": "tests/status-label-parity.test.mjs",
+      "sha256_lf": "663cfa5088e7eeeb307cc97a43e67092055113cc1ed15820a6985fda651e8660",
+      "unchanged": true
+    },
+    {
+      "file": "tests/supabase-read-equivalence.test.mjs",
+      "sha256_lf": "2caad12beccc8b27eb39e479b38335855e93d1e59ec71ab5215734fd2c070b9a",
+      "unchanged": true
+    },
+    {
+      "file": "tests/theme-tokens.test.mjs",
+      "sha256_lf": "c5032d167413694b3721efffefc5291ab366d6be6fbf717404bffb38266ec8d9",
+      "unchanged": true
+    },
+    {
+      "file": "vercel.json",
+      "sha256_lf": "efc9be7e03a9238857e8bdf22a29c647796392d82ff3ea6deb280283fa244e92",
+      "unchanged": true
+    },
+    {
+      "file": "public/compare.html",
+      "sha256_lf": "c3631ea0af17b1c641e38855e7fb81979ea2f7a0c4e7f3564f5a2e4f69056806",
+      "unchanged": true
+    },
+    {
+      "file": "public/dashboard.html",
+      "sha256_lf": "5531a560cbe04dc579ef7f3ae9aa1ea238f34fb150ad4eccd68bedbbaec910d3",
+      "unchanged": true
+    },
+    {
+      "file": "public/diagnosis.html",
+      "sha256_lf": "8f6f159ccf7647b4edf1ff380c173ac9648964f1ce9fcabacc8f7d70c3b18172",
+      "unchanged": true
+    },
+    {
+      "file": "public/feedback.html",
+      "sha256_lf": "ba5f3459f331ce9420c6c1704086296da5f7e0ddb3c874fecdb0bb9419e5d5f2",
+      "unchanged": true
+    },
+    {
+      "file": "public/index.html",
+      "sha256_lf": "5c8db2e04ae4820b7ca537acc1a0ccb51806d94b448466b8d01e3841d9089b40",
+      "unchanged": true
+    },
+    {
+      "file": "public/manufacturing.html",
+      "sha256_lf": "3608e61dc2e2343afbda56a7dc29d996014fb2528235e65431a5ddd827c6ae91",
+      "unchanged": true
+    },
+    {
+      "file": "public/platform-overview.html",
+      "sha256_lf": "2ab1ac79d400d84408d4248e5ba8b71a16eca5f138ced89fe1e0744d8d499571",
+      "unchanged": true
+    },
+    {
+      "file": "public/sources.html",
+      "sha256_lf": "4fa64ac54472b25cb0665c2fe962452d19afecebee9015e36e32c948ac4e24da",
+      "unchanged": true
+    },
+    {
+      "file": "public/strategy-guide.html",
+      "sha256_lf": "b11a3c823facfe8c1d6800fd7a42ec116b901ad61706ca4ad59947213213440f",
+      "unchanged": true
+    }
+  ],
+  "lf_hash_method": "Capture subprocess stdout/stderr bytes; concatenate stdout + stderr; replace CRLF bytes with LF only; hashlib.sha256. JSON written as UTF-8 with newline=\"\\n\"."
+}
